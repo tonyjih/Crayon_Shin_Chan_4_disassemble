@@ -1,20 +1,20 @@
 ; Disassembly of "shin_debug.gb"
 ; This file was created with:
-; mgbdis v2.0 - Game Boy ROM disassembler by Matt Currie and contributors.
+; mgbdis v3.0 - Game Boy ROM disassembler by Matt Currie and contributors.
 ; https://github.com/mattcurrie/mgbdis
 
 SECTION "ROM Bank $007", ROMX[$4000], BANK[$7]
 
     rlca
 
-    INCBIN "gfx\image_007_4001.2bpp"
+    INCBIN "gfx/image_007_4001.2bpp"
 
-    INCBIN "gfx\image_007_4201.2bpp"
+    INCBIN "gfx/image_007_4201.2bpp"
 
     db $ff, $00, $0a, $00, $a1, $00, $08, $00, $24, $00, $00, $00, $00, $00, $00, $00
     db $ff, $00, $51, $00, $04, $00, $20, $00, $08, $00, $00, $00, $00, $00, $00, $00
 
-    INCBIN "gfx\image_007_4301.2bpp"
+    INCBIN "gfx/image_007_4301.2bpp"
 
     db $ef, $00, $af, $00, $af, $00, $ab, $00, $bb, $00, $fb, $00, $fb, $00, $eb, $00
     db $fb, $00, $eb, $00, $ef, $00, $af, $00, $af, $00, $ab, $00, $bb, $00, $fb, $00
@@ -22,20 +22,20 @@ SECTION "ROM Bank $007", ROMX[$4000], BANK[$7]
     db $00, $00, $00, $00, $00, $00, $3d, $00, $c2, $00, $29, $00, $fd, $00, $ff, $00
     db $00, $00, $00, $00, $00, $00, $f7, $00, $08, $00, $62, $00, $f2, $00, $ff, $00
 
-    INCBIN "gfx\image_007_43e1.2bpp"
+    INCBIN "gfx/image_007_43e1.2bpp"
 
-    INCBIN "gfx\image_007_5fe1.2bpp"
+    INCBIN "gfx/image_007_5fe1.2bpp"
 
     db $00, $00, $00, $00, $00, $00, $00, $18, $00, $66, $0e, $81, $3f, $00, $ff, $00
     db $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $c7, $c0, $38, $ff, $00
 
-    INCBIN "gfx\image_007_60f1.2bpp"
+    INCBIN "gfx/image_007_60f1.2bpp"
 
-    INCBIN "gfx\image_007_61f1.2bpp"
+    INCBIN "gfx/image_007_61f1.2bpp"
 
     db $32, $00, $a5, $63, $4b, $01, $f6, $63, $64, $02, $4f, $64
 
-    INCBIN "gfx\image_007_620d.2bpp"
+    INCBIN "gfx/image_007_620d.2bpp"
 
     ld a, l
     inc bc
@@ -44,15 +44,15 @@ SECTION "ROM Bank $007", ROMX[$4000], BANK[$7]
 
     db $32, $00, $9b, $6c, $4b, $01, $9b, $6c, $64, $02, $9b, $6c, $7d, $03, $9b, $6c
 
-    INCBIN "gfx\image_007_6271.2bpp"
+    INCBIN "gfx/image_007_6271.2bpp"
 
     db $32, $00, $9e, $6e, $4b, $01, $01, $6f, $64, $02, $52, $6f, $7d, $03, $af, $6f
 
-    INCBIN "gfx\image_007_6291.2bpp"
+    INCBIN "gfx/image_007_6291.2bpp"
 
     db $32, $00, $92, $70, $4b, $01, $7f, $71, $64, $02, $26, $72, $7d, $03, $f1, $72
 
-    INCBIN "gfx\image_007_62b1.2bpp"
+    INCBIN "gfx/image_007_62b1.2bpp"
 
     db $32, $00, $f6, $76, $4b, $01, $f5, $77, $64, $02, $e4, $78, $7d, $03, $df, $79
     db $19, $00, $20, $7a, $19, $00, $27, $7a, $19, $00, $2e, $7a

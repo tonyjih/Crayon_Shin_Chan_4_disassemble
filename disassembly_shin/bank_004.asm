@@ -1,6 +1,6 @@
 ; Disassembly of "shin_debug.gb"
 ; This file was created with:
-; mgbdis v2.0 - Game Boy ROM disassembler by Matt Currie and contributors.
+; mgbdis v3.0 - Game Boy ROM disassembler by Matt Currie and contributors.
 ; https://github.com/mattcurrie/mgbdis
 
 SECTION "ROM Bank $004", ROMX[$4000], BANK[$4]
@@ -347,7 +347,9 @@ SECTION "ROM Bank $004", ROMX[$4000], BANK[$4]
     ld bc, $7401
     ld bc, $1010
     halt
+    nop
     halt
+    nop
 
     db $76, $00, $78, $79
 
