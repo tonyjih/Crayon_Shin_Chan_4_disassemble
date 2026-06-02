@@ -3937,8 +3937,12 @@ PlayerState_StageInteraction0C::
     ld a, [$c0b1]
     rst $00
 
-    db $db, $56, $a9, $56, $81, $56, $47, $56
+	dw label_001_56db
+	dw label_001_56a9
+	dw label_001_5681
+	dw label_001_5647
 
+label_001_5647::
     xor a
     ld [$c0b1], a
     ld [$c0b2], a
@@ -3967,7 +3971,7 @@ PlayerState_StageInteraction0C::
     ld a, $04
     jp BankedMemcpy
 
-
+label_001_5681::
     call Call_001_569a
     ld a, [$c0b2]
     inc a
@@ -3992,7 +3996,7 @@ Call_001_569a::
     ld d, $05
     jp Jump_000_0522
 
-
+label_001_56a9::
     call Call_001_56c2
     ld a, [$c0b2]
     inc a
@@ -4024,7 +4028,7 @@ jr_001_56cf::
     ld d, $00
     jp Jump_000_0532
 
-
+label_001_56db::
     call Call_001_5707
     ld hl, hSCY
     ld a, [hl]
@@ -4430,13 +4434,15 @@ PlayerState_GroundedSnap:: ; State 03: grounded snap/settle state after specific
     ldh a, [$ffc1]
     rst $00
 
-    db $1b, $59, $20, $59
+	dw label_001_591b
+	dw label_001_5920
 
+label_001_591b::
     ld a, $10
     ldh [hPlayerAnimId], a
     ret
 
-
+label_001_5920::
     ld h, $0a
     ld l, $02
     ld e, $00
@@ -4846,7 +4852,9 @@ jr_001_5b31::
     ldh a, [$ffc1]
     rst $00
 
-    db $63, $5b, $68, $5b, $9c, $5b
+	dw label_001_5b63
+	dw label_001_5b68
+	dw label_001_5b9c
 
 jr_001_5b3a::
     ldh a, [$ffc1]
@@ -4874,11 +4882,12 @@ jr_001_5b51::
 
     db $15, $16, $16, $17, $15, $1b
 
+label_001_5b63::
     ld a, $04
     ldh [hPlayerAnimId], a
     ret
 
-
+label_001_5b68::
     ld h, $0a
     ld l, $04
     ld e, $00
@@ -4923,6 +4932,7 @@ jr_001_5b98::
     ldh a, [$ffa8]
     jr jr_001_5b8f
 
+label_001_5b9c::
     ld h, $0a
     ld l, $05
     ld e, $00
@@ -5088,8 +5098,13 @@ Call_001_5c78:: ; Compatibility alias.
     ldh a, [hPlayerForm]
     rst $00
 
-    db $85, $5c, $92, $5c, $c5, $5c, $b0, $5c, $85, $5c
+	dw label_001_5c85
+	dw label_001_5c92
+	dw label_001_5cc5
+	dw label_001_5cb0
+	dw label_001_5c85
 
+label_001_5c85::
     ld a, $0e
     ldh [hPlayerAnimId], a
     ldh a, [hPlayerVelYHigh]
@@ -5100,7 +5115,7 @@ Call_001_5c78:: ; Compatibility alias.
     ldh [hPlayerAnimId], a
     ret
 
-
+label_001_5c92::
     ldh a, [hPlayerState]
     cp $02
     call z, UpdateFlyingSquirrelGlide
@@ -5123,8 +5138,7 @@ jr_001_5ca3::
     ldh [hPlayerAnimId], a
     ret
 
-
-jr_001_5cb0::
+label_001_5cb0::
     ld h, $0a
     ld l, $02
     ld e, $00
@@ -5139,9 +5153,10 @@ jr_001_5cb0::
 
     db $0e, $0f
 
+label_001_5cc5::
     ldh a, [hPlayerActionLock]
     or a
-    jr z, jr_001_5cb0
+    jr z, label_001_5cb0
 
     ld hl, $5d71
     ld a, l
