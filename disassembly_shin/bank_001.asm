@@ -22,20 +22,25 @@ SECTION "ROM Bank $001", ROMX[$4000], BANK[$1]
     rst $00
 
     ; Gameplay init substate jump table.
-    dw $4022
-    dw $402d
-    dw $4034
-    dw $4034
+    dw InitGameplaySubstateFreshStart
+    dw InitGameplaySubstateResetStageFlags
+    dw InitGameplaySubstateCommon
+    dw InitGameplaySubstateCommon
 
+InitGameplaySubstateFreshStart::
     xor a
     ldh [hPlayerForm], a
     ldh [hPlayerHealth], a
     ldh [hBonusCounter], a
     ld a, $02
     ldh [hPlayerLives], a
+
+InitGameplaySubstateResetStageFlags::
     xor a
     ld [$c0a8], a
     ld [$c0b4], a
+
+InitGameplaySubstateCommon::
     call Call_001_41a9
     call Call_001_417f
     call InitObjectSpawnList
@@ -294,12 +299,13 @@ Call_001_42fd::
     rst $00
 
     ; Player form graphics loader table.
-    dw $430a ; PLAYER_FORM_NORMAL
-    dw $4319 ; PLAYER_FORM_FLYING_SQUIRREL
-    dw $4328 ; PLAYER_FORM_COCKROACH
-    dw $4337 ; PLAYER_FORM_CHICKEN
-    dw $4346 ; PLAYER_FORM_ACTION_KAMEN
+    dw LoadPlayerFormGfxNormal ; PLAYER_FORM_NORMAL
+    dw LoadPlayerFormGfxFlyingSquirrel ; PLAYER_FORM_FLYING_SQUIRREL
+    dw LoadPlayerFormGfxCockroach ; PLAYER_FORM_COCKROACH
+    dw LoadPlayerFormGfxChicken ; PLAYER_FORM_CHICKEN
+    dw LoadPlayerFormGfxActionKamen ; PLAYER_FORM_ACTION_KAMEN
 
+LoadPlayerFormGfxNormal::
     ld hl, $4131
     ld de, $8130
     ld bc, $0470
@@ -308,6 +314,7 @@ Call_001_42fd::
     ret
 
 
+LoadPlayerFormGfxFlyingSquirrel::
     ld hl, $45a1
     ld de, $8130
     ld bc, $0530
@@ -316,6 +323,7 @@ Call_001_42fd::
     ret
 
 
+LoadPlayerFormGfxCockroach::
     ld hl, $53a1
     ld de, $8130
     ld bc, $0530
@@ -324,6 +332,7 @@ Call_001_42fd::
     ret
 
 
+LoadPlayerFormGfxChicken::
     ld hl, $4f41
     ld de, $8130
     ld bc, $0530
@@ -332,6 +341,7 @@ Call_001_42fd::
     ret
 
 
+LoadPlayerFormGfxActionKamen::
     ld hl, $4ad1
     ld de, $8130
     ld bc, $0530
@@ -740,10 +750,10 @@ Call_001_45bf:: ; Compatibility alias.
     rst $00
 
     ; wPlayerSpecialActor0 type jump table. Type 0 is unused because zero returns above.
-    dw $4654 ; 00/01: flying squirrel projectile slot 0
-    dw $4654 ; 01: flying squirrel projectile slot 0
-    dw $4682 ; 02: chicken projectile
-    dw $47cd ; 03: Action Kamen projectile
+    dw UpdateFlyingSquirrelProjectile ; 00/01: flying squirrel projectile slot 0
+    dw UpdateFlyingSquirrelProjectile ; 01: flying squirrel projectile slot 0
+    dw UpdateChickenProjectile ; 02: chicken projectile
+    dw UpdateActionKamenProjectile ; 03: Action Kamen projectile
 
 UpdatePlayerSpecialActor1:: ; Update wPlayerSpecialActor1, used by paired flying-squirrel projectiles.
 Call_001_45cb:: ; Compatibility alias.
@@ -993,32 +1003,56 @@ Call_001_46f6:: ; Compatibility alias.
     and $3f
     rst $00
 
-    ; Projectile tile passability dispatch table. rst $00 consumes these words as data.
-    dw $478a ; 00
-    dw $478c ; 01
-    dw $478e ; 02
-    dw $4794 ; 03
-    dw $479a ; 04
-    dw $47a2 ; 05
-    dw $478a ; 06
-    dw $479a ; 07
-    dw $47a2 ; 08
-    dw $478a ; 09
-    dw $479a ; 0a
-    dw $478a ; 0b
-    dw $47ae ; 0c
-    dw $47b4 ; 0d
-    dw $479a ; 0e
-    dw $478a ; 0f
-    dw $478a ; 10
-    dw $478c ; 11
-    dw $478c ; 12
-    dw $478a ; 13
-    dw $478c ; 14
-    dw $479a ; 15
-    dw $478a ; 16
-    dw $479a ; 17
-    dw $479a ; 18
+    db $8a, $47, $8c, $47
+
+    adc [hl]
+    ld b, a
+    sub h
+    ld b, a
+
+    db $9a, $47
+
+    and d
+    ld b, a
+
+    db $8a, $47
+
+    sbc d
+    ld b, a
+    and d
+    ld b, a
+    adc d
+    ld b, a
+    sbc d
+    ld b, a
+    adc d
+    ld b, a
+    xor [hl]
+    ld b, a
+    or h
+    ld b, a
+    sbc d
+    ld b, a
+    adc d
+    ld b, a
+    adc d
+    ld b, a
+    adc h
+    ld b, a
+    adc h
+    ld b, a
+    adc d
+    ld b, a
+    adc h
+    ld b, a
+    sbc d
+    ld b, a
+    adc d
+    ld b, a
+    sbc d
+    ld b, a
+    sbc d
+    ld b, a
     adc d
     ld b, a
     sbc d
@@ -1279,7 +1313,7 @@ Call_001_4812:: ; Compatibility alias.
     dw UpdateObjDropPlatformB ; 1e: OBJ_PLATFORM_DROP_B
     dw UpdateObjStageEventType1F ; 1f: platform/event, pending
     dw UpdateObjStageEventType20 ; 20: platform/event, pending
-    dw $6af3 ; 21: OBJ_STAGE_EVENT_TYPE_21 (UpdateObjStageEvent21; raw pointer preserves original target)
+    dw UpdateObjStageEvent21 ; 21: OBJ_STAGE_EVENT_TYPE_21 ($6af3)
     dw UpdateObjMovingPlatformHorizontal ; 22: OBJ_PLATFORM_MOVING_HORIZONTAL
     dw UpdateObjStageEvent23 ; 23: OBJ_STAGE_EVENT_TYPE_23
     dw UpdateObjStageEventChild24 ; 24: OBJ_STAGE_EVENT_CHILD_24
@@ -2411,24 +2445,27 @@ Call_001_4e05::
     rst $00
 
     ; Player tile-effect Y alignment dispatch table.
-    dw $4e1f ; 00
-    dw $4e20 ; 01
-    dw $4e27 ; 02
-    dw $4e1f ; 03
-    dw $4e1f ; 04
-    dw $4e1f ; 05
-    dw $4e1f ; 06
-    dw $4e1f ; 07
+    dw PlayerTileEffectNoAlign ; 00
+    dw PlayerTileEffectAlignYToTile ; 01
+    dw PlayerTileEffectAlignYToTilePlus8 ; 02
+    dw PlayerTileEffectNoAlign ; 03
+    dw PlayerTileEffectNoAlign ; 04
+    dw PlayerTileEffectNoAlign ; 05
+    dw PlayerTileEffectNoAlign ; 06
+    dw PlayerTileEffectNoAlign ; 07
 
+PlayerTileEffectNoAlign::
     ret
 
 
+PlayerTileEffectAlignYToTile::
     ldh a, [hPlayerY]
     and $f0
     ldh [hPlayerY], a
     ret
 
 
+PlayerTileEffectAlignYToTilePlus8::
     ldh a, [hPlayerY]
     and $f0
     or $08
@@ -2596,11 +2633,12 @@ Call_001_4f08:: ; Compatibility alias.
     rst $00
 
     ; Stage animated-tile dispatcher table.
-    dw $4f13
-    dw $4fcb
-    dw $5032
-    dw $5033
+    dw UpdateStageAnimatedTiles_Set0
+    dw UpdateStageAnimatedTiles_Set1
+    dw UpdateStageAnimatedTiles_NoneA
+    dw UpdateStageAnimatedTiles_Set2
 
+UpdateStageAnimatedTiles_Set0::
     ldh a, [hCollisionFlag]
     and $60
     ret nz
@@ -2627,18 +2665,20 @@ Call_001_4f46::
     rst $00
 
     ; Stage animated tile sub-dispatch table.
-    dw $4f57 ; 00
-    dw $4f58 ; 01
-    dw $4f69 ; 02
-    dw $4f7d ; 03
-    dw $4f91 ; 04
-    dw $4fa4 ; 05
-    dw $4fb1 ; 06
-    dw $4fbe ; 07
+    dw StageAnimSub4F46_None ; 00
+    dw StageAnimSub4F46_01 ; 01
+    dw StageAnimSub4F46_02 ; 02
+    dw StageAnimSub4F46_03 ; 03
+    dw StageAnimSub4F46_04 ; 04
+    dw StageAnimSub4F46_05 ; 05
+    dw StageAnimSub4F46_06 ; 06
+    dw StageAnimSub4F46_07 ; 07
 
+StageAnimSub4F46_None::
     ret
 
 
+StageAnimSub4F46_01::
     ld c, $39
     ld e, c
     call jr_001_4f9c
@@ -2649,6 +2689,7 @@ Call_001_4f46::
     ld e, c
     jr jr_001_4f9c
 
+StageAnimSub4F46_02::
     ld c, $3a
     ld e, $39
     call jr_001_4f9c
@@ -2659,6 +2700,7 @@ Call_001_4f46::
     ld e, $3b
     jr jr_001_4f9c
 
+StageAnimSub4F46_03::
     ld c, $3b
     ld e, $39
     call jr_001_4f9c
@@ -2669,6 +2711,7 @@ Call_001_4f46::
     ld e, $3b
     jr jr_001_4f9c
 
+StageAnimSub4F46_04::
     ld c, $3c
     ld e, $3c
     call jr_001_4f9c
@@ -2681,6 +2724,7 @@ jr_001_4f9c::
     jp Jump_000_0532
 
 
+StageAnimSub4F46_05::
     ld c, $3c
     ld e, $3d
     call jr_001_4f9c
@@ -2688,6 +2732,7 @@ jr_001_4f9c::
     ld e, $3c
     jr jr_001_4f9c
 
+StageAnimSub4F46_06::
     ld c, $2e
     ld e, $2e
     call jr_001_4f9c
@@ -2695,6 +2740,7 @@ jr_001_4f9c::
     ld e, $2f
     jr jr_001_4f9c
 
+StageAnimSub4F46_07::
     ld c, $2e
     ld e, $2f
     call jr_001_4f9c
@@ -2702,6 +2748,7 @@ jr_001_4f9c::
     ld e, $2e
     jr jr_001_4f9c
 
+UpdateStageAnimatedTiles_Set1::
     ldh a, [hCollisionFlag]
     and $60
     ret nz
@@ -2732,13 +2779,15 @@ Call_001_500b::
     rst $00
 
     ; Stage animated tile sub-dispatch table.
-    dw $5012 ; 00
-    dw $5013 ; 01
-    dw $501f ; 02
+    dw StageAnimSub500B_None ; 00
+    dw StageAnimSub500B_01 ; 01
+    dw StageAnimSub500B_02 ; 02
 
+StageAnimSub500B_None::
     ret
 
 
+StageAnimSub500B_01::
     ld c, $29
     ld e, c
     call Jump_001_502a
@@ -2747,6 +2796,7 @@ Call_001_500b::
     jp Jump_001_502a
 
 
+StageAnimSub500B_02::
     ld c, $29
     ld e, $2a
     call Jump_001_502a
@@ -2759,9 +2809,11 @@ Jump_001_502a::
     jp Jump_000_0532
 
 
+UpdateStageAnimatedTiles_NoneA::
     ret
 
 
+UpdateStageAnimatedTiles_Set2::
     ldh a, [hCollisionFlag]
     and $60
     ret nz
@@ -2792,13 +2844,15 @@ Call_001_5073::
     rst $00
 
     ; Stage animated tile sub-dispatch table.
-    dw $507a ; 00
-    dw $507b ; 01
-    dw $5087 ; 02
+    dw StageAnimSub5073_None ; 00
+    dw StageAnimSub5073_01 ; 01
+    dw StageAnimSub5073_02 ; 02
 
+StageAnimSub5073_None::
     ret
 
 
+StageAnimSub5073_01::
     ld c, $5e
     ld e, c
     call Jump_001_5092
@@ -2807,6 +2861,7 @@ Call_001_5073::
     jp Jump_001_5092
 
 
+StageAnimSub5073_02::
     ld c, $5e
     ld e, $5f
     call Jump_001_5092
@@ -3271,30 +3326,36 @@ Call_001_52cc::
     and $3f
     rst $00
 
-    ; Tile collision / interaction dispatch table.
-    dw $5350 ; 00
-    dw $535d ; 01
-    dw $5350 ; 02
-    dw $5350 ; 03
-    dw $5350 ; 04
-    dw $5350 ; 05
-    dw $5350 ; 06
-    dw $5369 ; 07
-    dw $5350 ; 08
-    dw $5350 ; 09
-    dw $5350 ; 0a
-    dw $5377 ; 0b
-    dw $5350 ; 0c
-    dw $5350 ; 0d
-    dw $5377 ; 0e
-    dw $5350 ; 0f
-    dw $5350 ; 10
-    dw $535d ; 11
-    dw $535d ; 12
-    dw $5350 ; 13
-    dw $535d ; 14
-    dw $5350 ; 15
-    dw $5369 ; 16
+    db $50, $53, $5d, $53, $50, $53, $50, $53, $50, $53, $50, $53, $50, $53, $69, $53
+
+    ld d, b
+    ld d, e
+
+    db $50, $53, $50, $53, $77, $53
+
+    ld d, b
+    ld d, e
+    ld d, b
+    ld d, e
+    ld [hl], a
+    ld d, e
+    ld d, b
+    ld d, e
+    ld d, b
+    ld d, e
+    ld e, l
+    ld d, e
+    ld e, l
+    ld d, e
+
+    db $50, $53
+
+    ld e, l
+    ld d, e
+    ld d, b
+    ld d, e
+
+    db $69, $53
 
     ld d, b
     ld d, e
@@ -3453,34 +3514,38 @@ Call_001_53be::
     and $3f
     rst $00
 
-    ; Tile collision / interaction dispatch table.
-    dw $5491 ; 00
-    dw $54b3 ; 01
-    dw $54c2 ; 02
-    dw $54c8 ; 03
-    dw $54ce ; 04
-    dw $54db ; 05
-    dw $5491 ; 06
-    dw $54ce ; 07
-    dw $54db ; 08
-    dw $5491 ; 09
-    dw $54ce ; 0a
-    dw $5491 ; 0b
-    dw $54ec ; 0c
-    dw $54f2 ; 0d
-    dw $54ce ; 0e
-    dw $54f8 ; 0f
-    dw $5503 ; 10
-    dw $550e ; 11
-    dw $551a ; 12
-    dw $5526 ; 13
-    dw $552e ; 14
-    dw $5536 ; 15
-    dw $5491 ; 16
-    dw $553e ; 17
-    dw $554a ; 18
-    dw $5491 ; 19
-    dw $5556 ; 1a
+    db $91, $54, $b3, $54, $c2, $54, $c8, $54, $ce, $54, $db, $54, $91, $54, $ce, $54
+
+    db $db
+    ld d, h
+
+    db $91, $54, $ce, $54, $91, $54
+
+    db $ec
+    ld d, h
+    ldh a, [c]
+    ld d, h
+    adc $54
+    ld hl, sp+$54
+    inc bc
+    ld d, l
+    ld c, $55
+    ld a, [de]
+    ld d, l
+
+    db $26, $55, $2e, $55
+
+    ld [hl], $55
+
+    db $91, $54
+
+    ld a, $55
+    ld c, d
+    ld d, l
+    sub c
+    ld d, h
+
+    db $56, $55
 
     xor l
     ld d, h
@@ -3889,17 +3954,18 @@ Call_001_560e:: ; Compatibility alias.
     dw PlayerState_Duck                  ; 01
     dw PlayerState_JumpFall              ; 02
     dw PlayerState_GroundedSnap          ; 03
-    dw $57f4                             ; 04: grounded/action check state
-    dw $5851                             ; 05: climb/vertical move state
+    dw PlayerState_GroundedActionCheck   ; 04: grounded/action check state
+    dw PlayerState_ClimbOrVerticalMove   ; 05: climb/vertical move state
     dw PlayerState_HurtKnockback         ; 06
     dw PlayerState_FlyingSquirrelAction  ; 07
     dw PlayerState_ChickenAction         ; 08
     dw PlayerState_ActionKamenAction     ; 09
-    dw $5719                             ; 0a: damage bounce state
+    dw PlayerState_DamageBounce           ; 0a: damage bounce state
     dw PlayerState_DeathFall             ; 0b
-    dw $562f                             ; 0c: special/stage interaction state
-    dw $57ce                             ; 0d: special/stage interaction state
+    dw PlayerState_StageInteraction0C    ; 0c: special/stage interaction state
+    dw PlayerState_StageInteraction0D    ; 0d: special/stage interaction state
 
+PlayerState_StageInteraction0C::
     ld hl, $fe00
     ld a, l
     ldh [hPlayerVelY], a
@@ -3909,11 +3975,7 @@ Call_001_560e:: ; Compatibility alias.
     ld a, [$c0b1]
     rst $00
 
-    ; Player normal-ground sequence dispatch table.
-    dw $56db ; 00
-    dw $56a9 ; 01
-    dw $5681 ; 02
-    dw $5647 ; 03
+    db $db, $56, $a9, $56, $81, $56, $47, $56
 
     xor a
     ld [$c0b1], a
@@ -4041,6 +4103,7 @@ Call_001_5707::
     ret
 
 
+PlayerState_DamageBounce::
     call Call_001_5381
     ld a, $15
     ldh [hPlayerAnimId], a
@@ -4167,6 +4230,7 @@ jr_001_576e::
     ret
 
 
+PlayerState_StageInteraction0D::
     call HandlePlayerGroundInput
     ldh a, [$ffc4]
     or a
@@ -4196,6 +4260,7 @@ jr_001_57e2::
     ret
 
 
+PlayerState_GroundedActionCheck::
     call Call_001_5812
 
 jr_001_57f7::
@@ -4266,6 +4331,7 @@ jr_001_5846::
     jp ApplyPlayerXVelocity
 
 
+PlayerState_ClimbOrVerticalMove::
     ld hl, $ffbe
     set 0, [hl]
     ld h, $08
@@ -4402,9 +4468,7 @@ PlayerState_GroundedSnap:: ; State 03: grounded snap/settle state after specific
     ldh a, [$ffc1]
     rst $00
 
-    ; Grounded snap animation dispatch table.
-    dw $591b ; 00
-    dw $5920 ; 01
+    db $1b, $59, $20, $59
 
     ld a, $10
     ldh [hPlayerAnimId], a
@@ -4820,10 +4884,7 @@ jr_001_5b31::
     ldh a, [$ffc1]
     rst $00
 
-    ; Ground/air animation dispatch table.
-    dw $5b63 ; 00
-    dw $5b68 ; 01
-    dw $5b9c ; 02
+    db $63, $5b, $68, $5b, $9c, $5b
 
 jr_001_5b3a::
     ldh a, [$ffc1]
@@ -5065,12 +5126,7 @@ Call_001_5c78:: ; Compatibility alias.
     ldh a, [hPlayerForm]
     rst $00
 
-    ; Airborne animation/form behavior dispatch table.
-    dw $5c85 ; 00: PLAYER_FORM_NORMAL
-    dw $5c92 ; 01: PLAYER_FORM_FLYING_SQUIRREL
-    dw $5cc5 ; 02: PLAYER_FORM_COCKROACH
-    dw $5cb0 ; 03: PLAYER_FORM_CHICKEN
-    dw $5c85 ; 04: PLAYER_FORM_ACTION_KAMEN
+    db $85, $5c, $92, $5c, $c5, $5c, $b0, $5c, $85, $5c
 
     ld a, $0e
     ldh [hPlayerAnimId], a
@@ -5171,10 +5227,7 @@ Call_001_5d04:: ; Compatibility alias.
     ld a, [wFormActionStep]
     rst $00
 
-    ; Player form action animation-step dispatch table.
-    dw $5d0e ; 00
-    dw $5d2f ; 01
-    dw $5d50 ; 02
+    db $0e, $5d, $2f, $5d, $50, $5d
 
     ld h, $08
     ld l, $03
@@ -5466,15 +5519,21 @@ Jump_001_5e78:: ; Compatibility alias.
     and $07
     rst $00
 
-    ; Jump profile velocity dispatch table.
-    dw SetPlayerJumpVelocity ; 00
-    dw $5ea4 ; 01
-    dw $5ea9 ; 02
-    dw $5eae ; 03
-    dw $5eb3 ; 04
-    dw $5eb8 ; 05
-    dw $5ebd ; 06
-    dw $5ec2 ; 07
+    sbc d
+    ld e, [hl]
+    and h
+    ld e, [hl]
+    xor c
+    ld e, [hl]
+
+    db $ae, $5e, $b3, $5e
+
+    cp b
+    ld e, [hl]
+    cp l
+    ld e, [hl]
+    db $c2
+    ld e, [hl]
 
 SetPlayerJumpVelocity:: ; Jump velocity table targets write initial signed Y velocity.
 Call_001_5e9a:: ; Compatibility alias.
@@ -6114,11 +6173,12 @@ Call_001_61f6:: ; Compatibility alias.
     ld a, [hl]
     rst $00
 
-    ; Stage event child state dispatch table.
-    dw $6206 ; 00
-    dw $6242 ; 01
-    dw $6242 ; 02
-    dw $6252 ; 03
+    db $06, $62
+
+    ld b, d
+    ld h, d
+
+    db $42, $62, $52, $62
 
     ld a, $13
     ldh [$ffd6], a
@@ -6229,11 +6289,14 @@ Call_001_6292:: ; Compatibility alias.
     call Call_001_629e
     rst $00
 
-    ; Walking kid state dispatch table.
-    dw $62af ; 00
-    dw $62e6 ; 01
-    dw $630c ; 02
-    dw $630c ; 03
+    db $af, $62
+
+    and $62
+
+    db $0c, $63
+
+    inc c
+    ld h, e
 
 GetObjectStateAndDirectionFlags::
 Call_001_629e:: ; Compatibility alias.
@@ -6539,11 +6602,12 @@ Call_001_63fe:: ; Compatibility alias.
     call Call_001_629e
     rst $00
 
-    ; Party-horn kid state dispatch table.
-    dw $640a ; 00
-    dw $641a ; 01
-    dw $6422 ; 02
-    dw $642a ; 03
+    db $0a, $64
+
+    ld a, [de]
+    ld h, h
+
+    db $22, $64, $2a, $64
 
     ld hl, $6416
     call Jump_001_62cb
@@ -6737,11 +6801,15 @@ Call_001_64e3:: ; Compatibility alias.
     call Call_001_629e
     rst $00
 
-    ; Umbrella kid state dispatch table.
-    dw $64ef ; 00
-    dw $64ff ; 01
-    dw $6507 ; 02
-    dw $6507 ; 03
+    db $ef, $64
+
+    rst $38
+    ld h, h
+
+    db $07, $65
+
+    rlca
+    ld h, l
 
     ld hl, $64fb
     call Jump_001_62cb
@@ -6802,11 +6870,12 @@ Call_001_653b:: ; Compatibility alias.
     call Call_001_629e
     rst $00
 
-    ; Paper-airplane kid state dispatch table.
-    dw $6547 ; 00
-    dw $6557 ; 01
-    dw $655f ; 02
-    dw $6567 ; 03
+    db $47, $65
+
+    ld d, a
+    ld h, l
+
+    db $5f, $65, $67, $65
 
     ld hl, $6553
     call Jump_001_62cb
@@ -6998,11 +7067,10 @@ Call_001_661b:: ; Compatibility alias.
     call Call_001_629e
     rst $00
 
-    ; Paper-airplane projectile state dispatch table.
-    dw $6627 ; 00
-    dw $6638 ; 01
-    dw $663b ; 02
-    dw $663b ; 03
+    db $27, $66, $38, $66, $3b, $66
+
+    dec sp
+    ld h, [hl]
 
     call MoveObjectXBySpeed
     ld hl, $000a
@@ -7059,9 +7127,7 @@ Call_001_6664::
     call Call_001_629e
     rst $00
 
-    ; Enemy projectile substate dispatch table.
-    dw $666c ; 00
-    dw $66a4 ; 01
+    db $6c, $66, $a4, $66
 
     ld a, $80
     ld hl, $0008
@@ -7139,11 +7205,10 @@ Call_001_66d2:: ; Compatibility alias.
     call Call_001_629e
     rst $00
 
-    ; Enemy projectile B state dispatch table.
-    dw $66de ; 00
-    dw $66f4 ; 01
-    dw $671a ; 02
-    dw $671a ; 03
+    db $de, $66, $f4, $66, $1a, $67
+
+    ld a, [de]
+    ld h, a
 
     ld hl, $66ec
     ld d, $0f
@@ -7232,12 +7297,7 @@ Call_001_6751::
     ld a, [hl]
     rst $00
 
-    ; Stage event 01 state dispatch table.
-    dw $6800 ; 00
-    dw $67f0 ; 01
-    dw $67d0 ; 02
-    dw $6760 ; 03
-    dw $679e ; 04
+    db $00, $68, $f0, $67, $d0, $67, $60, $67, $9e, $67
 
     ld a, $10
     ldh [$ffd6], a
@@ -7454,12 +7514,12 @@ Call_001_6878::
     ld a, [hl]
     rst $00
 
-    ; Stage event 02 state dispatch table.
-    dw $68b7 ; 00
-    dw $6887 ; 01
-    dw $6897 ; 02
-    dw $68b7 ; 03
-    dw $679e ; 04
+    db $b7, $68, $87, $68, $97, $68
+
+    or a
+    ld l, b
+
+    db $9e, $67
 
     pop af
     ld a, $84
@@ -7493,12 +7553,7 @@ Call_001_6878::
     and $0f
     rst $00
 
-    ; Stage event 02 script dispatch table.
-    dw $68e4 ; 00
-    dw $68e4 ; 01
-    dw $68f4 ; 02
-    dw $692b ; 03
-    dw $6970 ; 04
+    db $e4, $68, $e4, $68, $f4, $68, $2b, $69, $70, $69
 
 Call_001_68c7::
     ldh a, [$ffd3]
@@ -7664,12 +7719,7 @@ Call_001_69a0::
     ld a, [hl]
     rst $00
 
-    ; Stage event 03 state dispatch table.
-    dw $69e3 ; 00
-    dw $69b3 ; 01
-    dw $69c3 ; 02
-    dw $6a59 ; 03
-    dw $679e ; 04
+    db $e3, $69, $b3, $69, $c3, $69, $59, $6a, $9e, $67
 
     pop af
     ld a, $84
@@ -7699,7 +7749,7 @@ Call_001_69a0::
     ret
 
 
-UpdateObjStageEvent21:: ; Object type $21: stage-specific event/controller, not a simple platform.
+UpdateObjStageEvent03ScriptController:: ; Stage event 03 script/controller routine at $69e3.
 UpdateObjStageEvent20:: ; Compatibility alias from pass 10.
     call Call_001_6a09
     call MoveObjectXBySpeed
@@ -7715,12 +7765,7 @@ UpdateObjStageEvent20:: ; Compatibility alias from pass 10.
     ld a, [$c0b7]
     rst $00
 
-    ; Stage event 03 script dispatch table.
-    dw $6a18 ; 00
-    dw $6a22 ; 01
-    dw $6a28 ; 02
-    dw $6a32 ; 03
-    dw $6a38 ; 04
+    db $18, $6a, $22, $6a, $28, $6a, $32, $6a, $38, $6a
 
 Call_001_6a09::
     ld a, $15
@@ -7917,6 +7962,7 @@ Call_001_6add::
     ret
 
 
+UpdateObjStageEvent21:: ; Object type $21: stage-specific event/controller target at $6af3.
     call Call_001_6b07
     call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
@@ -7940,9 +7986,7 @@ Call_001_6b07::
     and $01
     rst $00
 
-    ; Stage event 04 direction dispatch table.
-    dw $6b15 ; 00
-    dw $6b2f ; 01
+    db $15, $6b, $2f, $6b
 
     ld a, $80
     ld hl, $0008
@@ -8088,12 +8132,12 @@ Call_001_6bd6::
     ld a, [hl]
     rst $00
 
-    ; Stage event 21 state dispatch table.
-    dw $6c15 ; 00
-    dw $6be5 ; 01
-    dw $6bf5 ; 02
-    dw $6c15 ; 03
-    dw $679e ; 04
+    db $15, $6c, $e5, $6b, $f5, $6b
+
+    dec d
+    ld l, h
+
+    db $9e, $67
 
     pop af
     ld a, $84
@@ -8126,21 +8170,8 @@ Call_001_6bd6::
     ld a, [$c0b7]
     rst $00
 
-    ; Stage event 21 script dispatch table.
-    dw $6c35 ; 00
-    dw $6c4f ; 01
-    dw $6c72 ; 02
-    dw $6c92 ; 03
-    dw $6d14 ; 04
-    dw $6c92 ; 05
-    dw $6d24 ; 06
-    dw $6c92 ; 07
-    dw $6d34 ; 08
-    dw $6c92 ; 09
-    dw $6d44 ; 0a
-    dw $6d54 ; 0b
-    dw $6d8b ; 0c
-    dw $6dd3 ; 0d
+    db $35, $6c, $4f, $6c, $72, $6c, $92, $6c, $14, $6d, $92, $6c, $24, $6d, $92, $6c
+    db $34, $6d, $92, $6c, $44, $6d, $54, $6d, $8b, $6d, $d3, $6d
 
     call Call_001_6c45
     ldh a, [$ffd3]
@@ -8632,18 +8663,21 @@ jr_001_6e93:: ; Compatibility alias.
     rst $00
 
     ; Bounce pad strength dispatch table.
-    dw $6ecf ; 00
-    dw $6ed5 ; 01
-    dw $6edb ; 02
+    dw SetBouncePadJumpVelocity0 ; 00
+    dw SetBouncePadJumpVelocity1 ; 01
+    dw SetBouncePadJumpVelocity2 ; 02
 
+SetBouncePadJumpVelocity0::
     ld hl, $fc70
     jp jr_001_5e9d
 
 
+SetBouncePadJumpVelocity1::
     ld hl, $fbc0
     jp jr_001_5e9d
 
 
+SetBouncePadJumpVelocity2::
     ld hl, $fb40
     jp jr_001_5e9d
 
@@ -8677,11 +8711,7 @@ Call_001_6efb:: ; Compatibility alias.
     and $03
     rst $00
 
-    ; Moving vertical platform A sub-dispatch table.
-    dw $6f4b ; 00
-    dw $6f62 ; 01
-    dw $6f77 ; 02
-    dw $6f62 ; 03
+    db $4b, $6f, $62, $6f, $77, $6f, $62, $6f
 
 CheckPlayerStandingOnPlatform::
 Jump_001_6f0a:: ; Compatibility alias.
@@ -8809,11 +8839,7 @@ Call_001_6f91:: ; Compatibility alias.
     and $03
     rst $00
 
-    ; Moving vertical platform B sub-dispatch table.
-    dw $6fa0 ; 00
-    dw $6fd1 ; 01
-    dw $6fd7 ; 02
-    dw $6fd1 ; 03
+    db $a0, $6f, $d1, $6f, $d7, $6f, $d1, $6f
 
     ld hl, $0002
     add hl, bc
