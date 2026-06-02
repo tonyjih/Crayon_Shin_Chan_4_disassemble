@@ -133,14 +133,12 @@ jr_002_4102::
     ld a, [$d93d]
     rst $00
 
-    db $14, $41
-
-    call $1f44
-    ld b, h
-    xor [hl]
-    ld b, h
-    scf
-    ld c, b
+    ; Title/menu substate update table.
+    dw $4114
+    dw $44cd
+    dw $441f
+    dw $44ae
+    dw $4837
 
     ld c, $34
     ld b, $60

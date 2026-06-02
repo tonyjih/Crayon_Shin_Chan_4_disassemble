@@ -104,17 +104,38 @@ DEF SPAWN_STATE_READY   EQU $01
 DEF SPAWN_STATE_BLOCKED EQU $02
 DEF SPAWN_LIST_END      EQU $ff
 
-; Confirmed object type constants.
-DEF OBJ_PICKUP_BONUS_COUNTER      EQU $0f ; Adds hBonusCounter; 30 awards an extra life.
-DEF OBJ_PICKUP_BONUS_COUNTER_ANIM EQU $10 ; Animated version of bonus-counter pickup.
-DEF OBJ_PICKUP_EXTRA_LIFE         EQU $11
-DEF OBJ_PICKUP_EXTRA_LIFE_ANIM    EQU $12 ; Animated version of extra-life pickup.
-DEF OBJ_PICKUP_HEALTH             EQU $13 ; Adds hPlayerHealth, max 3.
-DEF OBJ_PICKUP_HEALTH_ANIM        EQU $14 ; Animated version of health pickup.
-DEF OBJ_FORM_FLYING_SQUIRREL      EQU $15
-DEF OBJ_FORM_COCKROACH            EQU $16
-DEF OBJ_FORM_CHICKEN              EQU $17
-DEF OBJ_FORM_ACTION_KAMEN         EQU $18
+
+; Object type constants. Corrected in pass 12: the first dispatch-table entry is dw $4867.
+DEF OBJ_STAGE_EVENT_TYPE_05        EQU $05 ; Stage-specific object, exact role pending.
+DEF OBJ_STAGE_EVENT_CHILD_A        EQU $06 ; Enemy-like child actor behavior, exact source pending.
+DEF OBJ_STAGE_EVENT_TYPE_07        EQU $07 ; Stage-specific event/object, exact role pending.
+DEF OBJ_STAGE_EVENT_TYPE_08        EQU $08 ; Stage-specific event/object, exact role pending.
+DEF OBJ_PLATFORM_DROP_A_VARIANT    EQU $09 ; Shares UpdateObjDropPlatformA behavior.
+DEF OBJ_ENEMY_WALKING_KID          EQU $0a
+DEF OBJ_ENEMY_PARTY_HORN_KID       EQU $0b
+DEF OBJ_ENEMY_UMBRELLA_KID         EQU $0c
+DEF OBJ_ENEMY_PAPER_AIRPLANE_KID   EQU $0d
+DEF OBJ_ENEMY_PAPER_AIRPLANE       EQU $0e
+DEF OBJ_ENEMY_PROJECTILE_B         EQU $0f ; Enemy projectile / child object, exact source pending.
+
+; Confirmed pickup/form object type constants.
+DEF OBJ_PICKUP_BONUS_COUNTER      EQU $10 ; Adds hBonusCounter; 30 awards an extra life.
+DEF OBJ_PICKUP_BONUS_COUNTER_ANIM EQU $11 ; Animated version of bonus-counter pickup.
+DEF OBJ_PICKUP_EXTRA_LIFE         EQU $12
+DEF OBJ_PICKUP_EXTRA_LIFE_ANIM    EQU $13 ; Animated version of extra-life pickup.
+DEF OBJ_PICKUP_HEALTH             EQU $14 ; Adds hPlayerHealth, max 3.
+DEF OBJ_PICKUP_HEALTH_ANIM        EQU $15 ; Animated version of health pickup.
+DEF OBJ_FORM_FLYING_SQUIRREL      EQU $16
+DEF OBJ_FORM_COCKROACH            EQU $17
+DEF OBJ_FORM_CHICKEN              EQU $18
+DEF OBJ_FORM_ACTION_KAMEN         EQU $19
+DEF OBJ_PLATFORM_MOVING_VERTICAL_A   EQU $1a
+DEF OBJ_PLATFORM_MOVING_VERTICAL_B   EQU $1b
+DEF OBJ_PLATFORM_DROP_A              EQU $1c
+DEF OBJ_PLATFORM_BOUNCE_PAD          EQU $1d
+DEF OBJ_PLATFORM_DROP_B              EQU $1e
+DEF OBJ_STAGE_EVENT_TYPE_21          EQU $21 ; Stage-specific event/controller, not a simple platform.
+DEF OBJ_PLATFORM_MOVING_HORIZONTAL   EQU $22
 
 ; Player form/action work variables.
 DEF wSavedPlayerState     EQU $c0ac
@@ -2088,14 +2109,16 @@ Call_000_090b:: ; Compatibility alias.
     ldh a, [hGameState]
     rst $00
 
-    db $20, $09
-
-    ld h, $09
-
-    db $29, $09, $2f, $09, $35, $09, $3b, $09, $41, $09, $7d, $09
-
-    add b
-    add hl, bc
+    ; hGameState update jump table. rst $00 consumes these words as data.
+    dw $0920 ; 00: bank 2 title/menu update
+    dw $0926 ; 01: debug menu update
+    dw $0929 ; 02: bank 1 gameplay update
+    dw $092f ; 03: bank 2 screen/update path
+    dw $0935 ; 04: bank 2 screen/update path
+    dw $093b ; 05: bank 2 screen/update path
+    dw $0941 ; 06: pause-ish handler
+    dw $097d ; 07: unused/variant update path
+    dw $0980 ; 08: unused/variant update path
 
     ld hl, $0202
     jp FarCallFromBankTable
@@ -2176,20 +2199,16 @@ Call_000_0986:: ; Compatibility alias.
     ldh a, [hGameState]
     rst $00
 
-    db $9b, $09
-
-    and c
-    add hl, bc
-
-    db $a4, $09, $aa, $09, $b0, $09, $b6, $09
-
-    cp h
-    add hl, bc
-
-    db $bd, $09
-
-    push af
-    add hl, bc
+    ; hGameState init jump table. rst $00 consumes these words as data.
+    dw $099b ; 00: bank 2 title/menu init
+    dw $09a1 ; 01: debug menu init
+    dw $09a4 ; 02: bank 1 gameplay init
+    dw $09aa ; 03: bank 2 screen init
+    dw $09b0 ; 04: bank 2 screen init
+    dw $09b6 ; 05: bank 2 screen init
+    dw $09bc ; 06: no init
+    dw $09bd ; 07: bank 1 gameplay init variant
+    dw $09f5 ; 08: unused/variant init path
 
     ld hl, $0200
     jp FarCallFromBankTable

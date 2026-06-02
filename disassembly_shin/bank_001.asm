@@ -21,10 +21,11 @@ SECTION "ROM Bank $001", ROMX[$4000], BANK[$1]
     ld a, [$c0a9]
     rst $00
 
-    db $22, $40, $2d, $40, $34, $40
-
-    inc [hl]
-    ld b, b
+    ; Gameplay init substate jump table.
+    dw $4022
+    dw $402d
+    dw $4034
+    dw $4034
 
     xor a
     ldh [hPlayerForm], a
@@ -292,12 +293,12 @@ Call_001_42fd::
     ldh a, [hPlayerForm]
     rst $00
 
-    db $0a, $43, $19, $43, $28, $43
-
-    scf
-    ld b, e
-    ld b, [hl]
-    ld b, e
+    ; Player form graphics loader table.
+    dw $430a ; PLAYER_FORM_NORMAL
+    dw $4319 ; PLAYER_FORM_FLYING_SQUIRREL
+    dw $4328 ; PLAYER_FORM_COCKROACH
+    dw $4337 ; PLAYER_FORM_CHICKEN
+    dw $4346 ; PLAYER_FORM_ACTION_KAMEN
 
     ld hl, $4131
     ld de, $8130
@@ -738,10 +739,11 @@ Call_001_45bf:: ; Compatibility alias.
 
     rst $00
 
-    ld d, h
-    ld b, [hl]
-
-    db $54, $46, $82, $46, $cd, $47
+    ; wPlayerSpecialActor0 type jump table. Type 0 is unused because zero returns above.
+    dw $4654 ; 00/01: flying squirrel projectile slot 0
+    dw $4654 ; 01: flying squirrel projectile slot 0
+    dw $4682 ; 02: chicken projectile
+    dw $47cd ; 03: Action Kamen projectile
 
 UpdatePlayerSpecialActor1:: ; Update wPlayerSpecialActor1, used by paired flying-squirrel projectiles.
 Call_001_45cb:: ; Compatibility alias.
@@ -1267,34 +1269,58 @@ Call_001_4812:: ; Compatibility alias.
     and OBJECT_TYPE_MASK
     rst $00
 
-    ld h, a
-    ld c, b
-
-    db $2f, $67, $56, $68, $73, $69, $47, $6b, $50, $66, $de, $61, $22, $73, $c7, $73
-
-    inc b
-    ld [hl], b
-
-    db $7e, $62, $e1, $63, $cf, $64, $24, $65, $f8, $65, $be, $66, $72, $5f, $b7, $5f
-    db $42, $60, $68, $60, $a0, $60, $ca, $60, $03, $61, $3a, $61, $6e, $61, $a3, $61
-    db $e1, $6e, $83, $6f, $04, $70, $2a, $6e, $81, $70, $1b, $72, $9a, $72, $f3, $6a
-    db $ff, $70, $54, $74, $f5, $6d
-
-    ld h, a
-    ld c, b
-    ld h, a
-    ld c, b
-    ld h, a
-    ld c, b
+    ; Object behavior dispatch table. rst $00 consumes these words as data.
+    dw $4867 ; 00
+    dw $672f ; 01
+    dw $6856 ; 02
+    dw $6973 ; 03
+    dw $6b47 ; 04
+    dw $6650 ; 05: OBJ_STAGE_EVENT_TYPE_05
+    dw $61de ; 06: OBJ_STAGE_EVENT_CHILD_A
+    dw $7322 ; 07: OBJ_STAGE_EVENT_TYPE_07
+    dw $73c7 ; 08: OBJ_STAGE_EVENT_TYPE_08
+    dw $7004 ; 09: OBJ_PLATFORM_DROP_A_VARIANT
+    dw $627e ; 0a: OBJ_ENEMY_WALKING_KID
+    dw $63e1 ; 0b: OBJ_ENEMY_PARTY_HORN_KID
+    dw $64cf ; 0c: OBJ_ENEMY_UMBRELLA_KID
+    dw $6524 ; 0d: OBJ_ENEMY_PAPER_AIRPLANE_KID
+    dw $65f8 ; 0e: OBJ_ENEMY_PAPER_AIRPLANE
+    dw $66be ; 0f: OBJ_ENEMY_PROJECTILE_B
+    dw $5f72 ; 10: OBJ_PICKUP_BONUS_COUNTER
+    dw $5fb7 ; 11: OBJ_PICKUP_BONUS_COUNTER_ANIM
+    dw $6042 ; 12: OBJ_PICKUP_EXTRA_LIFE
+    dw $6068 ; 13: OBJ_PICKUP_EXTRA_LIFE_ANIM
+    dw $60a0 ; 14: OBJ_PICKUP_HEALTH
+    dw $60ca ; 15: OBJ_PICKUP_HEALTH_ANIM
+    dw $6103 ; 16: OBJ_FORM_FLYING_SQUIRREL
+    dw $613a ; 17: OBJ_FORM_COCKROACH
+    dw $616e ; 18: OBJ_FORM_CHICKEN
+    dw $61a3 ; 19: OBJ_FORM_ACTION_KAMEN
+    dw $6ee1 ; 1a: OBJ_PLATFORM_MOVING_VERTICAL_A
+    dw $6f83 ; 1b: OBJ_PLATFORM_MOVING_VERTICAL_B
+    dw $7004 ; 1c: OBJ_PLATFORM_DROP_A
+    dw $6e2a ; 1d: OBJ_PLATFORM_BOUNCE_PAD
+    dw $7081 ; 1e: OBJ_PLATFORM_DROP_B
+    dw $721b ; 1f: platform/event, pending
+    dw $729a ; 20: platform/event, pending
+    dw $6af3 ; 21: OBJ_STAGE_EVENT_TYPE_21
+    dw $70ff ; 22: OBJ_PLATFORM_MOVING_HORIZONTAL
+    dw $7454 ; 23: stage/event, pending
+    dw $6df5 ; 24: stage/event, pending
+    dw $4867 ; 25: unused/fallback
+    dw $4867 ; 26: unused/fallback
+    dw $4867 ; 27: unused/fallback
     ret
 
 
 ; Known object type groups:
-;   $0f-$14: pickup objects (bonus counter, extra life, health), including animated variants.
-;   $15-$18: player form pickup objects.
-;   $09-$0e: enemy-like objects using player action/body collision (exact names pending).
-;   $19-$1d/$20-$21: platform/stage-interaction-like objects (exact names pending).
-;   $00-$04/$22-$23: stage-specific event/enemy/boss-like objects (exact names pending).
+;   $05-$08: stage-specific event/enemy-like actors.
+;   $09: drop-platform variant sharing the type $1c routine.
+;   $0a-$0f: enemy-like objects using player action/body collision.
+;   $10-$15: pickup objects (bonus counter, extra life, health), including animated variants.
+;   $16-$19: player form pickup objects.
+;   $1a-$1e/$22: platform/stage-interaction objects; $21 is stage-specific event/controller.
+;   $00-$04/$23-$24: stage-specific event/enemy/boss-like objects (exact names pending).
 UpdateObjectsAndSpawnQueue:: ; Update active object slots and spawn queued objects near camera.
 Call_001_4868:: ; Compatibility alias.
     ld a, [$c0b5]
@@ -1535,86 +1561,55 @@ InitSpawnedObjectByType:: ; Run object-type-specific initialization after spawni
     and OBJECT_TYPE_MASK
     rst $00
 
-    ret c
-
-    ld c, c
-
-    db $bc, $4a, $c9, $4a, $d6, $4a, $e3, $4a
-
-    ret c
-
-    ld c, c
-
-    db $d8, $49, $f7, $49, $d8, $49
-
-    ret c
-
-    ld c, c
-
-    db $3d, $4a, $3d, $4a, $4a, $4a, $57, $4a
-
-    ret c
-
-    ld c, c
-
-    db $64, $4a, $d8, $49, $d8, $49, $d8, $49, $d8, $49, $d8, $49, $d8, $49, $d8, $49
-    db $d8, $49, $d8, $49, $d8, $49, $23, $4a, $23, $4a
-
-    ret c
-
-    ld c, c
-
-    db $19, $4a
-
-    ret c
-
-    ld c, c
-
-    db $d8, $49, $ea, $49
-
-    ret c
-
-    ld c, c
-
-    db $ea, $49, $d8, $49
-
-    ret c
-
-    ld c, c
-    ret c
-
-    ld c, c
-    ret c
-
-    ld c, c
-    ret c
-
-    ld c, c
-    ret c
-
-    ld c, c
-    ret c
-
-    ld c, c
-    ret c
-
-    ld c, c
-    ret c
-
-    ld c, c
-    ret c
-
-    ld c, c
-    ret c
-
-    ld c, c
-    ret c
-
-    ld c, c
-    ret c
-
-    ld c, c
-
+    ; Spawned object initialization dispatch table. rst $00 consumes these words as data.
+    dw $49d8 ; 00
+    dw $4abc ; 01
+    dw $4ac9 ; 02
+    dw $4ad6 ; 03
+    dw $4ae3 ; 04
+    dw $49d8 ; 05
+    dw $49d8 ; 06
+    dw $49f7 ; 07
+    dw $49d8 ; 08
+    dw $49d8 ; 09
+    dw $4a3d ; 0a
+    dw $4a3d ; 0b
+    dw $4a4a ; 0c
+    dw $4a57 ; 0d
+    dw $49d8 ; 0e
+    dw $4a64 ; 0f
+    dw $49d8 ; 10
+    dw $49d8 ; 11
+    dw $49d8 ; 12
+    dw $49d8 ; 13
+    dw $49d8 ; 14
+    dw $49d8 ; 15
+    dw $49d8 ; 16
+    dw $49d8 ; 17
+    dw $49d8 ; 18
+    dw $49d8 ; 19
+    dw $4a23 ; 1a
+    dw $4a23 ; 1b
+    dw $49d8 ; 1c
+    dw $4a19 ; 1d
+    dw $49d8 ; 1e
+    dw $49d8 ; 1f
+    dw $49ea ; 20
+    dw $49d8 ; 21
+    dw $49ea ; 22
+    dw $49d8 ; 23
+    dw $49d8 ; 24
+    dw $49d8 ; 25
+    dw $49d8 ; 26
+    dw $49d8 ; 27
+    dw $49d8 ; 28
+    dw $49d8 ; 29
+    dw $49d8 ; 2a
+    dw $49d8 ; 2b
+    dw $49d8 ; 2c
+    dw $49d8 ; 2d
+    dw $49d8 ; 2e
+    dw $49d8 ; 2f
     ret
 
 
@@ -2612,7 +2607,11 @@ Call_001_4f08:: ; Compatibility alias.
     ldh a, [$ff9f]
     rst $00
 
-    db $13, $4f, $cb, $4f, $32, $50, $33, $50
+    ; Stage animated-tile dispatcher table.
+    dw $4f13
+    dw $4fcb
+    dw $5032
+    dw $5033
 
     ldh a, [hCollisionFlag]
     and $60
@@ -3893,31 +3892,21 @@ Call_001_560e:: ; Compatibility alias.
     ldh [hPrevPlayerState], a
     rst $00
 
-    ; hPlayerState dispatch table:
-    ;   00 -> PlayerState_NormalGround
-    ;   01 -> PlayerState_Duck
-    ;   02 -> PlayerState_JumpFall
-    ;   03 -> PlayerState_GroundedSnap
-    ;   04 -> PlayerState_CheckGroundedAction
-    ;   05 -> PlayerState_ClimbOrVerticalMove
-    ;   06 -> PlayerState_HurtKnockback
-    ;   07 -> PlayerState_FlyingSquirrelAction
-    ;   08 -> PlayerState_ChickenAction
-    ;   09 -> PlayerState_ActionKamenAction
-    ;   0a -> PlayerState_DamageBounce
-    ;   0b -> PlayerState_DeathFall
-    ;   0c-0d -> special/stage interaction states
-    db $1c, $5b, $7f, $58, $70, $5c, $11, $59, $f4, $57
-
-    ld d, c
-    ld e, b
-
-    db $c7, $5e, $23, $5a, $aa, $59, $ad, $5a, $19, $57
-
-    ld c, h
-    ld d, a
-
-    db $2f, $56, $ce, $57
+    ; hPlayerState dispatch table. rst $00 consumes these words as data.
+    dw PlayerState_NormalGround          ; 00
+    dw PlayerState_Duck                  ; 01
+    dw PlayerState_JumpFall              ; 02
+    dw PlayerState_GroundedSnap          ; 03
+    dw $57f4                             ; 04: grounded/action check state
+    dw $5851                             ; 05: climb/vertical move state
+    dw PlayerState_HurtKnockback         ; 06
+    dw PlayerState_FlyingSquirrelAction  ; 07
+    dw PlayerState_ChickenAction         ; 08
+    dw PlayerState_ActionKamenAction     ; 09
+    dw $5719                             ; 0a: damage bounce state
+    dw PlayerState_DeathFall             ; 0b
+    dw $562f                             ; 0c: special/stage interaction state
+    dw $57ce                             ; 0d: special/stage interaction state
 
     ld hl, $fe00
     ld a, l
@@ -5634,6 +5623,7 @@ jr_001_5f62::
 
     db $31, $41, $a1, $45, $a1, $53, $41, $4f, $d1, $4a
 
+UpdateObjPickupBonusCounter:: ; Object type $10: add hBonusCounter by 1; 30 awards an extra life.
     call CullObjectAndReleaseSpawn
     ret nz
 
@@ -5641,7 +5631,7 @@ jr_001_5f62::
     or a
     jp nz, jr_001_4bbd
 
-    call Call_001_5f8b
+    call CheckPlayerPickupBonusCounter
 
 jr_001_5f7f::
     ld hl, $2c85
@@ -5652,7 +5642,8 @@ jr_001_5f7f::
     jp Jump_000_0269
 
 
-Call_001_5f8b::
+CheckPlayerPickupBonusCounter::
+Call_001_5f8b:: ; Compatibility alias.
     ld e, $0a
     ld d, $11
     call Call_001_5f9e
@@ -5666,7 +5657,8 @@ Call_001_5f8b::
     jp AddBonusCounter
 
 
-Call_001_5f9e::
+CheckPlayerPickupOverlap::
+Call_001_5f9e:: ; Compatibility alias.
     ldh a, [$ffc3]
     cp $ff
     ret z
@@ -5689,6 +5681,7 @@ Call_001_5f9e::
     ret
 
 
+UpdateObjPickupBonusCounterAnim:: ; Object type $11: animated bonus-counter pickup.
     ld h, b
     ld l, c
     inc hl
@@ -5726,8 +5719,9 @@ jr_001_5fda::
 
     jr jr_001_5f7f
 
-Call_001_5fe6::
-    call Call_001_5ff0
+FinishAnimatedBonusCounterPickup::
+Call_001_5fe6:: ; Compatibility alias.
+    call UpdateAnimatedPickupMotion
     ret c
 
     xor a
@@ -5736,7 +5730,8 @@ Call_001_5fe6::
     jp AddBonusCounter
 
 
-Call_001_5ff0::
+UpdateAnimatedPickupMotion::
+Call_001_5ff0:: ; Compatibility alias.
     ld hl, $0005
     add hl, bc
     ld de, $0100
@@ -5781,18 +5776,15 @@ jr_001_601e::
 
     db $01, $01, $01, $00, $00, $00, $00, $00, $ff, $00, $00, $00, $01, $00, $00, $00
     db $ff, $00, $00, $00, $01, $00, $00, $00, $ff, $00, $00, $00, $01, $00, $00, $00
-    db $cd
-
-    add h
-    ld c, e
-
+UpdateObjPickupExtraLife:: ; Object type $12: immediate extra-life pickup.
+    call CullObjectAndReleaseSpawn
     ret nz
 
     ldh a, [$ffd5]
     or a
     jp nz, jr_001_4bbd
 
-    call Call_001_605b
+    call CheckPlayerPickupExtraLife
 
 jr_001_604f::
     ld hl, $2c9f
@@ -5803,7 +5795,8 @@ jr_001_604f::
     jp Jump_000_0269
 
 
-Call_001_605b::
+CheckPlayerPickupExtraLife::
+Call_001_605b:: ; Compatibility alias.
     ld e, $0e
     ld d, $12
     call Call_001_5f9e
@@ -5814,6 +5807,7 @@ Call_001_605b::
     jp AddExtraLife
 
 
+UpdateObjPickupExtraLifeAnim:: ; Object type $13: animated extra-life pickup.
     ld h, b
     ld l, c
     inc hl
@@ -5851,8 +5845,9 @@ jr_001_608b::
 
     jr jr_001_604f
 
-Call_001_6097::
-    call Call_001_5ff0
+FinishAnimatedExtraLifePickup::
+Call_001_6097:: ; Compatibility alias.
+    call UpdateAnimatedPickupMotion
     ret c
 
     xor a
@@ -5860,6 +5855,7 @@ Call_001_6097::
     jp AddExtraLife
 
 
+UpdateObjPickupHealth:: ; Object type $14: add hPlayerHealth by 1, max 3.
     call CullObjectAndReleaseSpawn
     ret nz
 
@@ -5867,7 +5863,7 @@ Call_001_6097::
     or a
     ret nz
 
-    call Call_001_60b7
+    call CheckPlayerPickupHealth
 
 jr_001_60ab::
     ld hl, $2c8e
@@ -5878,7 +5874,8 @@ jr_001_60ab::
     jp Jump_000_0269
 
 
-Call_001_60b7::
+CheckPlayerPickupHealth::
+Call_001_60b7:: ; Compatibility alias.
     ld e, $0e
     ld d, $12
     call Call_001_5f9e
@@ -5892,6 +5889,7 @@ Call_001_60b7::
     jp AddPlayerHealth
 
 
+UpdateObjPickupHealthAnim:: ; Object type $15: animated health pickup.
     ld h, b
     ld l, c
     inc hl
@@ -5929,8 +5927,9 @@ jr_001_60ed::
 
     jr jr_001_60ab
 
-Call_001_60f9::
-    call Call_001_5ff0
+FinishAnimatedHealthPickup::
+Call_001_60f9:: ; Compatibility alias.
+    call UpdateAnimatedPickupMotion
     ret c
 
     xor a
@@ -5939,6 +5938,7 @@ Call_001_60f9::
     jp AddPlayerHealth
 
 
+UpdateObjFormFlyingSquirrel:: ; Object type $16: Flying Squirrel form pickup.
     call CullObjectAndReleaseSpawn
     ret nz
 
@@ -5946,7 +5946,7 @@ Call_001_60f9::
     or a
     ret nz
 
-    call Call_001_611a
+    call CheckPlayerPickupFormFlyingSquirrel
     ld hl, $2c41
     ldh a, [$ffd3]
     ld c, a
@@ -5955,7 +5955,8 @@ Call_001_60f9::
     jp Jump_000_0269
 
 
-Call_001_611a::
+CheckPlayerPickupFormFlyingSquirrel::
+Call_001_611a:: ; Compatibility alias.
     ld e, $0e
     ld d, $12
     call Call_001_5f9e
@@ -5976,6 +5977,7 @@ jr_001_6135::
     jp EnterPlayerHurtState
 
 
+UpdateObjFormCockroach:: ; Object type $17: Cockroach form pickup.
     call CullObjectAndReleaseSpawn
     ret nz
 
@@ -5983,7 +5985,7 @@ jr_001_6135::
     or a
     ret nz
 
-    call Call_001_6151
+    call CheckPlayerPickupFormCockroach
     ld hl, $2c74
     ldh a, [$ffd3]
     ld c, a
@@ -5992,7 +5994,8 @@ jr_001_6135::
     jp Jump_000_0269
 
 
-Call_001_6151::
+CheckPlayerPickupFormCockroach::
+Call_001_6151:: ; Compatibility alias.
     ld e, $0e
     ld d, $12
     call Call_001_5f9e
@@ -6008,6 +6011,7 @@ Call_001_6151::
     ldh [hPlayerForm], a
     jr jr_001_6135
 
+UpdateObjFormChicken:: ; Object type $18: Chicken form pickup.
     call CullObjectAndReleaseSpawn
     ret nz
 
@@ -6015,7 +6019,7 @@ Call_001_6151::
     or a
     ret nz
 
-    call Call_001_6185
+    call CheckPlayerPickupFormChicken
     ld hl, $2c63
     ldh a, [$ffd3]
     ld c, a
@@ -6024,7 +6028,8 @@ Call_001_6151::
     jp Jump_000_0269
 
 
-Call_001_6185::
+CheckPlayerPickupFormChicken::
+Call_001_6185:: ; Compatibility alias.
     ld e, $0e
     ld d, $12
     call Call_001_5f9e
@@ -6041,6 +6046,7 @@ Call_001_6185::
     jp jr_001_6135
 
 
+UpdateObjFormActionKamen:: ; Object type $19: timed Action Kamen form pickup.
     call CullObjectAndReleaseSpawn
     ret nz
 
@@ -6048,7 +6054,7 @@ Call_001_6185::
     or a
     ret nz
 
-    call Call_001_61ba
+    call CheckPlayerPickupFormActionKamen
     ld hl, $2c52
     ldh a, [$ffd3]
     ld c, a
@@ -6057,7 +6063,8 @@ Call_001_6185::
     jp Jump_000_0269
 
 
-Call_001_61ba::
+CheckPlayerPickupFormActionKamen::
+Call_001_61ba:: ; Compatibility alias.
     ld e, $0e
     ld d, $12
     call Call_001_5f9e
@@ -6077,6 +6084,7 @@ Call_001_61ba::
     jp jr_001_6135
 
 
+UpdateObjStageEventChildA:: ; Object type $06: stage/event child actor with enemy-like collision.
     call CullObjectAndReleaseSpawn
     ret nz
 
@@ -6093,7 +6101,8 @@ Call_001_61ba::
     jp Jump_001_4c06
 
 
-Call_001_61f6::
+UpdateStageEventChildAState::
+Call_001_61f6:: ; Compatibility alias.
     xor a
     ldh [hSpriteFlags], a
     ld h, b
@@ -6186,16 +6195,20 @@ jr_001_623a::
     ret
 
 
-Call_001_6273::
+CheckStageEventChildAActionHitbox::
+Call_001_6273:: ; Compatibility alias.
     ld de, $0408
     jp CheckPlayerActionHitboxCollision
 
 
-Call_001_6279::
+CheckStageEventChildABodyCollision::
+Call_001_6279:: ; Compatibility alias.
     ld d, $05
     jp CheckPlayerBodyCollision
 
 
+UpdateObjEnemyWalkingKid:: ; Object type $0a: walking kid enemy.
+UpdateObjEnemyWalkerA:: ; Compatibility alias from pass 11.
     call Call_001_6292
     call CullObjectAndReleaseSpawn
     ret nz
@@ -6209,7 +6222,8 @@ Call_001_6279::
     jp Jump_001_4c06
 
 
-Call_001_6292::
+UpdateEnemyWalkerAState::
+Call_001_6292:: ; Compatibility alias.
     call Call_001_629e
     rst $00
 
@@ -6222,7 +6236,8 @@ Call_001_6292::
     inc c
     ld h, e
 
-Call_001_629e::
+GetObjectStateAndDirectionFlags::
+Call_001_629e:: ; Compatibility alias.
     xor a
     ldh [hSpriteFlags], a
     ld h, b
@@ -6262,7 +6277,8 @@ Jump_001_62b8::
     ret
 
 
-Jump_001_62cb::
+AnimateObjectFromTableFast::
+Jump_001_62cb:: ; Compatibility alias.
     ld d, $08
 
 Call_001_62cd::
@@ -6287,7 +6303,8 @@ Call_001_62cd::
     ld a, $03
     ldh [$ffd6], a
 
-Jump_001_62eb::
+UpdateObjectThrownStateA::
+Jump_001_62eb:: ; Compatibility alias.
     call Call_001_62f8
     call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
@@ -6297,7 +6314,8 @@ Jump_001_62eb::
     jp Jump_001_4c06
 
 
-Call_001_62f8::
+UpdateObjectThrownStateATimer::
+Call_001_62f8:: ; Compatibility alias.
     ld hl, $0002
     add hl, bc
     dec [hl]
@@ -6319,7 +6337,8 @@ Call_001_62f8::
     ld a, $03
     ldh [$ffd6], a
 
-Jump_001_6311::
+UpdateObjectThrownStateB::
+Jump_001_6311:: ; Compatibility alias.
     call Call_001_6320
     call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
@@ -6331,10 +6350,12 @@ Jump_001_6311::
     ret
 
 
-Call_001_6320::
+AccelerateObjectY::
+Call_001_6320:: ; Compatibility alias.
     ld hl, $0008
 
-Call_001_6323::
+AccelerateObjectYAtHL::
+Call_001_6323:: ; Compatibility alias.
     add hl, bc
     ld a, [hl]
     add $20
@@ -6345,7 +6366,8 @@ Call_001_6323::
     ld d, a
     ld [hl], a
 
-Call_001_632e::
+ApplyObjectYVelocity::
+Call_001_632e:: ; Compatibility alias.
     ld hl, $0005
     add hl, bc
     bit 7, d
@@ -6494,6 +6516,8 @@ jr_001_63d5:: ; Compatibility alias.
     ret
 
 
+UpdateObjEnemyPartyHornKid:: ; Object type $0b: party-horn kid that reacts when the player approaches.
+UpdateObjEnemyReactiveA:: ; Compatibility alias from pass 11.
     xor a
     ldh [$ffce], a
     call Call_001_63fe
@@ -6511,7 +6535,8 @@ jr_001_63d5:: ; Compatibility alias.
     jp Jump_001_4c06
 
 
-Call_001_63fe::
+UpdateEnemyReactiveAState::
+Call_001_63fe:: ; Compatibility alias.
     call Call_001_629e
     rst $00
 
@@ -6580,7 +6605,8 @@ Jump_001_6444::
     ret
 
 
-Call_001_645b::
+CheckEnemyReactiveSpecialBodyCollision::
+Call_001_645b:: ; Compatibility alias.
     ldh a, [$ffd4]
     ld e, a
     ldh a, [hPlayerScreenY]
@@ -6625,10 +6651,12 @@ jr_001_6484::
     ret
 
 
-Call_001_6486::
+CheckEnemyReactivePlayerProximity::
+Call_001_6486:: ; Compatibility alias.
     ld e, $24
 
-Jump_001_6488::
+CheckEnemyPlayerProximityWithRange::
+Jump_001_6488:: ; Compatibility alias.
     ld h, b
     ld l, c
     inc hl
@@ -6691,6 +6719,8 @@ jr_001_64be::
     ret
 
 
+UpdateObjEnemyUmbrellaKid:: ; Object type $0c: umbrella kid; player bounces when landing on top.
+UpdateObjEnemyWalkerB:: ; Compatibility alias from pass 11.
     call Call_001_64e3
     call CullObjectAndReleaseSpawn
     ret nz
@@ -6704,7 +6734,8 @@ jr_001_64be::
     jp Jump_001_4c06
 
 
-Call_001_64e3::
+UpdateEnemyWalkerBState::
+Call_001_64e3:: ; Compatibility alias.
     call Call_001_629e
     rst $00
 
@@ -6738,12 +6769,14 @@ Call_001_64e3::
     jp Jump_001_6311
 
 
-Call_001_650f::
+CheckEnemyWalkerBActionHitbox::
+Call_001_650f:: ; Compatibility alias.
     ld de, $0410
     jp CheckPlayerActionHitboxCollision
 
 
-Call_001_6515::
+CheckEnemyWalkerBSpecialBodyCollision::
+Call_001_6515:: ; Compatibility alias.
     ld d, $01
     call Call_001_4c18
     call Call_001_4c9e
@@ -6754,6 +6787,8 @@ Call_001_6515::
     ret
 
 
+UpdateObjEnemyPaperAirplaneKid:: ; Object type $0d: paper-airplane kid that spawns paper airplane projectiles.
+UpdateObjEnemySpawnerA:: ; Compatibility alias from pass 11.
     call Call_001_653b
     call CullObjectAndReleaseSpawn
     ret nz
@@ -6768,7 +6803,8 @@ Call_001_6515::
     jp Jump_001_4c06
 
 
-Call_001_653b::
+UpdateEnemySpawnerAState::
+Call_001_653b:: ; Compatibility alias.
     call Call_001_629e
     rst $00
 
@@ -6814,7 +6850,8 @@ Call_001_653b::
     jp Jump_001_6444
 
 
-jr_001_657b::
+SpawnEnemyProjectileB::
+jr_001_657b:: ; Compatibility alias.
     ld hl, wObjectSlots
 
 jr_001_657e::
@@ -6838,10 +6875,11 @@ jr_001_658c::
 jr_001_6592::
     ld a, [bc]
     and $80
-    or $0e
+    or OBJ_ENEMY_PAPER_AIRPLANE
     ld [hl+], a
 
-Jump_001_6598::
+InitSpawnedEnemyProjectileB::
+Jump_001_6598:: ; Compatibility alias.
     xor a
     ld [hl+], a
     call Call_001_65c5
@@ -6859,7 +6897,8 @@ Jump_001_6598::
     ret
 
 
-Call_001_65ae::
+CopyParentProjectileSpeedPlus40::
+Call_001_65ae:: ; Compatibility alias.
     push hl
     ld hl, $0008
     add hl, bc
@@ -6880,7 +6919,8 @@ Call_001_65ae::
     ret
 
 
-Call_001_65c5::
+CopyParentProjectileXOffset::
+Call_001_65c5:: ; Compatibility alias.
     push hl
     ld hl, $0003
     add hl, bc
@@ -6901,7 +6941,8 @@ Call_001_65c5::
     ret
 
 
-Call_001_65dd::
+CopyParentProjectileYOffset::
+Call_001_65dd:: ; Compatibility alias.
     push hl
     ld hl, $0006
     add hl, bc
@@ -6922,11 +6963,15 @@ Call_001_65dd::
     ret
 
 
-Call_001_65f3::
+CheckPaperAirplaneKidPlayerProximity::
+CheckEnemySpawnerAPlayerProximity:: ; Compatibility alias.
+Call_001_65f3:: ; Compatibility alias.
     ld e, $50
     jp Jump_001_6488
 
 
+UpdateObjEnemyPaperAirplane:: ; Object type $0e: paper airplane projectile spawned by paper-airplane kid.
+UpdateObjEnemyProjectileA:: ; Compatibility alias from pass 11.
     call Call_001_661b
     call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
@@ -6955,7 +7000,8 @@ jr_001_6618::
     ret
 
 
-Call_001_661b::
+UpdateEnemyProjectileAState::
+Call_001_661b:: ; Compatibility alias.
     call Call_001_629e
     rst $00
 
@@ -6986,16 +7032,19 @@ Call_001_661b::
     jp Jump_001_4be3
 
 
-Call_001_6645::
+CheckEnemyProjectileAActionHitbox::
+Call_001_6645:: ; Compatibility alias.
     ld de, $0404
     jp CheckPlayerActionHitboxCollision
 
 
-Call_001_664b::
+CheckEnemyProjectileABodyCollision::
+Call_001_664b:: ; Compatibility alias.
     ld d, $03
     jp CheckPlayerBodyCollision
 
 
+UpdateObjStageEvent05:: ; Object type $05: stage-specific object, exact role pending.
     call Call_001_6664
     call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
@@ -7075,6 +7124,7 @@ Call_001_66b3::
     jp CheckPlayerBodyCollision
 
 
+UpdateObjEnemyProjectileB:: ; Object type $0f: enemy projectile / child object, exact source pending.
     call Call_001_66d2
     call CullObjectAndReleaseSpawn
     ret nz
@@ -7088,7 +7138,8 @@ Call_001_66b3::
     jp Jump_001_4c06
 
 
-Call_001_66d2::
+UpdateEnemyProjectileBState::
+Call_001_66d2:: ; Compatibility alias.
     call Call_001_629e
     rst $00
 
@@ -7143,12 +7194,14 @@ Call_001_670a::
     jp Jump_001_6311
 
 
-Call_001_6724::
+CheckEnemyProjectileBActionHitbox::
+Call_001_6724:: ; Compatibility alias.
     ld de, $0410
     jp CheckPlayerActionHitboxCollision
 
 
-Call_001_672a::
+CheckEnemyProjectileBBodyCollision::
+Call_001_672a:: ; Compatibility alias.
     ld d, $02
     jp CheckPlayerBodyCollision
 
@@ -7631,6 +7684,8 @@ Call_001_69a0::
     ret
 
 
+UpdateObjStageEvent21:: ; Object type $21: stage-specific event/controller, not a simple platform.
+UpdateObjStageEvent20:: ; Compatibility alias from pass 10.
     call Call_001_6a09
     call MoveObjectXBySpeed
     call Call_001_6a6e
@@ -7743,7 +7798,7 @@ Call_001_6a6e::
 jr_001_6a7e::
     ld a, [hl]
     and $7f
-    cp $21
+    cp OBJ_STAGE_EVENT_TYPE_21
     ret z
 
     ld a, $10
@@ -8410,6 +8465,7 @@ Call_001_6e1f::
     jp CheckPlayerBodyCollision
 
 
+UpdateObjPlatformBouncePad:: ; Object type $1d: bounce pad / trampoline-style platform.
     call CullObjectAndReleaseSpawn
     ret nz
 
@@ -8417,7 +8473,7 @@ Call_001_6e1f::
     or a
     ret nz
 
-    call Call_001_6e4b
+    call UpdateBouncePadPlayerContact
     ld h, b
     ld l, c
     inc hl
@@ -8436,7 +8492,8 @@ jr_001_6e42::
     jp Jump_000_0269
 
 
-Call_001_6e4b::
+UpdateBouncePadPlayerContact::
+Call_001_6e4b:: ; Compatibility alias.
     ld h, b
     ld l, c
     inc hl
@@ -8485,7 +8542,8 @@ Call_001_6e4b::
 
     call SetPlayerJumpVelocity
 
-Call_001_6e81::
+AttachPlayerToObjectTop16:: ; Align player Y to object top - $10.
+Call_001_6e81:: ; Compatibility alias.
     ld hl, $0006
     add hl, bc
     ld a, [hl+]
@@ -8500,7 +8558,8 @@ Call_001_6e81::
     ret
 
 
-jr_001_6e93::
+ApplyBouncePadJump::
+jr_001_6e93:: ; Compatibility alias.
     ld hl, $ffad
     ld de, $0100
     call Jump_001_4be3
@@ -8550,10 +8609,11 @@ jr_001_6e93::
     jp jr_001_5e9d
 
 
+UpdateObjMovingPlatformVerticalA:: ; Object type $1a: vertical moving platform variant A.
     call CullObjectAndReleaseSpawn
     ret nz
 
-    call Call_001_6efb
+    call UpdateMovingPlatformVerticalA
     ldh a, [$ffd5]
     or a
     ret nz
@@ -8569,7 +8629,8 @@ Jump_001_6eef::
     jp Jump_000_0269
 
 
-Call_001_6efb::
+UpdateMovingPlatformVerticalA::
+Call_001_6efb:: ; Compatibility alias.
     ld h, b
     ld l, c
     inc hl
@@ -8579,7 +8640,8 @@ Call_001_6efb::
 
     db $4b, $6f, $62, $6f, $77, $6f, $62, $6f
 
-Jump_001_6f0a::
+CheckPlayerStandingOnPlatform::
+Jump_001_6f0a:: ; Compatibility alias.
     ldh a, [hPlayerState]
     cp $06
     ret z
@@ -8592,7 +8654,8 @@ Jump_001_6f0a::
     call Call_001_6f28
     ret nc
 
-Jump_001_6f19::
+AttachPlayerToPlatformTop::
+Jump_001_6f19:: ; Compatibility alias.
     ld a, $ff
     ldh [$ffc4], a
     call Call_001_6e81
@@ -8603,7 +8666,8 @@ Jump_001_6f19::
     jp ResetPlayerToNormalState
 
 
-Call_001_6f28::
+CheckPlayerPlatformTopOverlap::
+Call_001_6f28:: ; Compatibility alias.
     ldh a, [hPlayerVelYHigh]
     rlca
     ccf
@@ -8681,10 +8745,11 @@ Jump_001_6f62::
     call Jump_001_4be3
     jr jr_001_6f55
 
+UpdateObjMovingPlatformVerticalB:: ; Object type $1b: vertical moving platform variant B; can carry player X.
     call CullObjectAndReleaseSpawn
     ret nz
 
-    call Call_001_6f91
+    call UpdateMovingPlatformVerticalB
     ldh a, [$ffd5]
     or a
     ret nz
@@ -8692,7 +8757,8 @@ Jump_001_6f62::
     jp Jump_001_6eef
 
 
-Call_001_6f91::
+UpdateMovingPlatformVerticalB::
+Call_001_6f91:: ; Compatibility alias.
     ld h, b
     ld l, c
     inc hl
@@ -8764,7 +8830,8 @@ jr_001_6fe4::
     jp Jump_001_6f19
 
 
-Call_001_7004::
+UpdateObjDropPlatformA:: ; Object type $09/$1c: drop/moving platform variant A.
+Call_001_7004:: ; Compatibility alias.
     call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
@@ -8786,7 +8853,8 @@ jr_001_701e::
     ret
 
 
-Call_001_7021::
+CheckPlayerStandingOnDropPlatform::
+Call_001_7021:: ; Compatibility alias.
     ldh a, [hPlayerState]
     cp $06
     ret z
@@ -8848,7 +8916,8 @@ Call_001_7021::
     jp ResetPlayerToNormalState
 
 
-Call_001_706f::
+UpdateDropPlatformMotionA::
+Call_001_706f:: ; Compatibility alias.
     ld h, b
     ld l, c
     inc hl
@@ -8856,14 +8925,16 @@ Call_001_706f::
     or a
     jp z, Jump_001_6f62
 
-Jump_001_7077::
+MoveDropPlatformDown::
+Jump_001_7077:: ; Compatibility alias.
     ld hl, $0005
     add hl, bc
     ld de, $0200
     jp Jump_001_4be3
 
 
-Call_001_7081::
+UpdateObjDropPlatformB:: ; Object type $1e: drop/moving platform variant B.
+Call_001_7081:: ; Compatibility alias.
     call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
@@ -8879,7 +8950,8 @@ Call_001_7081::
     ret
 
 
-Call_001_7095::
+UpdateDropPlatformMotionB::
+Call_001_7095:: ; Compatibility alias.
     ld a, $02
     ldh [hSpriteFlags], a
     ld a, $10
@@ -8914,6 +8986,7 @@ jr_001_70ab::
     db $08, $b9, $00, $f8, $f0, $ba, $00, $f8, $f8, $bb, $00, $f8, $00, $bb, $00, $f8
     db $08, $bc, $00, $80
 
+UpdateObjMovingPlatformHorizontal:: ; Object type $22: horizontal moving platform / carrier.
     call CullObjectAndReleaseSpawn
     ret nz
 
@@ -8972,7 +9045,8 @@ jr_001_7145::
     jp jr_000_026c
 
 
-Call_001_714e::
+MovePlatformAndCarryPlayer::
+Call_001_714e:: ; Compatibility alias.
     ld hl, $0008
     add hl, bc
     ld e, [hl]
@@ -9100,7 +9174,8 @@ jr_001_71f1::
     jp ResetPlayerToNormalState
 
 
-Call_001_71fd::
+StopPlatformAtEndpoint::
+Call_001_71fd:: ; Compatibility alias.
     ld de, $0350
     ld a, [bc]
     sla a
@@ -9331,6 +9406,7 @@ jr_001_72ff::
     ret
 
 
+UpdateObjStageEvent07:: ; Object type $07: stage-specific object, exact role pending.
     call CullObjectAndReleaseSpawn
     ret nz
 
@@ -9453,6 +9529,7 @@ jr_001_73ba::
     ret
 
 
+UpdateObjStageEvent08:: ; Object type $08: stage-specific object, exact role pending.
     call CullObjectAndReleaseSpawn
     ret nz
 
