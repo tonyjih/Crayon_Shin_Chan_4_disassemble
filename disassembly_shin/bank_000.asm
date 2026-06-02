@@ -29,12 +29,118 @@ DEF hOamWritePos   EQU $ff9b
 DEF hPrevOamPos    EQU $ff9c
 DEF hSpriteFlags   EQU $ff9d
 
+; Gameplay aliases identified during cleanup pass 3.
+; These are based on direct use in bank 1 gameplay update/player/object code.
+DEF hPlayerScreenY      EQU $ffa4
+DEF hPlayerScreenX      EQU $ffa5
+DEF hPlayerAnimId       EQU $ffa6
+DEF hPlayerAnimCounter  EQU $ffa7
+DEF hPlayerAnimFrame    EQU $ffa8
+DEF hPlayerObjectFlags  EQU $ffa9
+DEF hPlayerState        EQU $ffaa
+DEF hPrevPlayerState    EQU $ffab
+DEF hPlayerFacing       EQU $ffac
+DEF hPlayerDirection    EQU $ffac ; Compatibility alias: direction/facing, 0=right-ish, $ff=left-ish.
+DEF hPlayerYSubpixel    EQU $ffad
+DEF hPlayerY            EQU $ffae
+DEF hPlayerYHigh        EQU $ffaf
+DEF hPlayerXSubpixel    EQU $ffb0
+DEF hPlayerX            EQU $ffb1
+DEF hPlayerXHigh        EQU $ffb2
+DEF hPlayerVelYLo       EQU $ffb3
+DEF hPlayerVelY         EQU $ffb3 ; Compatibility alias.
+DEF hPlayerVelYHi       EQU $ffb4
+DEF hPlayerVelYHigh     EQU $ffb4 ; Compatibility alias.
+DEF hPlayerMoveSpeedLo  EQU $ffb5
+DEF hPlayerSpeedX       EQU $ffb5 ; Compatibility alias.
+DEF hPlayerMoveSpeedHi  EQU $ffb6
+DEF hPlayerSpeedXHigh   EQU $ffb6 ; Compatibility alias.
+DEF hPlayerGravity      EQU $ffb7
+DEF hBonusCounter       EQU $ffb8 ; reaches 30, then awards an extra life.
+DEF hPlayerHealth       EQU $ffb9 ; max 3; decremented by damage.
+DEF hPlayerLives        EQU $ffba
+DEF hPlayerForm         EQU $ffbb
+DEF hPlayerActionLock   EQU $ffbc
+DEF hPlayerStateTimer   EQU $ffbd
+DEF hPlayerAnimTimer    EQU $ffbd ; Compatibility alias.
+DEF hPlayerFlags        EQU $ffbe
+DEF hPlayerTileEffect   EQU $ffbf
+DEF hPlayerJumpProfile   EQU $ffc2
+
+; Player form constants identified from gameplay testing.
+DEF PLAYER_FORM_NORMAL          EQU $00 ; 普通小新
+DEF PLAYER_FORM_FLYING_SQUIRREL EQU $01 ; 飛鼠小新
+DEF PLAYER_FORM_COCKROACH       EQU $02 ; 蟑螂小新
+DEF PLAYER_FORM_CHICKEN         EQU $03 ; 母雞小新
+DEF PLAYER_FORM_ACTION_KAMEN     EQU $04 ; 動感超人
+
+; Player jump profile constants. These index the jump velocity table in StartPlayerJump.
+DEF PLAYER_JUMP_PROFILE_NORMAL  EQU $03
+DEF PLAYER_JUMP_PROFILE_CHICKEN EQU $04
+
+; Player collision height offsets. Cockroach Shin-chan uses a shorter vertical hitbox.
+DEF PLAYER_COLLISION_HEIGHT_NORMAL    EQU $16
+DEF PLAYER_COLLISION_HEIGHT_COCKROACH EQU $0f
+
 DEF wOamBuffer     EQU $c000
 DEF wVramQueue     EQU $c100
 DEF wLCDCShadow    EQU $c0a2
 DEF wPaletteBGP    EQU $c0a3
 DEF wPaletteOBP0   EQU $c0a4
 DEF wPaletteOBP1   EQU $c0a5
+
+DEF wObjectSlots        EQU $c180
+DEF wSpawnCursor        EQU $c380
+DEF wSpawnStateList     EQU $c381
+DEF wPendingVramUpdates EQU $c402
+
+; Object system constants. Object type is stored in slot byte +0, masked by OBJECT_TYPE_MASK.
+DEF OBJECT_SLOT_SIZE  EQU $10
+DEF SPAWN_RECORD_SIZE EQU $05
+DEF OBJECT_TYPE_MASK  EQU $3f
+DEF OBJECT_LIST_END   EQU $ff
+DEF OBJECT_SLOT_EMPTY EQU $00
+DEF SPAWN_STATE_READY   EQU $01
+DEF SPAWN_STATE_BLOCKED EQU $02
+DEF SPAWN_LIST_END      EQU $ff
+
+; Confirmed object type constants.
+DEF OBJ_PICKUP_BONUS_COUNTER      EQU $0f ; Adds hBonusCounter; 30 awards an extra life.
+DEF OBJ_PICKUP_BONUS_COUNTER_ANIM EQU $10 ; Animated version of bonus-counter pickup.
+DEF OBJ_PICKUP_EXTRA_LIFE         EQU $11
+DEF OBJ_PICKUP_EXTRA_LIFE_ANIM    EQU $12 ; Animated version of extra-life pickup.
+DEF OBJ_PICKUP_HEALTH             EQU $13 ; Adds hPlayerHealth, max 3.
+DEF OBJ_PICKUP_HEALTH_ANIM        EQU $14 ; Animated version of health pickup.
+DEF OBJ_FORM_FLYING_SQUIRREL      EQU $15
+DEF OBJ_FORM_COCKROACH            EQU $16
+DEF OBJ_FORM_CHICKEN              EQU $17
+DEF OBJ_FORM_ACTION_KAMEN         EQU $18
+
+; Player form/action work variables.
+DEF wSavedPlayerState     EQU $c0ac
+DEF wFormActionStep       EQU $c0ad
+DEF wFormActionTimer      EQU $c0ae
+DEF wPlayerActionMeter     EQU $c0af
+DEF wFormActionTemp       EQU $c0af ; Compatibility alias.
+DEF wStoredPlayerForm     EQU $c0be
+DEF wPlayerSpecialActor0  EQU $c0bf
+DEF wPlayerSpecialActor1  EQU $c0cb
+DEF wFormTimerLo          EQU $c0a6
+DEF wFormTimerHi          EQU $c0a7
+
+; Player action/projectile hitboxes in screen coordinates.
+DEF wPlayerActionHitbox0X EQU $c0c7
+DEF wPlayerActionHitbox0Y EQU $c0c8
+DEF wPlayerActionHitbox1X EQU $c0d3
+DEF wPlayerActionHitbox1Y EQU $c0d4
+DEF hActionHitboxHalfWidth  EQU $ffd1
+DEF hActionHitboxHalfHeight EQU $ffd2
+
+; Player special actor/projectile constants. These are stored at wPlayerSpecialActor* + 0.
+DEF SPECIAL_ACTOR_NONE                       EQU $00
+DEF SPECIAL_ACTOR_FLYING_SQUIRREL_PROJECTILE EQU $01
+DEF SPECIAL_ACTOR_CHICKEN_PROJECTILE         EQU $02
+DEF SPECIAL_ACTOR_ACTION_KAMEN_PROJECTILE     EQU $03
 
 
 RST_00:: ; Jump table dispatch. A indexes word table after rst call, then jumps to target.
@@ -246,7 +352,8 @@ Call_000_0080::
     ret
 
 
-Jump_000_0089::
+FarCallFromBankTable:: ; Banked table call. H=bank, L=entry-ish index; calls pointer read from bank:$4000+L+1.
+Jump_000_0089:: ; Compatibility alias for older notes/diffs.
     ld a, [$4000]
     push af
     ld a, h
@@ -392,13 +499,13 @@ Jump_000_0150::
     ld [$dffc], a
     xor a
     ld [$dff8], a
-    call Call_000_040f
+    call DetectSgbOrInitSgb
     jr nc, jr_000_017c
 
     ld a, $ff
     ld [$dff8], a
     ld hl, $030a
-    call Jump_000_0089
+    call FarCallFromBankTable
 
 jr_000_017c::
     di
@@ -416,7 +523,8 @@ jr_000_017c::
     call ReadJoypad
     call InitSound
 
-jr_000_01a1::
+ReinitCurrentState:: ; Rebuild current state with LCD off. Repeats if init sets hNeedsReset.
+jr_000_01a1:: ; Compatibility alias.
     di
     call DisableLCD
     xor a
@@ -428,25 +536,26 @@ jr_000_01a1::
     ld hl, wOamBuffer
     ld bc, $00a0
     call bzero
-    call Call_000_0986
+    call InitCurrentGameState
     xor a
     ldh [hPrevOamPos], a
     call ApplyLCDC
     ldh a, [hNeedsReset]
     or a
-    jr nz, jr_000_01a1
+    jr nz, ReinitCurrentState
 
     call ApplyScrollRegs
     call SgbDelayIfEnabled
     call Call_000_079b
     ei
 
-jr_000_01d6::
+MainWaitForStateReset:: ; Main thread idles here; VBlank update sets hNeedsReset to request a state rebuild.
+jr_000_01d6:: ; Compatibility alias.
     ldh a, [hNeedsReset]
     or a
-    jr z, jr_000_01d6
+    jr z, MainWaitForStateReset
 
-    jr jr_000_01a1
+    jr ReinitCurrentState
 
 VBlankHandler:: ; Main VBlank handler: DMA/OAM, VRAM queue, palettes, joypad, sound.
     push af
@@ -480,7 +589,7 @@ Call_000_01fc::
     ei
     call Call_000_04f2
     call ReadJoypad
-    call Call_000_090b
+    call UpdateCurrentGameState
     ldh a, [hOamWritePos]
     ldh [hPrevOamPos], a
     call ClearUnusedOAM
@@ -975,7 +1084,8 @@ jr_000_0406::
     ret
 
 
-Call_000_040f::
+DetectSgbOrInitSgb:: ; SGB detection/init handshake. Carry set means SGB path was detected.
+Call_000_040f:: ; Compatibility alias.
     ld hl, $0480
     call Call_000_03c8
     call DelayFramesOrCycles
@@ -1588,20 +1698,20 @@ Call_000_06fe::
 
 Call_000_0709::
     ld hl, $030c
-    call Jump_000_0089
+    call FarCallFromBankTable
     ret
 
 
 Call_000_0710::
     ldh [$ffc9], a
     ld hl, $0300
-    call Jump_000_0089
+    call FarCallFromBankTable
     ret
 
 
 Call_000_0719::
     ld hl, $0302
-    call Jump_000_0089
+    call FarCallFromBankTable
     ret
 
 
@@ -1707,13 +1817,13 @@ Call_000_0791::
 
 jr_000_0794::
     ld hl, $0306
-    call Jump_000_0089
+    call FarCallFromBankTable
     ret
 
 
 Call_000_079b::
     ld hl, $0308
-    call Jump_000_0089
+    call FarCallFromBankTable
     ret
 
 
@@ -1965,7 +2075,16 @@ jr_000_08f8::
 
     db $f9, $f2, $f8, $f3, $00, $f4, $f7, $f5, $f6
 
-Call_000_090b::
+UpdateCurrentGameState:: ; Per-frame state dispatcher, called from VBlank after input/sound.
+; hGameState update map, current understanding:
+;   0 -> bank 2 title/menu update
+;   1 -> debug menu update
+;   2 -> bank 1 gameplay update
+;   3 -> bank 2 screen/update path
+;   4 -> bank 2 screen/update path
+;   5 -> bank 2 screen/update path
+;   6 -> pause-ish handler: wait for START, then return to gameplay
+Call_000_090b:: ; Compatibility alias.
     ldh a, [hGameState]
     rst $00
 
@@ -1979,26 +2098,26 @@ Call_000_090b::
     add hl, bc
 
     ld hl, $0202
-    jp Jump_000_0089
+    jp FarCallFromBankTable
 
 
     jp Jump_000_1716
 
 
     ld hl, $0100
-    jp Jump_000_0089
+    jp FarCallFromBankTable
 
 
     ld hl, $0206
-    jp Jump_000_0089
+    jp FarCallFromBankTable
 
 
     ld hl, $020e
-    jp Jump_000_0089
+    jp FarCallFromBankTable
 
 
     ld hl, $0212
-    jp Jump_000_0089
+    jp FarCallFromBankTable
 
 
     ld a, $93
@@ -2040,10 +2159,20 @@ Call_000_0963::
 
 
     ld hl, HeaderLogo
-    jp Jump_000_0089
+    jp FarCallFromBankTable
 
 
-Call_000_0986::
+InitCurrentGameState:: ; State init dispatcher, called with LCD off from ReinitCurrentState.
+; hGameState init map, current understanding:
+;   0 -> bank 2 title/menu init
+;   1 -> debug menu init
+;   2 -> bank 1 gameplay init
+;   3 -> bank 2 screen init
+;   4 -> bank 2 screen init
+;   5 -> bank 2 screen init
+;   6 -> no init
+;   7 -> bank 1 gameplay init variant, then set $d933=$18
+Call_000_0986:: ; Compatibility alias.
     ldh a, [hGameState]
     rst $00
 
@@ -2063,33 +2192,33 @@ Call_000_0986::
     add hl, bc
 
     ld hl, $0200
-    jp Jump_000_0089
+    jp FarCallFromBankTable
 
 
     jp LoadDebugMenu
 
 
     ld hl, $0102
-    jp Jump_000_0089
+    jp FarCallFromBankTable
 
 
     ld hl, $0204
-    jp Jump_000_0089
+    jp FarCallFromBankTable
 
 
     ld hl, $020c
-    jp Jump_000_0089
+    jp FarCallFromBankTable
 
 
     ld hl, $0210
-    jp Jump_000_0089
+    jp FarCallFromBankTable
 
 
     ret
 
 
     ld hl, $0102
-    call Jump_000_0089
+    call FarCallFromBankTable
     ld a, $18
     ld [$d933], a
     ret
@@ -2129,9 +2258,9 @@ jr_000_09e0::
     ld a, $04
     ldh [$ff9f], a
     ld hl, $0102
-    call Jump_000_0089
+    call FarCallFromBankTable
     ld hl, $0106
-    jp Jump_000_0089
+    jp FarCallFromBankTable
 
 
 jr_000_0a05::
@@ -2148,7 +2277,8 @@ jr_000_0a05::
     ret
 
 
-Call_000_0a16::
+UpdateCameraAndStreamMap:: ; Gameplay camera/scroll update and BG map streaming.
+Call_000_0a16:: ; Compatibility alias.
     ldh a, [hCollisionFlag]
     cp $ff
     jr z, jr_000_0a05
@@ -2920,7 +3050,7 @@ Jump_000_0e02::
     db $d4, $d5, $d6, $d7
 
 Call_000_0e27::
-    ldh a, [$ffb9]
+    ldh a, [hPlayerHealth]
     ldh [$ffc9], a
     or a
     ret z
@@ -2946,10 +3076,10 @@ Call_000_0e38::
 
 
 Jump_000_0e48::
-    ld a, [$c402]
+    ld a, [wPendingVramUpdates]
     res 0, a
-    ld [$c402], a
-    ldh a, [$ffb9]
+    ld [wPendingVramUpdates], a
+    ldh a, [hPlayerHealth]
     dec a
     ld hl, $0e60
     rst $20
@@ -2961,12 +3091,12 @@ Jump_000_0e48::
     db $01, $9c, $03, $9c, $05, $9c, $e1, $e2, $e3, $e4, $00, $00, $00, $00
 
 Jump_000_0e6e::
-    ld a, [$c402]
+    ld a, [wPendingVramUpdates]
     res 1, a
-    ld [$c402], a
+    ld [wPendingVramUpdates], a
 
 Call_000_0e76::
-    ldh a, [$ffb9]
+    ldh a, [hPlayerHealth]
     ld hl, $0e60
     rst $20
     ld de, $0e6a
@@ -2976,12 +3106,12 @@ Call_000_0e76::
 
 Jump_000_0e85::
     ld bc, $9c2c
-    ldh a, [$ffb8]
+    ldh a, [hBonusCounter]
     jr jr_000_0e91
 
 Jump_000_0e8c::
     ld bc, $9c31
-    ldh a, [$ffba]
+    ldh a, [hPlayerLives]
 
 jr_000_0e91::
     ld d, a
@@ -3014,35 +3144,37 @@ Call_000_0eb7::
     ret
 
 
-Jump_000_0eba::
-    ld hl, $ffb8
+AddBonusCounter:: ; Add A to hBonusCounter; 30 bonus points awards an extra life.
+Jump_000_0eba:: ; Compatibility alias.
+    ld hl, hBonusCounter
     add [hl]
     cp $1e
     jr nc, jr_000_0ec7
 
 jr_000_0ec2::
-    ldh [$ffb8], a
+    ldh [hBonusCounter], a
     jp Jump_000_0e85
 
 
 jr_000_0ec7::
     sub $1e
     call jr_000_0ec2
-    jr jr_000_0ef9
+    jr AddExtraLife
 
     ld b, a
-    ldh a, [$ffb8]
+    ldh a, [hBonusCounter]
     sub b
     jr nc, jr_000_0ec2
 
     xor a
     jr jr_000_0ec2
 
-Jump_000_0ed7::
-    ld a, [$c402]
+AddPlayerHealth:: ; Add A to hPlayerHealth, capped at 3.
+Jump_000_0ed7:: ; Compatibility alias.
+    ld a, [wPendingVramUpdates]
     set 0, a
-    ld [$c402], a
-    ldh a, [$ffb9]
+    ld [wPendingVramUpdates], a
+    ldh a, [hPlayerHealth]
     inc a
     cp $04
     jr c, jr_000_0ee8
@@ -3050,26 +3182,27 @@ Jump_000_0ed7::
     ld a, $03
 
 jr_000_0ee8::
-    ldh [$ffb9], a
+    ldh [hPlayerHealth], a
     ret
 
 
 Call_000_0eeb::
-    ld a, [$c402]
+    ld a, [wPendingVramUpdates]
     set 1, a
-    ld [$c402], a
-    ldh a, [$ffb9]
+    ld [wPendingVramUpdates], a
+    ldh a, [hPlayerHealth]
     dec a
-    ldh [$ffb9], a
+    ldh [hPlayerHealth], a
     ret
 
 
-jr_000_0ef9::
+AddExtraLife:: ; Award one extra life and update the HUD.
+jr_000_0ef9:: ; Compatibility alias.
     ld a, $46
     call PlaySound_Queue1
 
 Call_000_0efe::
-    ld hl, $ffba
+    ld hl, hPlayerLives
     inc [hl]
     ld a, [hl]
     cp $64
@@ -4717,7 +4850,7 @@ Call_000_1754::
 
 Call_000_1766::
     ld bc, $992e
-    ldh a, [$ffba]
+    ldh a, [hPlayerLives]
     jp jr_000_0e91
 
 
@@ -4880,13 +5013,13 @@ jr_000_1825::
     ret
 
 
-    ldh a, [$ffba]
+    ldh a, [hPlayerLives]
     sub $01
-    ldh [$ffba], a
+    ldh [hPlayerLives], a
     ret nc
 
     ld a, $63
-    ldh [$ffba], a
+    ldh [hPlayerLives], a
     ret
 
 
@@ -4965,14 +5098,14 @@ jr_000_18a4::
     ret
 
 
-    ldh a, [$ffba]
+    ldh a, [hPlayerLives]
     inc a
-    ldh [$ffba], a
+    ldh [hPlayerLives], a
     cp $64
     ret c
 
     xor a
-    ldh [$ffba], a
+    ldh [hPlayerLives], a
     ret
 
 

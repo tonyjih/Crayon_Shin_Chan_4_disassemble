@@ -27,20 +27,20 @@ SECTION "ROM Bank $001", ROMX[$4000], BANK[$1]
     ld b, b
 
     xor a
-    ldh [$ffbb], a
-    ldh [$ffb9], a
-    ldh [$ffb8], a
+    ldh [hPlayerForm], a
+    ldh [hPlayerHealth], a
+    ldh [hBonusCounter], a
     ld a, $02
-    ldh [$ffba], a
+    ldh [hPlayerLives], a
     xor a
     ld [$c0a8], a
     ld [$c0b4], a
     call Call_001_41a9
     call Call_001_417f
-    call Call_001_4af5
+    call InitObjectSpawnList
     call Call_001_43c8
     xor a
-    ld [$c402], a
+    ld [wPendingVramUpdates], a
     jp Jump_000_0d8b
 
 
@@ -122,9 +122,9 @@ Call_001_4047::
 
 Call_001_417f::
     xor a
-    ldh [$ffaa], a
-    ldh [$ffac], a
-    ldh [$ffbc], a
+    ldh [hPlayerState], a
+    ldh [hPlayerDirection], a
+    ldh [hPlayerActionLock], a
     call Call_000_0dc0
     call Call_001_4047
     ld a, $8c
@@ -145,10 +145,10 @@ Call_001_417f::
 
 Call_001_41a9::
     ld a, $ff
-    ld [$c180], a
-    call Call_001_5e21
+    ld [wObjectSlots], a
+    call UpdatePlayerJumpProfile
     ld a, $20
-    ldh [$ffb7], a
+    ldh [hPlayerGravity], a
     ld hl, $00e0
     ld de, $0140
     ld a, [$dffd]
@@ -164,9 +164,9 @@ jr_001_41c7::
     ld a, h
     ld [$d997], a
     ld a, l
-    ldh [$ffb5], a
+    ldh [hPlayerSpeedX], a
     ld a, h
-    ldh [$ffb6], a
+    ldh [hPlayerSpeedXHigh], a
     ld a, e
     ld [$d998], a
     ld a, d
@@ -177,11 +177,11 @@ jr_001_41c7::
     ld [wVramQueue], a
     ldh [hVramQueuePos], a
     ldh [$ffc3], a
-    ldh [$ffb3], a
-    ldh [$ffb4], a
+    ldh [hPlayerVelY], a
+    ldh [hPlayerVelYHigh], a
     ldh [$ffbf], a
-    ldh [$ffbc], a
-    ldh [$ffbd], a
+    ldh [hPlayerActionLock], a
+    ldh [hPlayerAnimTimer], a
     ldh [$ffc1], a
     ld [$c0b0], a
     ldh [hCollisionFlag], a
@@ -198,7 +198,7 @@ jr_001_41c7::
     ld [hl+], a
     ld [hl+], a
     ld [hl+], a
-    ld [$c0be], a
+    ld [wStoredPlayerForm], a
     ret
 
 
@@ -289,7 +289,7 @@ Call_001_425e::
     db $40, $8c, $80, $00, $05, $f1, $5a, $00, $90, $00, $08, $07, $ff
 
 Call_001_42fd::
-    ldh a, [$ffbb]
+    ldh a, [hPlayerForm]
     rst $00
 
     db $0a, $43, $19, $43, $28, $43
@@ -414,13 +414,13 @@ jr_001_43a9::
 
 jr_001_43af::
     ld a, [hl+]
-    ldh [$ffb1], a
+    ldh [hPlayerX], a
     ld a, [hl+]
-    ldh [$ffb2], a
+    ldh [hPlayerXHigh], a
     ld a, [hl+]
-    ldh [$ffae], a
+    ldh [hPlayerY], a
     ld a, [hl+]
-    ldh [$ffaf], a
+    ldh [hPlayerYHigh], a
     ld a, [hl+]
     ldh [hSCX], a
     ld a, [hl+]
@@ -517,13 +517,13 @@ jr_001_443c::
     ld a, [hl+]
     ld [$c415], a
     ld a, [hl+]
-    ldh [$ffb1], a
+    ldh [hPlayerX], a
     ld a, [hl+]
-    ldh [$ffb2], a
+    ldh [hPlayerXHigh], a
     ld a, [hl+]
-    ldh [$ffae], a
+    ldh [hPlayerY], a
     ld a, [hl+]
-    ldh [$ffaf], a
+    ldh [hPlayerYHigh], a
     ld a, [hl+]
     ldh [hSCX], a
     ld a, [hl+]
@@ -559,19 +559,20 @@ jr_001_4475::
     ld b, $28
     nop
 
+UpdateGameplayState:: ; Main gameplay frame update for hGameState=2.
     ldh a, [hJoyPressed]
     bit 3, a
     jr nz, jr_001_4532
 
     ld a, $ff
     ld [$c403], a
-    call Call_000_0a16
-    call Call_001_4578
-    call Call_001_4868
-    call Call_001_560e
-    call Call_001_4f08
-    call Call_001_454b
-    ld a, [$c402]
+    call UpdateCameraAndStreamMap
+    call UpdateSpecialActors
+    call UpdateObjectsAndSpawnQueue
+    call UpdatePlayerState
+    call UpdateStageAnimatedTiles
+    call DrawPlayerSprite
+    ld a, [wPendingVramUpdates]
     or a
     ret z
 
@@ -579,7 +580,7 @@ jr_001_4475::
     cp $20
     ret nc
 
-    ld a, [$c402]
+    ld a, [wPendingVramUpdates]
     bit 3, a
     jp nz, Jump_001_4516
 
@@ -596,9 +597,9 @@ jr_001_4475::
 
 
 Jump_001_44fe::
-    ld a, [$c402]
+    ld a, [wPendingVramUpdates]
     res 2, a
-    ld [$c402], a
+    ld [wPendingVramUpdates], a
     ld hl, $c404
     ld a, [hl+]
     ld h, [hl]
@@ -610,9 +611,9 @@ Jump_001_44fe::
 
 
 Jump_001_4516::
-    ld a, [$c402]
+    ld a, [wPendingVramUpdates]
     res 3, a
-    ld [$c402], a
+    ld [wPendingVramUpdates], a
     ld hl, $c406
     ld a, [hl+]
     ld h, [hl]
@@ -638,13 +639,14 @@ jr_001_4532::
 
 
 jr_001_4544::
-    ldh a, [$ffbe]
+    ldh a, [hPlayerFlags]
     res 1, a
-    ldh [$ffbe], a
+    ldh [hPlayerFlags], a
     ret
 
 
-Call_001_454b::
+DrawPlayerSprite:: ; Draw player metasprite using hPlayerForm/hPlayerAnimId and screen position.
+Call_001_454b:: ; Compatibility alias.
     ld hl, $c0ab
     ld a, [hl]
     or a
@@ -657,7 +659,7 @@ Call_001_454b::
     ret z
 
 jr_001_4558::
-    ldh a, [$ffac]
+    ldh a, [hPlayerDirection]
     and $01
     ld b, a
     ldh a, [$ffa9]
@@ -666,27 +668,28 @@ jr_001_4558::
     ldh [$ffa9], a
     ldh [hSpriteFlags], a
     ld hl, $1a19
-    ldh a, [$ffbb]
+    ldh a, [hPlayerForm]
     rst $20
-    ldh a, [$ffa6]
+    ldh a, [hPlayerAnimId]
     rst $20
-    ldh a, [$ffa5]
+    ldh a, [hPlayerScreenX]
     ld c, a
-    ldh a, [$ffa4]
+    ldh a, [hPlayerScreenY]
     ld b, a
     jp jr_000_026c
 
 
-Call_001_4578::
-    ld bc, $c0bf
-    call Call_001_45bf
-    ld bc, $c0cb
-    call Call_001_45cb
-    ldh a, [$ffbb]
-    cp $04
+UpdateSpecialActors:: ; Update short-lived gameplay actor slots/effects.
+Call_001_4578:: ; Compatibility alias.
+    ld bc, wPlayerSpecialActor0
+    call UpdatePlayerSpecialActor0
+    ld bc, wPlayerSpecialActor1
+    call UpdatePlayerSpecialActor1
+    ldh a, [hPlayerForm]
+    cp PLAYER_FORM_ACTION_KAMEN
     ret nz
 
-    ld hl, $c0a6
+    ld hl, wFormTimerLo
     ld a, [hl]
     sub $01
     ld [hl+], a
@@ -701,15 +704,15 @@ Call_001_4578::
 
 
 jr_001_4599::
-    ld a, [$c0be]
-    ldh [$ffbb], a
+    ld a, [wStoredPlayerForm]
+    ldh [hPlayerForm], a
     ld a, $04
-    ld [$c0be], a
-    jp Jump_001_4dc7
+    ld [wStoredPlayerForm], a
+    jp EnterPlayerHurtState
 
 
 jr_001_45a6::
-    ld a, [$c0a6]
+    ld a, [wFormTimerLo]
     ld b, a
     and $0f
     ret z
@@ -717,17 +720,18 @@ jr_001_45a6::
     bit 4, b
     jp z, Jump_000_0e02
 
-    ldh a, [$ffbb]
+    ldh a, [hPlayerForm]
     push af
     xor a
-    ldh [$ffbb], a
+    ldh [hPlayerForm], a
     call Jump_000_0e02
     pop af
-    ldh [$ffbb], a
+    ldh [hPlayerForm], a
     ret
 
 
-Call_001_45bf::
+UpdatePlayerSpecialActor0:: ; Dispatch/update wPlayerSpecialActor0 by projectile type.
+Call_001_45bf:: ; Compatibility alias.
     ld a, [bc]
     or a
     ret z
@@ -739,21 +743,22 @@ Call_001_45bf::
 
     db $54, $46, $82, $46, $cd, $47
 
-Call_001_45cb::
+UpdatePlayerSpecialActor1:: ; Update wPlayerSpecialActor1, used by paired flying-squirrel projectiles.
+Call_001_45cb:: ; Compatibility alias.
     ld a, [bc]
     or a
     ret z
 
-    call Call_001_45f9
-    call Call_001_4b2e
+    call AdvanceSpecialActorTimer
+    call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
     jr nz, jr_001_45f1
 
-    call Call_001_4614
+    call CheckSpecialActorTileCollision
     jr z, jr_001_45f1
 
-    call Call_001_4641
+    call SetSpecialActorHitbox4x4
     inc bc
     ld a, [bc]
     ldh [hSpriteFlags], a
@@ -768,12 +773,13 @@ Call_001_45cb::
 jr_001_45f1::
     xor a
     ld [bc], a
-    ld hl, $ffbc
+    ld hl, hPlayerActionLock
     res 1, [hl]
     ret
 
 
-Call_001_45f9::
+AdvanceSpecialActorTimer:: ; Advance special actor Y/timer field before movement.
+Call_001_45f9:: ; Compatibility alias.
     ld hl, $0006
     add hl, bc
     ld a, [hl]
@@ -783,10 +789,12 @@ Call_001_45f9::
     adc $00
     ld [hl], a
 
-Jump_001_4605::
+MoveSpecialActorX_0180:: ; Move a projectile horizontally at speed $0180.
+Jump_001_4605:: ; Compatibility alias.
     ld de, $0180
 
-Jump_001_4608::
+MoveSpecialActorX:: ; Move a projectile horizontally by DE, honoring direction bit.
+Jump_001_4608:: ; Compatibility alias.
     ld h, b
     ld l, c
     inc hl
@@ -797,7 +805,8 @@ Jump_001_4608::
     jp Jump_001_4be3
 
 
-Call_001_4614::
+CheckSpecialActorTileCollision:: ; Check projectile tile collision against the stage collision map.
+Call_001_4614:: ; Compatibility alias.
     push bc
     ld hl, $0006
     add hl, bc
@@ -825,7 +834,7 @@ Call_001_4614::
 
 
 Call_001_4637::
-    call Call_001_46f6
+    call CheckProjectileTilePassability
     jr c, jr_001_463f
 
     or $ff
@@ -837,28 +846,30 @@ jr_001_463f::
     ret
 
 
-Call_001_4641::
+SetSpecialActorHitbox4x4:: ; Store a 4x4 special actor hitbox at current projected screen position.
+Call_001_4641:: ; Compatibility alias.
     ld a, $04
-    ldh [$ffd1], a
+    ldh [hActionHitboxHalfWidth], a
     ld a, $04
-    ldh [$ffd2], a
+    ldh [hActionHitboxHalfHeight], a
     ldh a, [$ffd3]
-    ld [$c0d3], a
+    ld [wPlayerActionHitbox1X], a
     ldh a, [$ffd4]
-    ld [$c0d4], a
+    ld [wPlayerActionHitbox1Y], a
     ret
 
 
-    call Jump_001_4605
-    call Call_001_4b2e
+UpdateFlyingSquirrelProjectile:: ; Special actor type 1: flying-squirrel projectile.
+    call MoveSpecialActorX_0180
+    call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
     jr nz, jr_001_4677
 
-    call Call_001_4614
+    call CheckSpecialActorTileCollision
     jr z, jr_001_4677
 
-    call Call_001_467f
+    call SetChickenProjectileHitbox
     inc bc
     ld a, [bc]
     ldh [hSpriteFlags], a
@@ -873,25 +884,27 @@ Call_001_4641::
 jr_001_4677::
     xor a
     ld [bc], a
-    ld hl, $ffbc
+    ld hl, hPlayerActionLock
     res 0, [hl]
     ret
 
 
-Call_001_467f::
-    jp Jump_001_47ba
+SetChickenProjectileHitbox:: ; Set chicken projectile hitbox using common 4x4 screen position storage.
+Call_001_467f:: ; Compatibility alias.
+    jp SetProjectileHitbox4x4AtScreenPos
 
 
-    call Call_001_46ad
-    call Call_001_4b2e
+UpdateChickenProjectile:: ; Special actor type 2: chicken projectile.
+    call UpdateChickenProjectileMotion
+    call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
     jr nz, jr_001_46a5
 
-    call Call_001_4614
+    call CheckSpecialActorTileCollision
     jr z, jr_001_46a5
 
-    call Jump_001_47ba
+    call SetProjectileHitbox4x4AtScreenPos
     inc bc
     ld a, [bc]
     ldh [hSpriteFlags], a
@@ -906,28 +919,30 @@ Call_001_467f::
 jr_001_46a5::
     xor a
     ld [bc], a
-    ld hl, $ffbc
+    ld hl, hPlayerActionLock
     res 0, [hl]
     ret
 
 
-Call_001_46ad::
+UpdateChickenProjectileMotion:: ; Update chicken projectile motion; after startup it checks upcoming tiles.
+Call_001_46ad:: ; Compatibility alias.
     ld hl, $c0c9
     ld a, [hl]
     cp $20
     jr nc, jr_001_46b9
 
     inc [hl]
-    jp Jump_001_4605
+    jp MoveSpecialActorX_0180
 
 
 jr_001_46b9::
-    call Call_001_46cf
-    call nc, Call_001_46c2
-    jp Jump_001_4605
+    call CheckChickenProjectileNextTile
+    call nc, AdvanceChickenProjectileY
+    jp MoveSpecialActorX_0180
 
 
-Call_001_46c2::
+AdvanceChickenProjectileY:: ; Advance chicken projectile Y position by one pixel/substep.
+Call_001_46c2:: ; Compatibility alias.
     ld hl, $0006
     add hl, bc
     ld a, [hl]
@@ -939,7 +954,8 @@ Call_001_46c2::
     ret
 
 
-Call_001_46cf::
+CheckChickenProjectileNextTile:: ; Check passability ahead of the chicken projectile.
+Call_001_46cf:: ; Compatibility alias.
     push bc
     ld hl, $0006
     add hl, bc
@@ -965,12 +981,13 @@ Call_001_46cf::
     pop de
     ld b, c
     ld c, e
-    call Call_001_46f6
+    call CheckProjectileTilePassability
     pop bc
     ret
 
 
-Call_001_46f6::
+CheckProjectileTilePassability:: ; Dispatch tile-specific projectile passability logic.
+Call_001_46f6:: ; Compatibility alias.
     and $3f
     rst $00
 
@@ -1176,27 +1193,30 @@ jr_001_47a2::
 
     jr jr_001_47a2
 
-Jump_001_47ba::
+SetProjectileHitbox4x4AtScreenPos:: ; Use $ffd3/$ffd4 as a 4x4 projectile hitbox position.
+Jump_001_47ba:: ; Compatibility alias.
     ld a, $04
-    ldh [$ffd1], a
+    ldh [hActionHitboxHalfWidth], a
     ld a, $04
-    ldh [$ffd2], a
+    ldh [hActionHitboxHalfHeight], a
 
-Jump_001_47c2::
+StoreProjectileHitboxAtScreenPos:: ; Store projected projectile hitbox position from $ffd3/$ffd4.
+Jump_001_47c2:: ; Compatibility alias.
     ldh a, [$ffd3]
-    ld [$c0c7], a
+    ld [wPlayerActionHitbox0X], a
     ldh a, [$ffd4]
-    ld [$c0c8], a
+    ld [wPlayerActionHitbox0Y], a
     ret
 
 
-    call Call_001_480c
-    call Call_001_4b2e
+UpdateActionKamenProjectile:: ; Special actor type 3: Action Kamen projectile.
+    call MoveActionKamenProjectile
+    call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
     jr nz, jr_001_47f9
 
-    call Call_001_4801
+    call SetActionKamenProjectileHitbox8x8
     inc bc
     ld a, [bc]
     ldh [hSpriteFlags], a
@@ -1220,28 +1240,31 @@ jr_001_47f0::
 jr_001_47f9::
     xor a
     ld [bc], a
-    ld hl, $ffbc
+    ld hl, hPlayerActionLock
     res 0, [hl]
     ret
 
 
-Call_001_4801::
+SetActionKamenProjectileHitbox8x8:: ; Use $ffd3/$ffd4 as an 8x8 Action Kamen projectile hitbox.
+Call_001_4801:: ; Compatibility alias.
     ld a, $08
-    ldh [$ffd1], a
+    ldh [hActionHitboxHalfWidth], a
     ld a, $08
-    ldh [$ffd2], a
-    jp Jump_001_47c2
+    ldh [hActionHitboxHalfHeight], a
+    jp StoreProjectileHitboxAtScreenPos
 
 
-Call_001_480c::
+MoveActionKamenProjectile:: ; Move Action Kamen projectile horizontally at speed $0300.
+Call_001_480c:: ; Compatibility alias.
     ld de, $0300
-    jp Jump_001_4608
+    jp MoveSpecialActorX
 
 
-Call_001_4812::
+UpdateObjectSlotByType:: ; Dispatch an object slot behavior by type.
+Call_001_4812:: ; Compatibility alias.
     ld b, h
     ld c, l
-    and $3f
+    and OBJECT_TYPE_MASK
     rst $00
 
     ld h, a
@@ -1266,7 +1289,14 @@ Call_001_4812::
     ret
 
 
-Call_001_4868::
+; Known object type groups:
+;   $0f-$14: pickup objects (bonus counter, extra life, health), including animated variants.
+;   $15-$18: player form pickup objects.
+;   $09-$0e: enemy-like objects using player action/body collision (exact names pending).
+;   $19-$1d/$20-$21: platform/stage-interaction-like objects (exact names pending).
+;   $00-$04/$22-$23: stage-specific event/enemy/boss-like objects (exact names pending).
+UpdateObjectsAndSpawnQueue:: ; Update active object slots and spawn queued objects near camera.
+Call_001_4868:: ; Compatibility alias.
     ld a, [$c0b5]
     or a
     jr z, jr_001_4871
@@ -1276,50 +1306,52 @@ Call_001_4868::
 jr_001_4871::
     xor a
     ldh [$ffc4], a
-    ld hl, $c180
+    ld hl, wObjectSlots
 
 jr_001_4877::
     ld a, [hl]
     or a
     jr z, jr_001_4884
 
-    cp $ff
+    cp OBJECT_LIST_END
     jr z, jr_001_488a
 
     push hl
-    call Call_001_4812
+    call UpdateObjectSlotByType
     pop hl
 
 jr_001_4884::
-    ld bc, $0010
+    ld bc, OBJECT_SLOT_SIZE
     add hl, bc
     jr jr_001_4877
 
 jr_001_488a::
-    call jr_001_489a
-    call jr_001_489a
-    call jr_001_489a
-    jr jr_001_489a
+    call TrySpawnNextObject
+    call TrySpawnNextObject
+    call TrySpawnNextObject
+    jr TrySpawnNextObject
 
-jr_001_4895::
+ResetSpawnCursor::
+jr_001_4895:: ; Compatibility alias.
     xor a
-    ld [$c380], a
+    ld [wSpawnCursor], a
     ret
 
 
-jr_001_489a::
-    ld hl, $c380
+TrySpawnNextObject:: ; Try to spawn the next eligible stage object near the camera.
+jr_001_489a:: ; Compatibility alias.
+    ld hl, wSpawnCursor
     ld a, [hl]
     ld c, a
     ld b, $00
     inc [hl]
-    ld hl, $c381
+    ld hl, wSpawnStateList
     add hl, bc
     ld a, [hl]
-    cp $ff
-    jr z, jr_001_4895
+    cp SPAWN_LIST_END
+    jr z, ResetSpawnCursor
 
-    cp $01
+    cp SPAWN_STATE_READY
     ret nz
 
     ld hl, $4b24
@@ -1391,22 +1423,23 @@ jr_001_48f6::
     jr c, jr_001_4915
 
 jr_001_48fe::
-    ld hl, $c381
+    ld hl, wSpawnStateList
     add hl, bc
-    ld [hl], $02
+    ld [hl], SPAWN_STATE_BLOCKED
 
-Jump_001_4904::
-    ld hl, $c180
+FindFreeObjectSlot:: ; Find an empty object slot, extending the list if needed.
+Jump_001_4904:: ; Compatibility alias.
+    ld hl, wObjectSlots
 
 jr_001_4907::
     ld a, [hl]
     or a
-    jr z, jr_001_4939
+    jr z, SpawnObjectIntoSlot
 
     cp $ff
     jr z, jr_001_492e
 
-    ld de, $0010
+    ld de, OBJECT_SLOT_SIZE
     add hl, de
     jr jr_001_4907
 
@@ -1436,15 +1469,16 @@ jr_001_4915::
 
 
 jr_001_492e::
-    call jr_001_4939
-    ld a, $ff
-    ld hl, $0010
+    call SpawnObjectIntoSlot
+    ld a, OBJECT_LIST_END
+    ld hl, OBJECT_SLOT_SIZE
     add hl, bc
     ld [hl], a
     ret
 
 
-jr_001_4939::
+SpawnObjectIntoSlot:: ; Copy a 5-byte spawn record into the selected object slot.
+jr_001_4939:: ; Compatibility alias.
     ld d, h
     ld e, l
     ld a, c
@@ -1494,9 +1528,11 @@ jr_001_4939::
     ld [hl+], a
     ld [hl+], a
     ld [hl], $01
-    call Call_001_49d9
+    call SetObjectFacingPlayerOnSpawn
+
+InitSpawnedObjectByType:: ; Run object-type-specific initialization after spawning.
     pop af
-    and $3f
+    and OBJECT_TYPE_MASK
     rst $00
 
     ret c
@@ -1582,13 +1618,14 @@ jr_001_4939::
     ret
 
 
-Call_001_49d9::
+SetObjectFacingPlayerOnSpawn:: ; Set initial object facing flag based on player/object X position.
+Call_001_49d9:: ; Compatibility alias.
     ld hl, $0003
     add hl, bc
-    ldh a, [$ffb1]
+    ldh a, [hPlayerX]
     sub [hl]
     inc hl
-    ldh a, [$ffb2]
+    ldh a, [hPlayerXHigh]
     sbc [hl]
     ret nc
 
@@ -1801,24 +1838,26 @@ jr_001_4a95::
     db $08
     db $08
 
-Call_001_4af5::
+InitObjectSpawnList:: ; Initialize object slots and per-stage spawn list state.
+Call_001_4af5:: ; Compatibility alias.
     xor a
-    ld [$c380], a
-    call Call_001_4b09
+    ld [wSpawnCursor], a
+    call InitSpawnStateList
     ld a, $ff
-    ld hl, $c180
+    ld hl, wObjectSlots
     ld b, $00
     call jr_000_0022
     jp jr_000_0022
 
 
-Call_001_4b09::
+InitSpawnStateList:: ; Initialize one-byte state entries for stage spawn records.
+Call_001_4b09:: ; Compatibility alias.
     ld hl, $4b24
     ldh a, [$ff9f]
     rst $20
     ld d, h
     ld e, l
-    ld hl, $c381
+    ld hl, wSpawnStateList
 
 jr_001_4b14::
     ld a, [de]
@@ -1827,7 +1866,7 @@ jr_001_4b14::
 
     ld a, $01
     ld [hl+], a
-    ld a, $05
+    ld a, SPAWN_RECORD_SIZE
     rst $30
     jr jr_001_4b14
 
@@ -1841,7 +1880,8 @@ jr_001_4b21::
     ld a, e
     ld a, e
 
-Call_001_4b2e::
+ProjectObjectToScreenAndCull:: ; Convert object world position to screen position and set offscreen flag.
+Call_001_4b2e:: ; Compatibility alias.
     xor a
     ldh [$ffd5], a
     ldh a, [hSCXHigh]
@@ -1919,8 +1959,9 @@ jr_001_4b7f::
     ret
 
 
-Call_001_4b84::
-    call Call_001_4b2e
+CullObjectAndReleaseSpawn:: ; Despawn object when far offscreen and mark its spawn record ready again.
+Call_001_4b84:: ; Compatibility alias.
+    call ProjectObjectToScreenAndCull
     ldh a, [$ffc9]
     ld d, a
     ldh a, [$ffd3]
@@ -1973,15 +2014,16 @@ jr_001_4bbd::
     ld hl, $000f
     add hl, bc
     ld a, [hl]
-    ld de, $c381
+    ld de, wSpawnStateList
     rst $30
-    ld a, $01
+    ld a, SPAWN_STATE_READY
     ld [de], a
     or a
     ret
 
 
-Jump_001_4bd4::
+MoveObjectXBySpeed:: ; Load object speed from +8/+9, then apply signed X movement.
+Jump_001_4bd4:: ; Compatibility alias.
     ld hl, $0008
     add hl, bc
     ld a, [hl+]
@@ -1990,7 +2032,8 @@ Jump_001_4bd4::
     ld hl, $0002
     add hl, bc
 
-Call_001_4bdf::
+ApplyObjectXVelocity:: ; Apply DE as signed fixed-point X velocity based on object facing flag.
+Call_001_4bdf:: ; Compatibility alias.
     ld a, [bc]
     rlca
     jr c, jr_001_4bee
@@ -2021,7 +2064,8 @@ jr_001_4bee::
     ret
 
 
-Call_001_4bf9::
+AdvanceObjectAnimCounter:: ; Advance a two-byte animation/timer counter with D/E limits.
+Call_001_4bf9:: ; Compatibility alias.
     inc [hl]
     ld a, [hl]
     cp d
@@ -2052,11 +2096,11 @@ Jump_001_4c06::
 
 
 Call_001_4c18::
-    ldh a, [$ffaa]
+    ldh a, [hPlayerState]
     cp $01
     jr z, jr_001_4c26
 
-    ldh a, [$ffbb]
+    ldh a, [hPlayerForm]
     cp $02
     jr z, jr_001_4c26
 
@@ -2110,7 +2154,7 @@ jr_001_4c2e::
 Call_001_4c9e::
     ldh a, [$ffcb]
     ld l, a
-    ldh a, [$ffa5]
+    ldh a, [hPlayerScreenX]
     ld h, a
     ldh a, [$ffd3]
     sub h
@@ -2124,15 +2168,15 @@ jr_001_4cad::
     cp l
     ret nc
 
-    ldh a, [$ffaa]
+    ldh a, [hPlayerState]
     cp $02
     jr nz, jr_001_4cce
 
-    ldh a, [$ffb4]
+    ldh a, [hPlayerVelYHigh]
     rlca
     jr c, jr_001_4cce
 
-    ldh a, [$ffa4]
+    ldh a, [hPlayerScreenY]
     ld h, a
     ldh a, [$ffd4]
     sub h
@@ -2153,7 +2197,7 @@ jr_001_4cc7::
 
 
 jr_001_4cce::
-    ldh a, [$ffa4]
+    ldh a, [hPlayerScreenY]
     ld h, a
     ldh a, [$ffd4]
     sub h
@@ -2278,79 +2322,80 @@ jr_001_4d51::
     ldh [$ffc5], a
     ld a, h
     ldh [$ffc6], a
-    jp Jump_001_4904
+    jp FindFreeObjectSlot
 
 
     db $68, $4d, $6d, $4d, $72, $4d, $77, $4d, $01, $08, $0e, $f0, $00, $02, $08, $0e
     db $c0, $00, $03, $08, $02, $c0, $00, $04, $08, $0a, $f0, $00
 
 Call_001_4d7c::
-    ldh a, [$ffbe]
+    ldh a, [hPlayerFlags]
     or a
     ret nz
 
-    ldh a, [$ffbb]
+    ldh a, [hPlayerForm]
     or a
     jp nz, Jump_001_4da4
 
-    ldh a, [$ffb9]
+    ldh a, [hPlayerHealth]
     or a
-    jp z, Jump_001_4ece
+    jp z, EnterPlayerDeathFallState
 
     ld a, $51
     call PlaySound
-    ldh a, [$ffaa]
-    ld [$c0ac], a
+    ldh a, [hPlayerState]
+    ld [wSavedPlayerState], a
     ld a, $0a
-    ldh [$ffaa], a
+    ldh [hPlayerState], a
     ld hl, $ffbe
     set 3, [hl]
     ld a, $1e
-    ldh [$ffbd], a
+    ldh [hPlayerAnimTimer], a
     ret
 
 
 Jump_001_4da4::
-    ldh a, [$ffbb]
-    ld [$c0be], a
+    ldh a, [hPlayerForm]
+    ld [wStoredPlayerForm], a
     xor a
-    ldh [$ffbb], a
+    ldh [hPlayerForm], a
     ld hl, $d996
     ld a, [hl+]
     ld h, [hl]
     ld l, a
     ld a, l
-    ldh [$ffb5], a
+    ldh [hPlayerSpeedX], a
     ld a, h
-    ldh [$ffb6], a
-    jp Jump_001_4dc7
+    ldh [hPlayerSpeedXHigh], a
+    jp EnterPlayerHurtState
 
 
 Call_001_4dbb::
     ld a, $01
     ld [$c0b0], a
     ld a, $20
-    ldh [$ffb7], a
+    ldh [hPlayerGravity], a
     jp Jump_001_5eae
 
 
-Jump_001_4dc7::
+EnterPlayerHurtState:: ; Enter hurt/knockback-style player state; clears action actors and starts recovery timer.
+Jump_001_4dc7:: ; Compatibility alias.
     ld a, $06
-    ldh [$ffaa], a
+    ldh [hPlayerState], a
     xor a
     ldh [$ffc1], a
     ldh [$ffa7], a
     ldh [$ffa8], a
-    ldh [$ffbc], a
-    ld [$c0bf], a
-    ld [$c0cb], a
-    ldh [$ffbc], a
+    ldh [hPlayerActionLock], a
+    ld [wPlayerSpecialActor0], a
+    ld [wPlayerSpecialActor1], a
+    ldh [hPlayerActionLock], a
     ld a, $f8
-    ldh [$ffbd], a
-    ldh a, [$ffbe]
+    ldh [hPlayerAnimTimer], a
+    ldh a, [hPlayerFlags]
     set 4, a
-    ldh [$ffbe], a
-    ld a, [$c0be]
+    ldh [hPlayerFlags], a
+    ld a, [wStoredPlayerForm]
     cp $04
     ret nz
 
@@ -2362,9 +2407,9 @@ Jump_001_4dc7::
     ld h, [hl]
     ld l, a
     ld a, l
-    ldh [$ffb5], a
+    ldh [hPlayerSpeedX], a
     ld a, h
-    ldh [$ffb6], a
+    ldh [hPlayerSpeedXHigh], a
     ld hl, $ffbe
     res 2, [hl]
     ret
@@ -2395,48 +2440,49 @@ Call_001_4e05::
     ret
 
 
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     and $f0
-    ldh [$ffae], a
+    ldh [hPlayerY], a
     ret
 
 
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     and $f0
     or $08
-    ldh [$ffae], a
+    ldh [hPlayerY], a
     ret
 
 
 Call_001_4e30::
-    ldh a, [$ffb4]
+    ldh a, [hPlayerVelYHigh]
     ld d, a
-    ldh a, [$ffb3]
+    ldh a, [hPlayerVelY]
     ld e, a
     push de
     ld a, l
-    ldh [$ffb3], a
+    ldh [hPlayerVelY], a
     ld a, h
-    ldh [$ffb4], a
-    call Call_001_4ea3
+    ldh [hPlayerVelYHigh], a
+    call ApplyPlayerYVelocity
     pop de
     ld a, d
-    ldh [$ffb4], a
+    ldh [hPlayerVelYHigh], a
     ld a, e
-    ldh [$ffb3], a
+    ldh [hPlayerVelY], a
     ret
 
 
-Jump_001_4e48::
-    ldh a, [$ffac]
+ApplyPlayerXVelocity:: ; Apply signed player horizontal step to world X with bounds checks.
+Jump_001_4e48:: ; Compatibility alias.
+    ldh a, [hPlayerDirection]
     or a
     jr nz, jr_001_4e79
 
     ld hl, $ffb0
-    ldh a, [$ffb5]
+    ldh a, [hPlayerSpeedX]
     add [hl]
     ld [hl+], a
-    ldh a, [$ffb6]
+    ldh a, [hPlayerSpeedXHigh]
     adc [hl]
     ld [hl+], a
     ld a, $00
@@ -2454,20 +2500,20 @@ Jump_001_4e48::
     ret z
 
     ld a, [$c415]
-    ldh [$ffb2], a
+    ldh [hPlayerXHigh], a
     ld a, [$c414]
-    ldh [$ffb1], a
+    ldh [hPlayerX], a
     ret
 
 
 jr_001_4e79::
     ld hl, $ffb0
-    ldh a, [$ffb5]
+    ldh a, [hPlayerSpeedX]
     ld d, a
     ld a, [hl]
     sub d
     ld [hl+], a
-    ldh a, [$ffb6]
+    ldh a, [hPlayerSpeedXHigh]
     ld d, a
     ld a, [hl]
     sbc d
@@ -2483,22 +2529,23 @@ jr_001_4e79::
     ret nc
 
     ld a, [$c411]
-    ldh [$ffb2], a
+    ldh [hPlayerXHigh], a
     ld a, [$c410]
-    ldh [$ffb1], a
+    ldh [hPlayerX], a
     ret
 
 
-Call_001_4ea3::
-    ldh a, [$ffb4]
+ApplyPlayerYVelocity:: ; Apply player vertical velocity to world Y.
+Call_001_4ea3:: ; Compatibility alias.
+    ldh a, [hPlayerVelYHigh]
     bit 7, a
     jr nz, jr_001_4ef0
 
     ld hl, $ffad
-    ldh a, [$ffb3]
+    ldh a, [hPlayerVelY]
     add [hl]
     ld [hl+], a
-    ldh a, [$ffb4]
+    ldh a, [hPlayerVelYHigh]
     adc [hl]
     ld [hl+], a
     ld a, $00
@@ -2515,25 +2562,26 @@ Call_001_4ea3::
     call Call_000_0080
     ret c
 
-    ldh a, [$ffaa]
+    ldh a, [hPlayerState]
     cp $0b
     ret z
 
-Jump_001_4ece::
+EnterPlayerDeathFallState:: ; Enter fall-out/death bounce state and reset form/audio.
+Jump_001_4ece:: ; Compatibility alias.
     xor a
-    ldh [$ffbb], a
+    ldh [hPlayerForm], a
     call InitSound
     ld a, $55
     call PlaySound_Queue3
     ld a, $0b
-    ldh [$ffaa], a
+    ldh [hPlayerState], a
     ld hl, $ffbe
     set 3, [hl]
     ld hl, $fc00
     ld a, l
-    ldh [$ffb3], a
+    ldh [hPlayerVelY], a
     ld a, h
-    ldh [$ffb4], a
+    ldh [hPlayerVelYHigh], a
     ld a, $ff
     ldh [$ffc3], a
     ret
@@ -2541,10 +2589,10 @@ Jump_001_4ece::
 
 jr_001_4ef0::
     ld hl, $ffad
-    ldh a, [$ffb3]
+    ldh a, [hPlayerVelY]
     add [hl]
     ld [hl+], a
-    ldh a, [$ffb4]
+    ldh a, [hPlayerVelYHigh]
     adc [hl]
     ld [hl+], a
     ld a, $ff
@@ -2554,12 +2602,13 @@ jr_001_4ef0::
     ret nz
 
     xor a
-    ldh [$ffaf], a
-    ldh [$ffae], a
+    ldh [hPlayerYHigh], a
+    ldh [hPlayerY], a
     ret
 
 
-Call_001_4f08::
+UpdateStageAnimatedTiles:: ; Update stage animated tiles when VRAM queue has room.
+Call_001_4f08:: ; Compatibility alias.
     ldh a, [$ff9f]
     rst $00
 
@@ -2777,16 +2826,17 @@ Call_001_509a::
     ret
 
 
-Jump_001_50a1::
+CheckPlayerHeadCollision:: ; Player upward/head collision check.
+Jump_001_50a1:: ; Compatibility alias.
     xor a
     ldh [$ffcd], a
-    ldh a, [$ffb1]
+    ldh a, [hPlayerX]
     ld c, a
-    ldh a, [$ffb2]
+    ldh a, [hPlayerXHigh]
     ld b, a
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     ld e, a
-    ldh a, [$ffaf]
+    ldh a, [hPlayerYHigh]
     ld d, a
     call Call_001_509a
     ld e, a
@@ -2799,36 +2849,36 @@ Jump_001_50a1::
     cp $01
     jr nz, jr_001_50ec
 
-    ldh a, [$ffab]
+    ldh a, [hPrevPlayerState]
     cp $03
     ret z
 
     ld a, $03
-    ldh [$ffaa], a
+    ldh [hPlayerState], a
     xor a
-    ldh [$ffb3], a
-    ldh [$ffb4], a
+    ldh [hPlayerVelY], a
+    ldh [hPlayerVelYHigh], a
     ldh [$ffc1], a
     ld [$c0b0], a
-    ldh a, [$ffbb]
+    ldh a, [hPlayerForm]
     cp $02
     jr nz, jr_001_50e0
 
     xor a
-    ldh [$ffbc], a
+    ldh [hPlayerActionLock], a
 
 jr_001_50e0::
     xor a
     ldh [$ffbf], a
-    ldh a, [$ffb1]
+    ldh a, [hPlayerX]
     and $f8
     or $08
-    ldh [$ffb1], a
+    ldh [hPlayerX], a
     ret
 
 
 jr_001_50ec::
-    ldh a, [$ffab]
+    ldh a, [hPrevPlayerState]
     cp $03
     ret nz
 
@@ -2864,7 +2914,7 @@ jr_001_510d::
 
 
 jr_001_5112::
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     and $0f
     cp $08
     ret nc
@@ -2875,7 +2925,7 @@ jr_001_5112::
 
 
 jr_001_511e::
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     and $0f
     ret z
 
@@ -2885,7 +2935,7 @@ jr_001_511e::
 
 
 jr_001_5128::
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     and $0f
     ret z
 
@@ -2895,7 +2945,7 @@ jr_001_5128::
 
 
 jr_001_5132::
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     and $0f
     cp $03
     jr c, jr_001_513f
@@ -2922,7 +2972,7 @@ jr_001_5144::
 
 
 jr_001_5158::
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     and $0f
     cp $0b
     jr nc, jr_001_5165
@@ -2949,9 +2999,9 @@ Call_001_516c::
     ld b, a
 
 Jump_001_517a::
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     ld e, a
-    ldh a, [$ffaf]
+    ldh a, [hPlayerYHigh]
     ld d, a
     dec de
     push de
@@ -2963,12 +3013,12 @@ Jump_001_517a::
     ld a, [hl]
     pop de
     call Call_001_51b2
-    ld e, $16
-    ldh a, [$ffbb]
-    cp $02
+    ld e, PLAYER_COLLISION_HEIGHT_NORMAL
+    ldh a, [hPlayerForm]
+    cp PLAYER_FORM_COCKROACH
     jr nz, jr_001_519b
 
-    ld e, $0f
+    ld e, PLAYER_COLLISION_HEIGHT_COCKROACH
 
 jr_001_519b::
     ld hl, $ffae
@@ -3132,22 +3182,23 @@ Call_001_524b::
     ld e, $12
     jr jr_001_526c
 
-Jump_001_5254::
-    ldh a, [$ffae]
+CheckPlayerGroundCollision:: ; Player downward/ground collision check.
+Jump_001_5254:: ; Compatibility alias.
+    ldh a, [hPlayerY]
     sub $20
-    ldh a, [$ffaf]
+    ldh a, [hPlayerYHigh]
     sbc $00
     ret c
 
     xor a
     ldh [$ffc0], a
     ldh [$ffcd], a
-    ld e, $16
-    ldh a, [$ffbb]
-    cp $02
+    ld e, PLAYER_COLLISION_HEIGHT_NORMAL
+    ldh a, [hPlayerForm]
+    cp PLAYER_FORM_COCKROACH
     jr nz, jr_001_526c
 
-    ld e, $0f
+    ld e, PLAYER_COLLISION_HEIGHT_COCKROACH
 
 jr_001_526c::
     ld hl, $ffae
@@ -3159,9 +3210,9 @@ jr_001_526c::
     ld d, a
     ld a, e
     ldh [$ffca], a
-    ldh a, [$ffb1]
+    ldh a, [hPlayerX]
     ld c, a
-    ldh a, [$ffb2]
+    ldh a, [hPlayerXHigh]
     ld b, a
     dec bc
     dec bc
@@ -3173,9 +3224,9 @@ jr_001_526c::
     add hl, de
     ld a, [hl]
     call Call_001_52cc
-    ldh a, [$ffb1]
+    ldh a, [hPlayerX]
     ld c, a
-    ldh a, [$ffb2]
+    ldh a, [hPlayerXHigh]
     ld b, a
     inc bc
     inc bc
@@ -3191,27 +3242,27 @@ jr_001_526c::
     cp $02
     ret nz
 
-    ldh a, [$ffaa]
+    ldh a, [hPlayerState]
     cp $04
     ret z
 
     ld a, $04
-    ldh [$ffaa], a
+    ldh [hPlayerState], a
     xor a
     ldh [$ffc1], a
     ldh [$ffa8], a
-    ldh a, [$ffbb]
+    ldh a, [hPlayerForm]
     cp $02
     jr nz, jr_001_52c3
 
     xor a
-    ldh [$ffbc], a
+    ldh [hPlayerActionLock], a
 
 jr_001_52c3::
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     and $f0
     or $08
-    ldh [$ffae], a
+    ldh [hPlayerY], a
     ret
 
 
@@ -3297,23 +3348,23 @@ Call_001_52cc::
     ld d, b
     ld d, e
 
-    ldh a, [$ffaa]
+    ldh a, [hPlayerState]
     cp $0c
     ret z
 
     ld a, $0c
-    ldh [$ffaa], a
+    ldh [hPlayerState], a
     ld a, $03
     ld [$c0b1], a
     ret
 
 
-    ldh a, [$ffaa]
+    ldh a, [hPlayerState]
     cp $0c
     ret z
 
     ld a, $0c
-    ldh [$ffaa], a
+    ldh [hPlayerState], a
     xor a
     ld [$c0b2], a
     inc a
@@ -3335,16 +3386,16 @@ Call_001_52cc::
     ret nz
 
 jr_001_535d::
-    ldh a, [$ffaa]
+    ldh a, [hPlayerState]
     cp $03
-    jp nz, Jump_001_5b06
+    jp nz, EnterPlayerFallState
 
     ld a, $ff
     ldh [$ffc0], a
     ret
 
 
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     sub $18
     and $0f
     cp $04
@@ -3355,7 +3406,7 @@ jr_001_535d::
     ret
 
 
-    ldh a, [$ffaa]
+    ldh a, [hPlayerState]
     cp $03
     ret nz
 
@@ -3369,15 +3420,15 @@ Call_001_5381::
     ldh [$ffcd], a
     ld [$c0aa], a
     ldh [$ffa9], a
-    ldh a, [$ffb1]
+    ldh a, [hPlayerX]
     ld c, a
-    ldh a, [$ffb2]
+    ldh a, [hPlayerXHigh]
     ld b, a
     dec bc
     dec bc
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     ld e, a
-    ldh a, [$ffaf]
+    ldh a, [hPlayerYHigh]
     ld d, a
     call Call_001_509a
     ld e, a
@@ -3386,15 +3437,15 @@ Call_001_5381::
     add hl, de
     ld a, [hl]
     call Call_001_53be
-    ldh a, [$ffb1]
+    ldh a, [hPlayerX]
     ld c, a
-    ldh a, [$ffb2]
+    ldh a, [hPlayerXHigh]
     ld b, a
     inc bc
     inc bc
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     ld e, a
-    ldh a, [$ffaf]
+    ldh a, [hPlayerYHigh]
     ld d, a
     call Call_001_509a
     ld e, a
@@ -3482,9 +3533,9 @@ Call_001_53be::
     or a
     jp nz, jr_001_5491
 
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     ld e, a
-    ldh a, [$ffaf]
+    ldh a, [hPlayerYHigh]
     ld d, a
     call Jump_001_5434
     jp jr_001_5491
@@ -3500,9 +3551,9 @@ Jump_001_5434::
     ld [$c404], a
     ld a, h
     ld [$c405], a
-    ld a, [$c402]
+    ld a, [wPendingVramUpdates]
     set 2, a
-    ld [$c402], a
+    ld [wPendingVramUpdates], a
     ld a, $ff
     ld [$c0a8], a
     ld a, $5b
@@ -3521,27 +3572,27 @@ Call_001_5458::
     cp $ff
     ret z
 
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     and $0f
     cp $08
     jr c, jr_001_5491
 
-    jp Jump_001_4ece
+    jp EnterPlayerDeathFallState
 
 
     ld a, $5c
     call PlaySound
     ld a, $10
-    ldh [$ffb7], a
+    ldh [hPlayerGravity], a
     ld a, $02
-    ldh [$ffaa], a
+    ldh [hPlayerState], a
     ld [$c0b0], a
     call Jump_001_54b3
     ld hl, $fc70
     jp jr_001_5e9d
 
 
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     and $0f
     cp $0b
     jp nc, jr_001_5165
@@ -3552,7 +3603,7 @@ jr_001_5491::
     ret
 
 
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     bit 3, a
     jr z, jr_001_5491
 
@@ -3560,14 +3611,14 @@ jr_001_5491::
     ld [$c0aa], a
     xor a
     ldh [$ffbf], a
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     and $f0
     or $08
-    ldh [$ffae], a
+    ldh [hPlayerY], a
     ret
 
 
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     bit 3, a
     jr nz, jr_001_5491
 
@@ -3576,9 +3627,9 @@ Jump_001_54b3::
     ld [$c0aa], a
     xor a
     ldh [$ffbf], a
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     and $f0
-    ldh [$ffae], a
+    ldh [hPlayerY], a
     ret
 
 
@@ -3593,7 +3644,7 @@ Jump_001_54b3::
     jr jr_001_54ce
 
 jr_001_54ce::
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     and $0f
     cp $04
     jr nc, jr_001_5491
@@ -3604,7 +3655,7 @@ jr_001_54ce::
 
 
 jr_001_54db::
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     and $0f
     cp $08
     jr c, jr_001_5491
@@ -3692,7 +3743,7 @@ jr_001_54db::
     ret
 
 
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     and $0f
     cp $04
     jp nc, jr_001_5491
@@ -3700,7 +3751,7 @@ jr_001_54db::
     push bc
     call Call_001_55c0
     pop bc
-    ld hl, $c180
+    ld hl, wObjectSlots
 
 jr_001_5567::
     ld a, [hl]
@@ -3742,11 +3793,11 @@ jr_001_5586::
     ld [hl+], a
     xor a
     ld [hl+], a
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     and $f0
     or $08
     ld [hl+], a
-    ldh a, [$ffaf]
+    ldh a, [hPlayerYHigh]
     ld [hl+], a
     xor a
     ld [hl+], a
@@ -3779,9 +3830,9 @@ jr_001_55bb::
 
 
 Call_001_55c0::
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     ld e, a
-    ldh a, [$ffaf]
+    ldh a, [hPlayerYHigh]
     ld d, a
     call Call_001_509a
     ld [hl], $00
@@ -3797,12 +3848,12 @@ Call_001_55c0::
 
 
 jr_001_55dc::
-    ld a, [$c402]
+    ld a, [wPendingVramUpdates]
     bit 3, a
     jr nz, jr_001_55f1
 
     set 3, a
-    ld [$c402], a
+    ld [wPendingVramUpdates], a
     ld a, l
     ld [$c406], a
     ld a, h
@@ -3817,7 +3868,7 @@ jr_001_55f1::
 
 
 Call_001_55fa::
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
 
 Jump_001_55fc::
     and $f0
@@ -3836,11 +3887,26 @@ Jump_001_55fc::
     ret
 
 
-Call_001_560e::
-    ldh a, [$ffaa]
-    ldh [$ffab], a
+UpdatePlayerState:: ; Dispatch current player state machine.
+Call_001_560e:: ; Compatibility alias.
+    ldh a, [hPlayerState]
+    ldh [hPrevPlayerState], a
     rst $00
 
+    ; hPlayerState dispatch table:
+    ;   00 -> PlayerState_NormalGround
+    ;   01 -> PlayerState_Duck
+    ;   02 -> PlayerState_JumpFall
+    ;   03 -> PlayerState_GroundedSnap
+    ;   04 -> PlayerState_CheckGroundedAction
+    ;   05 -> PlayerState_ClimbOrVerticalMove
+    ;   06 -> PlayerState_HurtKnockback
+    ;   07 -> PlayerState_FlyingSquirrelAction
+    ;   08 -> PlayerState_ChickenAction
+    ;   09 -> PlayerState_ActionKamenAction
+    ;   0a -> PlayerState_DamageBounce
+    ;   0b -> PlayerState_DeathFall
+    ;   0c-0d -> special/stage interaction states
     db $1c, $5b, $7f, $58, $70, $5c, $11, $59, $f4, $57
 
     ld d, c
@@ -3855,9 +3921,9 @@ Call_001_560e::
 
     ld hl, $fe00
     ld a, l
-    ldh [$ffb3], a
+    ldh [hPlayerVelY], a
     ld a, h
-    ldh [$ffb4], a
+    ldh [hPlayerVelYHigh], a
     call Call_001_5c78
     ld a, [$c0b1]
     rst $00
@@ -3968,7 +4034,7 @@ jr_001_56cf::
     ld a, $ff
     ld [$c0b0], a
     ld a, $02
-    ldh [$ffaa], a
+    ldh [hPlayerState], a
     ld a, [$c0b3]
     inc a
     ld [$c0b3], a
@@ -3992,7 +4058,7 @@ Call_001_5707::
 
     call Call_001_5381
     ld a, $15
-    ldh [$ffa6], a
+    ldh [hPlayerAnimId], a
     ld hl, $ffbd
     dec [hl]
     ld a, [hl]
@@ -4014,13 +4080,15 @@ jr_001_573a::
     call Call_000_0eeb
     ld hl, $ffb0
     ld de, $0200
-    ldh a, [$ffac]
+    ldh a, [hPlayerDirection]
     or a
     jp z, jr_001_4bee
 
     jp Jump_001_4be3
 
 
+
+PlayerState_DeathFall:: ; State 0b: fall-out/death bounce, life decrement, and reset/game-over transition.
     ld hl, $ffb3
     ld a, [hl]
     add $14
@@ -4039,14 +4107,14 @@ jr_001_573a::
     ld [hl], $00
 
 jr_001_5764::
-    call Call_001_4ea3
+    call ApplyPlayerYVelocity
     ld hl, $57b9
-    ldh a, [$ffbb]
+    ldh a, [hPlayerForm]
     rst $38
     ld a, [hl]
 
 jr_001_576e::
-    ldh [$ffa6], a
+    ldh [hPlayerAnimId], a
     ld a, $ff
     ldh [hCollisionFlag], a
     ld hl, $ffae
@@ -4065,7 +4133,7 @@ jr_001_576e::
     ld h, a
     ret c
 
-    ldh a, [$ffa4]
+    ldh a, [hPlayerScreenY]
     cp $b0
     ret c
 
@@ -4073,12 +4141,12 @@ jr_001_576e::
     ret nc
 
     xor a
-    ldh [$ffbb], a
+    ldh [hPlayerForm], a
     xor a
-    ldh [$ffbe], a
+    ldh [hPlayerFlags], a
     xor a
-    ldh [$ffb9], a
-    ld hl, $ffba
+    ldh [hPlayerHealth], a
+    ld hl, hPlayerLives
     ld a, [hl]
     or a
     jr z, @+$21
@@ -4114,32 +4182,32 @@ jr_001_576e::
     ret
 
 
-    call Call_001_581c
+    call HandlePlayerGroundInput
     ldh a, [$ffc4]
     or a
-    call z, Jump_001_5b06
+    call z, EnterPlayerFallState
     jr jr_001_57f7
 
 Call_001_57d9::
-    ldh a, [$ffbb]
+    ldh a, [hPlayerForm]
     cp $02
     jr nz, jr_001_57e2
 
     xor a
-    ldh [$ffbc], a
+    ldh [hPlayerActionLock], a
 
 jr_001_57e2::
     ld a, $0d
-    ldh [$ffaa], a
+    ldh [hPlayerState], a
     xor a
     ldh [$ffc1], a
     ldh [$ffa8], a
-    ldh a, [$ffbb]
+    ldh a, [hPlayerForm]
     cp $02
     ret z
 
     xor a
-    ldh [$ffbc], a
+    ldh [hPlayerActionLock], a
     ret
 
 
@@ -4158,19 +4226,20 @@ jr_001_57f7::
     ldh a, [$ffa8]
     rst $38
     ld a, [hl]
-    ldh [$ffa6], a
+    ldh [hPlayerAnimId], a
     ret
 
 
     db $12, $13, $12, $14
 
 Call_001_5812::
-    call Jump_001_5254
+    call CheckPlayerGroundCollision
     ldh a, [$ffcd]
     cp $02
-    jp nz, Jump_001_5b06
+    jp nz, EnterPlayerFallState
 
-Call_001_581c::
+HandlePlayerGroundInput:: ; Handle normal ground input and transition to jump/crouch/move.
+Call_001_581c:: ; Compatibility alias.
     ldh a, [hJoyPressed]
     rrca
     jp c, Jump_001_5e78
@@ -4186,13 +4255,13 @@ Call_001_581c::
     jr nz, jr_001_5846
 
     bit 7, a
-    jp nz, Jump_001_5b06
+    jp nz, EnterPlayerFallState
 
 jr_001_5834::
     xor a
     ldh [$ffc1], a
     ld a, $12
-    ldh [$ffa6], a
+    ldh [hPlayerAnimId], a
     ret
 
 
@@ -4200,16 +4269,16 @@ jr_001_583c::
     ld a, $01
     ldh [$ffc1], a
     xor a
-    ldh [$ffac], a
-    jp Jump_001_4e48
+    ldh [hPlayerDirection], a
+    jp ApplyPlayerXVelocity
 
 
 jr_001_5846::
     ld a, $01
     ldh [$ffc1], a
     ld a, $ff
-    ldh [$ffac], a
-    jp Jump_001_4e48
+    ldh [hPlayerDirection], a
+    jp ApplyPlayerXVelocity
 
 
     ld hl, $ffbe
@@ -4225,7 +4294,7 @@ jr_001_5846::
 
     rst $38
     ld a, [hl]
-    ldh [$ffa6], a
+    ldh [hPlayerAnimId], a
     ret
 
 
@@ -4235,17 +4304,19 @@ jr_001_5846::
     dec bc
     ld [$bef0], sp
     res 0, a
-    ldh [$ffbe], a
+    ldh [hPlayerFlags], a
     jp Jump_001_5e0b
 
 
+
+PlayerState_Duck:: ; State 01: down/duck pose and related transitions.
     call Jump_001_5afe
     ldh a, [hJoyHeld]
     cp $80
     jr z, jr_001_58d9
 
     ld a, $0c
-    ldh [$ffa6], a
+    ldh [hPlayerAnimId], a
     ldh a, [hJoyHeld]
     bit 7, a
     jp z, Jump_001_5e0b
@@ -4264,16 +4335,16 @@ jr_001_5846::
 
 jr_001_58a0::
     ld a, $ff
-    ldh [$ffac], a
+    ldh [hPlayerDirection], a
     xor a
-    ldh [$ffbd], a
+    ldh [hPlayerAnimTimer], a
     ret
 
 
 jr_001_58a8::
     xor a
-    ldh [$ffac], a
-    ldh [$ffbd], a
+    ldh [hPlayerDirection], a
+    ldh [hPlayerAnimTimer], a
     ret
 
 
@@ -4285,52 +4356,52 @@ jr_001_58ae::
 
     ld hl, $0100
     ld a, l
-    ldh [$ffb3], a
+    ldh [hPlayerVelY], a
     ld a, h
-    ldh [$ffb4], a
-    call Call_001_4ea3
-    call Call_001_4ea3
-    call Call_001_4ea3
-    call Call_001_4ea3
-    ldh a, [$ffaa]
+    ldh [hPlayerVelYHigh], a
+    call ApplyPlayerYVelocity
+    call ApplyPlayerYVelocity
+    call ApplyPlayerYVelocity
+    call ApplyPlayerYVelocity
+    ldh a, [hPlayerState]
     cp $0b
     ret z
 
     ld a, $02
-    ldh [$ffaa], a
+    ldh [hPlayerState], a
     ld a, $0f
-    ldh [$ffa6], a
+    ldh [hPlayerAnimId], a
     ret
 
 
 jr_001_58d9::
     call Call_001_58f5
     ld a, $0c
-    ldh [$ffa6], a
-    ldh a, [$ffbb]
+    ldh [hPlayerAnimId], a
+    ldh a, [hPlayerForm]
     or a
     ret nz
 
-    ldh a, [$ffbd]
+    ldh a, [hPlayerAnimTimer]
     inc a
-    ldh [$ffbd], a
+    ldh [hPlayerAnimTimer], a
     cp $80
     ret c
 
     ld a, $80
-    ldh [$ffbd], a
+    ldh [hPlayerAnimTimer], a
     ld a, $0d
-    ldh [$ffa6], a
+    ldh [hPlayerAnimId], a
     ret
 
 
 Call_001_58f5::
     ld hl, $0100
     call Call_001_4e30
-    call Jump_001_50a1
+    call CheckPlayerHeadCollision
     ld hl, $ff00
     call Call_001_4e30
-    ldh a, [$ffaa]
+    ldh a, [hPlayerState]
     cp $03
     ret nz
 
@@ -4340,6 +4411,8 @@ Call_001_58f5::
     ret
 
 
+
+PlayerState_GroundedSnap:: ; State 03: grounded snap/settle state after specific collision contact.
     call Call_001_5935
     ldh a, [$ffc1]
     rst $00
@@ -4347,7 +4420,7 @@ Call_001_58f5::
     db $1b, $59, $20, $59
 
     ld a, $10
-    ldh [$ffa6], a
+    ldh [hPlayerAnimId], a
     ret
 
 
@@ -4359,7 +4432,7 @@ Call_001_58f5::
     ldh a, [$ffa8]
     rst $38
     ld a, [hl]
-    ldh [$ffa6], a
+    ldh [hPlayerAnimId], a
     ret
 
 
@@ -4375,11 +4448,11 @@ Call_001_5935::
 
     ldh a, [hJoyPressed]
     bit 0, a
-    jp nz, Jump_001_5e78
+    jp nz, StartPlayerJump
 
     xor a
     ldh [$ffc1], a
-    jp Jump_001_50a1
+    jp CheckPlayerHeadCollision
 
 
 jr_001_594c::
@@ -4387,14 +4460,14 @@ jr_001_594c::
     ldh [$ffc1], a
     ld hl, $ff00
     ld a, l
-    ldh [$ffb3], a
+    ldh [hPlayerVelY], a
     ld a, h
-    ldh [$ffb4], a
+    ldh [hPlayerVelYHigh], a
     call Call_001_524b
     ldh a, [$ffc0]
     or a
-    call z, Call_001_4ea3
-    jp Jump_001_50a1
+    call z, ApplyPlayerYVelocity
+    jp CheckPlayerHeadCollision
 
 
 jr_001_5965::
@@ -4402,64 +4475,68 @@ jr_001_5965::
     ldh [$ffc1], a
     ld hl, $0100
     ld a, l
-    ldh [$ffb3], a
+    ldh [hPlayerVelY], a
     ld a, h
-    ldh [$ffb4], a
-    call Call_001_4ea3
-    jp Jump_001_50a1
+    ldh [hPlayerVelYHigh], a
+    call ApplyPlayerYVelocity
+    jp CheckPlayerHeadCollision
 
 
-Jump_001_5978::
-    ldh a, [$ffbc]
+UsePlayerFormAction:: ; Dispatch B-button ability for current hPlayerForm.
+Jump_001_5978:: ; Compatibility alias.
+    ldh a, [hPlayerActionLock]
     or a
     ret nz
 
-    ldh a, [$ffbb]
+    ldh a, [hPlayerForm]
     or a
     ret z
 
-    cp $01
-    jp z, Jump_001_59e7
+    cp PLAYER_FORM_FLYING_SQUIRREL
+    jp z, StartFlyingSquirrelAction
 
-    cp $04
-    jp z, Jump_001_5a88
+    cp PLAYER_FORM_ACTION_KAMEN
+    jp z, StartActionKamenAction
 
-    cp $03
-    jp z, Jump_001_59a5
+    cp PLAYER_FORM_CHICKEN
+    jp z, StartChickenAction
 
+    ; PLAYER_FORM_COCKROACH: start the form action in-place using hPlayerActionLock.
     ld a, $4e
     call PlaySound
-    ld hl, $c0ad
+    ld hl, wFormActionStep
     xor a
     ld [hl+], a
     ld [hl], a
-    ld [$c0bf], a
+    ld [wPlayerSpecialActor0], a
     ldh [$ffa8], a
     ldh [$ffa7], a
     inc a
-    ldh [$ffbc], a
+    ldh [hPlayerActionLock], a
     ret
 
 
-Jump_001_59a5::
+StartChickenAction:: ; Begin mother-hen form action; enters player state 08.
+Jump_001_59a5:: ; Compatibility alias.
     ld de, $0a08
-    jr jr_001_59ea
+    jr StartTimedPlayerFormAction
 
+PlayerState_ChickenAction:: ; State 08: mother-hen form action.
     call Call_001_5381
     ld e, $05
-    call Call_001_59fe
+    call UpdatePlayerFormActionAnim
     ld hl, $ffbd
     dec [hl]
     ret nz
 
     ld a, $4f
     call PlaySound
-    ld a, [$c0ac]
-    ldh [$ffaa], a
-    ld a, $02
-    call Call_001_5aea
+    ld a, [wSavedPlayerState]
+    ldh [hPlayerState], a
+    ld a, SPECIAL_ACTOR_CHICKEN_PROJECTILE
+    call InitPlayerSpecialActor
     ld b, $0a
-    ld a, [$c0ac]
+    ld a, [wSavedPlayerState]
     or a
     jr nz, jr_001_59d0
 
@@ -4467,14 +4544,14 @@ Jump_001_59a5::
 
 jr_001_59d0::
     ld a, b
-    call Call_001_5a7d
-    call jr_001_5ae3
+    call CalcSpecialActorY
+    call StoreSpecialActorPos
     xor a
     ld [hl+], a
     ld [hl+], a
     ld [hl+], a
     ld [hl+], a
-    ld a, [$c0ac]
+    ld a, [wSavedPlayerState]
     or a
     ret nz
 
@@ -4483,33 +4560,37 @@ jr_001_59d0::
     ret
 
 
-Jump_001_59e7::
+StartFlyingSquirrelAction:: ; Begin flying-squirrel form action; enters player state 07.
+Jump_001_59e7:: ; Compatibility alias.
     ld de, $0e07
 
-jr_001_59ea::
-    ldh a, [$ffaa]
-    ld [$c0ac], a
+StartTimedPlayerFormAction:: ; Save current state, set action timer/state, and clear form action work vars.
+jr_001_59ea:: ; Compatibility alias.
+    ldh a, [hPlayerState]
+    ld [wSavedPlayerState], a
     ld a, d
-    ldh [$ffbd], a
+    ldh [hPlayerAnimTimer], a
     ld a, e
-    ldh [$ffaa], a
-    ld hl, $c0ad
+    ldh [hPlayerState], a
+    ld hl, wFormActionStep
     xor a
     ld [hl+], a
     ld [hl], a
     ret
 
 
-Call_001_59fc::
+UpdateFlyingSquirrelActionAnim::
+Call_001_59fc:: ; Compatibility alias.
     ld e, $07
 
-Call_001_59fe::
-    ld hl, $c0ad
+UpdatePlayerFormActionAnim:: ; Advance form-action animation once timer passes threshold E.
+Call_001_59fe:: ; Compatibility alias.
+    ld hl, wFormActionStep
     ld a, [hl]
     or a
     jr z, jr_001_5a14
 
-    ldh a, [$ffbd]
+    ldh a, [hPlayerAnimTimer]
     cp e
     ret nc
 
@@ -4519,53 +4600,55 @@ Call_001_59fe::
     ret nz
 
     inc [hl]
-    ldh a, [$ffa6]
+    ldh a, [hPlayerAnimId]
     inc a
-    ldh [$ffa6], a
+    ldh [hPlayerAnimId], a
     ret
 
 
 jr_001_5a14::
     inc [hl]
     ld a, $17
-    ldh [$ffa6], a
-    ld a, [$c0ac]
+    ldh [hPlayerAnimId], a
+    ld a, [wSavedPlayerState]
     or a
     ret z
 
     ld a, $15
-    ldh [$ffa6], a
+    ldh [hPlayerAnimId], a
     ret
 
 
+PlayerState_FlyingSquirrelAction:: ; State 07: flying-squirrel form action.
     call Call_001_5381
-    call Call_001_59fc
+    call UpdateFlyingSquirrelActionAnim
     ld hl, $ffbd
     dec [hl]
     ret nz
 
     ld a, $4c
     call PlaySound
-    ld a, [$c0ac]
-    ldh [$ffaa], a
+    ld a, [wSavedPlayerState]
+    ldh [hPlayerState], a
     ld a, $03
-    ldh [$ffbc], a
-    ld hl, $c0bf
-    call Call_001_5a45
-    ld hl, $c0cb
+    ldh [hPlayerActionLock], a
+    ld hl, wPlayerSpecialActor0
+    call InitPlayerSpecialActorAtHL
+    ld hl, wPlayerSpecialActor1
 
-Call_001_5a45::
-    ld a, $01
+InitPlayerSpecialActorAtHL:: ; Initialize a flying-squirrel projectile actor at HL.
+Call_001_5a45:: ; Compatibility alias.
+    ld a, SPECIAL_ACTOR_FLYING_SQUIRREL_PROJECTILE
     ld [hl+], a
-    ldh a, [$ffac]
+    ldh a, [hPlayerDirection]
     and $01
     ld [hl+], a
     ld a, $0a
-    call Call_001_5a63
-    call jr_001_5ae3
+    call CalcSpecialActorX
+    call StoreSpecialActorPos
     ld a, $0a
-    call Call_001_5a7d
-    call jr_001_5ae3
+    call CalcSpecialActorY
+    call StoreSpecialActorPos
     xor a
     ld [hl+], a
     ld [hl+], a
@@ -4574,53 +4657,57 @@ Call_001_5a45::
     ret
 
 
-Call_001_5a63::
+CalcSpecialActorX:: ; BC = player X +/- A based on hPlayerDirection.
+Call_001_5a63:: ; Compatibility alias.
     ld c, a
-    ldh a, [$ffac]
+    ldh a, [hPlayerDirection]
     or a
     jr nz, jr_001_5a73
 
-    ldh a, [$ffb1]
+    ldh a, [hPlayerX]
     add c
     ld c, a
-    ldh a, [$ffb2]
+    ldh a, [hPlayerXHigh]
     adc $00
     ld b, a
     ret
 
 
 jr_001_5a73::
-    ldh a, [$ffb1]
+    ldh a, [hPlayerX]
     sub c
     ld c, a
-    ldh a, [$ffb2]
+    ldh a, [hPlayerXHigh]
     sbc $00
     ld b, a
     ret
 
 
-Call_001_5a7d::
+CalcSpecialActorY:: ; BC = player Y - A.
+Call_001_5a7d:: ; Compatibility alias.
     ld c, a
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     sub c
     ld c, a
-    ldh a, [$ffaf]
+    ldh a, [hPlayerYHigh]
     sbc $00
     ld b, a
     ret
 
 
-Jump_001_5a88::
-    ldh a, [$ffaa]
+StartActionKamenAction:: ; Begin Action Kamen form action; only allowed from normal ground state.
+Jump_001_5a88:: ; Compatibility alias.
+    ldh a, [hPlayerState]
     or a
     ret nz
 
     ld de, $0009
-    jp jr_001_59ea
+    jp StartTimedPlayerFormAction
 
 
-Call_001_5a92::
-    ldh a, [$ffbd]
+UpdateActionKamenActionAnim:: ; Select Action Kamen action animation by hPlayerAnimTimer.
+Call_001_5a92:: ; Compatibility alias.
+    ldh a, [hPlayerAnimTimer]
     cp $0a
     jr c, jr_001_5aa3
 
@@ -4630,53 +4717,56 @@ Call_001_5a92::
     jr nc, jr_001_5aa8
 
     ld a, $16
-    ldh [$ffa6], a
+    ldh [hPlayerAnimId], a
     ret
 
 
 jr_001_5aa3::
     ld a, $15
-    ldh [$ffa6], a
+    ldh [hPlayerAnimId], a
     ret
 
 
 jr_001_5aa8::
     ld a, $17
-    ldh [$ffa6], a
+    ldh [hPlayerAnimId], a
     ret
 
 
+PlayerState_ActionKamenAction:: ; State 09: Action Kamen projectile/action sequence.
     call Call_001_5381
-    call Call_001_5a92
-    ldh a, [$ffbd]
+    call UpdateActionKamenActionAnim
+    ldh a, [hPlayerAnimTimer]
     inc a
-    ldh [$ffbd], a
+    ldh [hPlayerAnimTimer], a
     cp $32
     ret c
 
-    ld a, [$c0ac]
-    ldh [$ffaa], a
+    ld a, [wSavedPlayerState]
+    ldh [hPlayerState], a
     ret
 
 
-jr_001_5ac1::
+SpawnActionKamenProjectile:: ; Spawn the Action Kamen projectile on animation frame $14.
+jr_001_5ac1:: ; Compatibility alias.
     ld a, $50
     call PlaySound
-    ld a, $03
-    call Call_001_5aea
-    ld hl, $c0bf
-    ld a, $03
+    ld a, SPECIAL_ACTOR_ACTION_KAMEN_PROJECTILE
+    call InitPlayerSpecialActor
+    ld hl, wPlayerSpecialActor0
+    ld a, SPECIAL_ACTOR_ACTION_KAMEN_PROJECTILE
     ld [hl+], a
-    ldh a, [$ffac]
+    ldh a, [hPlayerDirection]
     and $01
     ld [hl+], a
     ld a, $0a
-    call Call_001_5a63
-    call jr_001_5ae3
+    call CalcSpecialActorX
+    call StoreSpecialActorPos
     ld a, $06
-    call Call_001_5a7d
+    call CalcSpecialActorY
 
-jr_001_5ae3::
+StoreSpecialActorPos:: ; Store BC as a 16-bit position field in the current special actor struct.
+jr_001_5ae3:: ; Compatibility alias.
     xor a
     ld [hl+], a
     ld a, c
@@ -4686,17 +4776,18 @@ jr_001_5ae3::
     ret
 
 
-Call_001_5aea::
-    ld hl, $c0bf
+InitPlayerSpecialActor:: ; Initialize wPlayerSpecialActor0 and set hPlayerActionLock.
+Call_001_5aea:: ; Compatibility alias.
+    ld hl, wPlayerSpecialActor0
     ld [hl+], a
-    ldh a, [$ffac]
+    ldh a, [hPlayerDirection]
     and $01
     ld [hl+], a
     ld a, $01
-    ldh [$ffbc], a
+    ldh [hPlayerActionLock], a
     ld a, $0a
-    call Call_001_5a63
-    jr jr_001_5ae3
+    call CalcSpecialActorX
+    jr StoreSpecialActorPos
 
 Jump_001_5afe::
     call Call_001_5381
@@ -4704,34 +4795,37 @@ Jump_001_5afe::
     cp $02
     ret nz
 
-Jump_001_5b06::
+EnterPlayerFallState:: ; Switch to airborne/falling state when no ground is supporting the player.
+Jump_001_5b06:: ; Compatibility alias.
     ldh a, [$ffc4]
     or a
     ret nz
 
     ld a, $20
-    ldh [$ffb7], a
+    ldh [hPlayerGravity], a
     ld a, $02
-    ldh [$ffaa], a
+    ldh [hPlayerState], a
     xor a
-    ldh [$ffb3], a
-    ldh [$ffb4], a
+    ldh [hPlayerVelY], a
+    ldh [hPlayerVelYHigh], a
     ld a, $0f
-    ldh [$ffa6], a
+    ldh [hPlayerAnimId], a
     ret
 
 
+
+PlayerState_NormalGround:: ; State 00: normal grounded player control.
     call Call_001_4e05
-    call Call_001_5bc0
-    ldh a, [$ffaa]
+    call HandleGroundInput
+    ldh a, [hPlayerState]
     or a
     ret nz
 
-    ldh a, [$ffbb]
-    cp $02
+    ldh a, [hPlayerForm]
+    cp PLAYER_FORM_COCKROACH
     jr nz, jr_001_5b31
 
-    ldh a, [$ffbc]
+    ldh a, [hPlayerActionLock]
     or a
     jr nz, jr_001_5b3a
 
@@ -4768,7 +4862,7 @@ jr_001_5b51::
     db $15, $16, $16, $17, $15, $1b
 
     ld a, $04
-    ldh [$ffa6], a
+    ldh [hPlayerAnimId], a
     ret
 
 
@@ -4780,7 +4874,7 @@ jr_001_5b51::
     ldh a, [$ffa8]
     rst $38
     ld a, [hl]
-    ldh [$ffa6], a
+    ldh [hPlayerAnimId], a
     ret
 
 
@@ -4827,7 +4921,7 @@ jr_001_5b98::
 
     rst $38
     ld a, [hl]
-    ldh [$ffa6], a
+    ldh [hPlayerAnimId], a
     ret
 
 
@@ -4835,7 +4929,7 @@ jr_001_5bb3::
     xor a
     ldh [$ffc1], a
     ldh [$ffa8], a
-    ldh [$ffbd], a
+    ldh [hPlayerAnimTimer], a
     ret
 
 
@@ -4844,7 +4938,8 @@ jr_001_5bb3::
     rlca
     inc b
 
-Call_001_5bc0::
+HandleGroundInput:: ; Ground input router: duck, jump, form action, horizontal movement, idle timer.
+Call_001_5bc0:: ; Compatibility alias.
     ldh a, [hJoyHeld]
     bit 7, a
     jr nz, jr_001_5c1a
@@ -4854,7 +4949,7 @@ Call_001_5bc0::
     jr c, jr_001_5c17
 
     rrca
-    jp c, Jump_001_5978
+    jp c, UsePlayerFormAction
 
 jr_001_5bcf::
     ldh a, [hJoyHeld]
@@ -4874,18 +4969,18 @@ jr_001_5be0::
     call Jump_001_5afe
     xor a
     ldh [$ffc1], a
-    ldh a, [$ffbb]
+    ldh a, [hPlayerForm]
     or a
     ret nz
 
-    ldh a, [$ffbd]
+    ldh a, [hPlayerAnimTimer]
     inc a
-    ldh [$ffbd], a
+    ldh [hPlayerAnimTimer], a
     cp $80
     ret c
 
     ld a, $80
-    ldh [$ffbd], a
+    ldh [hPlayerAnimTimer], a
     ld a, $02
     ldh [$ffc1], a
     ret
@@ -4894,10 +4989,10 @@ jr_001_5be0::
 jr_001_5bfb::
     ld hl, $ff00
     call Call_001_4e30
-    call Jump_001_50a1
+    call CheckPlayerHeadCollision
     ld hl, $0100
     call Call_001_4e30
-    ldh a, [$ffaa]
+    ldh a, [hPlayerState]
     cp $03
     jr nz, jr_001_5be0
 
@@ -4907,18 +5002,18 @@ jr_001_5bfb::
 
 
 jr_001_5c17::
-    jp Jump_001_5e78
+    jp StartPlayerJump
 
 
 jr_001_5c1a::
-    ldh a, [$ffbb]
+    ldh a, [hPlayerForm]
     cp $02
     jr z, jr_001_5c2a
 
     ld a, $01
-    ldh [$ffaa], a
+    ldh [hPlayerState], a
     xor a
-    ldh [$ffbd], a
+    ldh [hPlayerAnimTimer], a
     ldh [$ffc1], a
     ret
 
@@ -4933,72 +5028,75 @@ jr_001_5c2a::
 
 jr_001_5c35::
     xor a
-    ldh [$ffbd], a
+    ldh [hPlayerAnimTimer], a
     ld a, $01
     ldh [$ffc1], a
     xor a
-    ldh [$ffac], a
+    ldh [hPlayerDirection], a
     ld a, [$c0b6]
     cp $ff
     jr nz, jr_001_5c4d
 
-    ldh a, [$ffa5]
+    ldh a, [hPlayerScreenX]
     cp $9c
-    jp nc, Jump_001_4e48
+    jp nc, ApplyPlayerXVelocity
 
 jr_001_5c4d::
     call Call_001_516c
     ldh a, [$ffc0]
     or a
-    call z, Jump_001_4e48
+    call z, ApplyPlayerXVelocity
     jp Jump_001_5afe
 
 
 jr_001_5c59::
     xor a
-    ldh [$ffbd], a
+    ldh [hPlayerAnimTimer], a
     ld a, $01
     ldh [$ffc1], a
     ld a, $ff
-    ldh [$ffac], a
+    ldh [hPlayerDirection], a
     call Call_001_523a
     ldh a, [$ffc0]
     or a
-    call z, Jump_001_4e48
+    call z, ApplyPlayerXVelocity
     jp Jump_001_5afe
 
 
-    call Call_001_5d77
-    ldh a, [$ffaa]
+
+PlayerState_JumpFall:: ; State 02: airborne control, gravity, and landing checks.
+    call UpdateAirbornePlayerInput
+    ldh a, [hPlayerState]
     cp $02
     ret nz
 
-Call_001_5c78::
-    ldh a, [$ffbb]
+UpdateAirbornePlayerAnimByForm:: ; Select airborne player animation and form-specific air behavior.
+Call_001_5c78:: ; Compatibility alias.
+    ldh a, [hPlayerForm]
     rst $00
 
     db $85, $5c, $92, $5c, $c5, $5c, $b0, $5c, $85, $5c
 
     ld a, $0e
-    ldh [$ffa6], a
-    ldh a, [$ffb4]
+    ldh [hPlayerAnimId], a
+    ldh a, [hPlayerVelYHigh]
     rlca
     ret c
 
     ld a, $0f
-    ldh [$ffa6], a
+    ldh [hPlayerAnimId], a
     ret
 
 
-    ldh a, [$ffaa]
+    ldh a, [hPlayerState]
     cp $02
-    call z, Call_001_5e2f
-    ldh a, [$ffb4]
+    call z, UpdateFlyingSquirrelGlide
+    ldh a, [hPlayerVelYHigh]
     rlca
     jr nc, jr_001_5ca3
 
     ld a, $0e
-    ldh [$ffa6], a
+    ldh [hPlayerAnimId], a
     ret
 
 
@@ -5009,7 +5107,7 @@ jr_001_5ca3::
 
     set 7, [hl]
     ld a, $0f
-    ldh [$ffa6], a
+    ldh [hPlayerAnimId], a
     ret
 
 
@@ -5022,13 +5120,13 @@ jr_001_5cb0::
     ldh a, [$ffa8]
     rst $38
     ld a, [hl]
-    ldh [$ffa6], a
+    ldh [hPlayerAnimId], a
     ret
 
 
     db $0e, $0f
 
-    ldh a, [$ffbc]
+    ldh a, [hPlayerActionLock]
     or a
     jr z, jr_001_5cb0
 
@@ -5038,15 +5136,16 @@ jr_001_5cb0::
     ld a, h
     ldh [$ffc6], a
 
-Jump_001_5cd3::
-    call Call_001_5d04
-    ldh a, [$ffa4]
+UpdateCockroachActionHitbox:: ; Update cockroach action hitbox position while hPlayerActionLock is active.
+Jump_001_5cd3:: ; Compatibility alias.
+    call UpdatePlayerActionAnimStep
+    ldh a, [hPlayerScreenY]
     sub $0c
-    ld [$c0c8], a
+    ld [wPlayerActionHitbox0Y], a
     ld a, $04
-    ldh [$ffd2], a
+    ldh [hActionHitboxHalfHeight], a
     ld de, $1606
-    ld a, [$c0ad]
+    ld a, [wFormActionStep]
     cp $01
     jr nz, jr_001_5cee
 
@@ -5054,26 +5153,27 @@ Jump_001_5cd3::
 
 jr_001_5cee::
     ld a, e
-    ldh [$ffd1], a
-    ldh a, [$ffac]
+    ldh [hActionHitboxHalfWidth], a
+    ldh a, [hPlayerDirection]
     or a
     jr nz, jr_001_5cfd
 
-    ldh a, [$ffa5]
+    ldh a, [hPlayerScreenX]
     add d
-    ld [$c0c7], a
+    ld [wPlayerActionHitbox0X], a
     ret
 
 
 jr_001_5cfd::
-    ldh a, [$ffa5]
+    ldh a, [hPlayerScreenX]
     sub d
-    ld [$c0c7], a
+    ld [wPlayerActionHitbox0X], a
     ret
 
 
-Call_001_5d04::
-    ld a, [$c0ad]
+UpdatePlayerActionAnimStep:: ; Advance multi-step player form action animation.
+Call_001_5d04:: ; Compatibility alias.
+    ld a, [wFormActionStep]
     rst $00
 
     db $0e, $5d, $2f, $5d, $50, $5d
@@ -5089,8 +5189,8 @@ Call_001_5d04::
     ldh a, [$ffa8]
     rst $38
     ld a, [hl]
-    ldh [$ffa6], a
-    ld hl, $c0ae
+    ldh [hPlayerAnimId], a
+    ld hl, wFormActionTimer
     inc [hl]
     ld a, [hl]
     cp $10
@@ -5113,8 +5213,8 @@ Call_001_5d04::
     ldh a, [$ffa8]
     rst $38
     ld a, [hl]
-    ldh [$ffa6], a
-    ld hl, $c0ae
+    ldh [hPlayerAnimId], a
+    ld hl, wFormActionTimer
     inc [hl]
     ld a, [hl]
     cp $b4
@@ -5137,24 +5237,25 @@ Call_001_5d04::
     ldh a, [$ffa8]
     rst $38
     ld a, [hl]
-    ldh [$ffa6], a
-    ld hl, $c0ae
+    ldh [hPlayerAnimId], a
+    ld hl, wFormActionTimer
     inc [hl]
     ld a, [hl]
     cp $78
     ret c
 
     xor a
-    ldh [$ffbc], a
+    ldh [hPlayerActionLock], a
     ret
 
 
     db $18, $19, $19, $1a, $18, $1c
 
-Call_001_5d77::
+UpdateAirbornePlayerInput:: ; Handle airborne B action, horizontal control, gravity, and landing checks.
+Call_001_5d77:: ; Compatibility alias.
     ldh a, [hJoyPressed]
     bit 1, a
-    jp nz, Jump_001_5978
+    jp nz, UsePlayerFormAction
 
     ldh a, [hJoyHeld]
     rrca
@@ -5173,12 +5274,13 @@ jr_001_5d8a::
 
     jr jr_001_5ddf
 
-Call_001_5d96::
+LimitUpwardVelocityOnARelease:: ; When A is released during upward motion, clamp upward velocity.
+Call_001_5d96:: ; Compatibility alias.
     ld a, [$c0b0]
     or a
     ret nz
 
-    ldh a, [$ffb4]
+    ldh a, [hPlayerVelYHigh]
     rlca
     ret nc
 
@@ -5193,15 +5295,15 @@ Call_001_5d96::
 
     ld hl, $ff00
     ld a, l
-    ldh [$ffb3], a
+    ldh [hPlayerVelY], a
     ld a, h
-    ldh [$ffb4], a
+    ldh [hPlayerVelYHigh], a
     ret
 
 
 jr_001_5db6::
-    call Jump_001_50a1
-    ldh a, [$ffaa]
+    call CheckPlayerHeadCollision
+    ldh a, [hPlayerState]
     cp $03
     jr nz, jr_001_5d8a
 
@@ -5210,27 +5312,27 @@ jr_001_5db6::
 
 jr_001_5dc0::
     xor a
-    ldh [$ffac], a
+    ldh [hPlayerDirection], a
     call Call_001_516c
     ldh a, [$ffc0]
     or a
     jr nz, jr_001_5ddf
 
-    call Jump_001_4e48
+    call ApplyPlayerXVelocity
     jr jr_001_5ddf
 
 jr_001_5dd0::
     ld a, $ff
-    ldh [$ffac], a
+    ldh [hPlayerDirection], a
     call Call_001_523a
     ldh a, [$ffc0]
     or a
     jr nz, jr_001_5ddf
 
-    call Jump_001_4e48
+    call ApplyPlayerXVelocity
 
 jr_001_5ddf::
-    ldh a, [$ffb7]
+    ldh a, [hPlayerGravity]
     ld b, a
     ld hl, $ffb3
     ld a, [hl]
@@ -5250,7 +5352,7 @@ jr_001_5ddf::
     ld [hl], $00
 
 jr_001_5dfa::
-    call Call_001_4ea3
+    call ApplyPlayerYVelocity
     call Call_001_5381
     ld hl, $ffaa
     ld a, [hl+]
@@ -5264,37 +5366,40 @@ jr_001_5dfa::
 Jump_001_5e0b::
     call Call_001_4e05
 
-Jump_001_5e0e::
+ResetPlayerToNormalState:: ; Clear motion/action state and return to normal ground state.
+Jump_001_5e0e:: ; Compatibility alias.
     xor a
-    ldh [$ffaa], a
-    ldh [$ffb3], a
-    ldh [$ffb4], a
-    ldh [$ffbd], a
+    ldh [hPlayerState], a
+    ldh [hPlayerVelY], a
+    ldh [hPlayerVelYHigh], a
+    ldh [hPlayerAnimTimer], a
     ldh [$ffc1], a
     ldh [$ffa8], a
-    ld [$c0af], a
+    ld [wPlayerActionMeter], a
     ld [$c0b0], a
 
-Call_001_5e21::
-    ld a, $03
-    ldh [$ffc2], a
-    ldh a, [$ffbb]
-    cp $03
+UpdatePlayerJumpProfile:: ; Select jump profile. Chicken Shin-chan uses a stronger jump profile.
+Call_001_5e21:: ; Compatibility alias.
+    ld a, PLAYER_JUMP_PROFILE_NORMAL
+    ldh [hPlayerJumpProfile], a
+    ldh a, [hPlayerForm]
+    cp PLAYER_FORM_CHICKEN
     ret nz
 
-    ld a, $04
-    ldh [$ffc2], a
+    ld a, PLAYER_JUMP_PROFILE_CHICKEN
+    ldh [hPlayerJumpProfile], a
     ret
 
 
-Call_001_5e2f::
+UpdateFlyingSquirrelGlide:: ; Flying squirrel: repeated A presses build glide meter and briefly cancel gravity/Y velocity.
+Call_001_5e2f:: ; Compatibility alias.
     ldh a, [hJoyPressed]
     rrca
     jr nc, jr_001_5e5e
 
     ld a, $4b
     call PlaySound
-    ldh a, [$ffa6]
+    ldh a, [hPlayerAnimId]
     cp $0e
     jr nz, jr_001_5e42
 
@@ -5305,8 +5410,8 @@ jr_001_5e42::
     ld a, $0e
 
 jr_001_5e44::
-    ldh [$ffa6], a
-    ld hl, $c0af
+    ldh [hPlayerAnimId], a
+    ld hl, wPlayerActionMeter
     ld a, [hl]
     add $1e
     cp $3d
@@ -5321,20 +5426,20 @@ jr_001_5e52::
 
 jr_001_5e56::
     xor a
-    ldh [$ffb7], a
-    ldh [$ffb3], a
-    ldh [$ffb4], a
+    ldh [hPlayerGravity], a
+    ldh [hPlayerVelY], a
+    ldh [hPlayerVelYHigh], a
     ret
 
 
 jr_001_5e5e::
-    ldh a, [$ffb4]
+    ldh a, [hPlayerVelYHigh]
     rlca
     ret c
 
     ld a, $20
-    ldh [$ffb7], a
-    ld hl, $c0af
+    ldh [hPlayerGravity], a
+    ld hl, wPlayerActionMeter
     ld a, [hl]
     or a
     ret z
@@ -5347,18 +5452,19 @@ jr_001_5e5e::
 
 
 Jump_001_5e72::
-    call Call_001_4ea3
-    jp Jump_001_5254
+    call ApplyPlayerYVelocity
+    jp CheckPlayerGroundCollision
 
 
-Jump_001_5e78::
+StartPlayerJump:: ; Enter jump state and initialize upward velocity/sound.
+Jump_001_5e78:: ; Compatibility alias.
     ld a, $02
-    ldh [$ffaa], a
+    ldh [hPlayerState], a
     ld a, $42
     call PlaySound
     ld a, $20
-    ldh [$ffb7], a
-    ldh a, [$ffc2]
+    ldh [hPlayerGravity], a
+    ldh a, [hPlayerJumpProfile]
     and $07
     rst $00
 
@@ -5378,14 +5484,15 @@ Jump_001_5e78::
     db $c2
     ld e, [hl]
 
-Call_001_5e9a::
+SetPlayerJumpVelocity:: ; Jump velocity table targets write initial signed Y velocity.
+Call_001_5e9a:: ; Compatibility alias.
     ld hl, $0000
 
 jr_001_5e9d::
     ld a, l
-    ldh [$ffb3], a
+    ldh [hPlayerVelY], a
     ld a, h
-    ldh [$ffb4], a
+    ldh [hPlayerVelYHigh], a
     ret
 
 
@@ -5411,6 +5518,8 @@ Jump_001_5eae::
     ld hl, $fb00
     jr jr_001_5e9d
 
+
+PlayerState_HurtKnockback:: ; State 06: recovery/knockback-style animation state.
     ldh a, [$ffc1]
     or a
     jr z, jr_001_5f1f
@@ -5426,15 +5535,15 @@ Jump_001_5eae::
 
     rst $38
     ld a, [hl]
-    ldh [$ffa6], a
+    ldh [hPlayerAnimId], a
     cp $03
     ret nz
 
     ld a, $04
-    ldh [$ffa6], a
-    call Call_001_454b
+    ldh [hPlayerAnimId], a
+    call DrawPlayerSprite
     ld a, $03
-    ldh [$ffa6], a
+    ldh [hPlayerAnimId], a
     ret
 
 
@@ -5446,7 +5555,7 @@ Jump_001_5eae::
 
 jr_001_5ef4::
     ld a, $04
-    ldh [$ffa6], a
+    ldh [hPlayerAnimId], a
     call Jump_000_0e02
     ld a, $80
     ld [$c0ab], a
@@ -5454,7 +5563,7 @@ jr_001_5ef4::
     set 1, [hl]
     res 4, [hl]
     call Jump_001_5e0b
-    ldh a, [$ffbb]
+    ldh a, [hPlayerForm]
     cp $04
     ret nz
 
@@ -5464,9 +5573,9 @@ jr_001_5ef4::
     ld h, [hl]
     ld l, a
     ld a, l
-    ldh [$ffb5], a
+    ldh [hPlayerSpeedX], a
     ld a, h
-    ldh [$ffb6], a
+    ldh [hPlayerSpeedXHigh], a
     ret
 
 
@@ -5484,7 +5593,7 @@ jr_001_5f1f::
     ldh a, [$ffa8]
     rst $38
     ld a, [hl]
-    ldh [$ffa6], a
+    ldh [hPlayerAnimId], a
     ret
 
 
@@ -5504,9 +5613,9 @@ Call_001_5f40::
 
 Call_001_5f4d::
     ld hl, $5f68
-    ldh a, [$ffbb]
+    ldh a, [hPlayerForm]
     rst $20
-    ldh a, [$ffbd]
+    ldh a, [hPlayerAnimTimer]
     bit 7, a
     jr nz, jr_001_5f62
 
@@ -5517,15 +5626,15 @@ Call_001_5f4d::
     call Jump_000_0522
 
 jr_001_5f62::
-    ldh a, [$ffbd]
+    ldh a, [hPlayerAnimTimer]
     inc a
-    ldh [$ffbd], a
+    ldh [hPlayerAnimTimer], a
     ret
 
 
     db $31, $41, $a1, $45, $a1, $53, $41, $4f, $d1, $4a
 
-    call Call_001_4b84
+    call CullObjectAndReleaseSpawn
     ret nz
 
     ldh a, [$ffd5]
@@ -5554,7 +5663,7 @@ Call_001_5f8b::
     xor a
     ld [bc], a
     inc a
-    jp Jump_000_0eba
+    jp AddBonusCounter
 
 
 Call_001_5f9e::
@@ -5564,7 +5673,7 @@ Call_001_5f9e::
 
     ldh a, [$ffd3]
     ld h, a
-    ldh a, [$ffa5]
+    ldh a, [hPlayerScreenX]
     sub h
     rst $28
     cp e
@@ -5572,7 +5681,7 @@ Call_001_5f9e::
 
     ldh a, [$ffd4]
     ld h, a
-    ldh a, [$ffa4]
+    ldh a, [hPlayerScreenY]
     sub $0c
     sub h
     rst $28
@@ -5587,7 +5696,7 @@ Call_001_5f9e::
     or a
     jr nz, jr_001_5fda
 
-    call Call_001_4b84
+    call CullObjectAndReleaseSpawn
     ret nz
 
     ldh a, [$ffd5]
@@ -5610,7 +5719,7 @@ Call_001_5f9e::
 
 jr_001_5fda::
     call Call_001_5fe6
-    call Call_001_4b2e
+    call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
     ret nz
@@ -5624,7 +5733,7 @@ Call_001_5fe6::
     xor a
     ld [bc], a
     inc a
-    jp Jump_000_0eba
+    jp AddBonusCounter
 
 
 Call_001_5ff0::
@@ -5702,7 +5811,7 @@ Call_001_605b::
 
     xor a
     ld [bc], a
-    jp jr_000_0ef9
+    jp AddExtraLife
 
 
     ld h, b
@@ -5712,7 +5821,7 @@ Call_001_605b::
     or a
     jr nz, jr_001_608b
 
-    call Call_001_4b84
+    call CullObjectAndReleaseSpawn
     ret nz
 
     ldh a, [$ffd5]
@@ -5735,7 +5844,7 @@ Call_001_605b::
 
 jr_001_608b::
     call Call_001_6097
-    call Call_001_4b2e
+    call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
     ret nz
@@ -5748,10 +5857,10 @@ Call_001_6097::
 
     xor a
     ld [bc], a
-    jp jr_000_0ef9
+    jp AddExtraLife
 
 
-    call Call_001_4b84
+    call CullObjectAndReleaseSpawn
     ret nz
 
     ldh a, [$ffd5]
@@ -5780,7 +5889,7 @@ Call_001_60b7::
     xor a
     ld [bc], a
     inc a
-    jp Jump_000_0ed7
+    jp AddPlayerHealth
 
 
     ld h, b
@@ -5790,7 +5899,7 @@ Call_001_60b7::
     or a
     jr nz, jr_001_60ed
 
-    call Call_001_4b84
+    call CullObjectAndReleaseSpawn
     ret nz
 
     ldh a, [$ffd5]
@@ -5813,7 +5922,7 @@ Call_001_60b7::
 
 jr_001_60ed::
     call Call_001_60f9
-    call Call_001_4b2e
+    call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
     ret nz
@@ -5827,10 +5936,10 @@ Call_001_60f9::
     xor a
     ld [bc], a
     inc a
-    jp Jump_000_0ed7
+    jp AddPlayerHealth
 
 
-    call Call_001_4b84
+    call CullObjectAndReleaseSpawn
     ret nz
 
     ldh a, [$ffd5]
@@ -5854,20 +5963,20 @@ Call_001_611a::
 
     ld a, $45
     call PlaySound
-    ldh a, [$ffbb]
-    ld [$c0be], a
+    ldh a, [hPlayerForm]
+    ld [wStoredPlayerForm], a
     ld hl, $ffbe
     res 2, [hl]
-    ld a, $01
-    ldh [$ffbb], a
+    ld a, PLAYER_FORM_FLYING_SQUIRREL
+    ldh [hPlayerForm], a
 
 jr_001_6135::
     xor a
     ld [bc], a
-    jp Jump_001_4dc7
+    jp EnterPlayerHurtState
 
 
-    call Call_001_4b84
+    call CullObjectAndReleaseSpawn
     ret nz
 
     ldh a, [$ffd5]
@@ -5891,15 +6000,15 @@ Call_001_6151::
 
     ld a, $45
     call PlaySound
-    ldh a, [$ffbb]
-    ld [$c0be], a
+    ldh a, [hPlayerForm]
+    ld [wStoredPlayerForm], a
     ld hl, $ffbe
     res 2, [hl]
-    ld a, $02
-    ldh [$ffbb], a
+    ld a, PLAYER_FORM_COCKROACH
+    ldh [hPlayerForm], a
     jr jr_001_6135
 
-    call Call_001_4b84
+    call CullObjectAndReleaseSpawn
     ret nz
 
     ldh a, [$ffd5]
@@ -5923,16 +6032,16 @@ Call_001_6185::
 
     ld a, $45
     call PlaySound
-    ldh a, [$ffbb]
-    ld [$c0be], a
+    ldh a, [hPlayerForm]
+    ld [wStoredPlayerForm], a
     ld hl, $ffbe
     res 2, [hl]
-    ld a, $03
-    ldh [$ffbb], a
+    ld a, PLAYER_FORM_CHICKEN
+    ldh [hPlayerForm], a
     jp jr_001_6135
 
 
-    call Call_001_4b84
+    call CullObjectAndReleaseSpawn
     ret nz
 
     ldh a, [$ffd5]
@@ -5954,21 +6063,21 @@ Call_001_61ba::
     call Call_001_5f9e
     ret nc
 
-    ldh a, [$ffbb]
-    ld [$c0be], a
+    ldh a, [hPlayerForm]
+    ld [wStoredPlayerForm], a
     ld hl, $ffbe
     set 2, [hl]
-    ld a, $04
-    ldh [$ffbb], a
+    ld a, PLAYER_FORM_ACTION_KAMEN
+    ldh [hPlayerForm], a
     ld hl, jr_000_0600
     ld a, l
-    ld [$c0a6], a
+    ld [wFormTimerLo], a
     ld a, h
-    ld [$c0a7], a
+    ld [wFormTimerHi], a
     jp jr_001_6135
 
 
-    call Call_001_4b84
+    call CullObjectAndReleaseSpawn
     ret nz
 
     ldh a, [$ffd5]
@@ -6056,7 +6165,7 @@ jr_001_623a::
 
     ld a, $12
     ldh [$ffd6], a
-    call Jump_001_4bd4
+    call MoveObjectXBySpeed
     ld hl, $000a
     call Call_001_6323
     ld hl, $000a
@@ -6079,23 +6188,23 @@ jr_001_623a::
 
 Call_001_6273::
     ld de, $0408
-    jp Jump_001_6345
+    jp CheckPlayerActionHitboxCollision
 
 
 Call_001_6279::
     ld d, $05
-    jp Jump_001_63aa
+    jp CheckPlayerBodyCollision
 
 
     call Call_001_6292
-    call Call_001_4b84
+    call CullObjectAndReleaseSpawn
     ret nz
 
     ldh a, [$ffd5]
     or a
     ret nz
 
-    call Call_001_6342
+    call CheckPlayerActionHitboxCollision_Default
     call Call_001_63a8
     jp Jump_001_4c06
 
@@ -6133,7 +6242,7 @@ jr_001_62ab::
 
     ld hl, $62e2
     call Jump_001_62cb
-    call Jump_001_4bd4
+    call MoveObjectXBySpeed
 
 Jump_001_62b8::
     ld hl, $000d
@@ -6161,7 +6270,7 @@ Call_001_62cd::
     ld hl, $000c
     add hl, bc
     ld e, $04
-    call Call_001_4bf9
+    call AdvanceObjectAnimCounter
     ld hl, $000b
     add hl, bc
     ld a, [hl]
@@ -6180,7 +6289,7 @@ Call_001_62cd::
 
 Jump_001_62eb::
     call Call_001_62f8
-    call Call_001_4b2e
+    call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
     ret nz
@@ -6212,7 +6321,7 @@ Call_001_62f8::
 
 Jump_001_6311::
     call Call_001_6320
-    call Call_001_4b2e
+    call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
     jp z, Jump_001_4c06
@@ -6254,35 +6363,38 @@ Call_001_632e::
     ret
 
 
-Call_001_6342::
+CheckPlayerActionHitboxCollision_Default::
+Call_001_6342:: ; Compatibility alias.
     ld de, $040c
 
-Jump_001_6345::
-    ldh a, [$ffbc]
+CheckPlayerActionHitboxCollision:: ; Check active player form/projectile hitboxes against current object.
+Jump_001_6345:: ; Compatibility alias.
+    ldh a, [hPlayerActionLock]
     or a
     ret z
 
     rrca
     push af
     push de
-    call c, Call_001_6355
+    call c, CheckActionHitbox0Collision
     pop de
     pop af
     rrca
-    jr c, jr_001_6389
+    jr c, CheckActionHitbox1Collision
 
     ret
 
 
-Call_001_6355::
-    ld hl, $c0c7
-    ldh a, [$ffd1]
+CheckActionHitbox0Collision:: ; Check primary action/projectile hitbox at wPlayerActionHitbox0*.
+Call_001_6355:: ; Compatibility alias.
+    ld hl, wPlayerActionHitbox0X
+    ldh a, [hActionHitboxHalfWidth]
     add d
     ld d, a
     ldh a, [$ffd4]
     sub e
     ldh [$ffc9], a
-    ldh a, [$ffd2]
+    ldh a, [hActionHitboxHalfHeight]
     add e
     ld e, a
     call Call_001_4ced
@@ -6291,68 +6403,72 @@ Call_001_6355::
     ld a, [bc]
     and $7f
     cp $05
-    ldh a, [$ffbb]
+    ldh a, [hPlayerForm]
     jr nc, jr_001_6376
 
-    cp $04
-    jr z, jr_001_63b1
+    cp PLAYER_FORM_ACTION_KAMEN
+    jr z, ApplyObjectHitFromPlayerAction
 
 jr_001_6376::
-    cp $04
-    jr z, jr_001_63c5
+    cp PLAYER_FORM_ACTION_KAMEN
+    jr z, LaunchObjectFromActionKamenHit
 
-    cp $02
-    jr z, jr_001_63b1
+    cp PLAYER_FORM_COCKROACH
+    jr z, ApplyObjectHitFromPlayerAction
 
     xor a
-    ld [$c0bf], a
-    ld hl, $ffbc
+    ld [wPlayerSpecialActor0], a
+    ld hl, hPlayerActionLock
     res 0, [hl]
-    jr jr_001_63b1
+    jr ApplyObjectHitFromPlayerAction
 
-jr_001_6389::
-    ld hl, $c0d3
-    ldh a, [$ffd1]
+CheckActionHitbox1Collision:: ; Check secondary action/projectile hitbox at wPlayerActionHitbox1*.
+jr_001_6389:: ; Compatibility alias.
+    ld hl, wPlayerActionHitbox1X
+    ldh a, [hActionHitboxHalfWidth]
     add d
     ld d, a
     ldh a, [$ffd4]
     sub e
     ldh [$ffc9], a
-    ldh a, [$ffd2]
+    ldh a, [hActionHitboxHalfHeight]
     add e
     ld e, a
     call Call_001_4ced
     ret nc
 
     xor a
-    ld [$c0cb], a
-    ld hl, $ffbc
+    ld [wPlayerSpecialActor1], a
+    ld hl, hPlayerActionLock
     res 1, [hl]
-    jr jr_001_63b1
+    jr ApplyObjectHitFromPlayerAction
 
 Call_001_63a8::
     ld d, $00
 
-Jump_001_63aa::
+CheckPlayerBodyCollision::
+Jump_001_63aa:: ; Compatibility alias.
     call Call_001_4c18
     call Call_001_4c9e
     ret nc
 
-jr_001_63b1::
+ApplyObjectHitFromPlayerAction:: ; Apply normal player form/projectile hit handling to current object.
+jr_001_63b1:: ; Compatibility alias.
     ld a, $52
     call PlaySound
     ld hl, $000e
     add hl, bc
     ld a, [hl]
     and $1f
-    jr z, jr_001_63c5
+    jr z, LaunchObjectFromActionKamenHit
 
     dec [hl]
     ld a, [hl]
     and $1f
-    jr nz, jr_001_63d5
+    jr nz, SetObjectActionHitStun
 
-jr_001_63c5::
+LaunchObjectFromActionKamenHit:: ; Strong Action Kamen projectile hit: launch/stagger the current object.
+jr_001_63c5:: ; Compatibility alias.
     ld h, b
     ld l, c
     inc hl
@@ -6366,7 +6482,8 @@ jr_001_63c5::
     ret
 
 
-jr_001_63d5::
+SetObjectActionHitStun:: ; Put object into short hit-stun after a non-launching form action hit.
+jr_001_63d5:: ; Compatibility alias.
     ld hl, $0002
     add hl, bc
     ld [hl], $5a
@@ -6380,7 +6497,7 @@ jr_001_63d5::
     xor a
     ldh [$ffce], a
     call Call_001_63fe
-    call Call_001_4b84
+    call CullObjectAndReleaseSpawn
     ret nz
 
     ldh a, [$ffd5]
@@ -6389,7 +6506,7 @@ jr_001_63d5::
 
     call Call_001_6486
     call Call_001_645b
-    call Call_001_6342
+    call CheckPlayerActionHitboxCollision_Default
     call Call_001_63a8
     jp Jump_001_4c06
 
@@ -6407,7 +6524,7 @@ Call_001_63fe::
 
     ld hl, $6416
     call Jump_001_62cb
-    call Jump_001_4bd4
+    call MoveObjectXBySpeed
     jp Jump_001_62b8
 
 
@@ -6466,7 +6583,7 @@ Jump_001_6444::
 Call_001_645b::
     ldh a, [$ffd4]
     ld e, a
-    ldh a, [$ffa4]
+    ldh a, [hPlayerScreenY]
     sub e
     rst $28
     cp $04
@@ -6478,7 +6595,7 @@ Call_001_645b::
     ld d, a
     call Call_001_6478
     ld e, a
-    ldh a, [$ffa5]
+    ldh a, [hPlayerScreenX]
     sub e
     rst $28
     cp d
@@ -6525,7 +6642,7 @@ Jump_001_6488::
     or a
     jr nz, jr_001_6484
 
-    ldh a, [$ffa4]
+    ldh a, [hPlayerScreenY]
     ld d, a
     ldh a, [$ffd4]
     sub d
@@ -6538,7 +6655,7 @@ Jump_001_6488::
     ret nc
 
     ld d, a
-    ldh a, [$ffa5]
+    ldh a, [hPlayerScreenX]
     sub d
     rst $28
     cp e
@@ -6551,7 +6668,7 @@ Jump_001_6488::
     ld e, a
     ld h, b
     ld l, c
-    ldh a, [$ffa5]
+    ldh a, [hPlayerScreenX]
     sub d
     ld a, $00
     jr nc, jr_001_64be
@@ -6575,7 +6692,7 @@ jr_001_64be::
 
 
     call Call_001_64e3
-    call Call_001_4b84
+    call CullObjectAndReleaseSpawn
     ret nz
 
     ldh a, [$ffd5]
@@ -6603,7 +6720,7 @@ Call_001_64e3::
 
     ld hl, $64fb
     call Jump_001_62cb
-    call Jump_001_4bd4
+    call MoveObjectXBySpeed
     jp Jump_001_62b8
 
 
@@ -6623,7 +6740,7 @@ Call_001_64e3::
 
 Call_001_650f::
     ld de, $0410
-    jp Jump_001_6345
+    jp CheckPlayerActionHitboxCollision
 
 
 Call_001_6515::
@@ -6638,7 +6755,7 @@ Call_001_6515::
 
 
     call Call_001_653b
-    call Call_001_4b84
+    call CullObjectAndReleaseSpawn
     ret nz
 
     ldh a, [$ffd5]
@@ -6646,7 +6763,7 @@ Call_001_6515::
     ret nz
 
     call Call_001_65f3
-    call Call_001_6342
+    call CheckPlayerActionHitboxCollision_Default
     call Call_001_63a8
     jp Jump_001_4c06
 
@@ -6664,7 +6781,7 @@ Call_001_653b::
 
     ld hl, $6553
     call Jump_001_62cb
-    call Jump_001_4bd4
+    call MoveObjectXBySpeed
     jp Jump_001_62b8
 
 
@@ -6698,7 +6815,7 @@ Call_001_653b::
 
 
 jr_001_657b::
-    ld hl, $c180
+    ld hl, wObjectSlots
 
 jr_001_657e::
     ld a, [hl]
@@ -6779,7 +6896,7 @@ Call_001_65c5::
     ld [hl-], a
     dec hl
     ld de, $0800
-    call Call_001_4bdf
+    call ApplyObjectXVelocity
     inc hl
     ret
 
@@ -6811,7 +6928,7 @@ Call_001_65f3::
 
 
     call Call_001_661b
-    call Call_001_4b2e
+    call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
     jr nz, jr_001_6618
@@ -6847,7 +6964,7 @@ Call_001_661b::
     dec sp
     ld h, [hl]
 
-    call Jump_001_4bd4
+    call MoveObjectXBySpeed
     ld hl, $000a
     add hl, bc
     ld a, [hl]
@@ -6862,7 +6979,7 @@ Call_001_661b::
     ret
 
 
-    call Jump_001_4bd4
+    call MoveObjectXBySpeed
     ld de, $0100
     ld hl, $0005
     add hl, bc
@@ -6871,16 +6988,16 @@ Call_001_661b::
 
 Call_001_6645::
     ld de, $0404
-    jp Jump_001_6345
+    jp CheckPlayerActionHitboxCollision
 
 
 Call_001_664b::
     ld d, $03
-    jp Jump_001_63aa
+    jp CheckPlayerBodyCollision
 
 
     call Call_001_6664
-    call Call_001_4b2e
+    call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
     jr nz, jr_001_6661
@@ -6913,7 +7030,7 @@ jr_001_6678::
     ld hl, $000c
     add hl, bc
     ld e, $03
-    call Call_001_4bf9
+    call AdvanceObjectAnimCounter
     ld hl, $000b
     add hl, bc
     ld a, [hl]
@@ -6927,7 +7044,7 @@ jr_001_6678::
     db $12, $13, $14
 
 Call_001_6693::
-    call Jump_001_4bd4
+    call MoveObjectXBySpeed
     ld hl, $000a
     add hl, bc
     ld a, [hl]
@@ -6942,7 +7059,7 @@ Call_001_6693::
     ret
 
 
-    call Jump_001_4bd4
+    call MoveObjectXBySpeed
     ld hl, $0005
     add hl, bc
     ld de, $00c0
@@ -6955,11 +7072,11 @@ Call_001_66b3::
     ret z
 
     ld d, $04
-    jp Jump_001_63aa
+    jp CheckPlayerBodyCollision
 
 
     call Call_001_66d2
-    call Call_001_4b84
+    call CullObjectAndReleaseSpawn
     ret nz
 
     ldh a, [$ffd5]
@@ -6983,7 +7100,7 @@ Call_001_66d2::
     ld hl, $66ec
     ld d, $0f
     call Call_001_62cd
-    call Jump_001_4bd4
+    call MoveObjectXBySpeed
     jp Jump_001_62b8
 
 
@@ -6996,7 +7113,7 @@ Jump_001_66f8::
     ld d, $0f
     call Call_001_62cd
     call Call_001_670a
-    call Call_001_4b2e
+    call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
     ret nz
@@ -7028,15 +7145,15 @@ Call_001_670a::
 
 Call_001_6724::
     ld de, $0410
-    jp Jump_001_6345
+    jp CheckPlayerActionHitboxCollision
 
 
 Call_001_672a::
     ld d, $02
-    jp Jump_001_63aa
+    jp CheckPlayerBodyCollision
 
 
-    call Call_001_4b2e
+    call ProjectObjectToScreenAndCull
     call Call_001_6751
     ld a, [$d931]
     or a
@@ -7091,7 +7208,7 @@ Call_001_6751::
 
 
 jr_001_677e::
-    ld hl, $c180
+    ld hl, wObjectSlots
 
 jr_001_6781::
     ld a, [hl]
@@ -7122,7 +7239,7 @@ jr_001_6795::
     ld a, $10
     ldh [hJoyHeld], a
     ldh [hJoyPressed], a
-    ldh a, [$ffa5]
+    ldh a, [hPlayerScreenX]
     cp $a8
     ret c
 
@@ -7156,7 +7273,7 @@ jr_001_6795::
     ld hl, $67fc
     call Jump_001_62cb
     call Call_001_6320
-    call Call_001_4b2e
+    call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
     jp z, Jump_001_4c06
@@ -7181,7 +7298,7 @@ jr_001_6795::
     call Call_001_6810
     ld hl, $680c
     call Jump_001_62cb
-    jp Jump_001_4bd4
+    jp MoveObjectXBySpeed
 
 
     db $17, $18, $17, $19
@@ -7244,15 +7361,15 @@ jr_001_6846::
 
 Call_001_684b::
     ld de, $0410
-    jp Jump_001_6345
+    jp CheckPlayerActionHitboxCollision
 
 
 Call_001_6851::
     ld d, $02
-    jp Jump_001_63aa
+    jp CheckPlayerBodyCollision
 
 
-    call Call_001_4b2e
+    call ProjectObjectToScreenAndCull
     call Call_001_6878
     ld a, [$d931]
     or a
@@ -7302,7 +7419,7 @@ Call_001_6878::
     ld hl, $6893
     call Jump_001_62cb
     call Call_001_6320
-    call Call_001_4b2e
+    call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
     jp z, Jump_001_4c06
@@ -7352,7 +7469,7 @@ Jump_001_68e4::
     call Call_001_68c7
     ld hl, $68f0
     call Jump_001_62cb
-    jp Jump_001_4bd4
+    jp MoveObjectXBySpeed
 
 
     db $14, $15, $14, $16
@@ -7393,7 +7510,7 @@ jr_001_6927::
     ret
 
 
-    call Jump_001_4bd4
+    call MoveObjectXBySpeed
     call Call_001_6940
     ld a, $1a
     ldh [$ffd6], a
@@ -7442,7 +7559,7 @@ jr_001_6952::
     jp Jump_001_68e4
 
 
-    call Call_001_4b2e
+    call ProjectObjectToScreenAndCull
     call Call_001_69a0
     ld a, [$d931]
     or a
@@ -7467,12 +7584,12 @@ jr_001_6992::
 
 Call_001_6995::
     ld de, Call_000_0710
-    jp Jump_001_6345
+    jp CheckPlayerActionHitboxCollision
 
 
 Call_001_699b::
     ld d, $06
-    jp Jump_001_63aa
+    jp CheckPlayerBodyCollision
 
 
 Call_001_69a0::
@@ -7501,7 +7618,7 @@ Call_001_69a0::
     ld hl, $69bf
     call Jump_001_62cb
     call Call_001_6320
-    call Call_001_4b2e
+    call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
     jp z, Jump_001_4c06
@@ -7515,7 +7632,7 @@ Call_001_69a0::
 
 
     call Call_001_6a09
-    call Jump_001_4bd4
+    call MoveObjectXBySpeed
     call Call_001_6a6e
     call Call_001_6a3b
     ret nz
@@ -7620,7 +7737,7 @@ Call_001_6a6e::
     or [hl]
     ret nz
 
-    ld hl, $c180
+    ld hl, wObjectSlots
     ld e, $20
 
 jr_001_6a7e::
@@ -7642,7 +7759,7 @@ jr_001_6a7e::
     ld hl, $000d
     add hl, bc
     ld [hl], a
-    ld hl, $c180
+    ld hl, wObjectSlots
 
 jr_001_6a98::
     ld a, [hl]
@@ -7725,7 +7842,7 @@ Call_001_6add::
 
 
     call Call_001_6b07
-    call Call_001_4b2e
+    call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
     jr nz, jr_001_6b04
@@ -7754,7 +7871,7 @@ Call_001_6b07::
     add hl, bc
     ld [hl+], a
     ld [hl], $01
-    call Jump_001_4bd4
+    call MoveObjectXBySpeed
     ld hl, $000a
     add hl, bc
     ld a, [hl]
@@ -7769,7 +7886,7 @@ Call_001_6b07::
     ret
 
 
-    call Jump_001_4bd4
+    call MoveObjectXBySpeed
     ld hl, $0005
     add hl, bc
     ld de, $00c0
@@ -7782,10 +7899,10 @@ Call_001_6b3c::
     ret z
 
     ld d, $07
-    jp Jump_001_63aa
+    jp CheckPlayerBodyCollision
 
 
-    call Call_001_4b2e
+    call ProjectObjectToScreenAndCull
     call Call_001_6bd6
     ld a, [$d931]
     or a
@@ -7810,7 +7927,7 @@ jr_001_6b66::
 
 Call_001_6b69::
     ld de, $0712
-    ldh a, [$ffbc]
+    ldh a, [hPlayerActionLock]
     or a
     ret z
 
@@ -7827,49 +7944,49 @@ Call_001_6b69::
 
 
 Call_001_6b7c::
-    ld hl, $c0c7
-    ldh a, [$ffd1]
+    ld hl, wPlayerActionHitbox0X
+    ldh a, [hActionHitboxHalfWidth]
     add d
     ld d, a
     ldh a, [$ffd4]
     sub e
     ldh [$ffc9], a
-    ldh a, [$ffd2]
+    ldh a, [hActionHitboxHalfHeight]
     add e
     ld e, a
     call Call_001_4ced
     ret nc
 
-    ldh a, [$ffbb]
-    cp $04
-    jp z, jr_001_63c5
+    ldh a, [hPlayerForm]
+    cp PLAYER_FORM_ACTION_KAMEN
+    jp z, LaunchObjectFromActionKamenHit
 
-    cp $02
+    cp PLAYER_FORM_COCKROACH
     jr z, jr_001_6bce
 
     xor a
-    ld [$c0bf], a
-    ld hl, $ffbc
+    ld [wPlayerSpecialActor0], a
+    ld hl, hPlayerActionLock
     res 0, [hl]
     jr jr_001_6bce
 
 jr_001_6ba6::
-    ld hl, $c0d3
-    ldh a, [$ffd1]
+    ld hl, wPlayerActionHitbox1X
+    ldh a, [hActionHitboxHalfWidth]
     add d
     ld d, a
     ldh a, [$ffd4]
     sub e
     ldh [$ffc9], a
-    ldh a, [$ffd2]
+    ldh a, [hActionHitboxHalfHeight]
     add e
     ld e, a
     call Call_001_4ced
     ret nc
 
     xor a
-    ld [$c0cb], a
-    ld hl, $ffbc
+    ld [wPlayerSpecialActor1], a
+    ld hl, hPlayerActionLock
     res 1, [hl]
     jr jr_001_6bce
 
@@ -7884,7 +8001,7 @@ jr_001_6bce::
     or a
     ret z
 
-    jp jr_001_63b1
+    jp ApplyObjectHitFromPlayerAction
 
 
 Call_001_6bd6::
@@ -7914,7 +8031,7 @@ Call_001_6bd6::
     ld hl, $6bf1
     call Jump_001_62cb
     call Call_001_6320
-    call Call_001_4b2e
+    call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
     jp z, Jump_001_4c06
@@ -7936,7 +8053,7 @@ Call_001_6bd6::
     call Call_001_6c45
     ldh a, [$ffd3]
     cp $8d
-    jp nc, Jump_001_4bd4
+    jp nc, MoveObjectXBySpeed
 
     ld a, $01
     ld [$c0b7], a
@@ -7977,7 +8094,7 @@ Call_001_6c6b::
     call Call_001_6c45
     ldh a, [$ffd3]
     cp $70
-    jp nc, Jump_001_4bd4
+    jp nc, MoveObjectXBySpeed
 
     ld a, $03
     ld [$c0b7], a
@@ -8026,7 +8143,7 @@ jr_001_6c82::
 jr_001_6cb8::
     ld a, $1c
     ldh [$ffd6], a
-    ld hl, $c180
+    ld hl, wObjectSlots
 
 jr_001_6cbf::
     ld a, [hl]
@@ -8107,7 +8224,7 @@ Call_001_6d04::
     call Call_001_6c45
     ldh a, [$ffd3]
     cp $58
-    jp nc, Jump_001_4bd4
+    jp nc, MoveObjectXBySpeed
 
     ld a, $05
     ld [$c0b7], a
@@ -8117,7 +8234,7 @@ Call_001_6d04::
     call Call_001_6c45
     ldh a, [$ffd3]
     cp $38
-    jp nc, Jump_001_4bd4
+    jp nc, MoveObjectXBySpeed
 
     ld a, $07
     ld [$c0b7], a
@@ -8127,7 +8244,7 @@ Call_001_6d04::
     call Call_001_6c45
     ldh a, [$ffd3]
     cp $18
-    jp nc, Jump_001_4bd4
+    jp nc, MoveObjectXBySpeed
 
     ld a, $09
     ld [$c0b7], a
@@ -8137,7 +8254,7 @@ Call_001_6d04::
     call Call_001_6c45
     ldh a, [$ffd3]
     cp $14
-    jp nc, Jump_001_4bd4
+    jp nc, MoveObjectXBySpeed
 
     ld a, $0b
     ld [$c0b7], a
@@ -8241,7 +8358,7 @@ jr_001_6dbd::
     call Call_001_6c45
     ldh a, [$ffd3]
     cp $8c
-    jp c, Jump_001_4bd4
+    jp c, MoveObjectXBySpeed
 
     xor a
     ld [$c0ba], a
@@ -8254,7 +8371,7 @@ jr_001_6dbd::
 
 
     call Call_001_6e0c
-    call Call_001_4b2e
+    call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
     jr nz, jr_001_6e09
@@ -8290,10 +8407,10 @@ Call_001_6e1f::
     ret z
 
     ld d, $03
-    jp Jump_001_63aa
+    jp CheckPlayerBodyCollision
 
 
-    call Call_001_4b84
+    call CullObjectAndReleaseSpawn
     ret nz
 
     ldh a, [$ffd5]
@@ -8327,7 +8444,7 @@ Call_001_6e4b::
     or a
     jr nz, jr_001_6e93
 
-    ldh a, [$ffb4]
+    ldh a, [hPlayerVelYHigh]
     rlca
     ccf
     ret nc
@@ -8338,7 +8455,7 @@ Call_001_6e4b::
 
     ldh a, [$ffd3]
     ld h, a
-    ldh a, [$ffa5]
+    ldh a, [hPlayerScreenX]
     sub h
     rst $28
     cp $0e
@@ -8346,7 +8463,7 @@ Call_001_6e4b::
 
     ldh a, [$ffd4]
     ld h, a
-    ldh a, [$ffa4]
+    ldh a, [hPlayerScreenY]
     sub h
     ret nc
 
@@ -8362,11 +8479,11 @@ Call_001_6e4b::
     ld l, c
     inc hl
     inc [hl]
-    ldh a, [$ffaa]
+    ldh a, [hPlayerState]
     cp $06
     ret z
 
-    call Call_001_5e9a
+    call SetPlayerJumpVelocity
 
 Call_001_6e81::
     ld hl, $0006
@@ -8377,9 +8494,9 @@ Call_001_6e81::
     ld de, $fff0
     add hl, de
     ld a, l
-    ldh [$ffae], a
+    ldh [hPlayerY], a
     ld a, h
-    ldh [$ffaf], a
+    ldh [hPlayerYHigh], a
     ret
 
 
@@ -8399,16 +8516,16 @@ jr_001_6e93::
     ld l, c
     inc hl
     dec [hl]
-    ldh a, [$ffaa]
+    ldh a, [hPlayerState]
     cp $06
     ret z
 
     ld a, $5c
     call PlaySound
     ld a, $10
-    ldh [$ffb7], a
+    ldh [hPlayerGravity], a
     ld a, $02
-    ldh [$ffaa], a
+    ldh [hPlayerState], a
     ld [$c0b0], a
     call Call_001_6e81
     ld hl, $000a
@@ -8433,7 +8550,7 @@ jr_001_6e93::
     jp jr_001_5e9d
 
 
-    call Call_001_4b84
+    call CullObjectAndReleaseSpawn
     ret nz
 
     call Call_001_6efb
@@ -8463,7 +8580,7 @@ Call_001_6efb::
     db $4b, $6f, $62, $6f, $77, $6f, $62, $6f
 
 Jump_001_6f0a::
-    ldh a, [$ffaa]
+    ldh a, [hPlayerState]
     cp $06
     ret z
 
@@ -8479,15 +8596,15 @@ Jump_001_6f19::
     ld a, $ff
     ldh [$ffc4], a
     call Call_001_6e81
-    ldh a, [$ffaa]
+    ldh a, [hPlayerState]
     cp $02
     ret nz
 
-    jp Jump_001_5e0e
+    jp ResetPlayerToNormalState
 
 
 Call_001_6f28::
-    ldh a, [$ffb4]
+    ldh a, [hPlayerVelYHigh]
     rlca
     ccf
     ret nc
@@ -8498,7 +8615,7 @@ Call_001_6f28::
 
     ldh a, [$ffd3]
     ld h, a
-    ldh a, [$ffa5]
+    ldh a, [hPlayerScreenX]
     sub h
     rst $28
     cp e
@@ -8506,7 +8623,7 @@ Call_001_6f28::
 
     ldh a, [$ffd4]
     ld h, a
-    ldh a, [$ffa4]
+    ldh a, [hPlayerScreenY]
     sub h
     ret nc
 
@@ -8564,7 +8681,7 @@ Jump_001_6f62::
     call Jump_001_4be3
     jr jr_001_6f55
 
-    call Call_001_4b84
+    call CullObjectAndReleaseSpawn
     ret nz
 
     call Call_001_6f91
@@ -8592,13 +8709,13 @@ Call_001_6f91::
     jr nz, jr_001_6fad
 
     ld a, [hl]
-    ldh [$ffb0], a
+    ldh [hPlayerXSubpixel], a
 
 jr_001_6fad::
     ld de, $00c0
     call jr_001_4bee
     call jr_001_6f55
-    ldh a, [$ffaa]
+    ldh a, [hPlayerState]
     cp $06
     ret z
 
@@ -8627,13 +8744,13 @@ jr_001_6fad::
     jr nz, jr_001_6fe4
 
     ld a, [hl]
-    ldh [$ffb0], a
+    ldh [hPlayerXSubpixel], a
 
 jr_001_6fe4::
     ld de, $00c0
     call Jump_001_4be3
     call jr_001_6f55
-    ldh a, [$ffaa]
+    ldh a, [hPlayerState]
     cp $06
     ret z
 
@@ -8648,7 +8765,7 @@ jr_001_6fe4::
 
 
 Call_001_7004::
-    call Call_001_4b2e
+    call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
     jr nz, jr_001_701e
@@ -8670,11 +8787,11 @@ jr_001_701e::
 
 
 Call_001_7021::
-    ldh a, [$ffaa]
+    ldh a, [hPlayerState]
     cp $06
     ret z
 
-    ldh a, [$ffb4]
+    ldh a, [hPlayerVelYHigh]
     rlca
     ccf
     ret nc
@@ -8687,7 +8804,7 @@ Call_001_7021::
     ld l, a
     ldh a, [$ffd3]
     ld h, a
-    ldh a, [$ffa5]
+    ldh a, [hPlayerScreenX]
     sub h
     rst $28
     cp $10
@@ -8699,7 +8816,7 @@ Call_001_7021::
     ld [$c403], a
     ldh a, [$ffd4]
     ld h, a
-    ldh a, [$ffa4]
+    ldh a, [hPlayerScreenY]
     sub h
     ret nc
 
@@ -8721,14 +8838,14 @@ Call_001_7021::
     ld de, $fff8
     add hl, de
     ld a, l
-    ldh [$ffae], a
+    ldh [hPlayerY], a
     ld a, h
-    ldh [$ffaf], a
-    ldh a, [$ffaa]
+    ldh [hPlayerYHigh], a
+    ldh a, [hPlayerState]
     cp $02
     ret nz
 
-    jp Jump_001_5e0e
+    jp ResetPlayerToNormalState
 
 
 Call_001_706f::
@@ -8747,7 +8864,7 @@ Jump_001_7077::
 
 
 Call_001_7081::
-    call Call_001_4b2e
+    call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
     jr nz, jr_001_701e
@@ -8797,7 +8914,7 @@ jr_001_70ab::
     db $08, $b9, $00, $f8, $f0, $ba, $00, $f8, $f8, $bb, $00, $f8, $00, $bb, $00, $f8
     db $08, $bc, $00, $80
 
-    call Call_001_4b84
+    call CullObjectAndReleaseSpawn
     ret nz
 
     ldh a, [$ffd5]
@@ -8862,16 +8979,16 @@ Call_001_714e::
     ld d, $00
     ld hl, $0002
     add hl, bc
-    call Call_001_4bdf
+    call ApplyObjectXVelocity
     ldh a, [$ffd3]
     ld h, a
-    ldh a, [$ffa5]
+    ldh a, [hPlayerScreenX]
     sub h
     rst $28
     cp $10
     ret nc
 
-    ldh a, [$ffaa]
+    ldh a, [hPlayerState]
     cp $0b
     ret z
 
@@ -8879,7 +8996,7 @@ Call_001_714e::
     or a
     ret nz
 
-    ldh a, [$ffa4]
+    ldh a, [hPlayerScreenY]
     ld h, a
     ldh a, [$ffd4]
     sub h
@@ -8894,39 +9011,39 @@ Call_001_714e::
     ld hl, $0003
     add hl, bc
     ld a, [hl+]
-    ldh [$ffb1], a
+    ldh [hPlayerX], a
     ld a, [hl+]
-    ldh [$ffb2], a
+    ldh [hPlayerXHigh], a
     ld de, $0010
     ldh a, [$ffd3]
     ld h, a
-    ldh a, [$ffa5]
+    ldh a, [hPlayerScreenX]
     sub h
     jr nc, jr_001_7195
 
     ld de, $fff0
 
 jr_001_7195::
-    ldh a, [$ffb1]
+    ldh a, [hPlayerX]
     add e
-    ldh [$ffb1], a
-    ldh a, [$ffb2]
+    ldh [hPlayerX], a
+    ldh a, [hPlayerXHigh]
     adc d
-    ldh [$ffb2], a
+    ldh [hPlayerXHigh], a
     ld hl, $0008
     add hl, bc
     ld a, [hl]
     or a
     ret z
 
-    ldh a, [$ffa5]
+    ldh a, [hPlayerScreenX]
     sub e
     ldh [$ffd3], a
     ret
 
 
 jr_001_71ac::
-    ldh a, [$ffb4]
+    ldh a, [hPlayerVelYHigh]
     bit 7, a
     ret nz
 
@@ -8938,7 +9055,7 @@ jr_001_71ac::
     add hl, bc
     ld a, [hl]
     sub $1f
-    ldh [$ffae], a
+    ldh [hPlayerY], a
     push bc
     ld a, [bc]
     rlca
@@ -8961,7 +9078,7 @@ jr_001_71d0::
     ld e, [hl]
     ld d, $00
     ld hl, $ffb0
-    call Call_001_4bdf
+    call ApplyObjectXVelocity
 
 jr_001_71e3::
     ldh a, [hJoyHeld]
@@ -8976,11 +9093,11 @@ jr_001_71e3::
 jr_001_71f1::
     ld a, $ff
     ldh [$ffc4], a
-    ldh a, [$ffaa]
+    ldh a, [hPlayerState]
     cp $02
     ret nz
 
-    jp Jump_001_5e0e
+    jp ResetPlayerToNormalState
 
 
 Call_001_71fd::
@@ -9009,7 +9126,7 @@ jr_001_7208::
     ret
 
 
-    call Call_001_4b84
+    call CullObjectAndReleaseSpawn
     ret nz
 
     ldh a, [$ffd5]
@@ -9097,7 +9214,7 @@ jr_001_7282::
 jr_001_728c::
     ldh a, [$ffd3]
     ld d, a
-    ldh a, [$ffa5]
+    ldh a, [hPlayerScreenX]
     sub d
     rst $28
     cp $48
@@ -9108,7 +9225,7 @@ jr_001_728c::
     ret
 
 
-    call Call_001_4b84
+    call CullObjectAndReleaseSpawn
     ret nz
 
     call Call_001_72e8
@@ -9174,12 +9291,12 @@ Call_001_72e8::
     add hl, bc
     ld e, [hl]
     inc hl
-    ldh a, [$ffb1]
+    ldh a, [hPlayerX]
     sub e
     ld e, a
     ld d, [hl]
     inc hl
-    ldh a, [$ffb2]
+    ldh a, [hPlayerXHigh]
     sbc d
     jr z, jr_001_72ff
 
@@ -9195,26 +9312,26 @@ jr_001_72ff::
     ld a, [hl+]
     and $80
     ld e, a
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     and $80
     cp e
     ret nz
 
     ld e, [hl]
-    ldh a, [$ffaf]
+    ldh a, [hPlayerYHigh]
     cp e
     ret nz
 
     ld de, $0100
     ld hl, $0002
     add hl, bc
-    call Call_001_4bdf
+    call ApplyObjectXVelocity
     ld a, $01
     ldh [$ffc9], a
     ret
 
 
-    call Call_001_4b84
+    call CullObjectAndReleaseSpawn
     ret nz
 
     call Call_001_7339
@@ -9235,7 +9352,7 @@ Call_001_7339::
     ldh [$ffc9], a
     ldh a, [$ffd3]
     ld e, a
-    ldh a, [$ffa5]
+    ldh a, [hPlayerScreenX]
     sub e
     rst $28
     cp $08
@@ -9243,7 +9360,7 @@ Call_001_7339::
 
     ldh a, [$ffd4]
     ld e, a
-    ldh a, [$ffa4]
+    ldh a, [hPlayerScreenY]
     sub e
     cp $06
     jr c, jr_001_7394
@@ -9251,7 +9368,7 @@ Call_001_7339::
     cp $10
     jr nc, jr_001_735b
 
-    ldh a, [$ffb4]
+    ldh a, [hPlayerVelYHigh]
     bit 7, a
     jr nz, jr_001_7394
 
@@ -9259,7 +9376,7 @@ jr_001_735b::
     cp $14
     jr nc, jr_001_7394
 
-    ldh a, [$ffaa]
+    ldh a, [hPlayerState]
     cp $0b
     jr z, jr_001_7394
 
@@ -9288,10 +9405,10 @@ jr_001_737d::
     add hl, bc
     ld a, [hl]
     add e
-    ldh [$ffae], a
+    ldh [hPlayerY], a
     ld a, $ff
     ldh [$ffc4], a
-    ldh a, [$ffaa]
+    ldh a, [hPlayerState]
     cp $0d
     call nz, Call_001_57d9
     ld a, $01
@@ -9312,14 +9429,14 @@ jr_001_7394::
     ld de, $0100
     ld hl, $0002
     add hl, bc
-    call Call_001_4bdf
+    call ApplyObjectXVelocity
     ldh a, [$ffc9]
     or a
     ret z
 
     ld de, $0100
     ld hl, $ffb0
-    call Call_001_4bdf
+    call ApplyObjectXVelocity
     ret
 
 
@@ -9336,7 +9453,7 @@ jr_001_73ba::
     ret
 
 
-    call Call_001_4b84
+    call CullObjectAndReleaseSpawn
     ret nz
 
     ldh a, [$ffd5]
@@ -9390,13 +9507,13 @@ jr_001_73f9::
 Call_001_7407::
     ldh a, [$ffd3]
     ld h, a
-    ldh a, [$ffa5]
+    ldh a, [hPlayerScreenX]
     sub h
     rst $28
     cp $09
     ret nc
 
-    ldh a, [$ffa4]
+    ldh a, [hPlayerScreenY]
     ld h, a
     ldh a, [$ffd4]
     sub h
@@ -9406,11 +9523,11 @@ Call_001_7407::
     cp $10
     ret nc
 
-    ldh a, [$ffb4]
+    ldh a, [hPlayerVelYHigh]
     bit 7, a
     ret nz
 
-    ldh a, [$ffaa]
+    ldh a, [hPlayerState]
     cp $0b
     ret z
 
@@ -9422,7 +9539,7 @@ Call_001_7407::
     ld a, [hl]
     sub $0e
     add e
-    ldh [$ffae], a
+    ldh [hPlayerY], a
     ldh a, [hJoyHeld]
     and $81
     cp $81
@@ -9439,14 +9556,14 @@ jr_001_7442::
     add hl, bc
     inc [hl]
     inc [hl]
-    ldh a, [$ffaa]
+    ldh a, [hPlayerState]
     cp $02
     ret nz
 
-    jp Jump_001_5e0e
+    jp ResetPlayerToNormalState
 
 
-    call Call_001_4b84
+    call CullObjectAndReleaseSpawn
     ret nz
 
     ldh a, [$ffd5]
@@ -9494,7 +9611,7 @@ Call_001_7489::
     ld de, $0180
     ld hl, $0005
     add hl, bc
-    call Call_001_4bdf
+    call ApplyObjectXVelocity
     ret
 
 
@@ -9510,7 +9627,7 @@ jr_001_749d::
 jr_001_74a3::
     ldh a, [$ffd3]
     ld d, a
-    ldh a, [$ffa5]
+    ldh a, [hPlayerScreenX]
     sub d
     rst $28
     cp $48
@@ -9694,9 +9811,9 @@ jr_001_7b88::
 
     ld hl, $00e0
     ld a, l
-    ldh [$ffb5], a
+    ldh [hPlayerSpeedX], a
     ld a, h
-    ldh [$ffb6], a
+    ldh [hPlayerSpeedXHigh], a
     ldh a, [hJoyHeld]
     and $0f
     cp $0f
@@ -9706,14 +9823,14 @@ jr_001_7b88::
     and $08
     jr nz, jr_001_7c08
 
-    ldh a, [$ffb2]
+    ldh a, [hPlayerXHigh]
     or a
     jr z, jr_001_7c18
 
 jr_001_7c08::
     xor a
-    ld [$c0bf], a
-    ld [$c0cb], a
+    ld [wPlayerSpecialActor0], a
+    ld [wPlayerSpecialActor1], a
     ldh [$ff9f], a
     ld a, $02
     ldh [hGameState], a
@@ -9725,12 +9842,12 @@ jr_001_7c18::
     call Call_001_7cfa
     ldh a, [hSCX]
     ld b, a
-    ldh a, [$ffb1]
+    ldh a, [hPlayerX]
     sub b
     cp $38
     jr nc, jr_001_7c31
 
-    ldh a, [$ffb1]
+    ldh a, [hPlayerX]
     sub $38
     jr nc, jr_001_7c2c
 
@@ -9745,7 +9862,7 @@ jr_001_7c31::
     cp $68
     jr c, jr_001_7c42
 
-    ldh a, [$ffb1]
+    ldh a, [hPlayerX]
     sub $68
     cp $60
     jr c, jr_001_7c3f
@@ -9757,17 +9874,17 @@ jr_001_7c3f::
     ld b, a
 
 jr_001_7c42::
-    ldh a, [$ffb1]
+    ldh a, [hPlayerX]
     sub b
-    ldh [$ffa5], a
+    ldh [hPlayerScreenX], a
     ldh a, [hSCY]
     ld c, a
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     sub c
     cp $18
     jr nc, jr_001_7c5d
 
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     sub $18
     jr nc, jr_001_7c58
 
@@ -9782,7 +9899,7 @@ jr_001_7c5d::
     cp $48
     jr c, jr_001_7c6e
 
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     sub $48
     cp $b0
     jr c, jr_001_7c6b
@@ -9794,13 +9911,13 @@ jr_001_7c6b::
     ld c, a
 
 jr_001_7c6e::
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     sub c
-    ldh [$ffa4], a
-    call Call_001_4578
-    call Call_001_4868
-    call Call_001_560e
-    call Call_001_454b
+    ldh [hPlayerScreenY], a
+    call UpdateSpecialActors
+    call UpdateObjectsAndSpawnQueue
+    call UpdatePlayerState
+    call DrawPlayerSprite
     ld hl, wVramQueue
 
 jr_001_7c82::

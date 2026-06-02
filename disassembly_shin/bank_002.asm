@@ -175,7 +175,7 @@ jr_002_4102::
     ld [$d802], a
 
 jr_002_4154::
-    call Call_002_4256
+    call UpdateMenuMessageVramClear
     ld a, [$d96d]
     or a
     ret nz
@@ -195,13 +195,13 @@ jr_002_4154::
 jr_002_416b::
     ld a, $01
     ld [$d934], a
-    call Call_002_4283
+    call StartMenuMessage
     ld a, [$d983]
     ld [$d93c], a
     ret
 
 
-    call Call_002_41e9
+    call UpdateMenuCursor
     ld a, [$d93c]
     ld b, a
     ld [$d983], a
@@ -223,7 +223,7 @@ jr_002_416b::
 jr_002_419a::
     ld bc, jr_000_0600
     ld de, $0800
-    jp jr_002_42d6
+    jp RequestStateChange_Menu
 
 
 jr_002_41a3::
@@ -232,19 +232,19 @@ jr_002_41a3::
 
     ld bc, $0500
     ld de, $0001
-    jp jr_002_42d6
+    jp RequestStateChange_Menu
 
 
 jr_002_41af::
     ld a, $02
     ld [$d934], a
-    call Call_002_4283
+    call StartMenuMessage
     ld a, [$d984]
     ld [$d93c], a
     ret
 
 
-    call Call_002_41e9
+    call UpdateMenuCursor
     ld a, [$d93c]
     ld [$d984], a
     ldh a, [hJoyPressed]
@@ -264,10 +264,11 @@ jr_002_41af::
     ld a, [$d93c]
     ld c, a
     ld de, $0002
-    jp jr_002_42d6
+    jp RequestStateChange_Menu
 
 
-Call_002_41e9::
+UpdateMenuCursor:: ; Move menu cursor using hJoyPressed, wrapping through options.
+Call_002_41e9:: ; Compatibility alias.
     ld a, $03
     ldh [$ffc9], a
     ld hl, $99a5
@@ -341,7 +342,8 @@ jr_002_423d::
     ret
 
 
-Call_002_4256::
+UpdateMenuMessageVramClear:: ; Clear/update queued title/menu message rows when $d96d is active.
+Call_002_4256:: ; Compatibility alias.
     ld a, [$d96d]
     or a
     ret z
@@ -370,7 +372,8 @@ Call_002_4256::
     ret
 
 
-Call_002_4283::
+StartMenuMessage:: ; Start a bank3 text/message sequence for the selected title-menu item.
+Call_002_4283:: ; Compatibility alias.
     ld a, $00
     ld [$d970], a
     ld a, [$d934]
@@ -444,7 +447,8 @@ jr_002_42bb::
     ret
 
 
-jr_002_42d6::
+RequestStateChange_Menu:: ; Menu/screen transition helper. Sets hNeedsReset and dispatches next hGameState/substate.
+jr_002_42d6:: ; Compatibility alias.
     ld a, e
     ld [$d95e], a
     ld a, d
@@ -477,7 +481,7 @@ Jump_002_4301::
     ld c, a
     ld a, [$d95f]
     ld b, a
-    jr jr_002_42d6
+    jr RequestStateChange_Menu
 
     xor a
     ldh [hGameState], a
@@ -665,7 +669,7 @@ jr_002_4468::
 
     ld bc, $0400
     ld de, $0000
-    jp jr_002_42d6
+    jp RequestStateChange_Menu
 
 
 jr_002_4478::
@@ -704,7 +708,7 @@ jr_002_44a2::
     ld a, c
     sla a
     ld e, a
-    jp jr_002_42d6
+    jp RequestStateChange_Menu
 
 
     ld c, $0c
@@ -1452,21 +1456,21 @@ jr_002_4893::
 
     ld c, a
     ld de, $0400
-    jp jr_002_42d6
+    jp RequestStateChange_Menu
 
 
     ld a, [$d940]
     ld c, a
     ld b, $08
     ld de, $0400
-    jp jr_002_42d6
+    jp RequestStateChange_Menu
 
 
     ld b, $09
     ld a, [$d942]
     ld c, a
     ld de, $0400
-    jp jr_002_42d6
+    jp RequestStateChange_Menu
 
 
     ld a, [$d943]
@@ -1474,7 +1478,7 @@ jr_002_4893::
     ldh [$ffb9], a
     ld bc, $0100
     ld de, $0400
-    jp jr_002_42d6
+    jp RequestStateChange_Menu
 
 
     ld [$0204], sp
@@ -2031,7 +2035,7 @@ jr_002_4c47::
     ld de, $0000
     ld a, [$d960]
     cp $04
-    jp z, jr_002_42d6
+    jp z, RequestStateChange_Menu
 
     ld a, [$d979]
     ld e, a
@@ -2039,7 +2043,7 @@ jr_002_4c47::
     ld c, a
     ld b, $06
     ld d, $08
-    jp jr_002_42d6
+    jp RequestStateChange_Menu
 
 
     ret
@@ -2151,7 +2155,7 @@ jr_002_4d03::
     ld de, $0106
     ld a, [hl]
     or a
-    jp z, jr_002_42d6
+    jp z, RequestStateChange_Menu
 
     xor a
     ld [hl], a
@@ -2159,7 +2163,7 @@ jr_002_4d03::
     ld a, [$d93b]
     ld c, a
     ld de, $0106
-    jp jr_002_42d6
+    jp RequestStateChange_Menu
 
 
 Call_002_4d47::
@@ -2337,7 +2341,7 @@ jr_002_4e23::
     ld e, a
     ld a, [$d95f]
     ld d, a
-    jp jr_002_42d6
+    jp RequestStateChange_Menu
 
 
     call Call_000_0719
@@ -2490,7 +2494,7 @@ jr_002_4f3e::
     jr nz, jr_002_4f58
 
     ld a, $0f
-    call Jump_000_0eba
+    call AddBonusCounter
     jr jr_002_4f6f
 
 jr_002_4f58::
@@ -2504,7 +2508,7 @@ jr_002_4f58::
     jr jr_002_4f6f
 
 jr_002_4f67::
-    call jr_000_0ef9
+    call AddExtraLife
     ld a, $46
     call PlaySound_Queue1
 
@@ -7145,7 +7149,7 @@ jr_002_6cb4::
 
     ld bc, $0001
     ld de, $0001
-    jp jr_002_42d6
+    jp RequestStateChange_Menu
 
 
     ret
@@ -7805,7 +7809,7 @@ jr_002_709c::
     ld e, a
     ld d, $08
     ld bc, $0100
-    jp jr_002_42d6
+    jp RequestStateChange_Menu
 
 
 jr_002_70ad::
@@ -7819,7 +7823,7 @@ jr_002_70ad::
 
 jr_002_70b9::
     ld de, $0400
-    jp jr_002_42d6
+    jp RequestStateChange_Menu
 
 
     rst $08
@@ -8616,7 +8620,7 @@ jr_002_763b::
 
     ld bc, $0203
     ld de, $0000
-    jp jr_002_42d6
+    jp RequestStateChange_Menu
 
 
 jr_002_7653::
@@ -8904,7 +8908,7 @@ Call_002_77d7::
 
 jr_002_77eb::
     ld de, $0000
-    jp jr_002_42d6
+    jp RequestStateChange_Menu
 
 
     db $50, $f0, $f0, $f0, $97, $7a, $7c, $7a, $88, $7a, $91, $7a, $50, $53, $56, $8e
