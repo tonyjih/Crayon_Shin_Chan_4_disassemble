@@ -3322,87 +3322,70 @@ jr_001_52c3::
     ret
 
 
+; Ground-tile collision handler targets for Call_001_52cc.
+DEF GroundTileEnterStageInteraction03 EQU $532f
+DEF GroundTileEnterStageInteraction01 EQU $533e
+DEF GroundTileCollisionNone          EQU $5350
+DEF GroundTileSlopeLeftIfLowerHalf  EQU $5351
+DEF GroundTileSlopeRightIfUpperHalf EQU $5358
+DEF GroundTileSolidOrFallState      EQU $535d
+DEF GroundTileSolidIfNearTop        EQU $5369
+DEF GroundTileSolidOnlyWhenSnapState EQU $5377
+
 Call_001_52cc::
     and $3f
     rst $00
 
-    db $50, $53, $5d, $53, $50, $53, $50, $53, $50, $53, $50, $53, $50, $53, $69, $53
 
-    ld d, b
-    ld d, e
-
-    db $50, $53, $50, $53, $77, $53
-
-    ld d, b
-    ld d, e
-    ld d, b
-    ld d, e
-    ld [hl], a
-    ld d, e
-    ld d, b
-    ld d, e
-    ld d, b
-    ld d, e
-    ld e, l
-    ld d, e
-    ld e, l
-    ld d, e
-
-    db $50, $53
-
-    ld e, l
-    ld d, e
-    ld d, b
-    ld d, e
-
-    db $69, $53
-
-    ld d, b
-    ld d, e
-    ld d, b
-    ld d, e
-    ld d, b
-    ld d, e
-
-    db $50, $53, $58, $53, $50, $53
-
-    ld d, b
-    ld d, e
-    ld d, c
-    ld d, e
-    ld d, b
-    ld d, e
-    ld d, b
-    ld d, e
-    ld d, b
-    ld d, e
-    ld d, b
-    ld d, e
-
-    db $2f, $53, $3e, $53
-
-    ld d, b
-    ld d, e
-    ld d, b
-    ld d, e
-    ld d, b
-    ld d, e
-    ld d, b
-    ld d, e
-    ld d, b
-    ld d, e
-    ld d, b
-    ld d, e
-    ld d, b
-    ld d, e
-    ld d, b
-    ld d, e
-    ld d, b
-    ld d, e
-    ld d, b
-    ld d, e
-    ld d, b
-    ld d, e
+    ; Ground tile collision / interaction dispatch table.
+    dw GroundTileCollisionNone ; 00
+    dw GroundTileSolidOrFallState ; 01
+    dw GroundTileCollisionNone ; 02
+    dw GroundTileCollisionNone ; 03
+    dw GroundTileCollisionNone ; 04
+    dw GroundTileCollisionNone ; 05
+    dw GroundTileCollisionNone ; 06
+    dw GroundTileSolidIfNearTop ; 07
+    dw GroundTileCollisionNone ; 08
+    dw GroundTileCollisionNone ; 09
+    dw GroundTileCollisionNone ; 0a
+    dw GroundTileSolidOnlyWhenSnapState ; 0b
+    dw GroundTileCollisionNone ; 0c
+    dw GroundTileCollisionNone ; 0d
+    dw GroundTileSolidOnlyWhenSnapState ; 0e
+    dw GroundTileCollisionNone ; 0f
+    dw GroundTileCollisionNone ; 10
+    dw GroundTileSolidOrFallState ; 11
+    dw GroundTileSolidOrFallState ; 12
+    dw GroundTileCollisionNone ; 13
+    dw GroundTileSolidOrFallState ; 14
+    dw GroundTileCollisionNone ; 15
+    dw GroundTileSolidIfNearTop ; 16
+    dw GroundTileCollisionNone ; 17
+    dw GroundTileCollisionNone ; 18
+    dw GroundTileCollisionNone ; 19
+    dw GroundTileCollisionNone ; 1a
+    dw GroundTileSlopeRightIfUpperHalf ; 1b
+    dw GroundTileCollisionNone ; 1c
+    dw GroundTileCollisionNone ; 1d
+    dw GroundTileSlopeLeftIfLowerHalf ; 1e
+    dw GroundTileCollisionNone ; 1f
+    dw GroundTileCollisionNone ; 20
+    dw GroundTileCollisionNone ; 21
+    dw GroundTileCollisionNone ; 22
+    dw GroundTileEnterStageInteraction03 ; 23
+    dw GroundTileEnterStageInteraction01 ; 24
+    dw GroundTileCollisionNone ; 25
+    dw GroundTileCollisionNone ; 26
+    dw GroundTileCollisionNone ; 27
+    dw GroundTileCollisionNone ; 28
+    dw GroundTileCollisionNone ; 29
+    dw GroundTileCollisionNone ; 2a
+    dw GroundTileCollisionNone ; 2b
+    dw GroundTileCollisionNone ; 2c
+    dw GroundTileCollisionNone ; 2d
+    dw GroundTileCollisionNone ; 2e
+    dw GroundTileCollisionNone ; 2f
 
     ldh a, [hPlayerState]
     cp $0c
@@ -3510,81 +3493,88 @@ Call_001_5381::
     add hl, de
     ld a, [hl]
 
+	; Player tile interaction handler targets for Call_001_53be.
+DEF PlayerTileTriggerCollectibleBlock     EQU $5421
+DEF PlayerTileSnapToTileTop               EQU $545c
+DEF PlayerTileDeathIfDeepContact          EQU $545f
+DEF PlayerTileBounceLaunch                EQU $546f
+DEF PlayerTileStageTransitionIfLow        EQU $5488
+DEF PlayerTileContactSolid                EQU $5491
+DEF PlayerTileSnapLowHalf                 EQU $5496
+DEF PlayerTileSnapHighHalf                EQU $54ad
+DEF PlayerTileSnapToTileTopClearEffect    EQU $54b3
+DEF PlayerTileSlopeContactLeft            EQU $54c2
+DEF PlayerTileSlopeContactRight           EQU $54c8
+DEF PlayerTileSetEffect1IfNearTop         EQU $54ce
+DEF PlayerTileSetEffect2IfMiddle          EQU $54db
+DEF PlayerTileEffect2LeftHalf             EQU $54ec
+DEF PlayerTileEffect2RightHalf            EQU $54f2
+DEF PlayerTileSetEdgeFlagLeft             EQU $54f8
+DEF PlayerTileSetEdgeFlagRight            EQU $5503
+DEF PlayerTileSnapAndSetEdgeFlagRight     EQU $550e
+DEF PlayerTileSnapAndSetEdgeFlagLeft      EQU $551a
+DEF PlayerTileSetEdgeFlagSolid            EQU $5526
+DEF PlayerTileSnapAndSetEdgeFlag          EQU $552e
+DEF PlayerTileEffect1AndEdgeFlag          EQU $5536
+DEF PlayerTileEffect1EdgeRight            EQU $553e
+DEF PlayerTileEffect1EdgeLeft             EQU $554a
+DEF PlayerTileSpawnDropPlatform           EQU $5556
+
 Call_001_53be::
     and $3f
     rst $00
 
-    db $91, $54, $b3, $54, $c2, $54, $c8, $54, $ce, $54, $db, $54, $91, $54, $ce, $54
 
-    db $db
-    ld d, h
+    ; Player tile collision / interaction dispatch table.
+    dw PlayerTileContactSolid ; 00
+    dw PlayerTileSnapToTileTopClearEffect ; 01
+    dw PlayerTileSlopeContactLeft ; 02
+    dw PlayerTileSlopeContactRight ; 03
+    dw PlayerTileSetEffect1IfNearTop ; 04
+    dw PlayerTileSetEffect2IfMiddle ; 05
+    dw PlayerTileContactSolid ; 06
+    dw PlayerTileSetEffect1IfNearTop ; 07
+    dw PlayerTileSetEffect2IfMiddle ; 08
+    dw PlayerTileContactSolid ; 09
+    dw PlayerTileSetEffect1IfNearTop ; 0a
+    dw PlayerTileContactSolid ; 0b
+    dw PlayerTileEffect2LeftHalf ; 0c
+    dw PlayerTileEffect2RightHalf ; 0d
+    dw PlayerTileSetEffect1IfNearTop ; 0e
+    dw PlayerTileSetEdgeFlagLeft ; 0f
+    dw PlayerTileSetEdgeFlagRight ; 10
+    dw PlayerTileSnapAndSetEdgeFlagRight ; 11
+    dw PlayerTileSnapAndSetEdgeFlagLeft ; 12
+    dw PlayerTileSetEdgeFlagSolid ; 13
+    dw PlayerTileSnapAndSetEdgeFlag ; 14
+    dw PlayerTileEffect1AndEdgeFlag ; 15
+    dw PlayerTileContactSolid ; 16
+    dw PlayerTileEffect1EdgeRight ; 17
+    dw PlayerTileEffect1EdgeLeft ; 18
+    dw PlayerTileContactSolid ; 19
+    dw PlayerTileSpawnDropPlatform ; 1a
+    dw PlayerTileSnapHighHalf ; 1b
+    dw PlayerTileContactSolid ; 1c
+    dw PlayerTileStageTransitionIfLow ; 1d
+    dw PlayerTileSnapLowHalf ; 1e
+    dw PlayerTileTriggerCollectibleBlock ; 1f
+    dw PlayerTileBounceLaunch ; 20
+    dw PlayerTileSnapToTileTop ; 21
+    dw PlayerTileDeathIfDeepContact ; 22
+    dw PlayerTileSnapToTileTopClearEffect ; 23
+    dw PlayerTileSnapToTileTopClearEffect ; 24
+    dw PlayerTileContactSolid ; 25
+    dw PlayerTileContactSolid ; 26
+    dw PlayerTileContactSolid ; 27
+    dw PlayerTileContactSolid ; 28
+    dw PlayerTileContactSolid ; 29
+    dw PlayerTileContactSolid ; 2a
+    dw PlayerTileContactSolid ; 2b
+    dw PlayerTileContactSolid ; 2c
+    dw PlayerTileContactSolid ; 2d
+    dw PlayerTileContactSolid ; 2e
+    dw PlayerTileContactSolid ; 2f
 
-    db $91, $54, $ce, $54, $91, $54
-
-    db $ec
-    ld d, h
-    ldh a, [c]
-    ld d, h
-    adc $54
-    ld hl, sp+$54
-    inc bc
-    ld d, l
-    ld c, $55
-    ld a, [de]
-    ld d, l
-
-    db $26, $55, $2e, $55
-
-    ld [hl], $55
-
-    db $91, $54
-
-    ld a, $55
-    ld c, d
-    ld d, l
-    sub c
-    ld d, h
-
-    db $56, $55
-
-    xor l
-    ld d, h
-    sub c
-    ld d, h
-    adc b
-    ld d, h
-
-    db $96, $54
-
-    db $21
-    ld d, h
-
-    db $6f, $54, $5c, $54, $5f, $54, $b3, $54
-
-    or e
-    ld d, h
-    sub c
-    ld d, h
-    sub c
-    ld d, h
-    sub c
-    ld d, h
-    sub c
-    ld d, h
-    sub c
-    ld d, h
-    sub c
-    ld d, h
-    sub c
-    ld d, h
-    sub c
-    ld d, h
-    sub c
-    ld d, h
-    sub c
-    ld d, h
-    sub c
-    ld d, h
     ld a, [$c0a8]
     or a
     jp nz, jr_001_5491
@@ -3960,7 +3950,7 @@ Call_001_560e:: ; Compatibility alias.
     dw PlayerState_FlyingSquirrelAction  ; 07
     dw PlayerState_ChickenAction         ; 08
     dw PlayerState_ActionKamenAction     ; 09
-    dw PlayerState_DamageBounce           ; 0a: damage bounce state
+    dw PlayerState_DamageBounce          ; 0a: damage bounce state
     dw PlayerState_DeathFall             ; 0b
     dw PlayerState_StageInteraction0C    ; 0c: special/stage interaction state
     dw PlayerState_StageInteraction0D    ; 0d: special/stage interaction state
