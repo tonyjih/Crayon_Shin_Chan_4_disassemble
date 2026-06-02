@@ -3322,16 +3322,6 @@ jr_001_52c3::
     ret
 
 
-; Ground-tile collision handler targets for Call_001_52cc.
-DEF GroundTileEnterStageInteraction03 EQU $532f
-DEF GroundTileEnterStageInteraction01 EQU $533e
-DEF GroundTileCollisionNone          EQU $5350
-DEF GroundTileSlopeLeftIfLowerHalf  EQU $5351
-DEF GroundTileSlopeRightIfUpperHalf EQU $5358
-DEF GroundTileSolidOrFallState      EQU $535d
-DEF GroundTileSolidIfNearTop        EQU $5369
-DEF GroundTileSolidOnlyWhenSnapState EQU $5377
-
 Call_001_52cc::
     and $3f
     rst $00
@@ -3387,6 +3377,7 @@ Call_001_52cc::
     dw GroundTileCollisionNone ; 2e
     dw GroundTileCollisionNone ; 2f
 
+GroundTileEnterStageInteraction03::
     ldh a, [hPlayerState]
     cp $0c
     ret z
@@ -3397,7 +3388,7 @@ Call_001_52cc::
     ld [$c0b1], a
     ret
 
-
+GroundTileEnterStageInteraction01::
     ldh a, [hPlayerState]
     cp $0c
     ret z
@@ -3410,21 +3401,22 @@ Call_001_52cc::
     ld [$c0b1], a
     ret
 
-
+GroundTileCollisionNone::
     ret
 
-
+GroundTileSlopeLeftIfLowerHalf::
     ldh a, [$ffca]
     bit 3, a
     ret z
 
-    jr jr_001_535d
+    jr GroundTileSolidOrFallState
 
+GroundTileSlopeRightIfUpperHalf::
     ldh a, [$ffca]
     bit 3, a
     ret nz
 
-jr_001_535d::
+GroundTileSolidOrFallState::
     ldh a, [hPlayerState]
     cp $03
     jp nz, EnterPlayerFallState
@@ -3433,7 +3425,7 @@ jr_001_535d::
     ldh [$ffc0], a
     ret
 
-
+GroundTileSolidIfNearTop::
     ldh a, [hPlayerY]
     sub $18
     and $0f
@@ -3444,7 +3436,7 @@ jr_001_535d::
     inc [hl]
     ret
 
-
+GroundTileSolidOnlyWhenSnapState::
     ldh a, [hPlayerState]
     cp $03
     ret nz
@@ -3493,32 +3485,6 @@ Call_001_5381::
     add hl, de
     ld a, [hl]
 
-	; Player tile interaction handler targets for Call_001_53be.
-DEF PlayerTileTriggerCollectibleBlock     EQU $5421
-DEF PlayerTileSnapToTileTop               EQU $545c
-DEF PlayerTileDeathIfDeepContact          EQU $545f
-DEF PlayerTileBounceLaunch                EQU $546f
-DEF PlayerTileStageTransitionIfLow        EQU $5488
-DEF PlayerTileContactSolid                EQU $5491
-DEF PlayerTileSnapLowHalf                 EQU $5496
-DEF PlayerTileSnapHighHalf                EQU $54ad
-DEF PlayerTileSnapToTileTopClearEffect    EQU $54b3
-DEF PlayerTileSlopeContactLeft            EQU $54c2
-DEF PlayerTileSlopeContactRight           EQU $54c8
-DEF PlayerTileSetEffect1IfNearTop         EQU $54ce
-DEF PlayerTileSetEffect2IfMiddle          EQU $54db
-DEF PlayerTileEffect2LeftHalf             EQU $54ec
-DEF PlayerTileEffect2RightHalf            EQU $54f2
-DEF PlayerTileSetEdgeFlagLeft             EQU $54f8
-DEF PlayerTileSetEdgeFlagRight            EQU $5503
-DEF PlayerTileSnapAndSetEdgeFlagRight     EQU $550e
-DEF PlayerTileSnapAndSetEdgeFlagLeft      EQU $551a
-DEF PlayerTileSetEdgeFlagSolid            EQU $5526
-DEF PlayerTileSnapAndSetEdgeFlag          EQU $552e
-DEF PlayerTileEffect1AndEdgeFlag          EQU $5536
-DEF PlayerTileEffect1EdgeRight            EQU $553e
-DEF PlayerTileEffect1EdgeLeft             EQU $554a
-DEF PlayerTileSpawnDropPlatform           EQU $5556
 
 Call_001_53be::
     and $3f
@@ -3575,16 +3541,17 @@ Call_001_53be::
     dw PlayerTileContactSolid ; 2e
     dw PlayerTileContactSolid ; 2f
 
+PlayerTileTriggerCollectibleBlock::
     ld a, [$c0a8]
     or a
-    jp nz, jr_001_5491
+    jp nz, PlayerTileContactSolid
 
     ldh a, [hPlayerY]
     ld e, a
     ldh a, [hPlayerYHigh]
     ld d, a
     call Jump_001_5434
-    jp jr_001_5491
+    jp PlayerTileContactSolid
 
 
 Jump_001_5434::
@@ -3610,10 +3577,10 @@ Call_001_5458::
     ld a, e
     jp Jump_001_55fc
 
+PlayerTileSnapToTileTop::
+    jp PlayerTileSnapToTileTopClearEffect
 
-    jp Jump_001_54b3
-
-
+PlayerTileDeathIfDeepContact::
     ldh a, [$ffc3]
     cp $ff
     ret z
@@ -3621,11 +3588,11 @@ Call_001_5458::
     ldh a, [hPlayerY]
     and $0f
     cp $08
-    jr c, jr_001_5491
+    jr c, PlayerTileContactSolid
 
     jp EnterPlayerDeathFallState
 
-
+PlayerTileBounceLaunch::
     ld a, $5c
     call PlaySound
     ld a, $10
@@ -3633,25 +3600,25 @@ Call_001_5458::
     ld a, $02
     ldh [hPlayerState], a
     ld [$c0b0], a
-    call Jump_001_54b3
+    call PlayerTileSnapToTileTopClearEffect
     ld hl, $fc70
     jp jr_001_5e9d
 
-
+PlayerTileStageTransitionIfLow::
     ldh a, [hPlayerY]
     and $0f
     cp $0b
     jp nc, jr_001_5165
 
-jr_001_5491::
+PlayerTileContactSolid::
     ld hl, $ffcd
     inc [hl]
     ret
 
-
+PlayerTileSnapLowHalf::
     ldh a, [hPlayerY]
     bit 3, a
-    jr z, jr_001_5491
+    jr z, PlayerTileContactSolid
 
     ld a, $ff
     ld [$c0aa], a
@@ -3663,12 +3630,12 @@ jr_001_5491::
     ldh [hPlayerY], a
     ret
 
-
+PlayerTileSnapHighHalf::
     ldh a, [hPlayerY]
     bit 3, a
-    jr nz, jr_001_5491
+    jr nz, PlayerTileContactSolid
 
-Jump_001_54b3::
+PlayerTileSnapToTileTopClearEffect::
     ld a, $ff
     ld [$c0aa], a
     xor a
@@ -3678,100 +3645,71 @@ Jump_001_54b3::
     ldh [hPlayerY], a
     ret
 
-
+PlayerTileSlopeContactLeft::
     bit 3, c
-    jr z, jr_001_5491
+    jr z, PlayerTileContactSolid
 
-    jr jr_001_54ce
+    jr PlayerTileSetEffect1IfNearTop
 
+PlayerTileSlopeContactRight::
     bit 3, c
-    jr nz, jr_001_5491
+    jr nz, PlayerTileContactSolid
 
-    jr jr_001_54ce
+    jr PlayerTileSetEffect1IfNearTop
 
-jr_001_54ce::
+PlayerTileSetEffect1IfNearTop::
     ldh a, [hPlayerY]
     and $0f
     cp $04
-    jr nc, jr_001_5491
+    jr nc, PlayerTileContactSolid
 
     ld a, $01
     ldh [$ffbf], a
     ret
 
-
-jr_001_54db::
+PlayerTileSetEffect2IfMiddle::
     ldh a, [hPlayerY]
     and $0f
     cp $08
-    jr c, jr_001_5491
+    jr c, PlayerTileContactSolid
 
     cp $0c
-    jr nc, jr_001_5491
+    jr nc, PlayerTileContactSolid
 
     ld a, $02
     ldh [$ffbf], a
     ret
 
-
+PlayerTileEffect2LeftHalf::
     bit 3, c
-    jr z, jr_001_5491
+    jr z, PlayerTileContactSolid
 
-    jr jr_001_54db
+    jr PlayerTileSetEffect2IfMiddle
 
+PlayerTileEffect2RightHalf::
     bit 3, c
-    jr nz, jr_001_5491
+    jr nz, PlayerTileContactSolid
 
-    jr jr_001_54db
+    jr PlayerTileSetEffect2IfMiddle
 
+PlayerTileSetEdgeFlagLeft::
     bit 3, c
-    jr z, jr_001_5491
+    jr z, PlayerTileContactSolid
 
     ld hl, $ffa9
     set 1, [hl]
-    jr jr_001_5491
+    jr PlayerTileContactSolid
 
+PlayerTileSetEdgeFlagRight::
     bit 3, c
-    jr nz, jr_001_5491
+    jr nz, PlayerTileContactSolid
 
     ld hl, $ffa9
     set 1, [hl]
-    jr jr_001_5491
+    jr PlayerTileContactSolid
 
-    call Jump_001_54b3
-    bit 3, c
-    ret nz
-
-    ld hl, $ffa9
-    set 1, [hl]
-    ret
-
-
-    call Jump_001_54b3
-    bit 3, c
-    ret z
-
-    ld hl, $ffa9
-    set 1, [hl]
-    ret
-
-
-    ld hl, $ffa9
-    set 1, [hl]
-    jp jr_001_5491
-
-
-    ld hl, $ffa9
-    set 1, [hl]
-    jp Jump_001_54b3
-
-
-    ld hl, $ffa9
-    set 1, [hl]
-    jp jr_001_54ce
-
-
-    call jr_001_54ce
+PlayerTileSnapAndSetEdgeFlagRight::
+    call PlayerTileSnapToTileTopClearEffect
     bit 3, c
     ret nz
 
@@ -3779,8 +3717,42 @@ jr_001_54db::
     set 1, [hl]
     ret
 
+PlayerTileSnapAndSetEdgeFlagLeft::
+    call PlayerTileSnapToTileTopClearEffect
+    bit 3, c
+    ret z
 
-    call jr_001_54ce
+
+    ld hl, $ffa9
+    set 1, [hl]
+    ret
+
+PlayerTileSetEdgeFlagSolid::
+    ld hl, $ffa9
+    set 1, [hl]
+    jp PlayerTileContactSolid
+
+PlayerTileSnapAndSetEdgeFlag::
+    ld hl, $ffa9
+    set 1, [hl]
+    jp PlayerTileSnapToTileTopClearEffect
+
+PlayerTileEffect1AndEdgeFlag::
+    ld hl, $ffa9
+    set 1, [hl]
+    jp PlayerTileSetEffect1IfNearTop
+
+PlayerTileEffect1EdgeRight::
+    call PlayerTileSetEffect1IfNearTop
+    bit 3, c
+    ret nz
+
+    ld hl, $ffa9
+    set 1, [hl]
+    ret
+
+PlayerTileEffect1EdgeLeft::
+    call PlayerTileSetEffect1IfNearTop
     bit 3, c
     ret z
 
@@ -3788,11 +3760,11 @@ jr_001_54db::
     set 1, [hl]
     ret
 
-
+PlayerTileSpawnDropPlatform::
     ldh a, [hPlayerY]
     and $0f
     cp $04
-    jp nc, jr_001_5491
+    jp nc, PlayerTileContactSolid
 
     push bc
     call Call_001_55c0
