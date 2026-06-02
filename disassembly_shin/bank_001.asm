@@ -16,7 +16,7 @@ SECTION "ROM Bank $001", ROMX[$4000], BANK[$1]
     add $1a
     ld [$d933], a
     xor a
-    ldh [$ff8f], a
+    ldh [hNeedsReset], a
     call Call_000_0963
     ld a, [$c0a9]
     rst $00
@@ -44,7 +44,7 @@ SECTION "ROM Bank $001", ROMX[$4000], BANK[$1]
     jp Jump_000_0d8b
 
 
-Call_001_4047:
+Call_001_4047::
     call Call_001_425e
     call Call_001_420f
     ld hl, $40af
@@ -53,7 +53,7 @@ Call_001_4047:
     ld de, $c700
     ld bc, $0100
     ld a, $04
-    call LoadGameGfx
+    call BankedMemcpy
     ld hl, $40b9
     ldh a, [$ff9f]
     rst $20
@@ -89,7 +89,7 @@ Call_001_4047:
     rst $20
     ld de, $c414
     ld b, $4e
-    jp Jump_000_0362
+    jp jr_000_0362
 
 
     db $32, $76, $ea, $76, $ca, $77, $fa, $78
@@ -120,7 +120,7 @@ Call_001_4047:
     db $00, $00, $00, $00, $00, $01, $02, $03, $04, $10, $00, $00, $00, $00, $00, $00
     db $00, $00
 
-Call_001_417f:
+Call_001_417f::
     xor a
     ldh [$ffaa], a
     ldh [$ffac], a
@@ -128,8 +128,8 @@ Call_001_417f:
     call Call_000_0dc0
     call Call_001_4047
     ld a, $8c
-    ldh [$ff9a], a
-    ld hl, $c0a3
+    ldh [hOamMaxY], a
+    ld hl, wPaletteBGP
     ld a, $e4
     ld [hl+], a
     ld a, $d0
@@ -137,13 +137,13 @@ Call_001_417f:
     ld a, $e4
     ld [hl+], a
     ld a, $e3
-    ld [$c0a2], a
+    ld [wLCDCShadow], a
     ld a, $01
     ld [$c0a0], a
-    jp Jump_000_02ef
+    jp EnableInterruptsFromShadow
 
 
-Call_001_41a9:
+Call_001_41a9::
     ld a, $ff
     ld [$c180], a
     call Call_001_5e21
@@ -158,7 +158,7 @@ Call_001_41a9:
     ld hl, $01c0
     ld de, $0200
 
-jr_001_41c7:
+jr_001_41c7::
     ld a, l
     ld [$d996], a
     ld a, h
@@ -172,10 +172,10 @@ jr_001_41c7:
     ld a, d
     ld [$d999], a
     xor a
-    ldh [$ff9b], a
-    ldh [$ff8d], a
-    ld [$c100], a
-    ldh [$ff99], a
+    ldh [hOamWritePos], a
+    ldh [hVBlankBusy], a
+    ld [wVramQueue], a
+    ldh [hVramQueuePos], a
     ldh [$ffc3], a
     ldh [$ffb3], a
     ldh [$ffb4], a
@@ -184,7 +184,7 @@ jr_001_41c7:
     ldh [$ffbd], a
     ldh [$ffc1], a
     ld [$c0b0], a
-    ldh [$ff96], a
+    ldh [hCollisionFlag], a
     ldh [$ff97], a
     ldh [$ff98], a
     ld hl, $c0b1
@@ -202,8 +202,8 @@ jr_001_41c7:
     ret
 
 
-Call_001_420f:
-    call Call_001_4225
+Call_001_420f::
+    call jr_001_4225
     ld a, [$c0a8]
     or a
     jr z, jr_001_4225
@@ -217,8 +217,7 @@ Call_001_420f:
     ret
 
 
-Call_001_4225:
-jr_001_4225:
+jr_001_4225::
     ldh a, [$ff9f]
     cp $03
     jr z, jr_001_4250
@@ -229,7 +228,7 @@ jr_001_4225:
     ld de, $c800
     ld bc, $0e00
     ld a, $04
-    jp Jump_000_0387
+    jp BankedMemcpy_RLEFF
 
 
     db $39, $4e, $4b, $58, $3a, $61
@@ -248,30 +247,30 @@ jr_001_4225:
     ld b, c
     ld [$0000], sp
 
-jr_001_4250:
+jr_001_4250::
     ld hl, $6b77
     ld de, $c800
     ld bc, $1100
     ld a, $04
-    jp Jump_000_0387
+    jp BankedMemcpy_RLEFF
 
 
-Call_001_425e:
+Call_001_425e::
     ld hl, $4001
     ld de, $8000
     ld bc, $0130
     ld a, $05
-    call LoadGameGfx
+    call BankedMemcpy
     ld hl, $5701
     ld de, $8d00
     ld bc, $0300
     ld a, $05
-    call LoadGameGfx
+    call BankedMemcpy
     call Call_001_42fd
     ld hl, $4286
     ldh a, [$ff9f]
     rst $20
-    jp Jump_000_06ea
+    jp jr_000_06ea
 
 
     db $90, $42, $a6, $42, $bc, $42, $d9, $42
@@ -289,7 +288,7 @@ Call_001_425e:
     db $d1, $5e, $a0, $88, $e0, $01, $05, $71, $61, $80, $8a, $c0, $01, $05, $e1, $64
     db $40, $8c, $80, $00, $05, $f1, $5a, $00, $90, $00, $08, $07, $ff
 
-Call_001_42fd:
+Call_001_42fd::
     ldh a, [$ffbb]
     rst $00
 
@@ -304,7 +303,7 @@ Call_001_42fd:
     ld de, $8130
     ld bc, $0470
     ld a, $05
-    call LoadGameGfx
+    call BankedMemcpy
     ret
 
 
@@ -312,7 +311,7 @@ Call_001_42fd:
     ld de, $8130
     ld bc, $0530
     ld a, $05
-    call LoadGameGfx
+    call BankedMemcpy
     ret
 
 
@@ -320,7 +319,7 @@ Call_001_42fd:
     ld de, $8130
     ld bc, $0530
     ld a, $05
-    call LoadGameGfx
+    call BankedMemcpy
     ret
 
 
@@ -328,7 +327,7 @@ Call_001_42fd:
     ld de, $8130
     ld bc, $0530
     ld a, $05
-    call LoadGameGfx
+    call BankedMemcpy
     ret
 
 
@@ -336,7 +335,7 @@ Call_001_42fd:
     ld de, $8130
     ld bc, $0530
     ld a, $05
-    call LoadGameGfx
+    call BankedMemcpy
     ret
 
 
@@ -368,12 +367,12 @@ Call_001_42fd:
 
     inc bc
 
-jr_001_4383:
+jr_001_4383::
     nop
     nop
     jr jr_001_4387
 
-jr_001_4387:
+jr_001_4387::
     ld b, b
     nop
     nop
@@ -408,12 +407,12 @@ jr_001_4387:
     adc l
     ld b, e
 
-jr_001_43a9:
+jr_001_43a9::
     ld hl, $4395
     ldh a, [$ff9f]
     rst $20
 
-jr_001_43af:
+jr_001_43af::
     ld a, [hl+]
     ldh [$ffb1], a
     ld a, [hl+]
@@ -423,17 +422,17 @@ jr_001_43af:
     ld a, [hl+]
     ldh [$ffaf], a
     ld a, [hl+]
-    ldh [$ff92], a
+    ldh [hSCX], a
     ld a, [hl+]
-    ldh [$ff93], a
+    ldh [hSCXHigh], a
     ld a, [hl+]
-    ldh [$ff90], a
+    ldh [hSCY], a
     ld a, [hl+]
-    ldh [$ff91], a
+    ldh [hSCYHigh], a
     ret
 
 
-Call_001_43c8:
+Call_001_43c8::
     ldh a, [$ff9f]
     cp $01
     jr z, jr_001_4408
@@ -449,7 +448,7 @@ Call_001_43c8:
 
     jr jr_001_43af
 
-Call_001_43e1:
+Call_001_43e1::
     ld a, [$c0a8]
     or a
     ret z
@@ -458,18 +457,18 @@ Call_001_43e1:
     ld de, $9450
     ld bc, $0390
     ld a, $04
-    call LoadGameGfx
+    call BankedMemcpy
     ld hl, $6411
     ld de, $8c00
     ld bc, $00d0
     ld a, $05
-    call LoadGameGfx
+    call BankedMemcpy
     ld a, $03
     ld [$c0b3], a
     ret
 
 
-jr_001_4408:
+jr_001_4408::
     ld a, [$c0bc]
     or a
     jr nz, jr_001_4418
@@ -481,7 +480,7 @@ jr_001_4408:
     xor a
     ld [$c0b4], a
 
-jr_001_4418:
+jr_001_4418::
     xor a
     ld [$c0bc], a
     ld hl, $447f
@@ -497,10 +496,10 @@ jr_001_4418:
     ld de, $91a0
     ld bc, $0480
     ld a, $07
-    call LoadGameGfx
+    call BankedMemcpy
     ld hl, $449f
 
-jr_001_443c:
+jr_001_443c::
     ld a, [hl+]
     ld [$c40e], a
     ld a, [hl+]
@@ -526,17 +525,17 @@ jr_001_443c:
     ld a, [hl+]
     ldh [$ffaf], a
     ld a, [hl+]
-    ldh [$ff92], a
+    ldh [hSCX], a
     ld a, [hl+]
-    ldh [$ff93], a
+    ldh [hSCXHigh], a
     ld a, [hl+]
-    ldh [$ff90], a
+    ldh [hSCY], a
     ld a, [hl+]
-    ldh [$ff91], a
+    ldh [hSCYHigh], a
     ret
 
 
-jr_001_4475:
+jr_001_4475::
     ld a, $01
     ld [$c0b4], a
     ld hl, $44af
@@ -560,7 +559,7 @@ jr_001_4475:
     ld b, $28
     nop
 
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     bit 3, a
     jr nz, jr_001_4532
 
@@ -576,7 +575,7 @@ jr_001_4475:
     or a
     ret z
 
-    ldh a, [$ff99]
+    ldh a, [hVramQueuePos]
     cp $20
     ret nc
 
@@ -596,7 +595,7 @@ jr_001_4475:
     ret
 
 
-Jump_001_44fe:
+Jump_001_44fe::
     ld a, [$c402]
     res 2, a
     ld [$c402], a
@@ -606,11 +605,11 @@ Jump_001_44fe:
     ld l, a
     ld de, $452e
     ld bc, $0202
-    call Call_000_061f
+    call QueueTilemapRect
     ret
 
 
-Jump_001_4516:
+Jump_001_4516::
     ld a, [$c402]
     res 3, a
     ld [$c402], a
@@ -620,32 +619,32 @@ Jump_001_4516:
     ld l, a
     ld de, $da00
     ld bc, $0202
-    call Call_000_061f
+    call QueueTilemapRect
     ret
 
 
     db $08, $09, $0a, $0b
 
-jr_001_4532:
+jr_001_4532::
     ld a, $06
-    ldh [$ff8e], a
-    ldh a, [$ff9c]
-    ldh [$ff9b], a
+    ldh [hGameState], a
+    ldh a, [hPrevOamPos]
+    ldh [hOamWritePos], a
     xor a
     ld [$dd9f], a
     ld a, $5e
-    call Call_000_0f38
+    call PlaySound_Queue1
     ret
 
 
-jr_001_4544:
+jr_001_4544::
     ldh a, [$ffbe]
     res 1, a
     ldh [$ffbe], a
     ret
 
 
-Call_001_454b:
+Call_001_454b::
     ld hl, $c0ab
     ld a, [hl]
     or a
@@ -657,7 +656,7 @@ Call_001_454b:
     bit 3, [hl]
     ret z
 
-jr_001_4558:
+jr_001_4558::
     ldh a, [$ffac]
     and $01
     ld b, a
@@ -665,7 +664,7 @@ jr_001_4558:
     and $fe
     or b
     ldh [$ffa9], a
-    ldh [$ff9d], a
+    ldh [hSpriteFlags], a
     ld hl, $1a19
     ldh a, [$ffbb]
     rst $20
@@ -675,10 +674,10 @@ jr_001_4558:
     ld c, a
     ldh a, [$ffa4]
     ld b, a
-    jp Jump_000_026c
+    jp jr_000_026c
 
 
-Call_001_4578:
+Call_001_4578::
     ld bc, $c0bf
     call Call_001_45bf
     ld bc, $c0cb
@@ -701,7 +700,7 @@ Call_001_4578:
     ret
 
 
-jr_001_4599:
+jr_001_4599::
     ld a, [$c0be]
     ldh [$ffbb], a
     ld a, $04
@@ -709,7 +708,7 @@ jr_001_4599:
     jp Jump_001_4dc7
 
 
-jr_001_45a6:
+jr_001_45a6::
     ld a, [$c0a6]
     ld b, a
     and $0f
@@ -722,13 +721,13 @@ jr_001_45a6:
     push af
     xor a
     ldh [$ffbb], a
-    call Call_000_0e02
+    call Jump_000_0e02
     pop af
     ldh [$ffbb], a
     ret
 
 
-Call_001_45bf:
+Call_001_45bf::
     ld a, [bc]
     or a
     ret z
@@ -740,7 +739,7 @@ Call_001_45bf:
 
     db $54, $46, $82, $46, $cd, $47
 
-Call_001_45cb:
+Call_001_45cb::
     ld a, [bc]
     or a
     ret z
@@ -757,16 +756,16 @@ Call_001_45cb:
     call Call_001_4641
     inc bc
     ld a, [bc]
-    ldh [$ff9d], a
+    ldh [hSpriteFlags], a
     ld hl, $2e9b
     ldh a, [$ffd3]
     ld c, a
     ldh a, [$ffd4]
     ld b, a
-    jp Jump_000_026c
+    jp jr_000_026c
 
 
-jr_001_45f1:
+jr_001_45f1::
     xor a
     ld [bc], a
     ld hl, $ffbc
@@ -774,7 +773,7 @@ jr_001_45f1:
     ret
 
 
-Call_001_45f9:
+Call_001_45f9::
     ld hl, $0006
     add hl, bc
     ld a, [hl]
@@ -784,22 +783,21 @@ Call_001_45f9:
     adc $00
     ld [hl], a
 
-Call_001_4605:
-Jump_001_4605:
+Jump_001_4605::
     ld de, $0180
 
-Jump_001_4608:
+Jump_001_4608::
     ld h, b
     ld l, c
     inc hl
     bit 0, [hl]
     inc hl
-    jp nz, Jump_001_4bee
+    jp nz, jr_001_4bee
 
     jp Jump_001_4be3
 
 
-Call_001_4614:
+Call_001_4614::
     push bc
     ld hl, $0006
     add hl, bc
@@ -812,7 +810,7 @@ Call_001_4614:
     ld b, [hl]
     ld c, a
     push de
-    call Call_000_0d36
+    call Jump_000_0d36
     ld e, a
     ld d, $00
     ld hl, $c700
@@ -826,7 +824,7 @@ Call_001_4614:
     ret
 
 
-Call_001_4637:
+Call_001_4637::
     call Call_001_46f6
     jr c, jr_001_463f
 
@@ -834,12 +832,12 @@ Call_001_4637:
     ret
 
 
-jr_001_463f:
+jr_001_463f::
     xor a
     ret
 
 
-Call_001_4641:
+Call_001_4641::
     ld a, $04
     ldh [$ffd1], a
     ld a, $04
@@ -851,7 +849,7 @@ Call_001_4641:
     ret
 
 
-    call Call_001_4605
+    call Jump_001_4605
     call Call_001_4b2e
     ldh a, [$ffd5]
     or a
@@ -863,16 +861,16 @@ Call_001_4641:
     call Call_001_467f
     inc bc
     ld a, [bc]
-    ldh [$ff9d], a
+    ldh [hSpriteFlags], a
     ld hl, $2e96
     ldh a, [$ffd3]
     ld c, a
     ldh a, [$ffd4]
     ld b, a
-    jp Jump_000_026c
+    jp jr_000_026c
 
 
-jr_001_4677:
+jr_001_4677::
     xor a
     ld [bc], a
     ld hl, $ffbc
@@ -880,7 +878,7 @@ jr_001_4677:
     ret
 
 
-Call_001_467f:
+Call_001_467f::
     jp Jump_001_47ba
 
 
@@ -893,19 +891,19 @@ Call_001_467f:
     call Call_001_4614
     jr z, jr_001_46a5
 
-    call Call_001_47ba
+    call Jump_001_47ba
     inc bc
     ld a, [bc]
-    ldh [$ff9d], a
+    ldh [hSpriteFlags], a
     ld hl, $30e2
     ldh a, [$ffd3]
     ld c, a
     ldh a, [$ffd4]
     ld b, a
-    jp Jump_000_026c
+    jp jr_000_026c
 
 
-jr_001_46a5:
+jr_001_46a5::
     xor a
     ld [bc], a
     ld hl, $ffbc
@@ -913,7 +911,7 @@ jr_001_46a5:
     ret
 
 
-Call_001_46ad:
+Call_001_46ad::
     ld hl, $c0c9
     ld a, [hl]
     cp $20
@@ -923,13 +921,13 @@ Call_001_46ad:
     jp Jump_001_4605
 
 
-jr_001_46b9:
+jr_001_46b9::
     call Call_001_46cf
     call nc, Call_001_46c2
     jp Jump_001_4605
 
 
-Call_001_46c2:
+Call_001_46c2::
     ld hl, $0006
     add hl, bc
     ld a, [hl]
@@ -941,7 +939,7 @@ Call_001_46c2:
     ret
 
 
-Call_001_46cf:
+Call_001_46cf::
     push bc
     ld hl, $0006
     add hl, bc
@@ -958,7 +956,7 @@ Call_001_46cf:
     ld a, [hl+]
     ld b, [hl]
     ld c, a
-    call Call_000_0d36
+    call Jump_000_0d36
     ld e, a
     ld d, $00
     ld hl, $c700
@@ -972,7 +970,7 @@ Call_001_46cf:
     ret
 
 
-Call_001_46f6:
+Call_001_46f6::
     and $3f
     rst $00
 
@@ -1126,7 +1124,7 @@ Call_001_46f6:
     ret
 
 
-jr_001_478a:
+jr_001_478a::
     sub a
     ret
 
@@ -1145,7 +1143,7 @@ jr_001_478a:
 
     jr jr_001_479a
 
-jr_001_479a:
+jr_001_479a::
     ld a, c
     and $0f
     cp $04
@@ -1155,7 +1153,7 @@ jr_001_479a:
     ret
 
 
-jr_001_47a2:
+jr_001_47a2::
     ld a, c
     and $0f
     cp $08
@@ -1178,14 +1176,13 @@ jr_001_47a2:
 
     jr jr_001_47a2
 
-Call_001_47ba:
-Jump_001_47ba:
+Jump_001_47ba::
     ld a, $04
     ldh [$ffd1], a
     ld a, $04
     ldh [$ffd2], a
 
-Jump_001_47c2:
+Jump_001_47c2::
     ldh a, [$ffd3]
     ld [$c0c7], a
     ldh a, [$ffd4]
@@ -1202,7 +1199,7 @@ Jump_001_47c2:
     call Call_001_4801
     inc bc
     ld a, [bc]
-    ldh [$ff9d], a
+    ldh [hSpriteFlags], a
     ld hl, $32d2
     ld a, [$c0c9]
     inc a
@@ -1212,15 +1209,15 @@ Jump_001_47c2:
 
     ld hl, $32e7
 
-jr_001_47f0:
+jr_001_47f0::
     ldh a, [$ffd3]
     ld c, a
     ldh a, [$ffd4]
     ld b, a
-    jp Jump_000_026c
+    jp jr_000_026c
 
 
-jr_001_47f9:
+jr_001_47f9::
     xor a
     ld [bc], a
     ld hl, $ffbc
@@ -1228,7 +1225,7 @@ jr_001_47f9:
     ret
 
 
-Call_001_4801:
+Call_001_4801::
     ld a, $08
     ldh [$ffd1], a
     ld a, $08
@@ -1236,12 +1233,12 @@ Call_001_4801:
     jp Jump_001_47c2
 
 
-Call_001_480c:
+Call_001_480c::
     ld de, $0300
     jp Jump_001_4608
 
 
-Call_001_4812:
+Call_001_4812::
     ld b, h
     ld c, l
     and $3f
@@ -1269,19 +1266,19 @@ Call_001_4812:
     ret
 
 
-Call_001_4868:
+Call_001_4868::
     ld a, [$c0b5]
     or a
     jr z, jr_001_4871
 
     call Call_001_4d25
 
-jr_001_4871:
+jr_001_4871::
     xor a
     ldh [$ffc4], a
     ld hl, $c180
 
-jr_001_4877:
+jr_001_4877::
     ld a, [hl]
     or a
     jr z, jr_001_4884
@@ -1293,25 +1290,24 @@ jr_001_4877:
     call Call_001_4812
     pop hl
 
-jr_001_4884:
+jr_001_4884::
     ld bc, $0010
     add hl, bc
     jr jr_001_4877
 
-jr_001_488a:
-    call Call_001_489a
-    call Call_001_489a
-    call Call_001_489a
+jr_001_488a::
+    call jr_001_489a
+    call jr_001_489a
+    call jr_001_489a
     jr jr_001_489a
 
-jr_001_4895:
+jr_001_4895::
     xor a
     ld [$c380], a
     ret
 
 
-Call_001_489a:
-jr_001_489a:
+jr_001_489a::
     ld hl, $c380
     ld a, [hl]
     ld c, a
@@ -1345,7 +1341,7 @@ jr_001_489a:
     ld a, [hl+]
     ld d, a
     push hl
-    ld hl, $ff92
+    ld hl, hSCX
     ld a, [hl+]
     ld h, [hl]
     ld l, a
@@ -1369,7 +1365,7 @@ jr_001_489a:
     adc $00
     ld h, a
 
-jr_001_48e5:
+jr_001_48e5::
     ld a, h
     ld e, l
     pop hl
@@ -1386,7 +1382,7 @@ jr_001_48e5:
 
     jr jr_001_48fe
 
-jr_001_48f6:
+jr_001_48f6::
     ld a, e
     cp $b0
     ret nc
@@ -1394,15 +1390,15 @@ jr_001_48f6:
     cp $60
     jr c, jr_001_4915
 
-jr_001_48fe:
+jr_001_48fe::
     ld hl, $c381
     add hl, bc
     ld [hl], $02
 
-Jump_001_4904:
+Jump_001_4904::
     ld hl, $c180
 
-jr_001_4907:
+jr_001_4907::
     ld a, [hl]
     or a
     jr z, jr_001_4939
@@ -1414,13 +1410,13 @@ jr_001_4907:
     add hl, de
     jr jr_001_4907
 
-jr_001_4915:
+jr_001_4915::
     ld a, [hl+]
     ld h, [hl]
     ld l, a
-    ldh a, [$ff90]
+    ldh a, [hSCY]
     ld e, a
-    ldh a, [$ff91]
+    ldh a, [hSCYHigh]
     ld d, a
     ld a, l
     sub e
@@ -1439,8 +1435,8 @@ jr_001_4915:
     ret
 
 
-jr_001_492e:
-    call Call_001_4939
+jr_001_492e::
+    call jr_001_4939
     ld a, $ff
     ld hl, $0010
     add hl, bc
@@ -1448,8 +1444,7 @@ jr_001_492e:
     ret
 
 
-Call_001_4939:
-jr_001_4939:
+jr_001_4939::
     ld d, h
     ld e, l
     ld a, c
@@ -1587,7 +1582,7 @@ jr_001_4939:
     ret
 
 
-Call_001_49d9:
+Call_001_49d9::
     ld hl, $0003
     add hl, bc
     ldh a, [$ffb1]
@@ -1611,7 +1606,7 @@ Call_001_49d9:
 
     set 7, a
 
-jr_001_49f5:
+jr_001_49f5::
     ld [bc], a
     ret
 
@@ -1710,8 +1705,7 @@ jr_001_49f5:
     add b
     ld bc, $0303
 
-Jump_001_4a71:
-jr_001_4a71:
+jr_001_4a71::
     ld a, [$dffe]
     add e
     ld e, a
@@ -1738,7 +1732,7 @@ jr_001_4a71:
 
     ld l, $08
 
-jr_001_4a95:
+jr_001_4a95::
     ldh a, [$ffc9]
     and $07
     add l
@@ -1796,7 +1790,7 @@ jr_001_4a95:
     xor a
     ld [$c0ba], a
     ld de, $4aed
-    jp Jump_001_4a71
+    jp jr_001_4a71
 
 
     db $80, $01, $05
@@ -1807,18 +1801,18 @@ jr_001_4a95:
     db $08
     db $08
 
-Call_001_4af5:
+Call_001_4af5::
     xor a
     ld [$c380], a
     call Call_001_4b09
     ld a, $ff
     ld hl, $c180
     ld b, $00
-    call Call_000_0022
-    jp Jump_000_0022
+    call jr_000_0022
+    jp jr_000_0022
 
 
-Call_001_4b09:
+Call_001_4b09::
     ld hl, $4b24
     ldh a, [$ff9f]
     rst $20
@@ -1826,7 +1820,7 @@ Call_001_4b09:
     ld e, l
     ld hl, $c381
 
-jr_001_4b14:
+jr_001_4b14::
     ld a, [de]
     cp $ff
     jr z, jr_001_4b21
@@ -1837,7 +1831,7 @@ jr_001_4b14:
     rst $30
     jr jr_001_4b14
 
-jr_001_4b21:
+jr_001_4b21::
     ld [hl], $ff
     ret
 
@@ -1847,12 +1841,12 @@ jr_001_4b21:
     ld a, e
     ld a, e
 
-Call_001_4b2e:
+Call_001_4b2e::
     xor a
     ldh [$ffd5], a
-    ldh a, [$ff93]
+    ldh a, [hSCXHigh]
     ld d, a
-    ldh a, [$ff92]
+    ldh a, [hSCX]
     ld e, a
     ld hl, $0003
     add hl, bc
@@ -1864,9 +1858,9 @@ Call_001_4b2e:
     sbc d
     ldh [$ffc9], a
     call Call_001_4b6c
-    ldh a, [$ff91]
+    ldh a, [hSCYHigh]
     ld d, a
-    ldh a, [$ff90]
+    ldh a, [hSCY]
     ld e, a
     inc hl
     ld a, [hl+]
@@ -1888,7 +1882,7 @@ Call_001_4b2e:
     ret
 
 
-jr_001_4b62:
+jr_001_4b62::
     cp $ff
     jr nz, jr_001_4b7f
 
@@ -1898,7 +1892,7 @@ jr_001_4b62:
 
     jr jr_001_4b7f
 
-Call_001_4b6c:
+Call_001_4b6c::
     jr c, jr_001_4b77
 
     or a
@@ -1911,7 +1905,7 @@ Call_001_4b6c:
     ret
 
 
-jr_001_4b77:
+jr_001_4b77::
     cp $ff
     jr nz, jr_001_4b7f
 
@@ -1919,13 +1913,13 @@ jr_001_4b77:
     cp $f0
     ret nc
 
-jr_001_4b7f:
+jr_001_4b7f::
     ld a, $ff
     ldh [$ffd5], a
     ret
 
 
-Call_001_4b84:
+Call_001_4b84::
     call Call_001_4b2e
     ldh a, [$ffc9]
     ld d, a
@@ -1944,7 +1938,7 @@ Call_001_4b84:
     bit 7, h
     jr z, jr_001_4bbd
 
-jr_001_4ba1:
+jr_001_4ba1::
     ldh a, [$ffca]
     ld d, a
     ldh a, [$ffd4]
@@ -1962,13 +1956,12 @@ jr_001_4ba1:
     bit 7, h
     jr z, jr_001_4bbd
 
-jr_001_4bbb:
+jr_001_4bbb::
     xor a
     ret
 
 
-Jump_001_4bbd:
-jr_001_4bbd:
+jr_001_4bbd::
     ld h, b
     ld l, c
     inc hl
@@ -1988,8 +1981,7 @@ jr_001_4bbd:
     ret
 
 
-Call_001_4bd4:
-Jump_001_4bd4:
+Jump_001_4bd4::
     ld hl, $0008
     add hl, bc
     ld a, [hl+]
@@ -1998,13 +1990,12 @@ Jump_001_4bd4:
     ld hl, $0002
     add hl, bc
 
-Call_001_4bdf:
+Call_001_4bdf::
     ld a, [bc]
     rlca
     jr c, jr_001_4bee
 
-Call_001_4be3:
-Jump_001_4be3:
+Jump_001_4be3::
     ld a, e
     add [hl]
     ld [hl+], a
@@ -2017,9 +2008,7 @@ Jump_001_4be3:
     ret
 
 
-Call_001_4bee:
-Jump_001_4bee:
-jr_001_4bee:
+jr_001_4bee::
     ld a, [hl]
     sub e
     ld [hl+], a
@@ -2032,7 +2021,7 @@ jr_001_4bee:
     ret
 
 
-Call_001_4bf9:
+Call_001_4bf9::
     inc [hl]
     ld a, [hl]
     cp d
@@ -2049,7 +2038,7 @@ Call_001_4bf9:
     ret
 
 
-Jump_001_4c06:
+Jump_001_4c06::
     ld hl, $1b25
     ldh a, [$ff9f]
     rst $20
@@ -2059,10 +2048,10 @@ Jump_001_4c06:
     ld c, a
     ldh a, [$ffd4]
     ld b, a
-    jp Jump_000_026c
+    jp jr_000_026c
 
 
-Call_001_4c18:
+Call_001_4c18::
     ldh a, [$ffaa]
     cp $01
     jr z, jr_001_4c26
@@ -2073,14 +2062,14 @@ Call_001_4c18:
 
     jr jr_001_4c2b
 
-jr_001_4c26:
+jr_001_4c26::
     ld hl, $4c71
     jr jr_001_4c2e
 
-jr_001_4c2b:
+jr_001_4c2b::
     ld hl, $4c44
 
-jr_001_4c2e:
+jr_001_4c2e::
     ld a, d
     add a
     add a
@@ -2118,7 +2107,7 @@ jr_001_4c2e:
     inc e
     ld [hl+], a
 
-Call_001_4c9e:
+Call_001_4c9e::
     ldh a, [$ffcb]
     ld l, a
     ldh a, [$ffa5]
@@ -2131,7 +2120,7 @@ Call_001_4c9e:
     cpl
     inc a
 
-jr_001_4cad:
+jr_001_4cad::
     cp l
     ret nc
 
@@ -2155,7 +2144,7 @@ jr_001_4cad:
     cp d
     ccf
 
-jr_001_4cc7:
+jr_001_4cc7::
     jr nc, jr_001_4cd6
 
     call Call_001_4dbb
@@ -2163,14 +2152,14 @@ jr_001_4cc7:
     ret
 
 
-jr_001_4cce:
+jr_001_4cce::
     ldh a, [$ffa4]
     ld h, a
     ldh a, [$ffd4]
     sub h
     jr c, jr_001_4cdf
 
-jr_001_4cd6:
+jr_001_4cd6::
     ld l, a
     ldh a, [$ffcd]
     ld h, a
@@ -2180,7 +2169,7 @@ jr_001_4cd6:
 
     jr jr_001_4ce8
 
-jr_001_4cdf:
+jr_001_4cdf::
     cpl
     inc a
     ld l, a
@@ -2190,14 +2179,13 @@ jr_001_4cdf:
     cp h
     ret nc
 
-Jump_001_4ce8:
-jr_001_4ce8:
+jr_001_4ce8::
     call Call_001_4d7c
     sub a
     ret
 
 
-Call_001_4ced:
+Call_001_4ced::
     ldh a, [$ffd3]
     sub [hl]
     bit 7, a
@@ -2206,7 +2194,7 @@ Call_001_4ced:
     cpl
     inc a
 
-jr_001_4cf6:
+jr_001_4cf6::
     cp d
     ret nc
 
@@ -2219,17 +2207,17 @@ jr_001_4cf6:
     cpl
     inc a
 
-jr_001_4d02:
+jr_001_4d02::
     cp e
     ret
 
 
-jr_001_4d04:
+jr_001_4d04::
     ldh a, [$ff9f]
     cp $03
     jr z, jr_001_4d14
 
-    ld hl, $ff90
+    ld hl, hSCY
     ld a, [$c41a]
     cp [hl]
     ret z
@@ -2238,8 +2226,8 @@ jr_001_4d04:
     ret
 
 
-jr_001_4d14:
-    ld hl, $ff90
+jr_001_4d14::
+    ld hl, hSCY
     ld a, [hl]
     cp $80
     ret z
@@ -2250,12 +2238,12 @@ jr_001_4d14:
     jp Jump_000_0a69
 
 
-jr_001_4d21:
+jr_001_4d21::
     dec [hl]
     jp Jump_000_0a69
 
 
-Call_001_4d25:
+Call_001_4d25::
     dec a
     ld [$c0b5], a
     jr z, jr_001_4d51
@@ -2282,7 +2270,7 @@ Call_001_4d25:
 
     db $61, $65, $21, $68, $f1, $6a, $81, $6e
 
-jr_001_4d51:
+jr_001_4d51::
     ld hl, $4d60
     ldh a, [$ff9f]
     rst $20
@@ -2296,7 +2284,7 @@ jr_001_4d51:
     db $68, $4d, $6d, $4d, $72, $4d, $77, $4d, $01, $08, $0e, $f0, $00, $02, $08, $0e
     db $c0, $00, $03, $08, $02, $c0, $00, $04, $08, $0a, $f0, $00
 
-Call_001_4d7c:
+Call_001_4d7c::
     ldh a, [$ffbe]
     or a
     ret nz
@@ -2310,7 +2298,7 @@ Call_001_4d7c:
     jp z, Jump_001_4ece
 
     ld a, $51
-    call Call_000_0f3b
+    call PlaySound
     ldh a, [$ffaa]
     ld [$c0ac], a
     ld a, $0a
@@ -2322,7 +2310,7 @@ Call_001_4d7c:
     ret
 
 
-Jump_001_4da4:
+Jump_001_4da4::
     ldh a, [$ffbb]
     ld [$c0be], a
     xor a
@@ -2338,7 +2326,7 @@ Jump_001_4da4:
     jp Jump_001_4dc7
 
 
-Call_001_4dbb:
+Call_001_4dbb::
     ld a, $01
     ld [$c0b0], a
     ld a, $20
@@ -2346,7 +2334,7 @@ Call_001_4dbb:
     jp Jump_001_5eae
 
 
-Jump_001_4dc7:
+Jump_001_4dc7::
     ld a, $06
     ldh [$ffaa], a
     xor a
@@ -2366,7 +2354,7 @@ Jump_001_4dc7:
     cp $04
     ret nz
 
-    ldh a, [$ff96]
+    ldh a, [hCollisionFlag]
     cp $ff
     call nz, Call_000_0963
     ld hl, $d996
@@ -2382,7 +2370,7 @@ Jump_001_4dc7:
     ret
 
 
-Call_001_4e05:
+Call_001_4e05::
     ldh a, [$ffbf]
     ld b, a
     xor a
@@ -2420,7 +2408,7 @@ Call_001_4e05:
     ret
 
 
-Call_001_4e30:
+Call_001_4e30::
     ldh a, [$ffb4]
     ld d, a
     ldh a, [$ffb3]
@@ -2439,8 +2427,7 @@ Call_001_4e30:
     ret
 
 
-Call_001_4e48:
-Jump_001_4e48:
+Jump_001_4e48::
     ldh a, [$ffac]
     or a
     jr nz, jr_001_4e79
@@ -2473,7 +2460,7 @@ Jump_001_4e48:
     ret
 
 
-jr_001_4e79:
+jr_001_4e79::
     ld hl, $ffb0
     ldh a, [$ffb5]
     ld d, a
@@ -2502,7 +2489,7 @@ jr_001_4e79:
     ret
 
 
-Call_001_4ea3:
+Call_001_4ea3::
     ldh a, [$ffb4]
     bit 7, a
     jr nz, jr_001_4ef0
@@ -2532,12 +2519,12 @@ Call_001_4ea3:
     cp $0b
     ret z
 
-Jump_001_4ece:
+Jump_001_4ece::
     xor a
     ldh [$ffbb], a
-    call Call_000_0f0d
+    call InitSound
     ld a, $55
-    call Call_000_0f32
+    call PlaySound_Queue3
     ld a, $0b
     ldh [$ffaa], a
     ld hl, $ffbe
@@ -2552,7 +2539,7 @@ Jump_001_4ece:
     ret
 
 
-jr_001_4ef0:
+jr_001_4ef0::
     ld hl, $ffad
     ldh a, [$ffb3]
     add [hl]
@@ -2572,13 +2559,13 @@ jr_001_4ef0:
     ret
 
 
-Call_001_4f08:
+Call_001_4f08::
     ldh a, [$ff9f]
     rst $00
 
     db $13, $4f, $cb, $4f, $32, $50, $33, $50
 
-    ldh a, [$ff96]
+    ldh a, [hCollisionFlag]
     and $60
     ret nz
 
@@ -2600,7 +2587,7 @@ Call_001_4f08:
     db $01, $04, $00, $06, $01, $00, $00, $05, $02, $00, $00, $00, $02, $04, $00, $00
     db $03, $00, $00, $05, $03, $07, $00, $00
 
-Call_001_4f46:
+Call_001_4f46::
     rst $00
 
     db $57, $4f, $58, $4f, $69, $4f, $7d, $4f, $91, $4f, $a4, $4f, $b1, $4f, $be, $4f
@@ -2610,42 +2597,41 @@ Call_001_4f46:
 
     ld c, $39
     ld e, c
-    call Call_001_4f9c
+    call jr_001_4f9c
     ld c, $3a
     ld e, c
-    call Call_001_4f9c
+    call jr_001_4f9c
     ld c, $3b
     ld e, c
     jr jr_001_4f9c
 
     ld c, $3a
     ld e, $39
-    call Call_001_4f9c
+    call jr_001_4f9c
     ld c, $3b
     ld e, $3a
-    call Call_001_4f9c
+    call jr_001_4f9c
     ld c, $39
     ld e, $3b
     jr jr_001_4f9c
 
     ld c, $3b
     ld e, $39
-    call Call_001_4f9c
+    call jr_001_4f9c
     ld c, $39
     ld e, $3a
-    call Call_001_4f9c
+    call jr_001_4f9c
     ld c, $3a
     ld e, $3b
     jr jr_001_4f9c
 
     ld c, $3c
     ld e, $3c
-    call Call_001_4f9c
+    call jr_001_4f9c
     ld c, $3d
     ld e, $3d
 
-Call_001_4f9c:
-jr_001_4f9c:
+jr_001_4f9c::
     ld d, $07
     ld hl, $4001
     jp Jump_000_0532
@@ -2653,26 +2639,26 @@ jr_001_4f9c:
 
     ld c, $3c
     ld e, $3d
-    call Call_001_4f9c
+    call jr_001_4f9c
     ld c, $3d
     ld e, $3c
     jr jr_001_4f9c
 
     ld c, $2e
     ld e, $2e
-    call Call_001_4f9c
+    call jr_001_4f9c
     ld c, $2f
     ld e, $2f
     jr jr_001_4f9c
 
     ld c, $2e
     ld e, $2f
-    call Call_001_4f9c
+    call jr_001_4f9c
     ld c, $2f
     ld e, $2e
     jr jr_001_4f9c
 
-    ldh a, [$ff96]
+    ldh a, [hCollisionFlag]
     and $60
     ret nz
 
@@ -2698,7 +2684,7 @@ jr_001_4f9c:
     db $01, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
     db $02, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 
-Call_001_500b:
+Call_001_500b::
     rst $00
 
     db $12, $50, $13, $50, $1f, $50
@@ -2708,7 +2694,7 @@ Call_001_500b:
 
     ld c, $29
     ld e, c
-    call Call_001_502a
+    call Jump_001_502a
     ld c, $2a
     ld e, c
     jp Jump_001_502a
@@ -2716,12 +2702,11 @@ Call_001_500b:
 
     ld c, $29
     ld e, $2a
-    call Call_001_502a
+    call Jump_001_502a
     ld c, $2a
     ld e, $29
 
-Call_001_502a:
-Jump_001_502a:
+Jump_001_502a::
     ld d, $07
     ld hl, $46e1
     jp Jump_000_0532
@@ -2730,7 +2715,7 @@ Jump_001_502a:
     ret
 
 
-    ldh a, [$ff96]
+    ldh a, [hCollisionFlag]
     and $60
     ret nz
 
@@ -2756,7 +2741,7 @@ Jump_001_502a:
     db $01, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
     db $02, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 
-Call_001_5073:
+Call_001_5073::
     rst $00
 
     db $7a, $50, $7b, $50, $87, $50
@@ -2766,7 +2751,7 @@ Call_001_5073:
 
     ld c, $5e
     ld e, c
-    call Call_001_5092
+    call Jump_001_5092
     ld c, $5f
     ld e, c
     jp Jump_001_5092
@@ -2774,18 +2759,17 @@ Call_001_5073:
 
     ld c, $5e
     ld e, $5f
-    call Call_001_5092
+    call Jump_001_5092
     ld c, $5f
     ld e, $5e
 
-Call_001_5092:
-Jump_001_5092:
+Jump_001_5092::
     ld d, $07
     ld hl, $5af1
     jp Jump_000_0532
 
 
-Call_001_509a:
+Call_001_509a::
     bit 7, d
     jp z, Jump_000_0d36
 
@@ -2793,8 +2777,7 @@ Call_001_509a:
     ret
 
 
-Call_001_50a1:
-Jump_001_50a1:
+Jump_001_50a1::
     xor a
     ldh [$ffcd], a
     ldh a, [$ffb1]
@@ -2834,7 +2817,7 @@ Jump_001_50a1:
     xor a
     ldh [$ffbc], a
 
-jr_001_50e0:
+jr_001_50e0::
     xor a
     ldh [$ffbf], a
     ldh a, [$ffb1]
@@ -2844,7 +2827,7 @@ jr_001_50e0:
     ret
 
 
-jr_001_50ec:
+jr_001_50ec::
     ldh a, [$ffab]
     cp $03
     ret nz
@@ -2852,7 +2835,7 @@ jr_001_50ec:
     jp Jump_001_5e0b
 
 
-Call_001_50f4:
+Call_001_50f4::
     cp $06
     jr z, jr_001_510d
 
@@ -2874,13 +2857,13 @@ Call_001_50f4:
     ret
 
 
-jr_001_510d:
+jr_001_510d::
     ld hl, $ffcd
     inc [hl]
     ret
 
 
-jr_001_5112:
+jr_001_5112::
     ldh a, [$ffae]
     and $0f
     cp $08
@@ -2891,7 +2874,7 @@ jr_001_5112:
     ret
 
 
-jr_001_511e:
+jr_001_511e::
     ldh a, [$ffae]
     and $0f
     ret z
@@ -2901,7 +2884,7 @@ jr_001_511e:
     ret
 
 
-jr_001_5128:
+jr_001_5128::
     ldh a, [$ffae]
     and $0f
     ret z
@@ -2911,7 +2894,7 @@ jr_001_5128:
     ret
 
 
-jr_001_5132:
+jr_001_5132::
     ldh a, [$ffae]
     and $0f
     cp $03
@@ -2922,15 +2905,15 @@ jr_001_5132:
     ret
 
 
-jr_001_513f:
+jr_001_513f::
     ld a, $01
     ld [$c0b4], a
 
-jr_001_5144:
+jr_001_5144::
     ld a, $40
     ld [$d95c], a
     ld a, $07
-    ldh [$ff8e], a
+    ldh [hGameState], a
     ld a, $02
     ld [$c0a9], a
     ld a, $ff
@@ -2938,7 +2921,7 @@ jr_001_5144:
     ret
 
 
-jr_001_5158:
+jr_001_5158::
     ldh a, [$ffae]
     and $0f
     cp $0b
@@ -2949,13 +2932,12 @@ jr_001_5158:
     ret
 
 
-Jump_001_5165:
-jr_001_5165:
+jr_001_5165::
     ld a, $02
     ld [$c0b4], a
     jr jr_001_5144
 
-Call_001_516c:
+Call_001_516c::
     xor a
     ldh [$ffc0], a
     ld hl, $ffb1
@@ -2966,7 +2948,7 @@ Call_001_516c:
     adc $00
     ld b, a
 
-Jump_001_517a:
+Jump_001_517a::
     ldh a, [$ffae]
     ld e, a
     ldh a, [$ffaf]
@@ -2988,7 +2970,7 @@ Jump_001_517a:
 
     ld e, $0f
 
-jr_001_519b:
+jr_001_519b::
     ld hl, $ffae
     ld a, [hl+]
     sub e
@@ -3005,7 +2987,7 @@ jr_001_519b:
     ld a, [hl]
     pop de
 
-Call_001_51b2:
+Call_001_51b2::
     and $3f
     add a
     ld hl, $51c2
@@ -3107,7 +3089,7 @@ Call_001_51b2:
     ret
 
 
-jr_001_5223:
+jr_001_5223::
     ld a, $ff
     ldh [$ffc0], a
     ret
@@ -3130,7 +3112,7 @@ jr_001_5223:
     jp Jump_001_5434
 
 
-Call_001_523a:
+Call_001_523a::
     xor a
     ldh [$ffc0], a
     ld hl, $ffb1
@@ -3143,15 +3125,14 @@ Call_001_523a:
     jp Jump_001_517a
 
 
-Call_001_524b:
+Call_001_524b::
     xor a
     ldh [$ffc0], a
     ldh [$ffcd], a
     ld e, $12
     jr jr_001_526c
 
-Call_001_5254:
-Jump_001_5254:
+Jump_001_5254::
     ldh a, [$ffae]
     sub $20
     ldh a, [$ffaf]
@@ -3168,7 +3149,7 @@ Jump_001_5254:
 
     ld e, $0f
 
-jr_001_526c:
+jr_001_526c::
     ld hl, $ffae
     ld a, [hl+]
     sub e
@@ -3226,7 +3207,7 @@ jr_001_526c:
     xor a
     ldh [$ffbc], a
 
-jr_001_52c3:
+jr_001_52c3::
     ldh a, [$ffae]
     and $f0
     or $08
@@ -3234,7 +3215,7 @@ jr_001_52c3:
     ret
 
 
-Call_001_52cc:
+Call_001_52cc::
     and $3f
     rst $00
 
@@ -3353,7 +3334,7 @@ Call_001_52cc:
     bit 3, a
     ret nz
 
-jr_001_535d:
+jr_001_535d::
     ldh a, [$ffaa]
     cp $03
     jp nz, Jump_001_5b06
@@ -3383,7 +3364,7 @@ jr_001_535d:
     ret
 
 
-Call_001_5381:
+Call_001_5381::
     xor a
     ldh [$ffcd], a
     ld [$c0aa], a
@@ -3422,7 +3403,7 @@ Call_001_5381:
     add hl, de
     ld a, [hl]
 
-Call_001_53be:
+Call_001_53be::
     and $3f
     rst $00
 
@@ -3499,18 +3480,17 @@ Call_001_53be:
     ld d, h
     ld a, [$c0a8]
     or a
-    jp nz, Jump_001_5491
+    jp nz, jr_001_5491
 
     ldh a, [$ffae]
     ld e, a
     ldh a, [$ffaf]
     ld d, a
-    call Call_001_5434
-    jp Jump_001_5491
+    call Jump_001_5434
+    jp jr_001_5491
 
 
-Call_001_5434:
-Jump_001_5434:
+Jump_001_5434::
     push de
     call Call_001_509a
     ld [hl], $05
@@ -3526,10 +3506,10 @@ Jump_001_5434:
     ld a, $ff
     ld [$c0a8], a
     ld a, $5b
-    jp Jump_000_0f3b
+    jp PlaySound
 
 
-Call_001_5458:
+Call_001_5458::
     ld a, e
     jp Jump_001_55fc
 
@@ -3550,24 +3530,23 @@ Call_001_5458:
 
 
     ld a, $5c
-    call Call_000_0f3b
+    call PlaySound
     ld a, $10
     ldh [$ffb7], a
     ld a, $02
     ldh [$ffaa], a
     ld [$c0b0], a
-    call Call_001_54b3
+    call Jump_001_54b3
     ld hl, $fc70
-    jp Jump_001_5e9d
+    jp jr_001_5e9d
 
 
     ldh a, [$ffae]
     and $0f
     cp $0b
-    jp nc, Jump_001_5165
+    jp nc, jr_001_5165
 
-Jump_001_5491:
-jr_001_5491:
+jr_001_5491::
     ld hl, $ffcd
     inc [hl]
     ret
@@ -3592,8 +3571,7 @@ jr_001_5491:
     bit 3, a
     jr nz, jr_001_5491
 
-Call_001_54b3:
-Jump_001_54b3:
+Jump_001_54b3::
     ld a, $ff
     ld [$c0aa], a
     xor a
@@ -3614,9 +3592,7 @@ Jump_001_54b3:
 
     jr jr_001_54ce
 
-Call_001_54ce:
-Jump_001_54ce:
-jr_001_54ce:
+jr_001_54ce::
     ldh a, [$ffae]
     and $0f
     cp $04
@@ -3627,7 +3603,7 @@ jr_001_54ce:
     ret
 
 
-jr_001_54db:
+jr_001_54db::
     ldh a, [$ffae]
     and $0f
     cp $08
@@ -3665,7 +3641,7 @@ jr_001_54db:
     set 1, [hl]
     jr jr_001_5491
 
-    call Call_001_54b3
+    call Jump_001_54b3
     bit 3, c
     ret nz
 
@@ -3674,7 +3650,7 @@ jr_001_54db:
     ret
 
 
-    call Call_001_54b3
+    call Jump_001_54b3
     bit 3, c
     ret z
 
@@ -3685,7 +3661,7 @@ jr_001_54db:
 
     ld hl, $ffa9
     set 1, [hl]
-    jp Jump_001_5491
+    jp jr_001_5491
 
 
     ld hl, $ffa9
@@ -3695,10 +3671,10 @@ jr_001_54db:
 
     ld hl, $ffa9
     set 1, [hl]
-    jp Jump_001_54ce
+    jp jr_001_54ce
 
 
-    call Call_001_54ce
+    call jr_001_54ce
     bit 3, c
     ret nz
 
@@ -3707,7 +3683,7 @@ jr_001_54db:
     ret
 
 
-    call Call_001_54ce
+    call jr_001_54ce
     bit 3, c
     ret z
 
@@ -3719,14 +3695,14 @@ jr_001_54db:
     ldh a, [$ffae]
     and $0f
     cp $04
-    jp nc, Jump_001_5491
+    jp nc, jr_001_5491
 
     push bc
     call Call_001_55c0
     pop bc
     ld hl, $c180
 
-jr_001_5567:
+jr_001_5567::
     ld a, [hl]
     or a
     jr z, jr_001_557b
@@ -3738,14 +3714,13 @@ jr_001_5567:
     add hl, de
     jr jr_001_5567
 
-jr_001_5575:
-    call Call_001_557b
+jr_001_5575::
+    call jr_001_557b
     ld [hl], $ff
     ret
 
 
-Call_001_557b:
-jr_001_557b:
+jr_001_557b::
     push hl
     ldh a, [$ff9f]
     cp $01
@@ -3754,7 +3729,7 @@ jr_001_557b:
 
     ld a, $1e
 
-jr_001_5586:
+jr_001_5586::
     ld [hl+], a
     xor a
     ld [hl+], a
@@ -3797,13 +3772,13 @@ jr_001_5586:
     ret
 
 
-jr_001_55bb:
+jr_001_55bb::
     call Call_001_7081
     pop hl
     ret
 
 
-Call_001_55c0:
+Call_001_55c0::
     ldh a, [$ffae]
     ld e, a
     ldh a, [$ffaf]
@@ -3818,10 +3793,10 @@ Call_001_55c0:
     ld b, h
     ld c, l
     ld de, $0002
-    jp Jump_000_0501
+    jp QueueVramFill
 
 
-jr_001_55dc:
+jr_001_55dc::
     ld a, [$c402]
     bit 3, a
     jr nz, jr_001_55f1
@@ -3835,16 +3810,16 @@ jr_001_55dc:
     ret
 
 
-jr_001_55f1:
+jr_001_55f1::
     ld de, $da00
     ld bc, $0202
-    jp Jump_000_061f
+    jp QueueTilemapRect
 
 
-Call_001_55fa:
+Call_001_55fa::
     ldh a, [$ffae]
 
-Jump_001_55fc:
+Jump_001_55fc::
     and $f0
     ld l, a
     ld h, $00
@@ -3861,7 +3836,7 @@ Jump_001_55fc:
     ret
 
 
-Call_001_560e:
+Call_001_560e::
     ldh a, [$ffaa]
     ldh [$ffab], a
     rst $00
@@ -3915,7 +3890,7 @@ Call_001_560e:
     ld de, $c700
     ld bc, $0030
     ld a, $04
-    jp LoadGameGfx
+    jp BankedMemcpy
 
 
     call Call_001_569a
@@ -3933,7 +3908,7 @@ Call_001_560e:
     ret
 
 
-Call_001_569a:
+Call_001_569a::
     ld hl, $6411
     ld a, [$c0b2]
     ld c, a
@@ -3958,7 +3933,7 @@ Call_001_569a:
     ret
 
 
-Call_001_56c2:
+Call_001_56c2::
     ld hl, $3572
     ld a, [$c0b3]
     cp $02
@@ -3966,7 +3941,7 @@ Call_001_56c2:
 
     ld hl, $3902
 
-jr_001_56cf:
+jr_001_56cf::
     ld a, [$c0b2]
     ld c, a
     add $45
@@ -3976,14 +3951,14 @@ jr_001_56cf:
 
 
     call Call_001_5707
-    ld hl, $ff90
+    ld hl, hSCY
     ld a, [hl]
     sub $01
     ld [hl+], a
     ld a, [hl]
     sbc $00
     ld [hl], a
-    call Call_000_0a69
+    call Jump_000_0a69
     ld a, [$c0b2]
     inc a
     ld [$c0b2], a
@@ -4000,7 +3975,7 @@ jr_001_56cf:
     ret
 
 
-Call_001_5707:
+Call_001_5707::
     ld a, [$c0b2]
     cp $20
     ret nc
@@ -4035,13 +4010,13 @@ Call_001_5707:
     jp Jump_001_5e0b
 
 
-jr_001_573a:
+jr_001_573a::
     call Call_000_0eeb
     ld hl, $ffb0
     ld de, $0200
     ldh a, [$ffac]
     or a
-    jp z, Jump_001_4bee
+    jp z, jr_001_4bee
 
     jp Jump_001_4be3
 
@@ -4063,24 +4038,24 @@ jr_001_573a:
     ld [hl-], a
     ld [hl], $00
 
-jr_001_5764:
+jr_001_5764::
     call Call_001_4ea3
     ld hl, $57b9
     ldh a, [$ffbb]
     rst $38
     ld a, [hl]
 
-jr_001_576e:
+jr_001_576e::
     ldh [$ffa6], a
     ld a, $ff
-    ldh [$ff96], a
+    ldh [hCollisionFlag], a
     ld hl, $ffae
     ld a, [hl+]
     ld h, [hl]
     ld l, a
-    ldh a, [$ff90]
+    ldh a, [hSCY]
     ld e, a
-    ldh a, [$ff91]
+    ldh a, [hSCYHigh]
     ld d, a
     ld a, l
     sub e
@@ -4109,10 +4084,10 @@ jr_001_576e:
     jr z, @+$21
 
     dec [hl]
-    call Call_000_0e8c
+    call Jump_000_0e8c
     ld a, $02
-    ldh [$ff8e], a
-    ldh [$ff8f], a
+    ldh [hGameState], a
+    ldh [hNeedsReset], a
     ld a, $01
     ld [$c0a9], a
     ld a, [$c0a8]
@@ -4132,20 +4107,20 @@ jr_001_576e:
 
     ld [$c0a9], a
     ld a, $04
-    ldh [$ff8e], a
+    ldh [hGameState], a
     ld a, $01
     ld [$d93d], a
-    ldh [$ff8f], a
+    ldh [hNeedsReset], a
     ret
 
 
     call Call_001_581c
     ldh a, [$ffc4]
     or a
-    call z, Call_001_5b06
+    call z, Jump_001_5b06
     jr jr_001_57f7
 
-Call_001_57d9:
+Call_001_57d9::
     ldh a, [$ffbb]
     cp $02
     jr nz, jr_001_57e2
@@ -4153,7 +4128,7 @@ Call_001_57d9:
     xor a
     ldh [$ffbc], a
 
-jr_001_57e2:
+jr_001_57e2::
     ld a, $0d
     ldh [$ffaa], a
     xor a
@@ -4170,7 +4145,7 @@ jr_001_57e2:
 
     call Call_001_5812
 
-jr_001_57f7:
+jr_001_57f7::
     ldh a, [$ffc1]
     or a
     ret z
@@ -4189,18 +4164,18 @@ jr_001_57f7:
 
     db $12, $13, $12, $14
 
-Call_001_5812:
-    call Call_001_5254
+Call_001_5812::
+    call Jump_001_5254
     ldh a, [$ffcd]
     cp $02
     jp nz, Jump_001_5b06
 
-Call_001_581c:
-    ldh a, [$ff8b]
+Call_001_581c::
+    ldh a, [hJoyPressed]
     rrca
     jp c, Jump_001_5e78
 
-    ldh a, [$ff8a]
+    ldh a, [hJoyHeld]
     or a
     jr z, jr_001_5834
 
@@ -4213,7 +4188,7 @@ Call_001_581c:
     bit 7, a
     jp nz, Jump_001_5b06
 
-jr_001_5834:
+jr_001_5834::
     xor a
     ldh [$ffc1], a
     ld a, $12
@@ -4221,7 +4196,7 @@ jr_001_5834:
     ret
 
 
-jr_001_583c:
+jr_001_583c::
     ld a, $01
     ldh [$ffc1], a
     xor a
@@ -4229,7 +4204,7 @@ jr_001_583c:
     jp Jump_001_4e48
 
 
-jr_001_5846:
+jr_001_5846::
     ld a, $01
     ldh [$ffc1], a
     ld a, $ff
@@ -4264,14 +4239,14 @@ jr_001_5846:
     jp Jump_001_5e0b
 
 
-    call Call_001_5afe
-    ldh a, [$ff8a]
+    call Jump_001_5afe
+    ldh a, [hJoyHeld]
     cp $80
     jr z, jr_001_58d9
 
     ld a, $0c
     ldh [$ffa6], a
-    ldh a, [$ff8a]
+    ldh a, [hJoyHeld]
     bit 7, a
     jp z, Jump_001_5e0b
 
@@ -4287,7 +4262,7 @@ jr_001_5846:
     ret
 
 
-jr_001_58a0:
+jr_001_58a0::
     ld a, $ff
     ldh [$ffac], a
     xor a
@@ -4295,15 +4270,14 @@ jr_001_58a0:
     ret
 
 
-jr_001_58a8:
+jr_001_58a8::
     xor a
     ldh [$ffac], a
     ldh [$ffbd], a
     ret
 
 
-Jump_001_58ae:
-jr_001_58ae:
+jr_001_58ae::
     call Call_001_5381
     ld a, [$c0aa]
     or a
@@ -4329,7 +4303,7 @@ jr_001_58ae:
     ret
 
 
-jr_001_58d9:
+jr_001_58d9::
     call Call_001_58f5
     ld a, $0c
     ldh [$ffa6], a
@@ -4350,10 +4324,10 @@ jr_001_58d9:
     ret
 
 
-Call_001_58f5:
+Call_001_58f5::
     ld hl, $0100
     call Call_001_4e30
-    call Call_001_50a1
+    call Jump_001_50a1
     ld hl, $ff00
     call Call_001_4e30
     ldh a, [$ffaa]
@@ -4391,15 +4365,15 @@ Call_001_58f5:
 
     db $10, $11
 
-Call_001_5935:
-    ldh a, [$ff8a]
+Call_001_5935::
+    ldh a, [hJoyHeld]
     bit 6, a
     jr nz, jr_001_594c
 
     bit 7, a
     jr nz, jr_001_5965
 
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     bit 0, a
     jp nz, Jump_001_5e78
 
@@ -4408,7 +4382,7 @@ Call_001_5935:
     jp Jump_001_50a1
 
 
-jr_001_594c:
+jr_001_594c::
     ld a, $01
     ldh [$ffc1], a
     ld hl, $ff00
@@ -4423,7 +4397,7 @@ jr_001_594c:
     jp Jump_001_50a1
 
 
-jr_001_5965:
+jr_001_5965::
     ld a, $01
     ldh [$ffc1], a
     ld hl, $0100
@@ -4435,7 +4409,7 @@ jr_001_5965:
     jp Jump_001_50a1
 
 
-Jump_001_5978:
+Jump_001_5978::
     ldh a, [$ffbc]
     or a
     ret nz
@@ -4454,7 +4428,7 @@ Jump_001_5978:
     jp z, Jump_001_59a5
 
     ld a, $4e
-    call Call_000_0f3b
+    call PlaySound
     ld hl, $c0ad
     xor a
     ld [hl+], a
@@ -4467,7 +4441,7 @@ Jump_001_5978:
     ret
 
 
-Jump_001_59a5:
+Jump_001_59a5::
     ld de, $0a08
     jr jr_001_59ea
 
@@ -4479,7 +4453,7 @@ Jump_001_59a5:
     ret nz
 
     ld a, $4f
-    call Call_000_0f3b
+    call PlaySound
     ld a, [$c0ac]
     ldh [$ffaa], a
     ld a, $02
@@ -4491,10 +4465,10 @@ Jump_001_59a5:
 
     ld b, $04
 
-jr_001_59d0:
+jr_001_59d0::
     ld a, b
     call Call_001_5a7d
-    call Call_001_5ae3
+    call jr_001_5ae3
     xor a
     ld [hl+], a
     ld [hl+], a
@@ -4509,11 +4483,10 @@ jr_001_59d0:
     ret
 
 
-Jump_001_59e7:
+Jump_001_59e7::
     ld de, $0e07
 
-Jump_001_59ea:
-jr_001_59ea:
+jr_001_59ea::
     ldh a, [$ffaa]
     ld [$c0ac], a
     ld a, d
@@ -4527,10 +4500,10 @@ jr_001_59ea:
     ret
 
 
-Call_001_59fc:
+Call_001_59fc::
     ld e, $07
 
-Call_001_59fe:
+Call_001_59fe::
     ld hl, $c0ad
     ld a, [hl]
     or a
@@ -4552,7 +4525,7 @@ Call_001_59fe:
     ret
 
 
-jr_001_5a14:
+jr_001_5a14::
     inc [hl]
     ld a, $17
     ldh [$ffa6], a
@@ -4572,7 +4545,7 @@ jr_001_5a14:
     ret nz
 
     ld a, $4c
-    call Call_000_0f3b
+    call PlaySound
     ld a, [$c0ac]
     ldh [$ffaa], a
     ld a, $03
@@ -4581,7 +4554,7 @@ jr_001_5a14:
     call Call_001_5a45
     ld hl, $c0cb
 
-Call_001_5a45:
+Call_001_5a45::
     ld a, $01
     ld [hl+], a
     ldh a, [$ffac]
@@ -4589,10 +4562,10 @@ Call_001_5a45:
     ld [hl+], a
     ld a, $0a
     call Call_001_5a63
-    call Call_001_5ae3
+    call jr_001_5ae3
     ld a, $0a
     call Call_001_5a7d
-    call Call_001_5ae3
+    call jr_001_5ae3
     xor a
     ld [hl+], a
     ld [hl+], a
@@ -4601,7 +4574,7 @@ Call_001_5a45:
     ret
 
 
-Call_001_5a63:
+Call_001_5a63::
     ld c, a
     ldh a, [$ffac]
     or a
@@ -4616,7 +4589,7 @@ Call_001_5a63:
     ret
 
 
-jr_001_5a73:
+jr_001_5a73::
     ldh a, [$ffb1]
     sub c
     ld c, a
@@ -4626,7 +4599,7 @@ jr_001_5a73:
     ret
 
 
-Call_001_5a7d:
+Call_001_5a7d::
     ld c, a
     ldh a, [$ffae]
     sub c
@@ -4637,16 +4610,16 @@ Call_001_5a7d:
     ret
 
 
-Jump_001_5a88:
+Jump_001_5a88::
     ldh a, [$ffaa]
     or a
     ret nz
 
     ld de, $0009
-    jp Jump_001_59ea
+    jp jr_001_59ea
 
 
-Call_001_5a92:
+Call_001_5a92::
     ldh a, [$ffbd]
     cp $0a
     jr c, jr_001_5aa3
@@ -4661,13 +4634,13 @@ Call_001_5a92:
     ret
 
 
-jr_001_5aa3:
+jr_001_5aa3::
     ld a, $15
     ldh [$ffa6], a
     ret
 
 
-jr_001_5aa8:
+jr_001_5aa8::
     ld a, $17
     ldh [$ffa6], a
     ret
@@ -4686,9 +4659,9 @@ jr_001_5aa8:
     ret
 
 
-jr_001_5ac1:
+jr_001_5ac1::
     ld a, $50
-    call Call_000_0f3b
+    call PlaySound
     ld a, $03
     call Call_001_5aea
     ld hl, $c0bf
@@ -4699,12 +4672,11 @@ jr_001_5ac1:
     ld [hl+], a
     ld a, $0a
     call Call_001_5a63
-    call Call_001_5ae3
+    call jr_001_5ae3
     ld a, $06
     call Call_001_5a7d
 
-Call_001_5ae3:
-jr_001_5ae3:
+jr_001_5ae3::
     xor a
     ld [hl+], a
     ld a, c
@@ -4714,7 +4686,7 @@ jr_001_5ae3:
     ret
 
 
-Call_001_5aea:
+Call_001_5aea::
     ld hl, $c0bf
     ld [hl+], a
     ldh a, [$ffac]
@@ -4726,15 +4698,13 @@ Call_001_5aea:
     call Call_001_5a63
     jr jr_001_5ae3
 
-Call_001_5afe:
-Jump_001_5afe:
+Jump_001_5afe::
     call Call_001_5381
     ldh a, [$ffcd]
     cp $02
     ret nz
 
-Call_001_5b06:
-Jump_001_5b06:
+Jump_001_5b06::
     ldh a, [$ffc4]
     or a
     ret nz
@@ -4765,13 +4735,13 @@ Jump_001_5b06:
     or a
     jr nz, jr_001_5b3a
 
-jr_001_5b31:
+jr_001_5b31::
     ldh a, [$ffc1]
     rst $00
 
     db $63, $5b, $68, $5b, $9c, $5b
 
-jr_001_5b3a:
+jr_001_5b3a::
     ldh a, [$ffc1]
     or a
     jr nz, jr_001_5b51
@@ -4786,7 +4756,7 @@ jr_001_5b3a:
 
     db $15, $16, $16, $16, $15, $15
 
-jr_001_5b51:
+jr_001_5b51::
     ld hl, $5b5d
     ld a, l
     ldh [$ffc5], a
@@ -4816,7 +4786,7 @@ jr_001_5b51:
 
     db $04, $05, $04, $06
 
-Call_001_5b7f:
+Call_001_5b7f::
     ldh a, [$ffa7]
     inc a
     ldh [$ffa7], a
@@ -4829,20 +4799,20 @@ Call_001_5b7f:
     inc a
     ldh [$ffa8], a
 
-jr_001_5b8f:
+jr_001_5b8f::
     cp e
     jr c, jr_001_5b94
 
     cp l
     ret c
 
-jr_001_5b94:
+jr_001_5b94::
     ld a, e
     ldh [$ffa8], a
     ret
 
 
-jr_001_5b98:
+jr_001_5b98::
     ldh a, [$ffa8]
     jr jr_001_5b8f
 
@@ -4861,7 +4831,7 @@ jr_001_5b98:
     ret
 
 
-jr_001_5bb3:
+jr_001_5bb3::
     xor a
     ldh [$ffc1], a
     ldh [$ffa8], a
@@ -4874,20 +4844,20 @@ jr_001_5bb3:
     rlca
     inc b
 
-Call_001_5bc0:
-    ldh a, [$ff8a]
+Call_001_5bc0::
+    ldh a, [hJoyHeld]
     bit 7, a
     jr nz, jr_001_5c1a
 
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     rrca
     jr c, jr_001_5c17
 
     rrca
     jp c, Jump_001_5978
 
-jr_001_5bcf:
-    ldh a, [$ff8a]
+jr_001_5bcf::
+    ldh a, [hJoyHeld]
     or a
     jr z, jr_001_5be0
 
@@ -4900,8 +4870,8 @@ jr_001_5bcf:
     bit 6, a
     jr nz, jr_001_5bfb
 
-jr_001_5be0:
-    call Call_001_5afe
+jr_001_5be0::
+    call Jump_001_5afe
     xor a
     ldh [$ffc1], a
     ldh a, [$ffbb]
@@ -4921,10 +4891,10 @@ jr_001_5be0:
     ret
 
 
-jr_001_5bfb:
+jr_001_5bfb::
     ld hl, $ff00
     call Call_001_4e30
-    call Call_001_50a1
+    call Jump_001_50a1
     ld hl, $0100
     call Call_001_4e30
     ldh a, [$ffaa]
@@ -4936,11 +4906,11 @@ jr_001_5bfb:
     ret
 
 
-jr_001_5c17:
+jr_001_5c17::
     jp Jump_001_5e78
 
 
-jr_001_5c1a:
+jr_001_5c1a::
     ldh a, [$ffbb]
     cp $02
     jr z, jr_001_5c2a
@@ -4953,15 +4923,15 @@ jr_001_5c1a:
     ret
 
 
-jr_001_5c2a:
+jr_001_5c2a::
     call Call_001_58f5
-    ldh a, [$ff8a]
+    ldh a, [hJoyHeld]
     rrca
-    jp c, Jump_001_58ae
+    jp c, jr_001_58ae
 
     jr jr_001_5bcf
 
-jr_001_5c35:
+jr_001_5c35::
     xor a
     ldh [$ffbd], a
     ld a, $01
@@ -4976,15 +4946,15 @@ jr_001_5c35:
     cp $9c
     jp nc, Jump_001_4e48
 
-jr_001_5c4d:
+jr_001_5c4d::
     call Call_001_516c
     ldh a, [$ffc0]
     or a
-    call z, Call_001_4e48
+    call z, Jump_001_4e48
     jp Jump_001_5afe
 
 
-jr_001_5c59:
+jr_001_5c59::
     xor a
     ldh [$ffbd], a
     ld a, $01
@@ -4994,7 +4964,7 @@ jr_001_5c59:
     call Call_001_523a
     ldh a, [$ffc0]
     or a
-    call z, Call_001_4e48
+    call z, Jump_001_4e48
     jp Jump_001_5afe
 
 
@@ -5003,7 +4973,7 @@ jr_001_5c59:
     cp $02
     ret nz
 
-Call_001_5c78:
+Call_001_5c78::
     ldh a, [$ffbb]
     rst $00
 
@@ -5032,7 +5002,7 @@ Call_001_5c78:
     ret
 
 
-jr_001_5ca3:
+jr_001_5ca3::
     ld hl, $c0b0
     bit 7, [hl]
     ret nz
@@ -5043,7 +5013,7 @@ jr_001_5ca3:
     ret
 
 
-jr_001_5cb0:
+jr_001_5cb0::
     ld h, $0a
     ld l, $02
     ld e, $00
@@ -5068,7 +5038,7 @@ jr_001_5cb0:
     ld a, h
     ldh [$ffc6], a
 
-Jump_001_5cd3:
+Jump_001_5cd3::
     call Call_001_5d04
     ldh a, [$ffa4]
     sub $0c
@@ -5082,7 +5052,7 @@ Jump_001_5cd3:
 
     ld de, $1c0c
 
-jr_001_5cee:
+jr_001_5cee::
     ld a, e
     ldh [$ffd1], a
     ldh a, [$ffac]
@@ -5095,14 +5065,14 @@ jr_001_5cee:
     ret
 
 
-jr_001_5cfd:
+jr_001_5cfd::
     ldh a, [$ffa5]
     sub d
     ld [$c0c7], a
     ret
 
 
-Call_001_5d04:
+Call_001_5d04::
     ld a, [$c0ad]
     rst $00
 
@@ -5181,20 +5151,20 @@ Call_001_5d04:
 
     db $18, $19, $19, $1a, $18, $1c
 
-Call_001_5d77:
-    ldh a, [$ff8b]
+Call_001_5d77::
+    ldh a, [hJoyPressed]
     bit 1, a
     jp nz, Jump_001_5978
 
-    ldh a, [$ff8a]
+    ldh a, [hJoyHeld]
     rrca
     call nc, Call_001_5d96
-    ldh a, [$ff8a]
+    ldh a, [hJoyHeld]
     bit 6, a
     jr nz, jr_001_5db6
 
-jr_001_5d8a:
-    ldh a, [$ff8a]
+jr_001_5d8a::
+    ldh a, [hJoyHeld]
     bit 4, a
     jr nz, jr_001_5dc0
 
@@ -5203,7 +5173,7 @@ jr_001_5d8a:
 
     jr jr_001_5ddf
 
-Call_001_5d96:
+Call_001_5d96::
     ld a, [$c0b0]
     or a
     ret nz
@@ -5229,8 +5199,8 @@ Call_001_5d96:
     ret
 
 
-jr_001_5db6:
-    call Call_001_50a1
+jr_001_5db6::
+    call Jump_001_50a1
     ldh a, [$ffaa]
     cp $03
     jr nz, jr_001_5d8a
@@ -5238,7 +5208,7 @@ jr_001_5db6:
     ret
 
 
-jr_001_5dc0:
+jr_001_5dc0::
     xor a
     ldh [$ffac], a
     call Call_001_516c
@@ -5246,10 +5216,10 @@ jr_001_5dc0:
     or a
     jr nz, jr_001_5ddf
 
-    call Call_001_4e48
+    call Jump_001_4e48
     jr jr_001_5ddf
 
-jr_001_5dd0:
+jr_001_5dd0::
     ld a, $ff
     ldh [$ffac], a
     call Call_001_523a
@@ -5257,9 +5227,9 @@ jr_001_5dd0:
     or a
     jr nz, jr_001_5ddf
 
-    call Call_001_4e48
+    call Jump_001_4e48
 
-jr_001_5ddf:
+jr_001_5ddf::
     ldh a, [$ffb7]
     ld b, a
     ld hl, $ffb3
@@ -5279,7 +5249,7 @@ jr_001_5ddf:
     ld [hl-], a
     ld [hl], $00
 
-jr_001_5dfa:
+jr_001_5dfa::
     call Call_001_4ea3
     call Call_001_5381
     ld hl, $ffaa
@@ -5291,11 +5261,10 @@ jr_001_5dfa:
     cp $02
     ret z
 
-Call_001_5e0b:
-Jump_001_5e0b:
+Jump_001_5e0b::
     call Call_001_4e05
 
-Jump_001_5e0e:
+Jump_001_5e0e::
     xor a
     ldh [$ffaa], a
     ldh [$ffb3], a
@@ -5306,7 +5275,7 @@ Jump_001_5e0e:
     ld [$c0af], a
     ld [$c0b0], a
 
-Call_001_5e21:
+Call_001_5e21::
     ld a, $03
     ldh [$ffc2], a
     ldh a, [$ffbb]
@@ -5318,13 +5287,13 @@ Call_001_5e21:
     ret
 
 
-Call_001_5e2f:
-    ldh a, [$ff8b]
+Call_001_5e2f::
+    ldh a, [hJoyPressed]
     rrca
     jr nc, jr_001_5e5e
 
     ld a, $4b
-    call Call_000_0f3b
+    call PlaySound
     ldh a, [$ffa6]
     cp $0e
     jr nz, jr_001_5e42
@@ -5332,10 +5301,10 @@ Call_001_5e2f:
     inc a
     jr jr_001_5e44
 
-jr_001_5e42:
+jr_001_5e42::
     ld a, $0e
 
-jr_001_5e44:
+jr_001_5e44::
     ldh [$ffa6], a
     ld hl, $c0af
     ld a, [hl]
@@ -5345,12 +5314,12 @@ jr_001_5e44:
 
     ld a, $3c
 
-jr_001_5e52:
+jr_001_5e52::
     ld [hl], a
     cp $1f
     ret c
 
-jr_001_5e56:
+jr_001_5e56::
     xor a
     ldh [$ffb7], a
     ldh [$ffb3], a
@@ -5358,7 +5327,7 @@ jr_001_5e56:
     ret
 
 
-jr_001_5e5e:
+jr_001_5e5e::
     ldh a, [$ffb4]
     rlca
     ret c
@@ -5377,16 +5346,16 @@ jr_001_5e5e:
     ret
 
 
-Jump_001_5e72:
+Jump_001_5e72::
     call Call_001_4ea3
     jp Jump_001_5254
 
 
-Jump_001_5e78:
+Jump_001_5e78::
     ld a, $02
     ldh [$ffaa], a
     ld a, $42
-    call Call_000_0f3b
+    call PlaySound
     ld a, $20
     ldh [$ffb7], a
     ldh a, [$ffc2]
@@ -5409,11 +5378,10 @@ Jump_001_5e78:
     db $c2
     ld e, [hl]
 
-Call_001_5e9a:
+Call_001_5e9a::
     ld hl, $0000
 
-Jump_001_5e9d:
-jr_001_5e9d:
+jr_001_5e9d::
     ld a, l
     ldh [$ffb3], a
     ld a, h
@@ -5427,7 +5395,7 @@ jr_001_5e9d:
     ld hl, $fe00
     jr jr_001_5e9d
 
-Jump_001_5eae:
+Jump_001_5eae::
     ld hl, $fd00
     jr jr_001_5e9d
 
@@ -5476,16 +5444,16 @@ Jump_001_5eae:
 
     inc bc
 
-jr_001_5ef4:
+jr_001_5ef4::
     ld a, $04
     ldh [$ffa6], a
-    call Call_000_0e02
+    call Jump_000_0e02
     ld a, $80
     ld [$c0ab], a
     ld hl, $ffbe
     set 1, [hl]
     res 4, [hl]
-    call Call_001_5e0b
+    call Jump_001_5e0b
     ldh a, [$ffbb]
     cp $04
     ret nz
@@ -5502,12 +5470,12 @@ jr_001_5ef4:
     ret
 
 
-jr_001_5f1f:
+jr_001_5f1f::
     call Call_001_5f40
     ldh a, [$ffa7]
     cp $01
     ld a, $48
-    call z, Call_000_0f3b
+    call z, PlaySound
     ld h, $0c
     ld l, $02
     ld e, $00
@@ -5522,7 +5490,7 @@ jr_001_5f1f:
 
     db $00, $01
 
-Call_001_5f40:
+Call_001_5f40::
     call Call_001_5f4d
     rst $28
     cp $54
@@ -5534,7 +5502,7 @@ Call_001_5f40:
     ret
 
 
-Call_001_5f4d:
+Call_001_5f4d::
     ld hl, $5f68
     ldh a, [$ffbb]
     rst $20
@@ -5546,9 +5514,9 @@ Call_001_5f4d:
     add $13
     ld e, a
     ld d, $05
-    call Call_000_0522
+    call Jump_000_0522
 
-jr_001_5f62:
+jr_001_5f62::
     ldh a, [$ffbd]
     inc a
     ldh [$ffbd], a
@@ -5562,11 +5530,11 @@ jr_001_5f62:
 
     ldh a, [$ffd5]
     or a
-    jp nz, Jump_001_4bbd
+    jp nz, jr_001_4bbd
 
     call Call_001_5f8b
 
-jr_001_5f7f:
+jr_001_5f7f::
     ld hl, $2c85
     ldh a, [$ffd3]
     ld c, a
@@ -5575,21 +5543,21 @@ jr_001_5f7f:
     jp Jump_000_0269
 
 
-Call_001_5f8b:
+Call_001_5f8b::
     ld e, $0a
     ld d, $11
     call Call_001_5f9e
     ret nc
 
     ld a, $45
-    call Call_000_0f3b
+    call PlaySound
     xor a
     ld [bc], a
     inc a
     jp Jump_000_0eba
 
 
-Call_001_5f9e:
+Call_001_5f9e::
     ldh a, [$ffc3]
     cp $ff
     ret z
@@ -5624,7 +5592,7 @@ Call_001_5f9e:
 
     ldh a, [$ffd5]
     or a
-    jp nz, Jump_001_4bbd
+    jp nz, jr_001_4bbd
 
     ld e, $0a
     ld d, $11
@@ -5632,7 +5600,7 @@ Call_001_5f9e:
     ret nc
 
     ld a, $44
-    call Call_000_0f3b
+    call PlaySound
     ld h, b
     ld l, c
     inc hl
@@ -5640,7 +5608,7 @@ Call_001_5f9e:
     ret
 
 
-jr_001_5fda:
+jr_001_5fda::
     call Call_001_5fe6
     call Call_001_4b2e
     ldh a, [$ffd5]
@@ -5649,7 +5617,7 @@ jr_001_5fda:
 
     jr jr_001_5f7f
 
-Call_001_5fe6:
+Call_001_5fe6::
     call Call_001_5ff0
     ret c
 
@@ -5659,11 +5627,11 @@ Call_001_5fe6:
     jp Jump_000_0eba
 
 
-Call_001_5ff0:
+Call_001_5ff0::
     ld hl, $0005
     add hl, bc
     ld de, $0100
-    call Call_001_4bee
+    call jr_001_4bee
     ld hl, $0003
     add hl, bc
     ld a, [hl+]
@@ -5686,17 +5654,17 @@ Call_001_5ff0:
     inc de
     jr jr_001_6017
 
-jr_001_6016:
+jr_001_6016::
     dec de
 
-jr_001_6017:
+jr_001_6017::
     ld hl, $0003
     add hl, bc
     ld a, e
     ld [hl+], a
     ld [hl], d
 
-jr_001_601e:
+jr_001_601e::
     pop af
     cp $20
     ret
@@ -5713,11 +5681,11 @@ jr_001_601e:
 
     ldh a, [$ffd5]
     or a
-    jp nz, Jump_001_4bbd
+    jp nz, jr_001_4bbd
 
     call Call_001_605b
 
-jr_001_604f:
+jr_001_604f::
     ld hl, $2c9f
     ldh a, [$ffd3]
     ld c, a
@@ -5726,7 +5694,7 @@ jr_001_604f:
     jp Jump_000_0269
 
 
-Call_001_605b:
+Call_001_605b::
     ld e, $0e
     ld d, $12
     call Call_001_5f9e
@@ -5734,7 +5702,7 @@ Call_001_605b:
 
     xor a
     ld [bc], a
-    jp Jump_000_0ef9
+    jp jr_000_0ef9
 
 
     ld h, b
@@ -5749,7 +5717,7 @@ Call_001_605b:
 
     ldh a, [$ffd5]
     or a
-    jp nz, Jump_001_4bbd
+    jp nz, jr_001_4bbd
 
     ld e, $0e
     ld d, $12
@@ -5757,7 +5725,7 @@ Call_001_605b:
     ret nc
 
     ld a, $44
-    call Call_000_0f3b
+    call PlaySound
     ld h, b
     ld l, c
     inc hl
@@ -5765,7 +5733,7 @@ Call_001_605b:
     ret
 
 
-jr_001_608b:
+jr_001_608b::
     call Call_001_6097
     call Call_001_4b2e
     ldh a, [$ffd5]
@@ -5774,13 +5742,13 @@ jr_001_608b:
 
     jr jr_001_604f
 
-Call_001_6097:
+Call_001_6097::
     call Call_001_5ff0
     ret c
 
     xor a
     ld [bc], a
-    jp Jump_000_0ef9
+    jp jr_000_0ef9
 
 
     call Call_001_4b84
@@ -5792,7 +5760,7 @@ Call_001_6097:
 
     call Call_001_60b7
 
-jr_001_60ab:
+jr_001_60ab::
     ld hl, $2c8e
     ldh a, [$ffd3]
     ld c, a
@@ -5801,14 +5769,14 @@ jr_001_60ab:
     jp Jump_000_0269
 
 
-Call_001_60b7:
+Call_001_60b7::
     ld e, $0e
     ld d, $12
     call Call_001_5f9e
     ret nc
 
     ld a, $45
-    call Call_000_0f3b
+    call PlaySound
     xor a
     ld [bc], a
     inc a
@@ -5827,7 +5795,7 @@ Call_001_60b7:
 
     ldh a, [$ffd5]
     or a
-    jp nz, Jump_001_4bbd
+    jp nz, jr_001_4bbd
 
     ld e, $0e
     ld d, $12
@@ -5835,7 +5803,7 @@ Call_001_60b7:
     ret nc
 
     ld a, $44
-    call Call_000_0f3b
+    call PlaySound
     ld h, b
     ld l, c
     inc hl
@@ -5843,7 +5811,7 @@ Call_001_60b7:
     ret
 
 
-jr_001_60ed:
+jr_001_60ed::
     call Call_001_60f9
     call Call_001_4b2e
     ldh a, [$ffd5]
@@ -5852,7 +5820,7 @@ jr_001_60ed:
 
     jr jr_001_60ab
 
-Call_001_60f9:
+Call_001_60f9::
     call Call_001_5ff0
     ret c
 
@@ -5878,14 +5846,14 @@ Call_001_60f9:
     jp Jump_000_0269
 
 
-Call_001_611a:
+Call_001_611a::
     ld e, $0e
     ld d, $12
     call Call_001_5f9e
     ret nc
 
     ld a, $45
-    call Call_000_0f3b
+    call PlaySound
     ldh a, [$ffbb]
     ld [$c0be], a
     ld hl, $ffbe
@@ -5893,8 +5861,7 @@ Call_001_611a:
     ld a, $01
     ldh [$ffbb], a
 
-Jump_001_6135:
-jr_001_6135:
+jr_001_6135::
     xor a
     ld [bc], a
     jp Jump_001_4dc7
@@ -5916,14 +5883,14 @@ jr_001_6135:
     jp Jump_000_0269
 
 
-Call_001_6151:
+Call_001_6151::
     ld e, $0e
     ld d, $12
     call Call_001_5f9e
     ret nc
 
     ld a, $45
-    call Call_000_0f3b
+    call PlaySound
     ldh a, [$ffbb]
     ld [$c0be], a
     ld hl, $ffbe
@@ -5948,21 +5915,21 @@ Call_001_6151:
     jp Jump_000_0269
 
 
-Call_001_6185:
+Call_001_6185::
     ld e, $0e
     ld d, $12
     call Call_001_5f9e
     ret nc
 
     ld a, $45
-    call Call_000_0f3b
+    call PlaySound
     ldh a, [$ffbb]
     ld [$c0be], a
     ld hl, $ffbe
     res 2, [hl]
     ld a, $03
     ldh [$ffbb], a
-    jp Jump_001_6135
+    jp jr_001_6135
 
 
     call Call_001_4b84
@@ -5981,7 +5948,7 @@ Call_001_6185:
     jp Jump_000_0269
 
 
-Call_001_61ba:
+Call_001_61ba::
     ld e, $0e
     ld d, $12
     call Call_001_5f9e
@@ -5993,12 +5960,12 @@ Call_001_61ba:
     set 2, [hl]
     ld a, $04
     ldh [$ffbb], a
-    ld hl, $0600
+    ld hl, jr_000_0600
     ld a, l
     ld [$c0a6], a
     ld a, h
     ld [$c0a7], a
-    jp Jump_001_6135
+    jp jr_001_6135
 
 
     call Call_001_4b84
@@ -6017,9 +5984,9 @@ Call_001_61ba:
     jp Jump_001_4c06
 
 
-Call_001_61f6:
+Call_001_61f6::
     xor a
-    ldh [$ff9d], a
+    ldh [hSpriteFlags], a
     ld h, b
     ld l, c
     inc hl
@@ -6067,7 +6034,7 @@ Call_001_61f6:
 
     ld de, $0100
 
-jr_001_623a:
+jr_001_623a::
     ld hl, $0008
     add hl, bc
     ld a, e
@@ -6089,7 +6056,7 @@ jr_001_623a:
 
     ld a, $12
     ldh [$ffd6], a
-    call Call_001_4bd4
+    call Jump_001_4bd4
     ld hl, $000a
     call Call_001_6323
     ld hl, $000a
@@ -6110,12 +6077,12 @@ jr_001_623a:
     ret
 
 
-Call_001_6273:
+Call_001_6273::
     ld de, $0408
     jp Jump_001_6345
 
 
-Call_001_6279:
+Call_001_6279::
     ld d, $05
     jp Jump_001_63aa
 
@@ -6133,7 +6100,7 @@ Call_001_6279:
     jp Jump_001_4c06
 
 
-Call_001_6292:
+Call_001_6292::
     call Call_001_629e
     rst $00
 
@@ -6146,9 +6113,9 @@ Call_001_6292:
     inc c
     ld h, e
 
-Call_001_629e:
+Call_001_629e::
     xor a
-    ldh [$ff9d], a
+    ldh [hSpriteFlags], a
     ld h, b
     ld l, c
     ld a, [hl+]
@@ -6156,19 +6123,19 @@ Call_001_629e:
     jr nc, jr_001_62ab
 
     ld a, $01
-    ldh [$ff9d], a
+    ldh [hSpriteFlags], a
 
-jr_001_62ab:
+jr_001_62ab::
     ld a, [hl]
     and $03
     ret
 
 
     ld hl, $62e2
-    call Call_001_62cb
-    call Call_001_4bd4
+    call Jump_001_62cb
+    call Jump_001_4bd4
 
-Jump_001_62b8:
+Jump_001_62b8::
     ld hl, $000d
     add hl, bc
     dec [hl]
@@ -6186,11 +6153,10 @@ Jump_001_62b8:
     ret
 
 
-Call_001_62cb:
-Jump_001_62cb:
+Jump_001_62cb::
     ld d, $08
 
-Call_001_62cd:
+Call_001_62cd::
     push hl
     ld hl, $000c
     add hl, bc
@@ -6212,7 +6178,7 @@ Call_001_62cd:
     ld a, $03
     ldh [$ffd6], a
 
-Jump_001_62eb:
+Jump_001_62eb::
     call Call_001_62f8
     call Call_001_4b2e
     ldh a, [$ffd5]
@@ -6222,7 +6188,7 @@ Jump_001_62eb:
     jp Jump_001_4c06
 
 
-Call_001_62f8:
+Call_001_62f8::
     ld hl, $0002
     add hl, bc
     dec [hl]
@@ -6244,7 +6210,7 @@ Call_001_62f8:
     ld a, $03
     ldh [$ffd6], a
 
-Jump_001_6311:
+Jump_001_6311::
     call Call_001_6320
     call Call_001_4b2e
     ldh a, [$ffd5]
@@ -6256,10 +6222,10 @@ Jump_001_6311:
     ret
 
 
-Call_001_6320:
+Call_001_6320::
     ld hl, $0008
 
-Call_001_6323:
+Call_001_6323::
     add hl, bc
     ld a, [hl]
     add $20
@@ -6270,7 +6236,7 @@ Call_001_6323:
     ld d, a
     ld [hl], a
 
-Call_001_632e:
+Call_001_632e::
     ld hl, $0005
     add hl, bc
     bit 7, d
@@ -6288,10 +6254,10 @@ Call_001_632e:
     ret
 
 
-Call_001_6342:
+Call_001_6342::
     ld de, $040c
 
-Jump_001_6345:
+Jump_001_6345::
     ldh a, [$ffbc]
     or a
     ret z
@@ -6308,7 +6274,7 @@ Jump_001_6345:
     ret
 
 
-Call_001_6355:
+Call_001_6355::
     ld hl, $c0c7
     ldh a, [$ffd1]
     add d
@@ -6331,7 +6297,7 @@ Call_001_6355:
     cp $04
     jr z, jr_001_63b1
 
-jr_001_6376:
+jr_001_6376::
     cp $04
     jr z, jr_001_63c5
 
@@ -6344,7 +6310,7 @@ jr_001_6376:
     res 0, [hl]
     jr jr_001_63b1
 
-jr_001_6389:
+jr_001_6389::
     ld hl, $c0d3
     ldh a, [$ffd1]
     add d
@@ -6364,18 +6330,17 @@ jr_001_6389:
     res 1, [hl]
     jr jr_001_63b1
 
-Call_001_63a8:
+Call_001_63a8::
     ld d, $00
 
-Jump_001_63aa:
+Jump_001_63aa::
     call Call_001_4c18
     call Call_001_4c9e
     ret nc
 
-Jump_001_63b1:
-jr_001_63b1:
+jr_001_63b1::
     ld a, $52
-    call Call_000_0f3b
+    call PlaySound
     ld hl, $000e
     add hl, bc
     ld a, [hl]
@@ -6387,8 +6352,7 @@ jr_001_63b1:
     and $1f
     jr nz, jr_001_63d5
 
-Jump_001_63c5:
-jr_001_63c5:
+jr_001_63c5::
     ld h, b
     ld l, c
     inc hl
@@ -6402,7 +6366,7 @@ jr_001_63c5:
     ret
 
 
-jr_001_63d5:
+jr_001_63d5::
     ld hl, $0002
     add hl, bc
     ld [hl], $5a
@@ -6430,7 +6394,7 @@ jr_001_63d5:
     jp Jump_001_4c06
 
 
-Call_001_63fe:
+Call_001_63fe::
     call Call_001_629e
     rst $00
 
@@ -6442,8 +6406,8 @@ Call_001_63fe:
     db $22, $64, $2a, $64
 
     ld hl, $6416
-    call Call_001_62cb
-    call Call_001_4bd4
+    call Jump_001_62cb
+    call Jump_001_4bd4
     jp Jump_001_62b8
 
 
@@ -6479,7 +6443,7 @@ Call_001_63fe:
     cp $b4
     ret c
 
-Jump_001_6444:
+Jump_001_6444::
     ld hl, $000e
     add hl, bc
     ld a, [hl]
@@ -6499,7 +6463,7 @@ Jump_001_6444:
     ret
 
 
-Call_001_645b:
+Call_001_645b::
     ldh a, [$ffd4]
     ld e, a
     ldh a, [$ffa4]
@@ -6520,10 +6484,10 @@ Call_001_645b:
     cp d
     ret nc
 
-    jp Jump_001_4ce8
+    jp jr_001_4ce8
 
 
-Call_001_6478:
+Call_001_6478::
     ld a, [bc]
     rlca
     jr c, jr_001_6480
@@ -6533,21 +6497,21 @@ Call_001_6478:
     ret
 
 
-jr_001_6480:
+jr_001_6480::
     ldh a, [$ffd3]
     sub d
     ret
 
 
-jr_001_6484:
+jr_001_6484::
     dec [hl]
     ret
 
 
-Call_001_6486:
+Call_001_6486::
     ld e, $24
 
-Jump_001_6488:
+Jump_001_6488::
     ld h, b
     ld l, c
     inc hl
@@ -6594,7 +6558,7 @@ Jump_001_6488:
 
     set 7, a
 
-jr_001_64be:
+jr_001_64be::
     cp e
     ret nz
 
@@ -6623,7 +6587,7 @@ jr_001_64be:
     jp Jump_001_4c06
 
 
-Call_001_64e3:
+Call_001_64e3::
     call Call_001_629e
     rst $00
 
@@ -6638,8 +6602,8 @@ Call_001_64e3:
     ld h, l
 
     ld hl, $64fb
-    call Call_001_62cb
-    call Call_001_4bd4
+    call Jump_001_62cb
+    call Jump_001_4bd4
     jp Jump_001_62b8
 
 
@@ -6657,19 +6621,19 @@ Call_001_64e3:
     jp Jump_001_6311
 
 
-Call_001_650f:
+Call_001_650f::
     ld de, $0410
     jp Jump_001_6345
 
 
-Call_001_6515:
+Call_001_6515::
     ld d, $01
     call Call_001_4c18
     call Call_001_4c9e
     ret nc
 
     ld a, $5c
-    call Call_000_0f3b
+    call PlaySound
     ret
 
 
@@ -6687,7 +6651,7 @@ Call_001_6515:
     jp Jump_001_4c06
 
 
-Call_001_653b:
+Call_001_653b::
     call Call_001_629e
     rst $00
 
@@ -6699,8 +6663,8 @@ Call_001_653b:
     db $5f, $65, $67, $65
 
     ld hl, $6553
-    call Call_001_62cb
-    call Call_001_4bd4
+    call Jump_001_62cb
+    call Jump_001_4bd4
     jp Jump_001_62b8
 
 
@@ -6733,10 +6697,10 @@ Call_001_653b:
     jp Jump_001_6444
 
 
-jr_001_657b:
+jr_001_657b::
     ld hl, $c180
 
-jr_001_657e:
+jr_001_657e::
     ld a, [hl]
     or a
     jr z, jr_001_6592
@@ -6748,20 +6712,19 @@ jr_001_657e:
     add hl, de
     jr jr_001_657e
 
-jr_001_658c:
-    call Call_001_6592
+jr_001_658c::
+    call jr_001_6592
     ld [hl], $ff
     ret
 
 
-Call_001_6592:
-jr_001_6592:
+jr_001_6592::
     ld a, [bc]
     and $80
     or $0e
     ld [hl+], a
 
-Jump_001_6598:
+Jump_001_6598::
     xor a
     ld [hl+], a
     call Call_001_65c5
@@ -6779,7 +6742,7 @@ Jump_001_6598:
     ret
 
 
-Call_001_65ae:
+Call_001_65ae::
     push hl
     ld hl, $0008
     add hl, bc
@@ -6800,7 +6763,7 @@ Call_001_65ae:
     ret
 
 
-Call_001_65c5:
+Call_001_65c5::
     push hl
     ld hl, $0003
     add hl, bc
@@ -6821,7 +6784,7 @@ Call_001_65c5:
     ret
 
 
-Call_001_65dd:
+Call_001_65dd::
     push hl
     ld hl, $0006
     add hl, bc
@@ -6842,7 +6805,7 @@ Call_001_65dd:
     ret
 
 
-Call_001_65f3:
+Call_001_65f3::
     ld e, $50
     jp Jump_001_6488
 
@@ -6863,19 +6826,19 @@ Call_001_65f3:
     call Call_001_6645
     call Call_001_664b
 
-jr_001_6611:
+jr_001_6611::
     ld a, $04
     ldh [$ffd6], a
     jp Jump_001_4c06
 
 
-jr_001_6618:
+jr_001_6618::
     xor a
     ld [bc], a
     ret
 
 
-Call_001_661b:
+Call_001_661b::
     call Call_001_629e
     rst $00
 
@@ -6884,7 +6847,7 @@ Call_001_661b:
     dec sp
     ld h, [hl]
 
-    call Call_001_4bd4
+    call Jump_001_4bd4
     ld hl, $000a
     add hl, bc
     ld a, [hl]
@@ -6899,19 +6862,19 @@ Call_001_661b:
     ret
 
 
-    call Call_001_4bd4
+    call Jump_001_4bd4
     ld de, $0100
     ld hl, $0005
     add hl, bc
     jp Jump_001_4be3
 
 
-Call_001_6645:
+Call_001_6645::
     ld de, $0404
     jp Jump_001_6345
 
 
-Call_001_664b:
+Call_001_664b::
     ld d, $03
     jp Jump_001_63aa
 
@@ -6926,13 +6889,13 @@ Call_001_664b:
     jp Jump_001_4c06
 
 
-jr_001_6661:
+jr_001_6661::
     xor a
     ld [bc], a
     ret
 
 
-Call_001_6664:
+Call_001_6664::
     call Call_001_629e
     rst $00
 
@@ -6945,7 +6908,7 @@ Call_001_6664:
     ld [hl], $01
     call Call_001_6693
 
-jr_001_6678:
+jr_001_6678::
     ld d, $10
     ld hl, $000c
     add hl, bc
@@ -6963,8 +6926,8 @@ jr_001_6678:
 
     db $12, $13, $14
 
-Call_001_6693:
-    call Call_001_4bd4
+Call_001_6693::
+    call Jump_001_4bd4
     ld hl, $000a
     add hl, bc
     ld a, [hl]
@@ -6979,14 +6942,14 @@ Call_001_6693:
     ret
 
 
-    call Call_001_4bd4
+    call Jump_001_4bd4
     ld hl, $0005
     add hl, bc
     ld de, $00c0
-    call Call_001_4bee
+    call jr_001_4bee
     jr jr_001_6678
 
-Call_001_66b3:
+Call_001_66b3::
     ld a, [$c0b6]
     cp $ff
     ret z
@@ -7008,7 +6971,7 @@ Call_001_66b3:
     jp Jump_001_4c06
 
 
-Call_001_66d2:
+Call_001_66d2::
     call Call_001_629e
     rst $00
 
@@ -7020,7 +6983,7 @@ Call_001_66d2:
     ld hl, $66ec
     ld d, $0f
     call Call_001_62cd
-    call Call_001_4bd4
+    call Jump_001_4bd4
     jp Jump_001_62b8
 
 
@@ -7029,7 +6992,7 @@ Call_001_66d2:
     pop af
     ld hl, $66f0
 
-Jump_001_66f8:
+Jump_001_66f8::
     ld d, $0f
     call Call_001_62cd
     call Call_001_670a
@@ -7041,7 +7004,7 @@ Jump_001_66f8:
     jp Jump_001_4c06
 
 
-Call_001_670a:
+Call_001_670a::
     ld hl, $0002
     add hl, bc
     inc [hl]
@@ -7059,16 +7022,16 @@ Call_001_670a:
 
     pop af
     ld hl, $66f0
-    call Call_001_62cb
+    call Jump_001_62cb
     jp Jump_001_6311
 
 
-Call_001_6724:
+Call_001_6724::
     ld de, $0410
     jp Jump_001_6345
 
 
-Call_001_672a:
+Call_001_672a::
     ld d, $02
     jp Jump_001_63aa
 
@@ -7082,7 +7045,7 @@ Call_001_672a:
     call Call_001_684b
     call Call_001_6851
 
-jr_001_6741:
+jr_001_6741::
     ld a, [$d931]
     or a
     jr z, jr_001_674e
@@ -7092,11 +7055,11 @@ jr_001_6741:
     and $08
     ret nz
 
-jr_001_674e:
+jr_001_674e::
     jp Jump_001_4c06
 
 
-Call_001_6751:
+Call_001_6751::
     call Call_001_629e
     ld a, [hl]
     rst $00
@@ -7127,10 +7090,10 @@ Call_001_6751:
     ret
 
 
-jr_001_677e:
+jr_001_677e::
     ld hl, $c180
 
-jr_001_6781:
+jr_001_6781::
     ld a, [hl]
     or a
     jr z, jr_001_6795
@@ -7142,14 +7105,13 @@ jr_001_6781:
     add hl, de
     jr jr_001_6781
 
-jr_001_678f:
-    call Call_001_6795
+jr_001_678f::
+    call jr_001_6795
     ld [hl], $ff
     ret
 
 
-Call_001_6795:
-jr_001_6795:
+jr_001_6795::
     ld a, [bc]
     and $80
     or $05
@@ -7158,8 +7120,8 @@ jr_001_6795:
 
 
     ld a, $10
-    ldh [$ff8a], a
-    ldh [$ff8b], a
+    ldh [hJoyHeld], a
+    ldh [hJoyPressed], a
     ldh a, [$ffa5]
     cp $a8
     ret c
@@ -7169,8 +7131,8 @@ jr_001_6795:
     ld a, $03
     ld [$d93d], a
     ld a, $04
-    ldh [$ff8e], a
-    ldh [$ff8f], a
+    ldh [hGameState], a
+    ldh [hNeedsReset], a
     ldh a, [$ff9f]
     add a
     inc a
@@ -7192,7 +7154,7 @@ jr_001_6795:
     ld a, $ff
     ld [$c0b6], a
     ld hl, $67fc
-    call Call_001_62cb
+    call Jump_001_62cb
     call Call_001_6320
     call Call_001_4b2e
     ldh a, [$ffd5]
@@ -7218,13 +7180,13 @@ jr_001_6795:
 
     call Call_001_6810
     ld hl, $680c
-    call Call_001_62cb
+    call Jump_001_62cb
     jp Jump_001_4bd4
 
 
     db $17, $18, $17, $19
 
-Call_001_6810:
+Call_001_6810::
     ldh a, [$ffd3]
     and $fe
     cp $94
@@ -7240,7 +7202,7 @@ Call_001_6810:
     ret
 
 
-jr_001_6821:
+jr_001_6821::
     ld a, $94
     ld hl, $0002
     add hl, bc
@@ -7248,9 +7210,9 @@ jr_001_6821:
     inc hl
     ld a, $f4
     ld [hl], a
-    call Call_001_683c
+    call jr_001_683c
 
-jr_001_6830:
+jr_001_6830::
     ld h, b
     ld l, c
     inc hl
@@ -7262,32 +7224,30 @@ jr_001_6830:
     ret
 
 
-Call_001_683c:
-jr_001_683c:
+jr_001_683c::
     ld a, [bc]
     set 7, a
     ld [bc], a
     ret
 
 
-jr_001_6841:
-    call Call_001_6846
+jr_001_6841::
+    call jr_001_6846
     jr jr_001_6830
 
-Call_001_6846:
-jr_001_6846:
+jr_001_6846::
     ld a, [bc]
     res 7, a
     ld [bc], a
     ret
 
 
-Call_001_684b:
+Call_001_684b::
     ld de, $0410
     jp Jump_001_6345
 
 
-Call_001_6851:
+Call_001_6851::
     ld d, $02
     jp Jump_001_63aa
 
@@ -7301,7 +7261,7 @@ Call_001_6851:
     call Call_001_684b
     call Call_001_6851
 
-jr_001_6868:
+jr_001_6868::
     ld a, [$d931]
     or a
     jr z, jr_001_6875
@@ -7311,11 +7271,11 @@ jr_001_6868:
     and $08
     ret nz
 
-jr_001_6875:
+jr_001_6875::
     jp Jump_001_4c06
 
 
-Call_001_6878:
+Call_001_6878::
     call Call_001_629e
     ld a, [hl]
     rst $00
@@ -7340,7 +7300,7 @@ Call_001_6878:
     ld a, $ff
     ld [$c0b6], a
     ld hl, $6893
-    call Call_001_62cb
+    call Jump_001_62cb
     call Call_001_6320
     call Call_001_4b2e
     ldh a, [$ffd5]
@@ -7361,7 +7321,7 @@ Call_001_6878:
 
     db $e4, $68, $e4, $68, $f4, $68, $2b, $69, $70, $69
 
-Call_001_68c7:
+Call_001_68c7::
     ldh a, [$ffd3]
     cp $94
     jr nc, jr_001_68d2
@@ -7372,26 +7332,26 @@ Call_001_68c7:
     ret
 
 
-jr_001_68d2:
+jr_001_68d2::
     ld a, [bc]
     bit 7, a
     ret nz
 
-    call Call_001_683c
+    call jr_001_683c
     jr jr_001_6911
 
-jr_001_68db:
+jr_001_68db::
     ld a, [bc]
     bit 7, a
     ret z
 
-    call Call_001_6846
+    call jr_001_6846
     jr jr_001_6911
 
-Jump_001_68e4:
+Jump_001_68e4::
     call Call_001_68c7
     ld hl, $68f0
-    call Call_001_62cb
+    call Jump_001_62cb
     jp Jump_001_4bd4
 
 
@@ -7413,7 +7373,7 @@ Jump_001_68e4:
     xor a
     ld [$c0b8], a
 
-jr_001_6911:
+jr_001_6911::
     ld a, [$c0b7]
     inc a
     ld [$c0b7], a
@@ -7428,12 +7388,12 @@ jr_001_6911:
 
     inc a
 
-jr_001_6927:
+jr_001_6927::
     ld [$c0b7], a
     ret
 
 
-    call Call_001_4bd4
+    call Jump_001_4bd4
     call Call_001_6940
     ld a, $1a
     ldh [$ffd6], a
@@ -7446,7 +7406,7 @@ jr_001_6927:
     ret
 
 
-Call_001_6940:
+Call_001_6940::
     ld hl, $c0b9
     ld a, [hl+]
     ld h, [hl]
@@ -7458,7 +7418,7 @@ Call_001_6940:
 
     ld de, $000c
 
-jr_001_6952:
+jr_001_6952::
     add hl, de
     ld a, l
     ld [$c0b9], a
@@ -7491,7 +7451,7 @@ jr_001_6952:
     call Call_001_6995
     call Call_001_699b
 
-jr_001_6985:
+jr_001_6985::
     ld a, [$d931]
     or a
     jr z, jr_001_6992
@@ -7501,23 +7461,23 @@ jr_001_6985:
     and $08
     ret nz
 
-jr_001_6992:
+jr_001_6992::
     jp Jump_001_4c06
 
 
-Call_001_6995:
-    ld de, $0710
+Call_001_6995::
+    ld de, Call_000_0710
     jp Jump_001_6345
 
 
-Call_001_699b:
+Call_001_699b::
     ld d, $06
     jp Jump_001_63aa
 
 
-Call_001_69a0:
+Call_001_69a0::
     ld a, $01
-    ldh [$ff9d], a
+    ldh [hSpriteFlags], a
     ld h, b
     ld l, c
     inc hl
@@ -7539,7 +7499,7 @@ Call_001_69a0:
     ld a, $ff
     ld [$c0b6], a
     ld hl, $69bf
-    call Call_001_62cb
+    call Jump_001_62cb
     call Call_001_6320
     call Call_001_4b2e
     ldh a, [$ffd5]
@@ -7555,7 +7515,7 @@ Call_001_69a0:
 
 
     call Call_001_6a09
-    call Call_001_4bd4
+    call Jump_001_4bd4
     call Call_001_6a6e
     call Call_001_6a3b
     ret nz
@@ -7570,7 +7530,7 @@ Call_001_69a0:
 
     db $18, $6a, $22, $6a, $28, $6a, $32, $6a, $38, $6a
 
-Call_001_6a09:
+Call_001_6a09::
     ld a, $15
     ldh [$ffd6], a
     ld a, [$c0ba]
@@ -7582,7 +7542,7 @@ Call_001_6a09:
     ret
 
 
-Jump_001_6a18:
+Jump_001_6a18::
     ld a, $01
     ld [$c0b7], a
     ld a, [bc]
@@ -7612,7 +7572,7 @@ Jump_001_6a18:
     jp Jump_001_6a18
 
 
-Call_001_6a3b:
+Call_001_6a3b::
     ld hl, $c0b9
     ld a, [hl+]
     ld h, [hl]
@@ -7650,7 +7610,7 @@ Call_001_6a3b:
     ret
 
 
-Call_001_6a6e:
+Call_001_6a6e::
     ld a, [$c0b7]
     or a
     ret z
@@ -7663,7 +7623,7 @@ Call_001_6a6e:
     ld hl, $c180
     ld e, $20
 
-jr_001_6a7e:
+jr_001_6a7e::
     ld a, [hl]
     and $7f
     cp $21
@@ -7684,7 +7644,7 @@ jr_001_6a7e:
     ld [hl], a
     ld hl, $c180
 
-jr_001_6a98:
+jr_001_6a98::
     ld a, [hl]
     or a
     jr z, jr_001_6aac
@@ -7696,14 +7656,13 @@ jr_001_6a98:
     add hl, de
     jr jr_001_6a98
 
-jr_001_6aa6:
-    call Call_001_6aac
+jr_001_6aa6::
+    call jr_001_6aac
     ld [hl], $ff
     ret
 
 
-Call_001_6aac:
-jr_001_6aac:
+jr_001_6aac::
     ld a, $a1
     ld [hl+], a
     xor a
@@ -7723,7 +7682,7 @@ jr_001_6aac:
     ret
 
 
-Call_001_6ac5:
+Call_001_6ac5::
     push hl
     ld hl, $0003
     add hl, bc
@@ -7739,12 +7698,12 @@ Call_001_6ac5:
     ld [hl-], a
     dec hl
     ld de, $0800
-    call Call_001_4be3
+    call Jump_001_4be3
     inc hl
     ret
 
 
-Call_001_6add:
+Call_001_6add::
     push hl
     ld hl, $0006
     add hl, bc
@@ -7775,13 +7734,13 @@ Call_001_6add:
     jp Jump_001_4c06
 
 
-jr_001_6b04:
+jr_001_6b04::
     xor a
     ld [bc], a
     ret
 
 
-Call_001_6b07:
+Call_001_6b07::
     ld a, $1b
     ldh [$ffd6], a
     call Call_001_629e
@@ -7795,7 +7754,7 @@ Call_001_6b07:
     add hl, bc
     ld [hl+], a
     ld [hl], $01
-    call Call_001_4bd4
+    call Jump_001_4bd4
     ld hl, $000a
     add hl, bc
     ld a, [hl]
@@ -7810,14 +7769,14 @@ Call_001_6b07:
     ret
 
 
-    call Call_001_4bd4
+    call Jump_001_4bd4
     ld hl, $0005
     add hl, bc
     ld de, $00c0
     jp Jump_001_4be3
 
 
-Call_001_6b3c:
+Call_001_6b3c::
     ld a, [$c0b6]
     cp $ff
     ret z
@@ -7835,7 +7794,7 @@ Call_001_6b3c:
     call Call_001_6b69
     call Call_001_6bc5
 
-jr_001_6b59:
+jr_001_6b59::
     ld a, [$d931]
     or a
     jr z, jr_001_6b66
@@ -7845,11 +7804,11 @@ jr_001_6b59:
     and $08
     ret nz
 
-jr_001_6b66:
+jr_001_6b66::
     jp Jump_001_4c06
 
 
-Call_001_6b69:
+Call_001_6b69::
     ld de, $0712
     ldh a, [$ffbc]
     or a
@@ -7867,7 +7826,7 @@ Call_001_6b69:
     ret
 
 
-Call_001_6b7c:
+Call_001_6b7c::
     ld hl, $c0c7
     ldh a, [$ffd1]
     add d
@@ -7883,7 +7842,7 @@ Call_001_6b7c:
 
     ldh a, [$ffbb]
     cp $04
-    jp z, Jump_001_63c5
+    jp z, jr_001_63c5
 
     cp $02
     jr z, jr_001_6bce
@@ -7894,7 +7853,7 @@ Call_001_6b7c:
     res 0, [hl]
     jr jr_001_6bce
 
-jr_001_6ba6:
+jr_001_6ba6::
     ld hl, $c0d3
     ldh a, [$ffd1]
     add d
@@ -7914,21 +7873,21 @@ jr_001_6ba6:
     res 1, [hl]
     jr jr_001_6bce
 
-Call_001_6bc5:
+Call_001_6bc5::
     ld d, $08
     call Call_001_4c18
     call Call_001_4c9e
     ret nc
 
-jr_001_6bce:
+jr_001_6bce::
     ld a, [$c0ba]
     or a
     ret z
 
-    jp Jump_001_63b1
+    jp jr_001_63b1
 
 
-Call_001_6bd6:
+Call_001_6bd6::
     call Call_001_629e
     ld a, [hl]
     rst $00
@@ -7953,7 +7912,7 @@ Call_001_6bd6:
     ld a, $ff
     ld [$c0b6], a
     ld hl, $6bf1
-    call Call_001_62cb
+    call Jump_001_62cb
     call Call_001_6320
     call Call_001_4b2e
     ldh a, [$ffd5]
@@ -7984,7 +7943,7 @@ Call_001_6bd6:
     ret
 
 
-Call_001_6c45:
+Call_001_6c45::
     ld hl, $6c4b
     jp Jump_001_62cb
 
@@ -8003,16 +7962,16 @@ Call_001_6c45:
 
     db $1d, $1e, $1d, $1e
 
-jr_001_6c65:
+jr_001_6c65::
     ld a, $02
     ld [$c0b7], a
     ret
 
 
-Call_001_6c6b:
+Call_001_6c6b::
     ld hl, $0005
     add hl, bc
-    jp Jump_001_4bee
+    jp jr_001_4bee
 
 
     call Call_001_6c45
@@ -8025,7 +7984,7 @@ Call_001_6c6b:
     ret
 
 
-jr_001_6c82:
+jr_001_6c82::
     ld a, [bc]
     set 7, a
     ld [bc], a
@@ -8064,12 +8023,12 @@ jr_001_6c82:
     ret
 
 
-jr_001_6cb8:
+jr_001_6cb8::
     ld a, $1c
     ldh [$ffd6], a
     ld hl, $c180
 
-jr_001_6cbf:
+jr_001_6cbf::
     ld a, [hl]
     or a
     jr z, jr_001_6cd3
@@ -8081,14 +8040,13 @@ jr_001_6cbf:
     add hl, de
     jr jr_001_6cbf
 
-jr_001_6ccd:
-    call Call_001_6cd3
+jr_001_6ccd::
+    call jr_001_6cd3
     ld [hl], $ff
     ret
 
 
-Call_001_6cd3:
-jr_001_6cd3:
+jr_001_6cd3::
     ld a, $24
     ld [hl+], a
     xor a
@@ -8108,7 +8066,7 @@ jr_001_6cd3:
     ret
 
 
-Call_001_6cec:
+Call_001_6cec::
     push hl
     ld hl, $0003
     add hl, bc
@@ -8124,12 +8082,12 @@ Call_001_6cec:
     ld [hl-], a
     dec hl
     ld de, $1200
-    call Call_001_4be3
+    call Jump_001_4be3
     inc hl
     ret
 
 
-Call_001_6d04:
+Call_001_6d04::
     push hl
     ld hl, $0006
     add hl, bc
@@ -8203,10 +8161,10 @@ Call_001_6d04:
     jp Jump_001_4be3
 
 
-jr_001_6d71:
+jr_001_6d71::
     ld a, $0c
     ld [$c0b7], a
-    ld hl, $ff90
+    ld hl, hSCY
     ld a, [hl+]
     ld h, [hl]
     ld l, a
@@ -8217,9 +8175,9 @@ jr_001_6d71:
     ret
 
 
-Call_001_6d85:
+Call_001_6d85::
     ld a, $68
-    call Call_000_0f3b
+    call PlaySound
     ret
 
 
@@ -8240,27 +8198,27 @@ Call_001_6d85:
     ret
 
 
-jr_001_6da3:
-    ldh a, [$ff90]
+jr_001_6da3::
+    ldh a, [hSCY]
     sub $01
-    ldh [$ff90], a
-    ldh a, [$ff91]
+    ldh [hSCY], a
+    ldh a, [hSCYHigh]
     sbc $00
-    ldh [$ff91], a
+    ldh [hSCYHigh], a
     ret
 
 
-jr_001_6db0:
-    ldh a, [$ff90]
+jr_001_6db0::
+    ldh a, [hSCY]
     add $01
-    ldh [$ff90], a
-    ldh a, [$ff91]
+    ldh [hSCY], a
+    ldh a, [hSCYHigh]
     adc $00
-    ldh [$ff91], a
+    ldh [hSCYHigh], a
     ret
 
 
-jr_001_6dbd:
+jr_001_6dbd::
     xor a
     ld [$c0b8], a
     ld a, $0d
@@ -8270,9 +8228,9 @@ jr_001_6dbd:
     ld h, [hl]
     ld l, a
     ld a, l
-    ldh [$ff90], a
+    ldh [hSCY], a
     ld a, h
-    ldh [$ff91], a
+    ldh [hSCYHigh], a
     ret
 
 
@@ -8303,17 +8261,17 @@ jr_001_6dbd:
 
     call Call_001_6e1f
     xor a
-    ldh [$ff9d], a
+    ldh [hSpriteFlags], a
     jp Jump_001_4c06
 
 
-jr_001_6e09:
+jr_001_6e09::
     xor a
     ld [bc], a
     ret
 
 
-Call_001_6e0c:
+Call_001_6e0c::
     ld a, $1f
     ldh [$ffd6], a
     ld a, [$c0b9]
@@ -8326,7 +8284,7 @@ Call_001_6e0c:
     jp Jump_001_4be3
 
 
-Call_001_6e1f:
+Call_001_6e1f::
     ld a, [$c0b6]
     cp $ff
     ret z
@@ -8353,7 +8311,7 @@ Call_001_6e1f:
 
     ld hl, $70d5
 
-jr_001_6e42:
+jr_001_6e42::
     ldh a, [$ffd3]
     ld c, a
     ldh a, [$ffd4]
@@ -8361,7 +8319,7 @@ jr_001_6e42:
     jp Jump_000_0269
 
 
-Call_001_6e4b:
+Call_001_6e4b::
     ld h, b
     ld l, c
     inc hl
@@ -8410,7 +8368,7 @@ Call_001_6e4b:
 
     call Call_001_5e9a
 
-Call_001_6e81:
+Call_001_6e81::
     ld hl, $0006
     add hl, bc
     ld a, [hl+]
@@ -8425,10 +8383,10 @@ Call_001_6e81:
     ret
 
 
-jr_001_6e93:
+jr_001_6e93::
     ld hl, $ffad
     ld de, $0100
-    call Call_001_4be3
+    call Jump_001_4be3
     ld hl, $000d
     add hl, bc
     ld a, [hl]
@@ -8446,7 +8404,7 @@ jr_001_6e93:
     ret z
 
     ld a, $5c
-    call Call_000_0f3b
+    call PlaySound
     ld a, $10
     ldh [$ffb7], a
     ld a, $02
@@ -8464,15 +8422,15 @@ jr_001_6e93:
     ld l, [hl]
 
     ld hl, $fc70
-    jp Jump_001_5e9d
+    jp jr_001_5e9d
 
 
     ld hl, $fbc0
-    jp Jump_001_5e9d
+    jp jr_001_5e9d
 
 
     ld hl, $fb40
-    jp Jump_001_5e9d
+    jp jr_001_5e9d
 
 
     call Call_001_4b84
@@ -8483,9 +8441,9 @@ jr_001_6e93:
     or a
     ret nz
 
-    call Call_001_6f0a
+    call Jump_001_6f0a
 
-Jump_001_6eef:
+Jump_001_6eef::
     ld hl, $70de
     ldh a, [$ffd3]
     ld c, a
@@ -8494,7 +8452,7 @@ Jump_001_6eef:
     jp Jump_000_0269
 
 
-Call_001_6efb:
+Call_001_6efb::
     ld h, b
     ld l, c
     inc hl
@@ -8504,8 +8462,7 @@ Call_001_6efb:
 
     db $4b, $6f, $62, $6f, $77, $6f, $62, $6f
 
-Call_001_6f0a:
-Jump_001_6f0a:
+Jump_001_6f0a::
     ldh a, [$ffaa]
     cp $06
     ret z
@@ -8518,7 +8475,7 @@ Jump_001_6f0a:
     call Call_001_6f28
     ret nc
 
-Jump_001_6f19:
+Jump_001_6f19::
     ld a, $ff
     ldh [$ffc4], a
     call Call_001_6e81
@@ -8529,7 +8486,7 @@ Jump_001_6f19:
     jp Jump_001_5e0e
 
 
-Call_001_6f28:
+Call_001_6f28::
     ldh a, [$ffb4]
     rlca
     ccf
@@ -8566,10 +8523,9 @@ Call_001_6f28:
     ld hl, $0005
     add hl, bc
     ld de, $00c0
-    call Call_001_4bee
+    call jr_001_4bee
 
-Call_001_6f55:
-jr_001_6f55:
+jr_001_6f55::
     ld hl, $000d
     add hl, bc
     dec [hl]
@@ -8583,8 +8539,7 @@ jr_001_6f55:
     ret
 
 
-Call_001_6f62:
-Jump_001_6f62:
+Jump_001_6f62::
     ld hl, $000d
     add hl, bc
     dec [hl]
@@ -8606,7 +8561,7 @@ Jump_001_6f62:
     ld hl, $0005
     add hl, bc
     ld de, $00c0
-    call Call_001_4be3
+    call Jump_001_4be3
     jr jr_001_6f55
 
     call Call_001_4b84
@@ -8620,7 +8575,7 @@ Jump_001_6f62:
     jp Jump_001_6eef
 
 
-Call_001_6f91:
+Call_001_6f91::
     ld h, b
     ld l, c
     inc hl
@@ -8632,17 +8587,17 @@ Call_001_6f91:
 
     ld hl, $0002
     add hl, bc
-    ldh a, [$ff8a]
+    ldh a, [hJoyHeld]
     and $30
     jr nz, jr_001_6fad
 
     ld a, [hl]
     ldh [$ffb0], a
 
-jr_001_6fad:
+jr_001_6fad::
     ld de, $00c0
-    call Call_001_4bee
-    call Call_001_6f55
+    call jr_001_4bee
+    call jr_001_6f55
     ldh a, [$ffaa]
     cp $06
     ret z
@@ -8657,27 +8612,27 @@ jr_001_6fad:
 
     ld hl, $ffb0
     ld de, $00c0
-    call Call_001_4bee
+    call jr_001_4bee
     jp Jump_001_6f19
 
 
-    call Call_001_6f62
+    call Jump_001_6f62
     jp Jump_001_6f0a
 
 
     ld hl, $0002
     add hl, bc
-    ldh a, [$ff8a]
+    ldh a, [hJoyHeld]
     and $30
     jr nz, jr_001_6fe4
 
     ld a, [hl]
     ldh [$ffb0], a
 
-jr_001_6fe4:
+jr_001_6fe4::
     ld de, $00c0
-    call Call_001_4be3
-    call Call_001_6f55
+    call Jump_001_4be3
+    call jr_001_6f55
     ldh a, [$ffaa]
     cp $06
     ret z
@@ -8688,11 +8643,11 @@ jr_001_6fe4:
 
     ld hl, $ffb0
     ld de, $00c0
-    call Call_001_4be3
+    call Jump_001_4be3
     jp Jump_001_6f19
 
 
-Call_001_7004:
+Call_001_7004::
     call Call_001_4b2e
     ldh a, [$ffd5]
     or a
@@ -8708,14 +8663,13 @@ Call_001_7004:
     jp Jump_000_0269
 
 
-Jump_001_701e:
-jr_001_701e:
+jr_001_701e::
     xor a
     ld [bc], a
     ret
 
 
-Call_001_7021:
+Call_001_7021::
     ldh a, [$ffaa]
     cp $06
     ret z
@@ -8777,7 +8731,7 @@ Call_001_7021:
     jp Jump_001_5e0e
 
 
-Call_001_706f:
+Call_001_706f::
     ld h, b
     ld l, c
     inc hl
@@ -8785,14 +8739,14 @@ Call_001_706f:
     or a
     jp z, Jump_001_6f62
 
-Jump_001_7077:
+Jump_001_7077::
     ld hl, $0005
     add hl, bc
     ld de, $0200
     jp Jump_001_4be3
 
 
-Call_001_7081:
+Call_001_7081::
     call Call_001_4b2e
     ldh a, [$ffd5]
     or a
@@ -8808,9 +8762,9 @@ Call_001_7081:
     ret
 
 
-Call_001_7095:
+Call_001_7095::
     ld a, $02
-    ldh [$ff9d], a
+    ldh [hSpriteFlags], a
     ld a, $10
     ldh [$ffd6], a
     ld h, b
@@ -8826,7 +8780,7 @@ Call_001_7095:
     jp Jump_001_7077
 
 
-jr_001_70ab:
+jr_001_70ab::
     ld hl, $000d
     add hl, bc
     bit 3, [hl]
@@ -8865,22 +8819,22 @@ jr_001_70ab:
 
     ld de, $fff0
 
-jr_001_711e:
-    ldh a, [$ff92]
+jr_001_711e::
+    ldh a, [hSCX]
     add e
     ld [hl+], a
-    ldh a, [$ff93]
+    ldh a, [hSCXHigh]
     adc d
     ld [hl], a
 
-jr_001_7126:
+jr_001_7126::
     call Call_001_714e
     call Call_001_71fd
     ld a, [bc]
     sla a
     ld a, $00
     rl a
-    ldh [$ff9d], a
+    ldh [hSpriteFlags], a
     ld h, b
     ld l, c
     inc hl
@@ -8893,15 +8847,15 @@ jr_001_7126:
 
     ld hl, $21ff
 
-jr_001_7145:
+jr_001_7145::
     ldh a, [$ffd3]
     ld c, a
     ldh a, [$ffd4]
     ld b, a
-    jp Jump_000_026c
+    jp jr_000_026c
 
 
-Call_001_714e:
+Call_001_714e::
     ld hl, $0008
     add hl, bc
     ld e, [hl]
@@ -8952,7 +8906,7 @@ Call_001_714e:
 
     ld de, $fff0
 
-jr_001_7195:
+jr_001_7195::
     ldh a, [$ffb1]
     add e
     ldh [$ffb1], a
@@ -8971,7 +8925,7 @@ jr_001_7195:
     ret
 
 
-jr_001_71ac:
+jr_001_71ac::
     ldh a, [$ffb4]
     bit 7, a
     ret nz
@@ -8993,10 +8947,10 @@ jr_001_71ac:
     call Call_001_523a
     jr jr_001_71d0
 
-jr_001_71cd:
+jr_001_71cd::
     call Call_001_516c
 
-jr_001_71d0:
+jr_001_71d0::
     ldh a, [$ffc0]
     pop bc
     or a
@@ -9009,17 +8963,17 @@ jr_001_71d0:
     ld hl, $ffb0
     call Call_001_4bdf
 
-jr_001_71e3:
-    ldh a, [$ff8a]
+jr_001_71e3::
+    ldh a, [hJoyHeld]
     and $81
     cp $81
     jr nz, jr_001_71f1
 
-    ldh a, [$ff8a]
+    ldh a, [hJoyHeld]
     res 0, a
-    ldh [$ff8a], a
+    ldh [hJoyHeld], a
 
-jr_001_71f1:
+jr_001_71f1::
     ld a, $ff
     ldh [$ffc4], a
     ldh a, [$ffaa]
@@ -9029,7 +8983,7 @@ jr_001_71f1:
     jp Jump_001_5e0e
 
 
-Call_001_71fd:
+Call_001_71fd::
     ld de, $0350
     ld a, [bc]
     sla a
@@ -9037,7 +8991,7 @@ Call_001_71fd:
 
     ld de, $00b0
 
-jr_001_7208:
+jr_001_7208::
     ld hl, $0003
     add hl, bc
     ld a, [hl+]
@@ -9066,12 +9020,12 @@ jr_001_7208:
     add hl, bc
     ld a, [hl]
     and $40
-    jp nz, Jump_001_701e
+    jp nz, jr_001_701e
 
     ret
 
 
-jr_001_722f:
+jr_001_722f::
     call Call_001_725f
     ld d, $03
     call Call_001_4c18
@@ -9085,7 +9039,7 @@ jr_001_722f:
 
     inc a
 
-jr_001_7246:
+jr_001_7246::
     ld hl, $7253
     rst $20
     ldh a, [$ffd3]
@@ -9101,7 +9055,7 @@ jr_001_7246:
 
     db $30, $22, $3f, $22, $35, $22, $3a, $22
 
-Call_001_725f:
+Call_001_725f::
     xor a
     ldh [$ffc9], a
     ld hl, $000a
@@ -9119,7 +9073,7 @@ Call_001_725f:
     ld hl, $0006
     add hl, bc
 
-jr_001_7279:
+jr_001_7279::
     ld a, [hl]
     add $01
     ld [hl+], a
@@ -9129,7 +9083,7 @@ jr_001_7279:
     ret
 
 
-jr_001_7282:
+jr_001_7282::
     or a
     jr z, jr_001_728c
 
@@ -9140,7 +9094,7 @@ jr_001_7282:
     ret
 
 
-jr_001_728c:
+jr_001_728c::
     ldh a, [$ffd3]
     ld d, a
     ldh a, [$ffa5]
@@ -9165,12 +9119,12 @@ jr_001_728c:
     ld hl, $000a
     add hl, bc
     bit 7, [hl]
-    jp nz, Jump_001_701e
+    jp nz, jr_001_701e
 
     ret
 
 
-jr_001_72b0:
+jr_001_72b0::
     ldh a, [$ffd5]
     or a
     ret nz
@@ -9192,20 +9146,20 @@ jr_001_72b0:
 
     ld hl, $2255
 
-jr_001_72d1:
+jr_001_72d1::
     cp $10
     jr nz, jr_001_72d8
 
     ld hl, $2266
 
-jr_001_72d8:
+jr_001_72d8::
     cp $18
     jr c, jr_001_72df
 
     ld a, $80
     ld [de], a
 
-jr_001_72df:
+jr_001_72df::
     ldh a, [$ffd3]
     ld c, a
     ldh a, [$ffd4]
@@ -9213,7 +9167,7 @@ jr_001_72df:
     jp Jump_000_0269
 
 
-Call_001_72e8:
+Call_001_72e8::
     xor a
     ldh [$ffc9], a
     ld hl, $0003
@@ -9232,7 +9186,7 @@ Call_001_72e8:
     cp $ff
     ret nz
 
-jr_001_72ff:
+jr_001_72ff::
     xor e
     cp $60
     ret nc
@@ -9276,7 +9230,7 @@ jr_001_72ff:
     jp Jump_000_0269
 
 
-Call_001_7339:
+Call_001_7339::
     xor a
     ldh [$ffc9], a
     ldh a, [$ffd3]
@@ -9301,7 +9255,7 @@ Call_001_7339:
     bit 7, a
     jr nz, jr_001_7394
 
-jr_001_735b:
+jr_001_735b::
     cp $14
     jr nc, jr_001_7394
 
@@ -9316,20 +9270,20 @@ jr_001_735b:
     or a
     jr nz, jr_001_7394
 
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     ld e, $13
     bit 7, a
     jr z, jr_001_7377
 
     inc e
 
-jr_001_7377:
+jr_001_7377::
     bit 0, a
     jr z, jr_001_737d
 
     ld e, $0f
 
-jr_001_737d:
+jr_001_737d::
     ld hl, $0006
     add hl, bc
     ld a, [hl]
@@ -9343,7 +9297,7 @@ jr_001_737d:
     ld a, $01
     ldh [$ffc9], a
 
-jr_001_7394:
+jr_001_7394::
     ld hl, $000d
     add hl, bc
     ld a, [hl]
@@ -9369,7 +9323,7 @@ jr_001_7394:
     ret
 
 
-jr_001_73ba:
+jr_001_73ba::
     ld d, h
     ld e, l
     ld hl, $000a
@@ -9397,7 +9351,7 @@ jr_001_73ba:
 
     dec [hl]
 
-jr_001_73d8:
+jr_001_73d8::
     srl a
     ld e, a
     ldh a, [$ffd4]
@@ -9420,7 +9374,7 @@ jr_001_73d8:
 
     ld e, $02
 
-jr_001_73f9:
+jr_001_73f9::
     ldh a, [$ffd3]
     ld c, a
     ldh a, [$ffd4]
@@ -9433,7 +9387,7 @@ jr_001_73f9:
     ret
 
 
-Call_001_7407:
+Call_001_7407::
     ldh a, [$ffd3]
     ld h, a
     ldh a, [$ffa5]
@@ -9469,16 +9423,16 @@ Call_001_7407:
     sub $0e
     add e
     ldh [$ffae], a
-    ldh a, [$ff8a]
+    ldh a, [hJoyHeld]
     and $81
     cp $81
     jr nz, jr_001_7442
 
-    ldh a, [$ff8a]
+    ldh a, [hJoyHeld]
     res 0, a
-    ldh [$ff8a], a
+    ldh [hJoyHeld], a
 
-jr_001_7442:
+jr_001_7442::
     ld a, $ff
     ldh [$ffc4], a
     ld hl, $000d
@@ -9503,12 +9457,12 @@ jr_001_7442:
     add hl, bc
     ld a, [hl]
     and $40
-    jp nz, Jump_001_701e
+    jp nz, jr_001_701e
 
     ret
 
 
-jr_001_7468:
+jr_001_7468::
     call Call_001_7489
     ld d, $05
     call Call_001_4c18
@@ -9525,12 +9479,12 @@ jr_001_7468:
 
     inc c
 
-jr_001_7483:
+jr_001_7483::
     ld hl, $2475
     jp Jump_000_0269
 
 
-Call_001_7489:
+Call_001_7489::
     ld hl, $000a
     add hl, bc
     ld a, [hl]
@@ -9544,7 +9498,7 @@ Call_001_7489:
     ret
 
 
-jr_001_749d:
+jr_001_749d::
     or a
     jr z, jr_001_74a3
 
@@ -9553,7 +9507,7 @@ jr_001_749d:
     ret
 
 
-jr_001_74a3:
+jr_001_74a3::
     ldh a, [$ffd3]
     ld d, a
     ldh a, [$ffa5]
@@ -9692,7 +9646,7 @@ jr_001_74a3:
     rla
     jr nc, jr_001_7b88
 
-jr_001_7b88:
+jr_001_7b88::
     ret z
 
     nop
@@ -9704,37 +9658,37 @@ jr_001_7b88:
     ld [$d930], a
     xor a
     ld [$d954], a
-    ldh [$ff8a], a
+    ldh [hJoyHeld], a
     ld [$d955], a
     ld [$d956], a
     ld [$d957], a
     ld [$d92d], a
     ld [$d92e], a
     ld a, $5c
-    ldh [$ff9a], a
+    ldh [hOamMaxY], a
     ld a, $8f
     ldh [$ffc9], a
     ld hl, $9c00
     ld bc, $1206
     call Call_000_08b7
     ld a, $50
-    ldh [$ff94], a
+    ldh [hWY], a
     ld a, $06
     ld hl, $50c4
     ld de, $8800
     ld bc, $0100
-    call LoadGameGfx
+    call BankedMemcpy
     ld a, $03
     ld hl, $400f
     ld de, $8900
-    call LoadMainGfx
+    call LoadMaskedGfx
     ld a, $06
     ld hl, $4bc0
     ld de, $9000
-    call LoadMainGfx
-    call Call_000_0f0d
+    call LoadMaskedGfx
+    call InitSound
     ld a, $20
-    call Call_000_0f32
+    call PlaySound_Queue3
     ret
 
 
@@ -9743,12 +9697,12 @@ jr_001_7b88:
     ldh [$ffb5], a
     ld a, h
     ldh [$ffb6], a
-    ldh a, [$ff8a]
+    ldh a, [hJoyHeld]
     and $0f
     cp $0f
     ret z
 
-    ldh a, [$ff8a]
+    ldh a, [hJoyHeld]
     and $08
     jr nz, jr_001_7c08
 
@@ -9756,20 +9710,20 @@ jr_001_7b88:
     or a
     jr z, jr_001_7c18
 
-jr_001_7c08:
+jr_001_7c08::
     xor a
     ld [$c0bf], a
     ld [$c0cb], a
     ldh [$ff9f], a
     ld a, $02
-    ldh [$ff8e], a
-    ldh [$ff8f], a
+    ldh [hGameState], a
+    ldh [hNeedsReset], a
     ret
 
 
-jr_001_7c18:
+jr_001_7c18::
     call Call_001_7cfa
-    ldh a, [$ff92]
+    ldh a, [hSCX]
     ld b, a
     ldh a, [$ffb1]
     sub b
@@ -9782,12 +9736,12 @@ jr_001_7c18:
 
     xor a
 
-jr_001_7c2c:
-    ldh [$ff92], a
+jr_001_7c2c::
+    ldh [hSCX], a
     ld b, a
     jr jr_001_7c42
 
-jr_001_7c31:
+jr_001_7c31::
     cp $68
     jr c, jr_001_7c42
 
@@ -9798,15 +9752,15 @@ jr_001_7c31:
 
     ld a, $60
 
-jr_001_7c3f:
-    ldh [$ff92], a
+jr_001_7c3f::
+    ldh [hSCX], a
     ld b, a
 
-jr_001_7c42:
+jr_001_7c42::
     ldh a, [$ffb1]
     sub b
     ldh [$ffa5], a
-    ldh a, [$ff90]
+    ldh a, [hSCY]
     ld c, a
     ldh a, [$ffae]
     sub c
@@ -9819,12 +9773,12 @@ jr_001_7c42:
 
     xor a
 
-jr_001_7c58:
-    ldh [$ff90], a
+jr_001_7c58::
+    ldh [hSCY], a
     ld c, a
     jr jr_001_7c6e
 
-jr_001_7c5d:
+jr_001_7c5d::
     cp $48
     jr c, jr_001_7c6e
 
@@ -9835,11 +9789,11 @@ jr_001_7c5d:
 
     ld a, $b0
 
-jr_001_7c6b:
-    ldh [$ff90], a
+jr_001_7c6b::
+    ldh [hSCY], a
     ld c, a
 
-jr_001_7c6e:
+jr_001_7c6e::
     ldh a, [$ffae]
     sub c
     ldh [$ffa4], a
@@ -9847,12 +9801,12 @@ jr_001_7c6e:
     call Call_001_4868
     call Call_001_560e
     call Call_001_454b
-    ld hl, $c100
+    ld hl, wVramQueue
 
-jr_001_7c82:
+jr_001_7c82::
     ld a, [hl]
     or a
-    jp z, Jump_001_7c9b
+    jp z, jr_001_7c9b
 
     and $fc
     cp $9c
@@ -9862,7 +9816,7 @@ jr_001_7c82:
     ld [hl], a
     jr jr_001_7c9b
 
-jr_001_7c91:
+jr_001_7c91::
     inc hl
     ld b, [hl]
     inc hl
@@ -9872,12 +9826,11 @@ jr_001_7c91:
     rst $38
     jr jr_001_7c82
 
-Jump_001_7c9b:
-jr_001_7c9b:
-    ld bc, $3f00
+jr_001_7c9b::
+    ld bc, Jump_000_3f00
     add hl, bc
     ld a, l
-    ldh [$ff99], a
+    ldh [hVramQueuePos], a
     call Call_000_0719
     ld a, [$d955]
     inc a
@@ -9904,12 +9857,12 @@ jr_001_7c9b:
     add $5c
     call Call_000_0710
 
-jr_001_7cd2:
+jr_001_7cd2::
     ld a, [$d954]
     inc a
     ld [$d954], a
 
-jr_001_7cd9:
+jr_001_7cd9::
     ld a, [$d957]
     bit 7, a
     ret nz
@@ -9930,11 +9883,11 @@ jr_001_7cd9:
     ret
 
 
-Call_001_7cfa:
+Call_001_7cfa::
     ld a, [$d92d]
-    ldh [$ff8a], a
+    ldh [hJoyHeld], a
     xor a
-    ldh [$ff8b], a
+    ldh [hJoyPressed], a
     ld a, [$d92e]
     dec a
     ld [$d92e], a
@@ -9948,7 +9901,7 @@ Call_001_7cfa:
     ld a, [hl+]
     and $f3
     ld [$d92d], a
-    ldh [$ff8b], a
+    ldh [hJoyPressed], a
     ld a, [hl+]
     ld [$d92e], a
     ld a, l
@@ -10015,7 +9968,7 @@ Call_001_7cfa:
     inc l
     db $10
 
-jr_001_7d71:
+jr_001_7d71::
     dec sp
     nop
     dec b
@@ -10025,7 +9978,7 @@ jr_001_7d71:
     inc de
     add b
 
-jr_001_7d79:
+jr_001_7d79::
     dec e
     add c
     ld a, [bc]
@@ -10048,7 +10001,7 @@ jr_001_7d79:
     ld bc, $0004
     ld [bc], a
     ld bc, $0004
-    ld bc, $0501
+    ld bc, QueueVramFill
     nop
     ld bc, $0401
     nop
@@ -10071,7 +10024,7 @@ jr_001_7d79:
     nop
     jr nz, jr_001_7dc2
 
-jr_001_7dc2:
+jr_001_7dc2::
     nop
     nop
     ld bc, $0003
@@ -10080,7 +10033,7 @@ jr_001_7dc2:
     ld [bc], a
     jr nz, jr_001_7dce
 
-jr_001_7dce:
+jr_001_7dce::
     ld hl, $2003
     inc bc
     ld hl, $2004
@@ -10103,7 +10056,7 @@ jr_001_7dce:
 
     ld hl, $2005
 
-jr_001_7dfb:
+jr_001_7dfb::
     ld [bc], a
     ld bc, $2004
     inc bc
@@ -10132,7 +10085,7 @@ jr_001_7dfb:
 
     add hl, de
 
-jr_001_7e2c:
+jr_001_7e2c::
     nop
     add b
     ld bc, $0020
@@ -10164,7 +10117,7 @@ jr_001_7e2c:
     ld c, $81
     db $10
 
-jr_001_7e52:
+jr_001_7e52::
     add b
     nop
     nop
@@ -10172,7 +10125,7 @@ jr_001_7e52:
 
     jr nz, jr_001_7e59
 
-jr_001_7e59:
+jr_001_7e59::
     dec l
     ld bc, $0013
     sub h
@@ -10186,7 +10139,7 @@ jr_001_7e59:
     inc c
     db $10
 
-jr_001_7e67:
+jr_001_7e67::
     rlca
     nop
     dec hl
@@ -10252,7 +10205,7 @@ jr_001_7e67:
     ld a, [bc]
     or b
 
-jr_001_7eb2:
+jr_001_7eb2::
     sub [hl]
     rst $38
     add hl, de
@@ -10305,7 +10258,7 @@ jr_001_7eb2:
     nop
     ld a, [de]
 
-jr_001_7eea:
+jr_001_7eea::
     dec de
     inc e
     dec e
@@ -10323,7 +10276,7 @@ jr_001_7eea:
     sub e
     ld a, [de]
 
-jr_001_7efb:
+jr_001_7efb::
     dec de
     inc e
     dec e
@@ -10333,7 +10286,7 @@ jr_001_7efb:
     ld [hl], $37
     jr c, jr_001_7f06
 
-jr_001_7f06:
+jr_001_7f06::
     rra
     jr nz, jr_001_7f2a
 
@@ -10352,7 +10305,7 @@ jr_001_7f06:
     sub h
     sub e
 
-jr_001_7f17:
+jr_001_7f17::
     rra
     jr nz, jr_001_7f3b
 
@@ -10372,7 +10325,7 @@ jr_001_7f17:
     ld l, $00
     sub h
 
-jr_001_7f2a:
+jr_001_7f2a::
     sub e
     rst $38
     ld [de], a
@@ -10389,7 +10342,7 @@ jr_001_7f2a:
     ld b, d
     rst $38
 
-jr_001_7f3b:
+jr_001_7f3b::
     inc b
     nop
     or e
@@ -10426,7 +10379,7 @@ jr_001_7f3b:
     rst $38
     rst $38
 
-jr_001_7f5e:
+jr_001_7f5e::
     rst $38
     rst $38
     rst $38

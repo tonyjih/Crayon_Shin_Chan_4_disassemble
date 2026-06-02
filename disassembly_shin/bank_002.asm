@@ -15,20 +15,20 @@ SECTION "ROM Bank $002", ROMX[$4000], BANK[$2]
     db $6e, $68, $a1, $69, $0c, $73, $a8, $74
 
     ld a, $83
-    ld [$c0a2], a
+    ld [wLCDCShadow], a
     xor a
-    ldh [$ff92], a
-    ldh [$ff90], a
+    ldh [hSCX], a
+    ldh [hSCY], a
     ld [$d954], a
     ld [$d955], a
     ld a, $01
     ldh [rIE], a
     ld a, $a0
-    ldh [$ff9a], a
+    ldh [hOamMaxY], a
     ld a, $03
     ld [$d97a], a
     xor a
-    ldh [$ff8f], a
+    ldh [hNeedsReset], a
     ld a, [$d93d]
     cp $04
     jp z, Jump_002_47f5
@@ -37,34 +37,34 @@ SECTION "ROM Bank $002", ROMX[$4000], BANK[$2]
     jp nz, Jump_002_43a1
 
     ld a, $83
-    ld [$c0a2], a
+    ld [wLCDCShadow], a
     ld a, $06
     ld hl, $4001
     ld de, $8000
-    call LoadMainGfx
+    call LoadMaskedGfx
     ld a, $06
     ld hl, $4bc0
     ld de, $9000
-    call LoadMainGfx
+    call LoadMaskedGfx
     ld a, $06
     ld hl, $501e
     ld de, $c800
     ld bc, $0168
-    call Call_000_0387
+    call BankedMemcpy_RLEFF
     ld de, $c800
     ld hl, $9800
     ld bc, $1412
-    call Call_000_05f7
-    call Call_000_0f0d
+    call jr_000_05f7
+    call InitSound
 
-Call_002_4079:
+Call_002_4079::
     ld a, $28
-    call Call_000_0f32
+    call PlaySound_Queue3
     ld a, $e4
-    ld [$c0a3], a
-    ld [$c0a5], a
+    ld [wPaletteBGP], a
+    ld [wPaletteOBP1], a
     ld a, $d0
-    ld [$c0a4], a
+    ld [wPaletteOBP0], a
     ld a, $01
     ld [$d933], a
     ld hl, $78a1
@@ -89,7 +89,7 @@ Call_002_4079:
 
     ld [$d93c], a
 
-jr_002_40bd:
+jr_002_40bd::
     ld a, $01
     ld hl, $d961
     ld [hl+], a
@@ -125,7 +125,7 @@ jr_002_40bd:
 
     ld a, [$d984]
 
-jr_002_4102:
+jr_002_4102::
     ld [$d93c], a
     ret
 
@@ -174,7 +174,7 @@ jr_002_4102:
     xor a
     ld [$d802], a
 
-jr_002_4154:
+jr_002_4154::
     call Call_002_4256
     ld a, [$d96d]
     or a
@@ -188,11 +188,11 @@ jr_002_4154:
     cp [hl]
     ld b, c
 
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     and $09
     ret z
 
-jr_002_416b:
+jr_002_416b::
     ld a, $01
     ld [$d934], a
     call Call_002_4283
@@ -205,7 +205,7 @@ jr_002_416b:
     ld a, [$d93c]
     ld b, a
     ld [$d983], a
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     and $09
     ret z
 
@@ -220,22 +220,22 @@ jr_002_416b:
     ld a, $04
     ld [$dffe], a
 
-jr_002_419a:
-    ld bc, $0600
+jr_002_419a::
+    ld bc, jr_000_0600
     ld de, $0800
-    jp Jump_002_42d6
+    jp jr_002_42d6
 
 
-jr_002_41a3:
+jr_002_41a3::
     dec a
     jr nz, jr_002_41af
 
     ld bc, $0500
     ld de, $0001
-    jp Jump_002_42d6
+    jp jr_002_42d6
 
 
-jr_002_41af:
+jr_002_41af::
     ld a, $02
     ld [$d934], a
     call Call_002_4283
@@ -247,11 +247,11 @@ jr_002_41af:
     call Call_002_41e9
     ld a, [$d93c]
     ld [$d984], a
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     bit 1, a
     jr nz, jr_002_416b
 
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     and $09
     ret z
 
@@ -264,10 +264,10 @@ jr_002_41af:
     ld a, [$d93c]
     ld c, a
     ld de, $0002
-    jp Jump_002_42d6
+    jp jr_002_42d6
 
 
-Call_002_41e9:
+Call_002_41e9::
     ld a, $03
     ldh [$ffc9], a
     ld hl, $99a5
@@ -276,7 +276,7 @@ Call_002_41e9:
     ld a, h
     ldh [$ffcb], a
 
-Call_002_41f6:
+Call_002_41f6::
     ld a, [$d93c]
     ld d, a
     ld hl, $ffca
@@ -293,17 +293,17 @@ Call_002_41f6:
     rl b
     add hl, bc
     xor a
-    call Call_000_0517
-    ldh a, [$ff8b]
+    call QueueTilemapByte
+    ldh a, [hJoyPressed]
     and $c4
     jr z, jr_002_423d
 
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     bit 6, a
     jr nz, jr_002_422f
 
     ld a, $40
-    call Call_000_0f3b
+    call PlaySound
     inc d
     ldh a, [$ffc9]
     dec a
@@ -313,9 +313,9 @@ Call_002_41f6:
     ld d, $00
     jr jr_002_423d
 
-jr_002_422f:
+jr_002_422f::
     ld a, $40
-    call Call_000_0f3b
+    call PlaySound
     dec d
     bit 7, d
     jr z, jr_002_423d
@@ -324,7 +324,7 @@ jr_002_422f:
     dec a
     ld d, a
 
-jr_002_423d:
+jr_002_423d::
     pop hl
     ld a, d
     ld [$d93c], a
@@ -337,11 +337,11 @@ jr_002_423d:
     rl b
     add hl, bc
     ld a, $0e
-    call Call_000_0517
+    call QueueTilemapByte
     ret
 
 
-Call_002_4256:
+Call_002_4256::
     ld a, [$d96d]
     or a
     ret z
@@ -356,7 +356,7 @@ Call_002_4256:
     push bc
     ld d, $00
     ld e, $13
-    call Call_000_0501
+    call QueueVramFill
     ld a, $20
     pop hl
     ld bc, $ffe0
@@ -365,12 +365,12 @@ Call_002_4256:
     ld b, h
     ld d, $00
     ld e, $13
-    call Call_000_0501
+    call QueueVramFill
     call Call_000_0719
     ret
 
 
-Call_002_4283:
+Call_002_4283::
     ld a, $00
     ld [$d970], a
     ld a, [$d934]
@@ -381,14 +381,14 @@ Call_002_4283:
     ret
 
 
-Call_002_4295:
+Call_002_4295::
     ld c, $00
     ld de, $9800
 
-jr_002_429a:
+jr_002_429a::
     ld b, $03
 
-jr_002_429c:
+jr_002_429c::
     ld hl, $4386
     ld a, b
     dec a
@@ -400,7 +400,7 @@ jr_002_429c:
     push bc
     ld c, $14
 
-jr_002_42a9:
+jr_002_42a9::
     push bc
     ld a, [hl+]
     cp $ff
@@ -410,7 +410,7 @@ jr_002_42a9:
     add hl, bc
     ld a, [hl+]
 
-jr_002_42b4:
+jr_002_42b4::
     or a
     jr z, jr_002_42bb
 
@@ -418,7 +418,7 @@ jr_002_42b4:
     ldh a, [$ffc9]
     add b
 
-jr_002_42bb:
+jr_002_42bb::
     ld [de], a
     pop bc
     inc de
@@ -444,17 +444,16 @@ jr_002_42bb:
     ret
 
 
-Jump_002_42d6:
-jr_002_42d6:
+jr_002_42d6::
     ld a, e
     ld [$d95e], a
     ld a, d
     ld [$d95f], a
     ld a, $01
-    ldh [$ff8f], a
+    ldh [hNeedsReset], a
     xor a
-    ld [$c100], a
-    ldh [$ff99], a
+    ld [wVramQueue], a
+    ldh [hVramQueuePos], a
     ld [$d96d], a
     ld a, b
     rst $00
@@ -473,7 +472,7 @@ jr_002_42d6:
 
     db $6d, $43, $7d, $43
 
-Jump_002_4301:
+Jump_002_4301::
     ld a, [$d95e]
     ld c, a
     ld a, [$d95f]
@@ -481,7 +480,7 @@ Jump_002_4301:
     jr jr_002_42d6
 
     xor a
-    ldh [$ff8e], a
+    ldh [hGameState], a
     ld [$d93d], a
     ld a, c
     ld [$d934], a
@@ -493,7 +492,7 @@ Jump_002_4301:
     ld a, c
     ld [$d93d], a
     ld a, $03
-    ldh [$ff8e], a
+    ldh [hGameState], a
     ret
 
 
@@ -503,7 +502,7 @@ Jump_002_4301:
     ld [$d93b], a
     ld a, $03
     ld [$d93d], a
-    ldh [$ff8e], a
+    ldh [hGameState], a
     ld a, $3f
     ld [$d95c], a
     ret
@@ -513,14 +512,14 @@ Jump_002_4301:
     inc a
     ld [$d93e], a
     ld a, $03
-    ldh [$ff8e], a
+    ldh [hGameState], a
     xor a
     ld [$d81c], a
     ret
 
 
     ld a, $00
-    ldh [$ff8e], a
+    ldh [hGameState], a
     ld a, $04
     ld [$d93d], a
     ret
@@ -532,7 +531,7 @@ Jump_002_4301:
 
 
     ld a, $01
-    ldh [$ff8e], a
+    ldh [hGameState], a
     ld a, c
     ld [$d979], a
     xor a
@@ -541,14 +540,14 @@ Jump_002_4301:
 
 
     ld a, $04
-    ldh [$ff8e], a
+    ldh [hGameState], a
     ld a, $01
     ld [$d93d], a
     ret
 
 
     ld a, $04
-    ldh [$ff8e], a
+    ldh [hGameState], a
     ld a, c
     and $07
     ld [$d979], a
@@ -558,7 +557,7 @@ Jump_002_4301:
 
 
     ld a, $05
-    ldh [$ff8e], a
+    ldh [hGameState], a
     ld a, c
     ld [$d8f3], a
     ret
@@ -567,24 +566,24 @@ Jump_002_4301:
     db $9a, $43, $93, $43, $8c, $43, $9e, $8e, $95, $96, $97, $98, $ff, $9d, $90, $93
     db $94, $00, $9c, $ff, $8f, $91, $92, $99, $9a, $9b, $ff
 
-Jump_002_43a1:
+Jump_002_43a1::
     ld a, $06
     ld hl, $50c4
     ld de, $8900
     ld bc, $0260
-    call LoadGameGfx
+    call BankedMemcpy
     ld a, $01
     ld hl, $7e7c
     ld de, $c800
     ld bc, $0168
-    call Call_000_0387
+    call BankedMemcpy_RLEFF
     ld de, $c800
     ld hl, $9800
     ld bc, $1412
-    call Call_000_05f7
-    call Call_000_0f0d
+    call jr_000_05f7
+    call InitSound
     ld a, $1c
-    call Call_000_0f32
+    call PlaySound_Queue3
     ld hl, $78a1
     ld a, l
     ld [$d800], a
@@ -598,7 +597,7 @@ Jump_002_43a1:
     xor a
     ld [$d802], a
     ld [$d805], a
-    ld [$c100], a
+    ld [wVramQueue], a
     ld [$d93a], a
     ld [$d93b], a
     ld [$d93c], a
@@ -606,16 +605,16 @@ Jump_002_43a1:
     ld [$d95a], a
     ld [$d95b], a
     ld a, $e4
-    ld [$c0a3], a
-    ld [$c0a5], a
+    ld [wPaletteBGP], a
+    ld [wPaletteOBP1], a
     ld a, $d0
-    ld [$c0a4], a
+    ld [wPaletteOBP0], a
     ld a, $02
     ld [$d933], a
     xor a
     ld b, $14
     ld hl, $d940
-    call Call_000_0022
+    call jr_000_0022
     ret
 
 
@@ -633,20 +632,20 @@ Jump_002_43a1:
     ld de, $d940
     ld hl, $9844
     ld bc, $0a02
-    call Call_000_061f
+    call QueueTilemapRect
     jr jr_002_4452
 
-jr_002_443e:
+jr_002_443e::
     ld bc, $9844
     ld d, $00
     ld e, $0a
-    call Call_000_0501
+    call QueueVramFill
     ld bc, $9864
     ld d, $00
     ld e, $0a
-    call Call_000_0501
+    call QueueVramFill
 
-jr_002_4452:
+jr_002_4452::
     ld c, $0c
     ld b, $28
     ld d, $0c
@@ -659,17 +658,17 @@ jr_002_4452:
     ret
 
 
-jr_002_4468:
+jr_002_4468::
     ld a, [$d959]
     cp $0b
     jr nz, jr_002_4478
 
     ld bc, $0400
     ld de, $0000
-    jp Jump_002_42d6
+    jp jr_002_42d6
 
 
-jr_002_4478:
+jr_002_4478::
     cp $07
     jr c, jr_002_448a
 
@@ -681,7 +680,7 @@ jr_002_4478:
     ld a, b
     jr jr_002_44a2
 
-jr_002_448a:
+jr_002_448a::
     xor a
     ld [$dffd], a
     ld a, [$d959]
@@ -692,20 +691,20 @@ jr_002_448a:
 
     xor a
 
-jr_002_4499:
+jr_002_4499::
     ld [$dffe], a
     ld a, [$d959]
     inc a
     and $03
 
-jr_002_44a2:
+jr_002_44a2::
     ld b, $06
     ld c, a
     ld d, $08
     ld a, c
     sla a
     ld e, a
-    jp Jump_002_42d6
+    jp jr_002_42d6
 
 
     ld c, $0c
@@ -740,7 +739,7 @@ jr_002_44a2:
     ret
 
 
-jr_002_44eb:
+jr_002_44eb::
     ld hl, $46b3
     ld a, [$d93a]
     swap a
@@ -750,15 +749,15 @@ jr_002_44eb:
     swap a
     rrca
     ld b, a
-    call Call_000_0269
+    call Jump_000_0269
     ld hl, $46b8
     ld a, [$d93b]
     swap a
     rrca
     ld c, a
     ld b, $00
-    call Call_000_0269
-    ldh a, [$ff8a]
+    call Jump_000_0269
+    ldh a, [hJoyHeld]
     and $f0
     ld b, a
     ld a, [$d95a]
@@ -772,7 +771,7 @@ jr_002_44eb:
 
     ld a, $30
 
-jr_002_4523:
+jr_002_4523::
     ld [$d95b], a
     cp $30
     jr c, jr_002_452e
@@ -780,16 +779,16 @@ jr_002_4523:
     and $07
     jr z, jr_002_4536
 
-jr_002_452e:
+jr_002_452e::
     ld b, $00
     jr jr_002_4536
 
-jr_002_4532:
+jr_002_4532::
     xor a
     ld [$d95b], a
 
-jr_002_4536:
-    ldh a, [$ff8a]
+jr_002_4536::
+    ldh a, [hJoyHeld]
     ld [$d95a], a
     ld a, b
     ld b, $00
@@ -799,33 +798,33 @@ jr_002_4536:
 
     ld c, $02
 
-jr_002_4546:
+jr_002_4546::
     bit 6, a
     jr z, jr_002_454c
 
     ld c, $fe
 
-jr_002_454c:
+jr_002_454c::
     bit 5, a
     jr z, jr_002_4552
 
     ld b, $ff
 
-jr_002_4552:
+jr_002_4552::
     bit 4, a
     jr z, jr_002_4558
 
     ld b, $01
 
-jr_002_4558:
+jr_002_4558::
     ld a, b
     or c
     jr z, jr_002_4561
 
     ld a, $5d
-    call Call_000_0f3b
+    call PlaySound
 
-jr_002_4561:
+jr_002_4561::
     ld a, [$d93a]
     add b
     bit 7, a
@@ -833,25 +832,25 @@ jr_002_4561:
 
     ld a, $10
 
-jr_002_456b:
+jr_002_456b::
     cp $11
     jr c, jr_002_4570
 
     xor a
 
-jr_002_4570:
+jr_002_4570::
     cp $05
     jr nz, jr_002_4575
 
     add b
 
-jr_002_4575:
+jr_002_4575::
     cp $0b
     jr nz, jr_002_457a
 
     add b
 
-jr_002_457a:
+jr_002_457a::
     ld [$d93a], a
     ld a, [$d93c]
     add c
@@ -860,18 +859,18 @@ jr_002_457a:
 
     ld a, $08
 
-jr_002_4587:
+jr_002_4587::
     cp $09
     jr c, jr_002_458c
 
     xor a
 
-jr_002_458c:
+jr_002_458c::
     ld [$d93c], a
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     bit 0, a
     call nz, Call_002_45c6
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     bit 1, a
     jr z, jr_002_45a3
 
@@ -879,8 +878,8 @@ jr_002_458c:
     dec a
     ld [$d93b], a
 
-jr_002_45a3:
-    ldh a, [$ff8b]
+jr_002_45a3::
+    ldh a, [hJoyPressed]
     bit 3, a
     call nz, Call_002_4635
     ld a, [$d93b]
@@ -894,26 +893,26 @@ jr_002_45a3:
     ret
 
 
-jr_002_45bc:
+jr_002_45bc::
     cp $0a
     jr c, jr_002_45c5
 
     ld a, $09
     ld [$d93b], a
 
-jr_002_45c5:
+jr_002_45c5::
     ret
 
 
-Call_002_45c6:
+Call_002_45c6::
     ld a, $40
-    call Call_000_0f3b
+    call PlaySound
     ld hl, $c879
     ld a, [$d93c]
     inc a
     ld bc, $0014
 
-jr_002_45d5:
+jr_002_45d5::
     add hl, bc
     dec a
     jr nz, jr_002_45d5
@@ -930,7 +929,7 @@ jr_002_45d5:
     ret
 
 
-jr_002_45ea:
+jr_002_45ea::
     cp $b4
     jr nz, jr_002_45f6
 
@@ -940,7 +939,7 @@ jr_002_45ea:
     ret
 
 
-jr_002_45f6:
+jr_002_45f6::
     cp $b5
     jr nz, jr_002_45fe
 
@@ -948,7 +947,7 @@ jr_002_45f6:
     ret
 
 
-jr_002_45fe:
+jr_002_45fe::
     ld d, [hl]
     ld bc, $ffec
     add hl, bc
@@ -959,13 +958,13 @@ jr_002_45fe:
 
     ld e, $00
 
-jr_002_460b:
+jr_002_460b::
     cp $92
     jr nz, jr_002_4611
 
     ld e, $00
 
-jr_002_4611:
+jr_002_4611::
     ld a, [$d93b]
     ld c, a
     ld b, $00
@@ -981,21 +980,21 @@ jr_002_4611:
     ld de, $d940
     ld hl, $9844
     ld bc, $0a02
-    call Call_000_061f
+    call QueueTilemapRect
     ret
 
 
-Call_002_4635:
+Call_002_4635::
     xor a
     ld [$d959], a
     ld hl, $4705
 
-jr_002_463c:
+jr_002_463c::
     ld de, $d940
     ld c, $00
     push hl
 
-jr_002_4642:
+jr_002_4642::
     inc c
     ld a, c
     cp $15
@@ -1020,20 +1019,20 @@ jr_002_4642:
     ld de, $46e5
     ld hl, $9804
     ld bc, $0a02
-    call Call_000_061f
+    call QueueTilemapRect
     ld a, $01
     ld [$d958], a
     ld a, $53
-    call Call_000_0f3b
+    call PlaySound
     ret
 
 
-jr_002_4676:
+jr_002_4676::
     pop hl
     ld de, $46d1
     ld hl, $9804
     ld bc, $0a02
-    call Call_000_061f
+    call QueueTilemapRect
     ld a, $02
     ld [$d93d], a
     ld a, $c0
@@ -1041,15 +1040,15 @@ jr_002_4676:
     ret
 
 
-Call_002_468e:
-    ldh a, [$ff8b]
+Call_002_468e::
+    ldh a, [hJoyPressed]
     bit 0, a
     ret z
 
     ld de, $46bd
     ld hl, $9804
     ld bc, $0a02
-    call Call_000_061f
+    call QueueTilemapRect
     xor a
     ld [$d958], a
     ret
@@ -1108,7 +1107,7 @@ Call_002_468e:
     sub d
     sub d
 
-jr_002_46da:
+jr_002_46da::
     sub d
     ld de, $5917
     ld a, l
@@ -1167,7 +1166,7 @@ jr_002_46da:
     ld d, $23
     jr z, jr_002_4752
 
-jr_002_4752:
+jr_002_4752::
     nop
     nop
     nop
@@ -1211,10 +1210,10 @@ jr_002_4752:
     nop
     nop
 
-jr_002_4781:
+jr_002_4781::
     ld b, l
 
-jr_002_4782:
+jr_002_4782::
     nop
     nop
     nop
@@ -1300,7 +1299,7 @@ jr_002_4782:
     db $10
     dec [hl]
 
-jr_002_47d9:
+jr_002_47d9::
     dec d
     inc h
     add hl, de
@@ -1328,24 +1327,24 @@ jr_002_47d9:
     nop
     nop
 
-Jump_002_47f5:
+Jump_002_47f5::
     xor a
-    ldh [$ff8f], a
+    ldh [hNeedsReset], a
     ld a, $83
-    ld [$c0a2], a
+    ld [wLCDCShadow], a
     xor a
-    ldh [$ff92], a
-    ldh [$ff90], a
+    ldh [hSCX], a
+    ldh [hSCY], a
     ld a, $e4
-    ld hl, $c0a3
+    ld hl, wPaletteBGP
     ld [hl+], a
     ld [hl+], a
 
-jr_002_4809:
+jr_002_4809::
     ld [hl], a
-    call Call_000_0f0d
+    call InitSound
     ld a, $18
-    call Call_000_0f32
+    call PlaySound_Queue3
     call Call_000_02f8
     ld a, $02
     ld [$d970], a
@@ -1353,14 +1352,14 @@ jr_002_4809:
     call Call_000_0710
     xor a
     ld [$d93c], a
-    ld [$c100], a
+    ld [wVramQueue], a
     ld a, $04
     ld [$d933], a
     xor a
     ld b, $04
     ld hl, $d940
 
-jr_002_4831:
+jr_002_4831::
     xor a
     ld [hl+], a
     dec b
@@ -1375,21 +1374,21 @@ jr_002_4831:
     ld a, [hl]
     ld d, a
     push hl
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     bit 4, a
     jr z, jr_002_4848
 
     inc d
 
-jr_002_4848:
-    ldh a, [$ff8b]
+jr_002_4848::
+    ldh a, [hJoyPressed]
     bit 5, a
     jr z, jr_002_484f
 
     dec d
 
-jr_002_484f:
-    ldh a, [$ff8b]
+jr_002_484f::
+    ldh a, [hJoyPressed]
     bit 0, a
     jr nz, jr_002_4893
 
@@ -1403,14 +1402,14 @@ jr_002_484f:
     ld d, b
     dec d
 
-jr_002_4863:
+jr_002_4863::
     ld a, d
     cp b
     jr c, jr_002_4869
 
     ld d, $00
 
-jr_002_4869:
+jr_002_4869::
     pop hl
     ld [hl], d
     ld a, d
@@ -1423,7 +1422,7 @@ jr_002_4869:
     rst $38
     ld a, d
     add $05
-    call Call_000_0517
+    call QueueTilemapByte
     ld a, $04
     ldh [$ffc9], a
     ld hl, $98a5
@@ -1435,7 +1434,7 @@ jr_002_4869:
     ret
 
 
-jr_002_4893:
+jr_002_4893::
     pop hl
     ld a, [$d93c]
     rst $00
@@ -1453,21 +1452,21 @@ jr_002_4893:
 
     ld c, a
     ld de, $0400
-    jp Jump_002_42d6
+    jp jr_002_42d6
 
 
     ld a, [$d940]
     ld c, a
     ld b, $08
     ld de, $0400
-    jp Jump_002_42d6
+    jp jr_002_42d6
 
 
     ld b, $09
     ld a, [$d942]
     ld c, a
     ld de, $0400
-    jp Jump_002_42d6
+    jp jr_002_42d6
 
 
     ld a, [$d943]
@@ -1475,21 +1474,21 @@ jr_002_4893:
     ldh [$ffb9], a
     ld bc, $0100
     ld de, $0400
-    jp Jump_002_42d6
+    jp jr_002_42d6
 
 
     ld [$0204], sp
     inc bc
 
     xor a
-    ldh [$ff8f], a
-    ld [$c100], a
+    ldh [hNeedsReset], a
+    ld [wVramQueue], a
     ld [$d932], a
     xor a
-    ldh [$ff92], a
-    ldh [$ff90], a
+    ldh [hSCX], a
+    ldh [hSCY], a
     ld a, $e4
-    ld hl, $c0a3
+    ld hl, wPaletteBGP
     ld [hl+], a
     ld [hl+], a
     ld [hl], a
@@ -1507,17 +1506,17 @@ jr_002_4893:
 
     db $d2, $4b, $86, $58, $84, $5f, $b6, $50
 
-jr_002_490b:
-    ldh a, [$ff9c]
-    ldh [$ff9b], a
+jr_002_490b::
+    ldh a, [hPrevOamPos]
+    ldh [hOamWritePos], a
     xor a
     ld [$dd9f], a
     ld a, $f9
-    ld [$c0a3], a
+    ld [wPaletteBGP], a
     ld a, $f4
-    ld [$c0a4], a
-    ld [$c0a5], a
-    ldh a, [$ff8b]
+    ld [wPaletteOBP0], a
+    ld [wPaletteOBP1], a
+    ldh a, [hJoyPressed]
     bit 3, a
     ret z
 
@@ -1526,22 +1525,22 @@ jr_002_490b:
     ld a, $80
     ld [$dd9f], a
     ld a, $5e
-    call Call_000_0f38
+    call PlaySound_Queue1
     ld a, $e4
-    ld [$c0a3], a
+    ld [wPaletteBGP], a
     ld a, $d0
-    ld [$c0a4], a
+    ld [wPaletteOBP0], a
     ld a, $e0
-    ld [$c0a5], a
+    ld [wPaletteOBP1], a
     ret
 
 
     call Call_002_4a26
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     bit 3, a
     ret z
 
-Jump_002_494b:
+Jump_002_494b::
     ld a, $01
     ld [$d93d], a
     ld a, $ff
@@ -1551,7 +1550,7 @@ Jump_002_494b:
     ret
 
 
-Call_002_495b:
+Call_002_495b::
     ld a, [$d978]
     rrc a
     ld b, a
@@ -1561,7 +1560,7 @@ Call_002_495b:
     ret
 
 
-Call_002_4968:
+Call_002_4968::
     call Call_002_495b
     ld b, $00
     cp $55
@@ -1573,12 +1572,12 @@ Call_002_4968:
 
     inc b
 
-jr_002_4977:
+jr_002_4977::
     ld a, b
     ret
 
 
-Call_002_4979:
+Call_002_4979::
     ld a, [$d852]
     dec a
     ld [$d852], a
@@ -1590,7 +1589,7 @@ Call_002_4979:
     ld hl, $d855
     ld b, $03
 
-jr_002_498c:
+jr_002_498c::
     dec [hl]
     ld a, [hl]
     bit 7, a
@@ -1606,7 +1605,7 @@ jr_002_498c:
     ret
 
 
-jr_002_499c:
+jr_002_499c::
     ld hl, $d853
     ld a, [hl+]
     add $04
@@ -1631,15 +1630,15 @@ jr_002_499c:
     xor a
     ld [hl], a
 
-jr_002_49bf:
+jr_002_49bf::
     ld de, $ffc9
     ld hl, $9a28
     ld bc, $0301
-    call Call_000_061f
+    call QueueTilemapRect
     ret
 
 
-Jump_002_49cc:
+Jump_002_49cc::
     xor a
     ld [$d955], a
     ld a, [$d811]
@@ -1663,18 +1662,18 @@ Jump_002_49cc:
 
     ld [hl], a
 
-jr_002_49f2:
+jr_002_49f2::
     jp Jump_002_494b
 
 
-Call_002_49f5:
+Call_002_49f5::
     ld a, [$dff8]
     or a
     ret z
 
     ld b, $07
 
-jr_002_49fc:
+jr_002_49fc::
     push de
     ld a, [de]
     ld c, a
@@ -1684,14 +1683,14 @@ jr_002_49fc:
     ld d, a
     ld c, $10
 
-jr_002_4a05:
+jr_002_4a05::
     sla e
     rl d
     jr nc, jr_002_4a0d
 
     ld [hl], $00
 
-jr_002_4a0d:
+jr_002_4a0d::
     inc hl
     dec c
     jr nz, jr_002_4a05
@@ -1707,16 +1706,16 @@ jr_002_4a0d:
     ret
 
 
-Call_002_4a1b:
+Call_002_4a1b::
     ld a, $01
     ld [$d932], a
     ld a, $5e
-    call Call_000_0f38
+    call PlaySound_Queue1
     ret
 
 
-Call_002_4a26:
-    ldh a, [$ff8b]
+Call_002_4a26::
+    ldh a, [hJoyPressed]
     and $04
     ret z
 
@@ -1726,7 +1725,7 @@ Call_002_4a26:
 
     ld a, [$d811]
     ld b, a
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     bit 2, a
     jr z, jr_002_4a49
 
@@ -1741,14 +1740,14 @@ Call_002_4a26:
 
     ld b, $01
 
-jr_002_4a49:
+jr_002_4a49::
     ld a, b
     cp $0b
     jr c, jr_002_4a50
 
     ld b, $01
 
-jr_002_4a50:
+jr_002_4a50::
     ld hl, $9a30
     ld a, [$d93e]
     cp $03
@@ -1756,7 +1755,7 @@ jr_002_4a50:
 
     ld hl, $9bf0
 
-jr_002_4a5d:
+jr_002_4a5d::
     ld a, b
     ld [$d811], a
     add $04
@@ -1765,8 +1764,8 @@ jr_002_4a5d:
 
     ld a, $c5
 
-jr_002_4a69:
-    call Call_000_0517
+jr_002_4a69::
+    call QueueTilemapByte
     ret
 
 
@@ -1784,11 +1783,11 @@ jr_002_4a69:
     ld hl, $5701
     ld de, $8d00
     ld bc, $0300
-    call LoadGameGfx
+    call BankedMemcpy
 
-jr_002_4a8f:
+jr_002_4a8f::
     ld a, $e4
-    ld hl, $c0a3
+    ld hl, wPaletteBGP
     ld [hl+], a
     ld a, $d0
     ld [hl+], a
@@ -1800,45 +1799,45 @@ jr_002_4a8f:
     ld a, $06
     ld hl, $5334
     ld de, $8130
-    call LoadMainGfx
+    call LoadMaskedGfx
     ld a, $06
     ld hl, $53ec
     ld de, $8300
-    call LoadMainGfx
+    call LoadMaskedGfx
     ld a, $06
     ld hl, $50c4
     ld de, $8800
     ld bc, $0200
-    call LoadGameGfx
+    call BankedMemcpy
     ld a, $06
     ld hl, $5556
     ld de, $8a00
-    call LoadMainGfx
+    call LoadMaskedGfx
     ld a, [$d93d]
     cp $03
     jr z, jr_002_4b08
 
     ld a, $e3
-    ld [$c0a2], a
+    ld [wLCDCShadow], a
     ld hl, $5787
     ld de, $c800
     ld bc, $0168
     ld a, $06
-    call Call_000_0387
+    call BankedMemcpy_RLEFF
     ld hl, $9800
     ld bc, $1412
     ld de, $c800
-    call Call_000_05f7
+    call jr_000_05f7
     ld a, $03
     ld [$d933], a
-    call Call_000_0f0d
+    call InitSound
     ld a, $00
-    call Call_000_0f32
+    call PlaySound_Queue3
     jr jr_002_4b40
 
-jr_002_4b08:
+jr_002_4b08::
     ld a, $83
-    ld [$c0a2], a
+    ld [wLCDCShadow], a
     xor a
     ldh [$ffc9], a
     call Call_002_4295
@@ -1857,13 +1856,13 @@ jr_002_4b08:
     ld hl, $99a0
     ld bc, $0303
     ld de, $c800
-    call Call_000_05f7
+    call jr_000_05f7
 
-jr_002_4b3b:
+jr_002_4b3b::
     ld a, $14
     ld [$d933], a
 
-jr_002_4b40:
+jr_002_4b40::
     ld hl, $78e0
     ld a, l
     ld [$d800], a
@@ -1889,20 +1888,20 @@ jr_002_4b40:
     ld a, $06
     ld hl, $4bc0
     ld de, $9000
-    call LoadMainGfx
+    call LoadMaskedGfx
     ld a, [$d93b]
     sub $03
     add $5a
     jr jr_002_4b8e
 
-jr_002_4b84:
+jr_002_4b84::
     push af
-    call Call_000_0f0d
+    call InitSound
     ld a, $00
-    call Call_000_0f32
+    call PlaySound_Queue3
     pop af
 
-jr_002_4b8e:
+jr_002_4b8e::
     call Call_000_0710
     ld hl, $7901
     ld a, l
@@ -1914,13 +1913,13 @@ jr_002_4b8e:
     ret
 
 
-jr_002_4ba2:
+jr_002_4ba2::
     call Call_002_4fb1
     ld a, [$d93d]
     cp $06
     ret z
 
-Jump_002_4bab:
+Jump_002_4bab::
     ldh a, [$ffb9]
     or a
     ret nz
@@ -1967,7 +1966,7 @@ Jump_002_4bab:
 
     ld b, $00
 
-jr_002_4c04:
+jr_002_4c04::
     ld a, [$d93a]
     add b
     ld [$d93a], a
@@ -1978,7 +1977,7 @@ jr_002_4c04:
     ld hl, $4ff1
     ld b, $05
 
-jr_002_4c19:
+jr_002_4c19::
     ld a, [$d93a]
     cp [hl]
     jr z, jr_002_4c24
@@ -1990,7 +1989,7 @@ jr_002_4c19:
     ret
 
 
-jr_002_4c24:
+jr_002_4c24::
     dec b
     ld a, b
     cp $04
@@ -2014,7 +2013,7 @@ jr_002_4c24:
     ret
 
 
-jr_002_4c47:
+jr_002_4c47::
     ld a, $3f
     ld [$d95c], a
     ld a, $04
@@ -2032,7 +2031,7 @@ jr_002_4c47:
     ld de, $0000
     ld a, [$d960]
     cp $04
-    jp z, Jump_002_42d6
+    jp z, jr_002_42d6
 
     ld a, [$d979]
     ld e, a
@@ -2040,7 +2039,7 @@ jr_002_4c47:
     ld c, a
     ld b, $06
     ld d, $08
-    jp Jump_002_42d6
+    jp jr_002_42d6
 
 
     ret
@@ -2053,7 +2052,7 @@ jr_002_4c47:
     ld b, $7f
     ld d, $0e
     call Call_000_0791
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     bit 0, a
     jr z, jr_002_4cc8
 
@@ -2084,11 +2083,11 @@ jr_002_4c47:
     ldh a, [$ffb9]
     dec a
     ldh [$ffb9], a
-    call Call_000_0e6e
+    call Jump_000_0e6e
     ret
 
 
-jr_002_4cc8:
+jr_002_4cc8::
     ld a, [$d954]
     dec a
     ld [$d954], a
@@ -2097,10 +2096,10 @@ jr_002_4cc8:
 
     xor a
     ld [$d954], a
-    ldh a, [$ff8a]
+    ldh a, [hJoyHeld]
     bit 4, a
     call nz, Call_002_4d47
-    ldh a, [$ff8a]
+    ldh a, [hJoyHeld]
     bit 5, a
     call nz, Call_002_4d51
     ret
@@ -2122,9 +2121,9 @@ jr_002_4cc8:
     jr nz, jr_002_4d03
 
     ld a, $54
-    call Call_000_0f3b
+    call PlaySound
 
-jr_002_4d03:
+jr_002_4d03::
     ld a, [$d93a]
     ld c, a
     ld b, $7f
@@ -2152,7 +2151,7 @@ jr_002_4d03:
     ld de, $0106
     ld a, [hl]
     or a
-    jp z, Jump_002_42d6
+    jp z, jr_002_42d6
 
     xor a
     ld [hl], a
@@ -2160,16 +2159,16 @@ jr_002_4d03:
     ld a, [$d93b]
     ld c, a
     ld de, $0106
-    jp Jump_002_42d6
+    jp jr_002_42d6
 
 
-Call_002_4d47:
+Call_002_4d47::
     ld a, $01
     ld [$d967], a
     ld hl, $78e0
     jr jr_002_4d5e
 
-Call_002_4d51:
+Call_002_4d51::
     ld a, [$d93b]
     or a
     ret z
@@ -2178,7 +2177,7 @@ Call_002_4d51:
     ld [$d967], a
     ld hl, $78eb
 
-jr_002_4d5e:
+jr_002_4d5e::
     ld a, l
     ld [$d800], a
     ld a, h
@@ -2190,16 +2189,16 @@ jr_002_4d5e:
     ret
 
 
-Call_002_4d71:
+Call_002_4d71::
     xor a
     ld [$d96d], a
     ld d, $82
     ld bc, $9883
 
-jr_002_4d7a:
+jr_002_4d7a::
     ld e, $0e
     push bc
-    call Call_000_0501
+    call QueueVramFill
     pop bc
     ld d, $00
     ld a, $20
@@ -2215,7 +2214,7 @@ jr_002_4d7a:
     ret
 
 
-Call_002_4d91:
+Call_002_4d91::
     ld a, [$d93c]
     inc a
     ld [$d93c], a
@@ -2225,18 +2224,18 @@ Call_002_4d91:
 
     ld c, $08
 
-jr_002_4da0:
+jr_002_4da0::
     ld b, $00
     push bc
     ld hl, $4ff2
-    call Call_000_0269
+    call Jump_000_0269
     pop bc
     ld a, c
     xor $08
     ld c, a
     ld b, $18
     ld hl, $4ff2
-    call Call_000_0269
+    call Jump_000_0269
     ld a, [$d93c]
     ld b, $00
     and $10
@@ -2244,18 +2243,18 @@ jr_002_4da0:
 
     ld b, $08
 
-jr_002_4dc1:
+jr_002_4dc1::
     ld c, $00
     push bc
     ld hl, $5013
-    call Call_000_0269
+    call Jump_000_0269
     pop bc
     ld a, b
     xor $08
     ld b, a
     ld c, $78
     ld hl, $5013
-    call Call_000_0269
+    call Jump_000_0269
     ret
 
 
@@ -2285,12 +2284,12 @@ jr_002_4dc1:
 
     xor a
 
-jr_002_4e06:
+jr_002_4e06::
     ld hl, $99cf
-    call Call_000_0517
+    call QueueTilemapByte
 
-jr_002_4e0c:
-    ldh a, [$ff8b]
+jr_002_4e0c::
+    ldh a, [hJoyPressed]
     bit 0, a
     ret z
 
@@ -2300,11 +2299,11 @@ jr_002_4e0c:
     ld [$d93d], a
     xor a
     ld hl, $99cf
-    call Call_000_0517
+    call QueueTilemapByte
     ret
 
 
-jr_002_4e23:
+jr_002_4e23::
     ld a, [$d93b]
     cp $05
     ret z
@@ -2338,7 +2337,7 @@ jr_002_4e23:
     ld e, a
     ld a, [$d95f]
     ld d, a
-    jp Jump_002_42d6
+    jp jr_002_42d6
 
 
     call Call_000_0719
@@ -2350,7 +2349,7 @@ jr_002_4e23:
     call Call_000_0791
     ld a, [$d93b]
     cp $01
-    jp nz, Jump_002_4efe
+    jp nz, jr_002_4efe
 
     ld a, [$d95d]
     or a
@@ -2365,11 +2364,11 @@ jr_002_4e23:
     jr nz, jr_002_4e9a
 
     ld hl, $98a7
-    ld bc, $0501
+    ld bc, QueueVramFill
     ld de, $5018
-    call Call_000_061f
+    call QueueTilemapRect
 
-jr_002_4e9a:
+jr_002_4e9a::
     ld a, [$d956]
     inc a
     cp $40
@@ -2377,13 +2376,13 @@ jr_002_4e9a:
 
     ld a, $60
 
-jr_002_4ea4:
+jr_002_4ea4::
     ld [$d956], a
     ld a, [$d955]
     bit 7, a
     jr nz, jr_002_4eee
 
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     bit 0, a
     jr z, jr_002_4ec0
 
@@ -2396,7 +2395,7 @@ jr_002_4ea4:
     ret
 
 
-jr_002_4ec0:
+jr_002_4ec0::
     ld a, [$d955]
     inc a
     cp $0c
@@ -2404,7 +2403,7 @@ jr_002_4ec0:
 
     xor a
 
-jr_002_4ec9:
+jr_002_4ec9::
     ld [$d955], a
     and $03
     ret nz
@@ -2420,11 +2419,11 @@ jr_002_4ec9:
     call Call_000_0710
     ld bc, $98c6
     ld de, $0004
-    call Call_000_0501
+    call QueueVramFill
     ret
 
 
-jr_002_4eee:
+jr_002_4eee::
     inc a
     ld [$d955], a
     cp $e0
@@ -2432,10 +2431,9 @@ jr_002_4eee:
 
     ld bc, $98c6
     ld de, $0004
-    call Call_000_0501
+    call QueueVramFill
 
-Jump_002_4efe:
-jr_002_4efe:
+jr_002_4efe::
     ld a, [$d954]
     inc a
     ld [$d954], a
@@ -2459,11 +2457,11 @@ jr_002_4efe:
 
     ld [hl], $0a
 
-jr_002_4f25:
+jr_002_4f25::
     ld a, [$d93b]
     add $05
 
-jr_002_4f2a:
+jr_002_4f2a::
     call Call_000_0710
     ld a, [$d93b]
     cp $01
@@ -2474,11 +2472,11 @@ jr_002_4f2a:
     ret nz
 
     ld a, $46
-    call Call_000_0f38
+    call PlaySound_Queue1
     ret
 
 
-jr_002_4f3e:
+jr_002_4f3e::
     ld a, [$d954]
     cp $60
     jr nz, jr_002_4fa0
@@ -2492,25 +2490,25 @@ jr_002_4f3e:
     jr nz, jr_002_4f58
 
     ld a, $0f
-    call Call_000_0eba
+    call Jump_000_0eba
     jr jr_002_4f6f
 
-jr_002_4f58:
+jr_002_4f58::
     dec a
     jr nz, jr_002_4f67
 
     ld a, [$d971]
     sub $0a
     ldh [$ffbb], a
-    call Call_000_0e02
+    call Jump_000_0e02
     jr jr_002_4f6f
 
-jr_002_4f67:
-    call Call_000_0ef9
+jr_002_4f67::
+    call jr_000_0ef9
     ld a, $46
-    call Call_000_0f38
+    call PlaySound_Queue1
 
-jr_002_4f6f:
+jr_002_4f6f::
     ld a, [$d93b]
     ld hl, $d961
     rst $38
@@ -2522,18 +2520,18 @@ jr_002_4f6f:
 
     ld a, $c1
 
-jr_002_4f81:
+jr_002_4f81::
     add $04
     inc d
     ld bc, $0005
     ld hl, $9960
 
-jr_002_4f8a:
+jr_002_4f8a::
     add hl, bc
     dec d
     jr nz, jr_002_4f8a
 
-    call Call_000_0517
+    call QueueTilemapByte
     call Call_002_4d71
     ld a, $80
     ld [$d970], a
@@ -2541,7 +2539,7 @@ jr_002_4f8a:
     inc a
     call Call_000_0710
 
-jr_002_4fa0:
+jr_002_4fa0::
     ld a, [$d954]
     cp $60
     ret c
@@ -2552,12 +2550,12 @@ jr_002_4fa0:
     jp Jump_002_4bab
 
 
-Call_002_4fb1:
+Call_002_4fb1::
     ld b, $03
     ld hl, $9965
     ld de, $d961
 
-jr_002_4fb9:
+jr_002_4fb9::
     ld a, [de]
     inc de
     cp $0a
@@ -2565,7 +2563,7 @@ jr_002_4fb9:
 
     ld a, $c1
 
-jr_002_4fc1:
+jr_002_4fc1::
     add $04
     ld [hl], a
     push bc
@@ -2592,7 +2590,7 @@ jr_002_4fc1:
     ld c, $0d
     ld d, $01
 
-jr_002_4fe5:
+jr_002_4fe5::
     ld a, d
     ldh [$ffca], a
     ld a, c
@@ -2605,16 +2603,16 @@ jr_002_4fe5:
     db $10, $00, $80, $af, $10, $80, $08, $10, $af, $10, $80, $c7, $c8, $c9, $ca, $7d
 
     ld a, $83
-    ld [$c0a2], a
+    ld [wLCDCShadow], a
     xor a
-    ldh [$ff92], a
+    ldh [hSCX], a
     ld a, $70
-    ldh [$ff90], a
+    ldh [hSCY], a
     ld a, $e4
-    ld [$c0a3], a
+    ld [wPaletteBGP], a
     ld a, $d0
-    ld [$c0a4], a
-    ld [$c0a5], a
+    ld [wPaletteOBP0], a
+    ld [wPaletteOBP1], a
     xor a
     ld [$d824], a
     ld [$d956], a
@@ -2627,16 +2625,16 @@ jr_002_4fe5:
     ld a, $05
     ld hl, $7481
     ld de, $8000
-    call LoadMainGfx
+    call LoadMaskedGfx
     ld a, $04
     ld hl, $79da
     ld de, $c800
     ld bc, $1000
-    call Call_000_0387
+    call BankedMemcpy_RLEFF
     xor a
     ld [$d81d], a
 
-jr_002_5065:
+jr_002_5065::
     ld b, $1e
     ld a, [$d81d]
     or a
@@ -2644,14 +2642,14 @@ jr_002_5065:
 
     ld b, $20
 
-jr_002_506f:
+jr_002_506f::
     ld hl, $c800
     ld de, $9800
 
-jr_002_5075:
+jr_002_5075::
     ld c, $20
 
-jr_002_5077:
+jr_002_5077::
     ld a, [hl+]
     ld [de], a
     inc de
@@ -2670,13 +2668,13 @@ jr_002_5077:
     ld b, $40
     xor a
 
-jr_002_508c:
+jr_002_508c::
     ld [de], a
     inc de
     dec b
     jr nz, jr_002_508c
 
-jr_002_5091:
+jr_002_5091::
     ld a, [$d81d]
     or a
     jp nz, Jump_002_5140
@@ -2689,9 +2687,9 @@ jr_002_5091:
     ld [$d970], a
     ld a, $4d
     call Call_000_0710
-    call Call_000_0f0d
+    call InitSound
     ld a, $18
-    call Call_000_0f32
+    call PlaySound_Queue3
     xor a
     ld [$d93d], a
     ret
@@ -2701,7 +2699,7 @@ jr_002_5091:
     cp $02
     jr c, jr_002_50d7
 
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     bit 3, a
     jr z, jr_002_50d7
 
@@ -2711,15 +2709,15 @@ jr_002_5091:
 
     ld a, $01
     ld [$d81d], a
-    ldh [$ff8f], a
+    ldh [hNeedsReset], a
     ld [$d81c], a
     ret
 
 
-jr_002_50d4:
+jr_002_50d4::
     call Call_002_4a1b
 
-jr_002_50d7:
+jr_002_50d7::
     ld a, [$d93d]
     rst $00
 
@@ -2729,21 +2727,21 @@ jr_002_50d7:
     ld d, e
 
     call Call_002_4a26
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     bit 3, a
     ret z
 
-Jump_002_50f1:
+Jump_002_50f1::
     ld a, $01
     ld [$d93d], a
     ld a, $60
     ld [$d954], a
     ld bc, $9bc0
     ld de, $0014
-    call Call_000_0501
+    call QueueVramFill
     ld bc, $9be0
     ld de, $0014
-    call Call_000_0501
+    call QueueVramFill
     ld a, [$d811]
     ld [$d971], a
     xor a
@@ -2762,13 +2760,13 @@ Jump_002_50f1:
     ld de, $d700
     ld hl, $9bc0
     ld bc, $2001
-    call Call_000_061f
+    call QueueTilemapRect
     ld de, $d780
     ld hl, $9be0
     ld bc, $2001
-    call Call_000_061f
+    call QueueTilemapRect
 
-Jump_002_5140:
+Jump_002_5140::
     ld a, $02
     ld [$d93d], a
     xor a
@@ -2788,9 +2786,9 @@ Jump_002_5140:
     ld [hl], $00
     ld a, $01
     ld [$d95d], a
-    call Call_000_0f0d
+    call InitSound
     ld a, $30
-    call Call_000_0f32
+    call PlaySound_Queue3
     ret
 
 
@@ -2814,10 +2812,10 @@ Jump_002_5140:
     ld [$d816], a
     ld [$d817], a
     ld [$d818], a
-    jp Jump_002_52f1
+    jp jr_002_52f1
 
 
-jr_002_519a:
+jr_002_519a::
     ld hl, $0080
     ld a, l
     ld [$d815], a
@@ -2826,10 +2824,10 @@ jr_002_519a:
     xor a
     ld [$d817], a
     ld [$d818], a
-    jp Jump_002_52f1
+    jp jr_002_52f1
 
 
-Jump_002_51af:
+Jump_002_51af::
     ld d, $9e
     cp $80
     jr nc, jr_002_51d2
@@ -2848,10 +2846,10 @@ Jump_002_51af:
     ld [$d817], a
     ld a, h
     ld [$d818], a
-    jp Jump_002_52f1
+    jp jr_002_52f1
 
 
-jr_002_51d2:
+jr_002_51d2::
     cp $b0
     jp nc, Jump_002_5261
 
@@ -2873,7 +2871,7 @@ jr_002_51d2:
 
     ld hl, $7a58
 
-jr_002_51f4:
+jr_002_51f4::
     ld a, l
     ld [$d803], a
     ld a, h
@@ -2883,20 +2881,20 @@ jr_002_51f4:
     ld a, $01
     ld [$d824], a
 
-jr_002_5205:
+jr_002_5205::
     xor a
     ld [$d819], a
     ld [$d817], a
     ld [$d818], a
     ld a, $e4
     ld [$d822], a
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     ld b, a
     ld a, [$d81d]
     and b
-    jp z, Jump_002_52f1
+    jp z, jr_002_52f1
 
-jr_002_521e:
+jr_002_521e::
     ld a, [$d811]
     dec a
     ld hl, $5704
@@ -2906,7 +2904,7 @@ jr_002_521e:
     ld a, h
     ld [$d81b], a
     ld a, $42
-    call Call_000_0f3b
+    call PlaySound
     ld a, $03
     ld [$d93d], a
     ld hl, $0180
@@ -2919,7 +2917,7 @@ jr_002_521e:
 
     ld hl, $01c0
 
-jr_002_5249:
+jr_002_5249::
     ld a, l
     ld [$d815], a
     ld a, h
@@ -2930,10 +2928,10 @@ jr_002_5249:
     ld a, h
     ld [$d818], a
     ld d, $9e
-    jp Jump_002_52f1
+    jp jr_002_52f1
 
 
-Jump_002_5261:
+Jump_002_5261::
     ld a, [$d81d]
     or a
     jr z, jr_002_521e
@@ -2952,7 +2950,7 @@ Jump_002_5261:
 
     ld d, $a1
 
-jr_002_527f:
+jr_002_527f::
     ld a, $f1
     ld [$d822], a
     xor a
@@ -2975,13 +2973,13 @@ jr_002_527f:
     ld a, $05
     ld [$d93d], a
     push de
-    call Call_000_0f0d
+    call InitSound
     ld a, $38
-    call Call_000_0f32
+    call PlaySound_Queue3
     pop de
     jr jr_002_52f1
 
-jr_002_52b9:
+jr_002_52b9::
     ld a, [$d815]
     add $03
     ld [$d815], a
@@ -2995,13 +2993,13 @@ jr_002_52b9:
     ld a, $05
     ld [$d93d], a
     push de
-    call Call_000_0f0d
+    call InitSound
     ld a, $38
-    call Call_000_0f32
+    call PlaySound_Queue3
     pop de
     jr jr_002_52f1
 
-jr_002_52e1:
+jr_002_52e1::
     ld a, [$d817]
     add $04
     ld [$d817], a
@@ -3009,8 +3007,7 @@ jr_002_52e1:
     adc $00
     ld [$d818], a
 
-Jump_002_52f1:
-jr_002_52f1:
+jr_002_52f1::
     ld a, d
     ldh [$ffc9], a
     call Call_002_5419
@@ -3031,7 +3028,7 @@ jr_002_52f1:
 
     ld a, $a0
     ld [$d819], a
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     bit 0, a
     ret z
 
@@ -3050,7 +3047,7 @@ jr_002_52f1:
 
     ld d, $9d
 
-jr_002_5337:
+jr_002_5337::
     ld a, d
     ldh [$ffc9], a
     call Call_002_5419
@@ -3078,12 +3075,12 @@ jr_002_5337:
     ret
 
 
-jr_002_5363:
+jr_002_5363::
     ld a, $04
     ld [$d93d], a
-    call Call_000_0f0d
+    call InitSound
     ld a, $34
-    call Call_000_0f32
+    call PlaySound_Queue3
     ld hl, $7a36
     ld a, [$d811]
     cp $0a
@@ -3091,16 +3088,16 @@ jr_002_5363:
 
     ld hl, $7a61
 
-jr_002_537d:
+jr_002_537d::
     ld a, [$d81d]
     or a
     jr nz, jr_002_538b
 
     ld a, $5b
-    call Call_000_0f3b
+    call PlaySound
     ld hl, $7a43
 
-jr_002_538b:
+jr_002_538b::
     ld a, l
     ld [$d800], a
     ld a, h
@@ -3130,7 +3127,7 @@ jr_002_538b:
     cp $07
     jr c, jr_002_53d0
 
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     ld b, a
     ld a, [$d81d]
     and b
@@ -3139,7 +3136,7 @@ jr_002_538b:
     ld a, [$d954]
     ld [$d955], a
 
-jr_002_53d0:
+jr_002_53d0::
     ld a, [$d954]
     inc a
     ld [$d954], a
@@ -3147,7 +3144,7 @@ jr_002_53d0:
     ret nz
 
     ld a, $5c
-    call Call_000_0f3b
+    call PlaySound
     ld hl, $d81a
     ld a, [hl+]
     ld h, [hl]
@@ -3167,7 +3164,7 @@ jr_002_53d0:
 
     ld hl, $ff84
 
-jr_002_53fc:
+jr_002_53fc::
     ld a, l
     ld [$d815], a
     ld a, h
@@ -3184,7 +3181,7 @@ jr_002_53fc:
     ret
 
 
-Call_002_5419:
+Call_002_5419::
     ld a, [$d93d]
     cp $05
     jr z, jr_002_5456
@@ -3196,7 +3193,7 @@ Call_002_5419:
 
     ld b, $ff
 
-jr_002_542b:
+jr_002_542b::
     ld hl, $d81e
     ld a, [$d815]
     add [hl]
@@ -3214,7 +3211,7 @@ jr_002_542b:
 
     ld b, $ff
 
-jr_002_5446:
+jr_002_5446::
     ld hl, $d821
     ld a, [$d817]
     add [hl]
@@ -3226,7 +3223,7 @@ jr_002_5446:
     adc [hl]
     ld [hl], a
 
-jr_002_5456:
+jr_002_5456::
     ld hl, $d81f
     ld a, [hl+]
     ld h, [hl]
@@ -3238,14 +3235,14 @@ jr_002_5456:
 
     ld hl, $0000
 
-jr_002_5467:
+jr_002_5467::
     ld a, h
     cp $03
     jr c, jr_002_546f
 
     ld hl, $0300
 
-jr_002_546f:
+jr_002_546f::
     ld a, l
     ld [$d812], a
     ld a, h
@@ -3272,20 +3269,20 @@ jr_002_546f:
     ld l, $00
     jr jr_002_549f
 
-jr_002_5498:
+jr_002_5498::
     ld a, l
     cp $70
     jr c, jr_002_549f
 
     ld l, $70
 
-jr_002_549f:
+jr_002_549f::
     ld a, l
     ld [$d814], a
     ld a, [$d812]
-    ldh [$ff92], a
+    ldh [hSCX], a
     ld a, [$d814]
-    ldh [$ff90], a
+    ldh [hSCY], a
     ld a, [$d812]
     ld c, a
     ld a, [$d81f]
@@ -3308,9 +3305,9 @@ jr_002_549f:
 
     ld e, $01
 
-jr_002_54d2:
+jr_002_54d2::
     ld a, e
-    ldh [$ff9d], a
+    ldh [hSpriteFlags], a
     ld a, [$d81d]
     or a
     jr nz, jr_002_54f1
@@ -3321,25 +3318,25 @@ jr_002_54d2:
 
     ld a, $a8
 
-jr_002_54e3:
+jr_002_54e3::
     cp $9d
     jr nz, jr_002_54e9
 
     ld a, $a6
 
-jr_002_54e9:
+jr_002_54e9::
     cp $9e
     jr nz, jr_002_54ef
 
     ld a, $a7
 
-jr_002_54ef:
+jr_002_54ef::
     ldh [$ffc9], a
 
-jr_002_54f1:
+jr_002_54f1::
     ldh a, [$ffc9]
     ld d, a
-    call Call_000_0794
+    call jr_000_0794
     ld a, [$d824]
     or a
     ret z
@@ -3369,7 +3366,7 @@ jr_002_54f1:
     ret
 
 
-Call_002_5521:
+Call_002_5521::
     ld hl, $d81a
     ld a, [hl+]
     ld h, [hl]
@@ -3399,7 +3396,7 @@ Call_002_5521:
     ld hl, $5704
     rst $20
 
-jr_002_5547:
+jr_002_5547::
     ld d, $ab
     ld a, [$d93d]
     cp $06
@@ -3415,14 +3412,14 @@ jr_002_5547:
 
     ld d, $ac
 
-jr_002_555c:
+jr_002_555c::
     ld a, d
     ldh [$ffc9], a
     ld e, [hl]
     inc hl
     ld d, [hl]
     inc hl
-    ldh a, [$ff90]
+    ldh a, [hSCY]
     ld b, a
     ld a, [hl+]
     sub b
@@ -3467,12 +3464,12 @@ jr_002_555c:
     or a
     jr z, jr_002_55a5
 
-jr_002_559f:
+jr_002_559f::
     ldh a, [$ffc9]
     ld d, a
     call Call_000_0791
 
-jr_002_55a5:
+jr_002_55a5::
     pop hl
     ld a, [hl]
     cp $ff
@@ -3481,7 +3478,7 @@ jr_002_55a5:
     ret
 
 
-Call_002_55ac:
+Call_002_55ac::
     ld a, [$d818]
     bit 7, a
     ret nz
@@ -3535,7 +3532,7 @@ Call_002_55ac:
 
     ld c, $40
 
-jr_002_55f7:
+jr_002_55f7::
     ld a, b
     cp c
     ret nc
@@ -3553,7 +3550,7 @@ jr_002_55f7:
 
     ld a, $07
 
-jr_002_560e:
+jr_002_560e::
     ld [$d955], a
     xor a
     ld [$d954], a
@@ -3573,7 +3570,7 @@ jr_002_560e:
 
     cpl
 
-jr_002_562e:
+jr_002_562e::
     ld [$d815], a
     ld [$d816], a
     ld hl, $7a4e
@@ -3588,19 +3585,19 @@ jr_002_562e:
     ret
 
 
-jr_002_5649:
+jr_002_5649::
     ld a, [$d95d]
     or a
     ret z
 
     ld a, $44
-    call Call_000_0f3b
+    call PlaySound
     xor a
     ld [$d95d], a
     ret
 
 
-Call_002_5658:
+Call_002_5658::
     ld e, $14
     ld a, [$d816]
     bit 7, a
@@ -3608,7 +3605,7 @@ Call_002_5658:
 
     ld e, $fe
 
-jr_002_5663:
+jr_002_5663::
     ld hl, $d812
     ld a, [hl+]
     ld h, [hl]
@@ -3641,7 +3638,7 @@ jr_002_5663:
     rst $38
     ld b, $20
 
-jr_002_5694:
+jr_002_5694::
     ld a, [hl]
     ld [de], a
     inc de
@@ -3652,9 +3649,9 @@ jr_002_5694:
 
     xor a
     ld [de], a
-    ldh a, [$ff99]
+    ldh a, [hVramQueuePos]
     add $23
-    ldh [$ff99], a
+    ldh [hVramQueuePos], a
     ret
 
 
@@ -3676,7 +3673,7 @@ jr_002_5694:
 
     ld a, $a0
     ld [$d819], a
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     bit 0, a
     ret z
 
@@ -3698,19 +3695,19 @@ jr_002_5694:
 
     ld [hl], a
 
-jr_002_56ed:
+jr_002_56ed::
     xor a
     ld [$d81d], a
     ld a, $01
-    ldh [$ff8f], a
+    ldh [hNeedsReset], a
     ld [$d81c], a
     ret
 
 
-jr_002_56f9:
+jr_002_56f9::
     ld a, $01
     ld [$d81d], a
-    ldh [$ff8f], a
+    ldh [hNeedsReset], a
     ld [$d81c], a
     ret
 
@@ -3791,7 +3788,7 @@ jr_002_56f9:
     ld b, b
     add b
 
-jr_002_5772:
+jr_002_5772::
     adc b
     ld [bc], a
     and b
@@ -3802,7 +3799,7 @@ jr_002_5772:
 
     xor b
 
-jr_002_577b:
+jr_002_577b::
     add b
     ld h, b
     ld bc, $8048
@@ -3810,7 +3807,7 @@ jr_002_577b:
     ld bc, $80d8
     add sp, $01
 
-jr_002_5786:
+jr_002_5786::
     add b
     add b
     jr z, jr_002_578c
@@ -3818,7 +3815,7 @@ jr_002_5786:
     add b
     ret nz
 
-jr_002_578c:
+jr_002_578c::
     add sp, $01
     add b
     ld b, d
@@ -3895,7 +3892,7 @@ jr_002_578c:
 
     add b
 
-jr_002_57f2:
+jr_002_57f2::
     ld a, b
     ld [bc], a
     ld [hl], b
@@ -3914,7 +3911,7 @@ jr_002_57f2:
 
     ld [hl], b
 
-jr_002_5803:
+jr_002_5803::
     inc bc
     jr nz, jr_002_5786
 
@@ -3939,41 +3936,41 @@ jr_002_5803:
     rst $38
 
     ld a, $83
-    ld [$c0a2], a
+    ld [wLCDCShadow], a
     xor a
-    ldh [$ff92], a
-    ldh [$ff90], a
+    ldh [hSCX], a
+    ldh [hSCY], a
     ld [$d84d], a
     ld a, $e4
-    ld [$c0a3], a
+    ld [wPaletteBGP], a
     ld a, $d0
-    ld [$c0a4], a
+    ld [wPaletteOBP0], a
     ld a, $e0
-    ld [$c0a5], a
+    ld [wPaletteOBP1], a
     ld a, $06
     ld hl, $5851
     ld de, $8000
-    call LoadMainGfx
+    call LoadMaskedGfx
     ld a, $06
     ld hl, $6839
     ld de, $8000
-    call LoadMainGfx
+    call LoadMaskedGfx
     ld a, $06
     ld hl, $6e44
     ld de, $8900
-    call LoadMainGfx
+    call LoadMaskedGfx
     ld a, $06
     ld hl, $6fe5
     ld de, $c800
     ld bc, $0168
-    call Call_000_0387
+    call BankedMemcpy_RLEFF
     ld de, $c800
     ld hl, $9800
     ld bc, $1412
-    call Call_000_05f7
-    call Call_000_0f0d
+    call jr_000_05f7
+    call InitSound
     ld a, $18
-    call Call_000_0f32
+    call PlaySound_Queue3
     xor a
     ld [$d93d], a
     ld [$d84b], a
@@ -3989,28 +3986,28 @@ jr_002_5803:
     dec a
     ld [$d84d], a
     ld a, $1b
-    ld [$c0a3], a
-    ld [$c0a4], a
-    ld [$c0a5], a
+    ld [wPaletteBGP], a
+    ld [wPaletteOBP0], a
+    ld [wPaletteOBP1], a
     jr jr_002_58bd
 
-jr_002_589d:
+jr_002_589d::
     ld a, $e4
-    ld [$c0a3], a
+    ld [wPaletteBGP], a
     ld a, $d0
-    ld [$c0a4], a
+    ld [wPaletteOBP0], a
     ld a, $e0
-    ld [$c0a5], a
+    ld [wPaletteOBP1], a
     ld a, [$dff8]
     or a
     jr z, jr_002_58bd
 
     ld a, $e4
-    ld [$c0a3], a
-    ld [$c0a4], a
-    ld [$c0a5], a
+    ld [wPaletteBGP], a
+    ld [wPaletteOBP0], a
+    ld [wPaletteOBP1], a
 
-jr_002_58bd:
+jr_002_58bd::
     ld a, [$d93d]
     rst $00
 
@@ -4041,16 +4038,16 @@ jr_002_58bd:
     call Call_000_0710
     ld bc, $9a01
     ld de, $ac11
-    call Call_000_0501
+    call QueueVramFill
     ld bc, $9a21
     ld de, $0011
-    call Call_000_0501
+    call QueueVramFill
     ld a, $04
     ld [$d852], a
     ret
 
 
-jr_002_590c:
+jr_002_590c::
     ld a, [$d954]
     dec a
     ld [$d954], a
@@ -4059,19 +4056,19 @@ jr_002_590c:
     or b
     jp nz, Jump_002_59cd
 
-    call Call_000_0f0d
+    call InitSound
     ld a, $2c
-    call Call_000_0f32
+    call PlaySound_Queue3
     ld bc, $9928
     ld de, $0004
-    call Call_000_0501
+    call QueueVramFill
     ld bc, $9948
     ld de, $0004
-    call Call_000_0501
+    call QueueVramFill
     ld de, $5ece
     ld hl, $9a01
     ld bc, $1102
-    call Call_000_061f
+    call QueueTilemapRect
     ld a, $02
     ld [$d93d], a
     xor a
@@ -4095,8 +4092,8 @@ jr_002_590c:
     inc hl
     dec b
 
-jr_002_5968:
-    call Call_000_061f
+jr_002_5968::
+    call QueueTilemapRect
     ld a, [$d811]
     dec a
     ld b, a
@@ -4134,7 +4131,7 @@ jr_002_5968:
     ld b, $04
     ld hl, $d82b
 
-jr_002_59ba:
+jr_002_59ba::
     xor a
     ld [hl+], a
     xor a
@@ -4154,7 +4151,7 @@ jr_002_59ba:
     ret
 
 
-Jump_002_59cd:
+Jump_002_59cd::
     ld a, [$d954]
     or a
     ret nz
@@ -4168,10 +4165,10 @@ Jump_002_59cd:
     call Call_000_0710
     ld bc, $9a26
     ld de, $0008
-    call Call_000_0501
+    call QueueVramFill
     ld hl, $9a0c
     ld a, $ac
-    call Call_000_0517
+    call QueueTilemapByte
     ld a, $32
     ld [$d954], a
     ld a, [$d852]
@@ -4181,12 +4178,12 @@ Jump_002_59cd:
 
     ld a, $5a
 
-jr_002_5a02:
-    call Call_000_0f3b
+jr_002_5a02::
+    call PlaySound
     ret
 
 
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     bit 3, a
     call nz, Call_002_4a1b
     ld a, [$d976]
@@ -4208,10 +4205,10 @@ jr_002_5a02:
     dec a
     ld [$d84e], a
 
-jr_002_5a2f:
+jr_002_5a2f::
     ld a, [$d850]
     or a
-    jp z, Jump_002_5abe
+    jp z, jr_002_5abe
 
     ld c, a
     ld a, [$d84f]
@@ -4222,7 +4219,7 @@ jr_002_5a2f:
     dec a
     ld [$d850], a
 
-jr_002_5a45:
+jr_002_5a45::
     ld a, [$d84f]
     and $7f
     swap a
@@ -4235,10 +4232,10 @@ jr_002_5a45:
 
     ld a, $02
 
-jr_002_5a58:
-    ldh [$ff9d], a
+jr_002_5a58::
+    ldh [hSpriteFlags], a
     ld d, $76
-    call Call_000_0794
+    call jr_000_0794
     ld a, [$d976]
     ld b, a
     ld a, [$d84f]
@@ -4256,7 +4253,7 @@ jr_002_5a58:
     ld a, $20
     ld [$d84d], a
     ld a, $49
-    call Call_000_0f38
+    call PlaySound_Queue1
     xor a
     ld c, a
     ld [$d850], a
@@ -4264,7 +4261,7 @@ jr_002_5a58:
     ld de, $0008
     ld b, $04
 
-jr_002_5a8d:
+jr_002_5a8d::
     push hl
     ld a, [hl]
     res 3, [hl]
@@ -4284,7 +4281,7 @@ jr_002_5a8d:
 
     inc c
 
-jr_002_5aa4:
+jr_002_5aa4::
     pop hl
     add hl, de
     dec b
@@ -4297,16 +4294,15 @@ jr_002_5aa4:
 
     ld c, $05
 
-jr_002_5ab2:
+jr_002_5ab2::
     srl a
     ld b, a
     ld hl, $5f0e
     call Call_002_6509
     jp nc, Jump_002_5d58
 
-Jump_002_5abe:
-jr_002_5abe:
-    ldh a, [$ff8b]
+jr_002_5abe::
+    ldh a, [hJoyPressed]
     and $03
     jr z, jr_002_5aed
 
@@ -4321,7 +4317,7 @@ jr_002_5abe:
     xor a
     ld [$d828], a
     ld a, $50
-    call Call_000_0f3b
+    call PlaySound
     ld hl, $79b7
     ld a, l
     ld [$d800], a
@@ -4330,7 +4326,7 @@ jr_002_5abe:
     xor a
     ld [$d802], a
 
-jr_002_5aed:
+jr_002_5aed::
     call Call_002_5b7f
     call Call_002_4979
     or a
@@ -4346,13 +4342,13 @@ jr_002_5aed:
     xor a
     ld [$d802], a
     ld [$d954], a
-    call Call_000_0f0d
+    call InitSound
     ld a, $38
-    call Call_000_0f32
+    call PlaySound_Queue3
     ret
 
 
-jr_002_5b16:
+jr_002_5b16::
     ld a, [$d84c]
     dec a
     ld [$d84c], a
@@ -4370,10 +4366,10 @@ jr_002_5b16:
     xor a
     ld [$d802], a
 
-jr_002_5b32:
+jr_002_5b32::
     xor a
     ld [$d84c], a
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     ld b, a
     ld a, [$d976]
     bit 6, b
@@ -4384,7 +4380,7 @@ jr_002_5b32:
 
     dec a
 
-jr_002_5b44:
+jr_002_5b44::
     bit 7, b
     jr z, jr_002_5b4d
 
@@ -4393,7 +4389,7 @@ jr_002_5b44:
 
     inc a
 
-jr_002_5b4d:
+jr_002_5b4d::
     ld [$d976], a
     ld hl, $d828
     ld a, [hl+]
@@ -4424,13 +4420,13 @@ jr_002_5b4d:
     ret
 
 
-jr_002_5b7a:
+jr_002_5b7a::
     xor a
     ld [$d829], a
     ret
 
 
-Call_002_5b7f:
+Call_002_5b7f::
     call Call_002_5e5a
     ldh a, [$ffcb]
     ldh [$ffcc], a
@@ -4440,7 +4436,7 @@ Call_002_5b7f:
     ldh [$ffcd], a
     ld hl, $d84b
 
-Jump_002_5b90:
+Jump_002_5b90::
     ldh a, [$ffcd]
     dec a
     ldh [$ffca], a
@@ -4458,7 +4454,7 @@ Jump_002_5b90:
     set 1, [hl]
     res 3, [hl]
 
-jr_002_5bac:
+jr_002_5bac::
     ld a, [hl+]
     ld d, a
     and $07
@@ -4469,7 +4465,7 @@ jr_002_5bac:
     inc a
     ldh [$ffcb], a
 
-jr_002_5bb9:
+jr_002_5bb9::
     ld bc, $0200
     bit 1, d
     jr nz, jr_002_5bd4
@@ -4484,20 +4480,20 @@ jr_002_5bb9:
 
     add $0a
 
-jr_002_5bcf:
+jr_002_5bcf::
     rst $20
     ld c, l
     ld b, h
     pop de
     pop hl
 
-jr_002_5bd4:
+jr_002_5bd4::
     bit 3, d
     jr z, jr_002_5bdb
 
     ld bc, $0000
 
-jr_002_5bdb:
+jr_002_5bdb::
     ld a, c
     add [hl]
     ld [hl+], a
@@ -4520,12 +4516,12 @@ jr_002_5bdb:
     xor a
     ld [$d802], a
     ld [$d954], a
-    call Call_000_0f0d
+    call InitSound
     ld a, $38
-    call Call_000_0f32
+    call PlaySound_Queue3
     pop hl
 
-jr_002_5c08:
+jr_002_5c08::
     inc hl
     inc hl
     ld a, [hl]
@@ -4562,7 +4558,7 @@ jr_002_5c08:
 
     ld c, $00
 
-jr_002_5c3d:
+jr_002_5c3d::
     call Call_002_495b
     and $07
     cp c
@@ -4571,7 +4567,7 @@ jr_002_5c3d:
 
     ld a, $01
 
-jr_002_5c49:
+jr_002_5c49::
     ld [hl+], a
     inc hl
     ld a, [$d84e]
@@ -4590,7 +4586,7 @@ jr_002_5c49:
     dec a
     ld [$d84f], a
 
-jr_002_5c67:
+jr_002_5c67::
     ld a, [$d84f]
     bit 7, a
     jr nz, jr_002_5c7e
@@ -4606,7 +4602,7 @@ jr_002_5c67:
     sub $14
     ld [$d850], a
 
-jr_002_5c7e:
+jr_002_5c7e::
     ld a, [hl+]
     ld c, a
     inc hl
@@ -4628,7 +4624,7 @@ jr_002_5c7e:
     ld [de], a
     jr jr_002_5ca5
 
-jr_002_5c97:
+jr_002_5c97::
     dec [hl]
     ld a, [hl]
     or a
@@ -4643,7 +4639,7 @@ jr_002_5c97:
     ld a, c
     ld [hl-], a
 
-jr_002_5ca5:
+jr_002_5ca5::
     dec hl
     push hl
     ldh a, [$ffc9]
@@ -4658,20 +4654,20 @@ jr_002_5ca5:
 
     ld a, $04
 
-jr_002_5cb9:
+jr_002_5cb9::
     bit 3, d
     jr z, jr_002_5cbf
 
     ld a, $05
 
-jr_002_5cbf:
+jr_002_5cbf::
     ld hl, $5eac
     bit 0, d
     jr z, jr_002_5cc9
 
     ld hl, $5eb2
 
-jr_002_5cc9:
+jr_002_5cc9::
     rst $38
     ld d, [hl]
     call Call_000_0785
@@ -4705,9 +4701,9 @@ jr_002_5cc9:
     ld a, $78
     ld [$d84c], a
     ld a, $51
-    call Call_000_0f3b
+    call PlaySound
 
-jr_002_5d00:
+jr_002_5d00::
     inc hl
     ld bc, $fd80
     ld a, [hl]
@@ -4720,7 +4716,7 @@ jr_002_5d00:
 
     xor a
 
-jr_002_5d0e:
+jr_002_5d0e::
     ld [hl], a
     ld c, a
     ldh a, [$ffc9]
@@ -4728,7 +4724,7 @@ jr_002_5d0e:
     ld d, $72
     call Call_000_0791
 
-jr_002_5d18:
+jr_002_5d18::
     pop hl
     ldh a, [$ffcd]
     dec a
@@ -4748,7 +4744,7 @@ jr_002_5d18:
     jr c, jr_002_5d91
 
     ld a, $52
-    call Call_000_0f3b
+    call PlaySound
     xor a
     ld [$d829], a
     dec hl
@@ -4764,7 +4760,7 @@ jr_002_5d18:
     call Call_002_6509
     jr c, jr_002_5d82
 
-Jump_002_5d58:
+Jump_002_5d58::
     ld a, $04
     ld [$d93d], a
     ld hl, $79be
@@ -4774,7 +4770,7 @@ Jump_002_5d58:
 
     ld hl, $79d4
 
-jr_002_5d6a:
+jr_002_5d6a::
     ld a, l
     ld [$d800], a
     ld a, h
@@ -4782,13 +4778,13 @@ jr_002_5d6a:
     xor a
     ld [$d802], a
     ld [$d954], a
-    call Call_000_0f0d
+    call InitSound
     ld a, $34
-    call Call_000_0f32
+    call PlaySound_Queue3
     ret
 
 
-jr_002_5d82:
+jr_002_5d82::
     ld a, [$d82a]
     ld b, a
     ld a, [$d84f]
@@ -4800,7 +4796,7 @@ jr_002_5d82:
     ret
 
 
-jr_002_5d91:
+jr_002_5d91::
     inc hl
     inc hl
     inc hl
@@ -4833,7 +4829,7 @@ jr_002_5d91:
     ld b, $04
     ld hl, $d84b
 
-jr_002_5dbb:
+jr_002_5dbb::
     push bc
     ld e, b
     ld bc, $fff8
@@ -4845,7 +4841,7 @@ jr_002_5dbb:
 
     ld d, $02
 
-jr_002_5dca:
+jr_002_5dca::
     inc hl
     inc hl
     ld a, e
@@ -4862,20 +4858,20 @@ jr_002_5dca:
 
     ld a, $02
 
-jr_002_5dde:
-    ldh [$ff9d], a
+jr_002_5dde::
+    ldh [hSpriteFlags], a
     ld a, [$d954]
     bit 4, a
     jr nz, jr_002_5de8
 
     inc d
 
-jr_002_5de8:
+jr_002_5de8::
     ld a, d
     ld hl, $5ec2
     rst $38
     ld d, [hl]
-    call Call_000_0794
+    call jr_000_0794
     pop hl
     pop bc
     dec b
@@ -4889,7 +4885,7 @@ jr_002_5de8:
 
     ld a, $01
     ld [$d95d], a
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     bit 0, a
     jp nz, Jump_002_49cc
 
@@ -4907,7 +4903,7 @@ jr_002_5de8:
     ld de, $0008
     ld b, $04
 
-jr_002_5e21:
+jr_002_5e21::
     ld [hl], a
     add hl, de
     dec b
@@ -4933,7 +4929,7 @@ jr_002_5e21:
 
     ld a, $a0
     ld [$d954], a
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     bit 0, a
     ret z
 
@@ -4943,7 +4939,7 @@ jr_002_5e21:
     jp Jump_002_49cc
 
 
-Call_002_5e5a:
+Call_002_5e5a::
     ld a, [$d955]
     inc a
     ld [$d955], a
@@ -4956,11 +4952,11 @@ Call_002_5e5a:
     ld d, h
     ld hl, $9823
 
-jr_002_5e70:
+jr_002_5e70::
     push de
     push hl
     ld bc, $0102
-    call Call_000_061f
+    call QueueTilemapRect
     pop hl
     pop de
     ld bc, $0080
@@ -5027,7 +5023,7 @@ jr_002_5e70:
 
     nop
     dec b
-    ld bc, $0600
+    ld bc, jr_000_0600
     ld bc, $0700
     ld bc, $0800
     ld bc, $0900
@@ -5059,33 +5055,33 @@ jr_002_5e70:
     inc b
 
     ld a, $83
-    ld [$c0a2], a
+    ld [wLCDCShadow], a
     xor a
-    ldh [$ff92], a
-    ldh [$ff90], a
+    ldh [hSCX], a
+    ldh [hSCY], a
     ld a, $8c
-    ldh [$ff9a], a
+    ldh [hOamMaxY], a
     ld a, $e4
-    ld [$c0a3], a
-    ld [$c0a5], a
+    ld [wPaletteBGP], a
+    ld [wPaletteOBP1], a
     ld a, $d0
-    ld [$c0a4], a
+    ld [wPaletteOBP0], a
     ld a, $06
     ld hl, $5851
     ld de, $8000
-    call LoadMainGfx
+    call LoadMaskedGfx
     ld a, $06
     ld hl, $60db
     ld de, $c800
     ld bc, $0168
-    call Call_000_0387
+    call BankedMemcpy_RLEFF
     ld de, $c800
     ld hl, $9800
     ld bc, $1412
-    call Call_000_05f7
-    call Call_000_0f0d
+    call jr_000_05f7
+    call InitSound
     ld a, $18
-    call Call_000_0f32
+    call PlaySound_Queue3
     xor a
     ld [$d93d], a
     ld [$d955], a
@@ -5125,16 +5121,16 @@ jr_002_5e70:
     call Call_000_0710
     ld bc, $9a01
     ld de, $9111
-    call Call_000_0501
+    call QueueVramFill
     ld bc, $9a21
     ld de, $0011
-    call Call_000_0501
+    call QueueVramFill
     ld a, $04
     ld [$d852], a
     ret
 
 
-jr_002_5fe1:
+jr_002_5fe1::
     ld a, [$d954]
     dec a
     ld [$d954], a
@@ -5143,19 +5139,19 @@ jr_002_5fe1:
     or b
     jp nz, Jump_002_60a2
 
-    call Call_000_0f0d
+    call InitSound
     ld a, $24
-    call Call_000_0f32
+    call PlaySound_Queue3
     ld de, $6706
     ld hl, $9a01
     ld bc, $1102
-    call Call_000_061f
+    call QueueTilemapRect
     ld bc, $9948
     ld de, $0004
-    call Call_000_0501
+    call QueueVramFill
     ld hl, $9929
     xor a
-    call Call_000_0517
+    call QueueTilemapByte
     ld a, [$d811]
     ld b, a
     sla a
@@ -5174,8 +5170,8 @@ jr_002_5fe1:
     inc hl
     dec b
 
-jr_002_602f:
-    call Call_000_061f
+jr_002_602f::
+    call QueueTilemapRect
     xor a
     ld [$d853], a
     ld a, $09
@@ -5210,7 +5206,7 @@ jr_002_602f:
     ld de, $d8e2
     ld b, $10
 
-jr_002_6084:
+jr_002_6084::
     ld a, [hl+]
     ld [de], a
     inc de
@@ -5222,7 +5218,7 @@ jr_002_6084:
     ld bc, $0008
     ld d, $10
 
-jr_002_6094:
+jr_002_6094::
     ld [hl], a
     add hl, bc
     dec d
@@ -5234,7 +5230,7 @@ jr_002_6094:
     ret
 
 
-Jump_002_60a2:
+Jump_002_60a2::
     ld a, [$d954]
     or a
     ret nz
@@ -5248,10 +5244,10 @@ Jump_002_60a2:
     call Call_000_0710
     ld bc, $9a26
     ld de, $0008
-    call Call_000_0501
+    call QueueVramFill
     ld hl, $9a0c
     ld a, $91
-    call Call_000_0517
+    call QueueTilemapByte
     ld a, $32
     ld [$d954], a
     ld a, [$d852]
@@ -5261,15 +5257,15 @@ Jump_002_60a2:
 
     ld a, $5a
 
-jr_002_60d7:
-    call Call_000_0f3b
+jr_002_60d7::
+    call PlaySound
     ret
 
 
     ld a, [$d957]
     inc a
     ld [$d957], a
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     bit 3, a
     call nz, Call_002_4a1b
     ld a, [$d975]
@@ -5288,9 +5284,9 @@ jr_002_60d7:
     jr z, jr_002_6108
 
     xor a
-    ldh [$ff9b], a
+    ldh [hOamWritePos], a
 
-jr_002_6108:
+jr_002_6108::
     call Call_002_65b3
     call Call_002_64d9
     ld a, [$d85c]
@@ -5313,19 +5309,19 @@ jr_002_6108:
     ld [$d95d], a
     ld a, $90
     ld [$d954], a
-    call Call_000_0f0d
+    call InitSound
     ld a, $38
-    call Call_000_0f32
+    call PlaySound_Queue3
 
-jr_002_6141:
+jr_002_6141::
     ld a, [$d85a]
     dec a
     ld [$d85a], a
     cp $60
-    jp nc, Jump_002_6204
+    jp nc, jr_002_6204
 
     and $0f
-    jp nz, Jump_002_6204
+    jp nz, jr_002_6204
 
     ld a, [$d859]
     sla a
@@ -5343,22 +5339,21 @@ jr_002_6141:
 
     ld a, [$d8dd]
     cp $04
-    jp z, Jump_002_6176
+    jp z, jr_002_6176
 
     ld de, $675c
 
-Jump_002_6176:
-jr_002_6176:
+jr_002_6176::
     ld bc, $0301
-    call Call_000_061f
+    call QueueTilemapRect
     pop hl
     ld a, [$d85a]
     or a
-    jp nz, Jump_002_6204
+    jp nz, jr_002_6204
 
     ld a, [$d8dd]
     cp $04
-    jp z, Jump_002_6204
+    jp z, jr_002_6204
 
     inc hl
     ld a, [hl+]
@@ -5375,7 +5370,7 @@ jr_002_6176:
     and $07
     ld b, $00
 
-jr_002_61a4:
+jr_002_61a4::
     sub [hl]
     jr c, jr_002_61ab
 
@@ -5383,7 +5378,7 @@ jr_002_61a4:
     inc hl
     jr jr_002_61a4
 
-jr_002_61ab:
+jr_002_61ab::
     ld a, b
     ldh [$ffcb], a
     ld a, [$d859]
@@ -5403,16 +5398,16 @@ jr_002_61ab:
     inc hl
     jr jr_002_61cc
 
-jr_002_61c8:
+jr_002_61c8::
     call Call_002_4968
     rst $38
 
-jr_002_61cc:
+jr_002_61cc::
     ld d, [hl]
     ld hl, $d85d
     ld b, $10
 
-jr_002_61d2:
+jr_002_61d2::
     ld a, [hl]
     bit 7, a
     jr nz, jr_002_61df
@@ -5424,7 +5419,7 @@ jr_002_61d2:
 
     jr jr_002_6204
 
-jr_002_61df:
+jr_002_61df::
     ldh a, [$ffcb]
     ld [hl+], a
     ld [hl], d
@@ -5448,17 +5443,16 @@ jr_002_61df:
     and $03
     ld [$d859], a
 
-Jump_002_6204:
-jr_002_6204:
+jr_002_6204::
     ld b, $10
     ld hl, $d85d
 
-Jump_002_6209:
+Jump_002_6209::
     push bc
     push hl
     ld a, [hl]
     and $c0
-    jp nz, Jump_002_6290
+    jp nz, jr_002_6290
 
     ld a, [hl]
     push hl
@@ -5493,13 +5487,13 @@ Jump_002_6209:
     cpl
     inc a
 
-jr_002_623c:
+jr_002_623c::
     bit 0, b
     jr nz, jr_002_6241
 
     inc hl
 
-jr_002_6241:
+jr_002_6241::
     add [hl]
     ld [hl], a
     pop hl
@@ -5517,7 +5511,7 @@ jr_002_6241:
     ld [hl], a
     jr jr_002_6290
 
-jr_002_6255:
+jr_002_6255::
     inc hl
     ld a, [hl]
     ld b, a
@@ -5534,7 +5528,7 @@ jr_002_6255:
     ld [hl], a
     jr jr_002_6290
 
-jr_002_6268:
+jr_002_6268::
     dec hl
     dec hl
     ld a, [$d85c]
@@ -5543,7 +5537,7 @@ jr_002_6268:
 
     scf
 
-jr_002_6272:
+jr_002_6272::
     ld a, [hl-]
     rla
     ld d, a
@@ -5560,15 +5554,14 @@ jr_002_6272:
 
     xor a
 
-jr_002_6287:
-    ldh [$ff9d], a
+jr_002_6287::
+    ldh [hSpriteFlags], a
     ld a, d
     and $7f
     ld d, a
-    call Call_000_0794
+    call jr_000_0794
 
-Jump_002_6290:
-jr_002_6290:
+jr_002_6290::
     pop hl
     ld bc, $0008
     add hl, bc
@@ -5591,7 +5584,7 @@ jr_002_6290:
     ret
 
 
-Call_002_62a9:
+Call_002_62a9::
     ld a, [hl]
     and $01
     jr z, jr_002_62cd
@@ -5622,7 +5615,7 @@ Call_002_62a9:
     ret
 
 
-jr_002_62cd:
+jr_002_62cd::
     ld bc, $0005
     add hl, bc
     dec [hl]
@@ -5645,7 +5638,7 @@ jr_002_62cd:
     and $fc
     jr nz, jr_002_6310
 
-jr_002_62eb:
+jr_002_62eb::
     ld a, d
     inc a
     cp $02
@@ -5653,7 +5646,7 @@ jr_002_62eb:
 
     ld a, $ff
 
-jr_002_62f3:
+jr_002_62f3::
     ld d, a
     add [hl]
     ld b, a
@@ -5664,14 +5657,14 @@ jr_002_62f3:
 
     ld c, $c4
 
-jr_002_62ff:
+jr_002_62ff::
     inc hl
     bit 0, b
     jr nz, jr_002_6305
 
     inc hl
 
-jr_002_6305:
+jr_002_6305::
     ld a, c
     add [hl]
     pop hl
@@ -5681,7 +5674,7 @@ jr_002_6305:
     cp $88
     jr nc, jr_002_62eb
 
-jr_002_6310:
+jr_002_6310::
     ld a, d
     add [hl]
     and $03
@@ -5689,7 +5682,7 @@ jr_002_6310:
     ret
 
 
-jr_002_6316:
+jr_002_6316::
     ld a, [hl]
     or a
     ret nz
@@ -5701,7 +5694,7 @@ jr_002_6316:
     ret
 
 
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     bit 0, a
     jr z, jr_002_634c
 
@@ -5724,8 +5717,8 @@ jr_002_6316:
     ret
 
 
-jr_002_634c:
-    ldh a, [$ff8a]
+jr_002_634c::
+    ldh a, [hJoyHeld]
     and $f0
     jr nz, jr_002_635a
 
@@ -5735,7 +5728,7 @@ jr_002_634c:
     ret
 
 
-jr_002_635a:
+jr_002_635a::
     ld bc, $0180
     ld a, [$d85b]
     add c
@@ -5745,7 +5738,7 @@ jr_002_635a:
     ld c, a
     ld d, $00
     ld e, d
-    ldh a, [$ff8a]
+    ldh a, [hJoyHeld]
     ld h, a
     ld b, $ff
     bit 6, h
@@ -5756,7 +5749,7 @@ jr_002_635a:
     sub c
     ld e, a
 
-jr_002_637a:
+jr_002_637a::
     bit 5, h
     jr z, jr_002_6384
 
@@ -5765,21 +5758,21 @@ jr_002_637a:
     sub c
     ld d, a
 
-jr_002_6384:
+jr_002_6384::
     bit 7, h
     jr z, jr_002_638b
 
     ld b, $02
     ld e, c
 
-jr_002_638b:
+jr_002_638b::
     bit 4, h
     jr z, jr_002_6392
 
     ld b, $03
     ld d, c
 
-jr_002_6392:
+jr_002_6392::
     ld a, [$d975]
     add d
     ld [$d975], a
@@ -5790,7 +5783,7 @@ jr_002_6392:
     ld hl, $681d
     rst $38
     ld c, [hl]
-    ldh a, [$ff8a]
+    ldh a, [hJoyHeld]
     and c
     jr nz, jr_002_63c7
 
@@ -5809,20 +5802,20 @@ jr_002_6392:
     xor a
     ld [$d802], a
 
-jr_002_63c7:
+jr_002_63c7::
     ld a, [$d975]
     cp $0a
     jr nc, jr_002_63d0
 
     ld a, $0a
 
-jr_002_63d0:
+jr_002_63d0::
     cp $95
     jr c, jr_002_63d6
 
     ld a, $95
 
-jr_002_63d6:
+jr_002_63d6::
     ld [$d975], a
     ld a, [$d976]
     cp $0a
@@ -5830,13 +5823,13 @@ jr_002_63d6:
 
     ld a, $0a
 
-jr_002_63e2:
+jr_002_63e2::
     cp $75
     jr c, jr_002_63e8
 
     ld a, $75
 
-jr_002_63e8:
+jr_002_63e8::
     ld [$d976], a
     ret
 
@@ -5860,13 +5853,13 @@ jr_002_63e8:
 
     add hl, bc
 
-jr_002_640a:
+jr_002_640a::
     cp $0c
     jr nc, jr_002_640f
 
     add hl, bc
 
-jr_002_640f:
+jr_002_640f::
     ld a, [$d975]
     ld b, a
     ld a, [$d976]
@@ -5886,7 +5879,7 @@ jr_002_640f:
     ld b, $10
     ld hl, $d85d
 
-jr_002_642c:
+jr_002_642c::
     push hl
     ld a, [hl+]
     bit 7, a
@@ -5921,21 +5914,21 @@ jr_002_642c:
 
     ld a, $03
 
-jr_002_6454:
+jr_002_6454::
     ld [$d8de], a
     ld a, $80
     ld [hl], a
     pop hl
     jr jr_002_6464
 
-jr_002_645d:
+jr_002_645d::
     pop hl
     ld a, $08
     rst $38
     dec b
     jr nz, jr_002_642c
 
-jr_002_6464:
+jr_002_6464::
     ld a, [$d954]
     dec a
     ld [$d954], a
@@ -5950,7 +5943,7 @@ jr_002_6464:
 
     ld [$d8df], a
     ld a, $44
-    call Call_000_0f3b
+    call PlaySound
     ld a, [$d975]
     ld [$d8e0], a
     ld a, [$d976]
@@ -5975,14 +5968,13 @@ jr_002_6464:
     xor a
     ld [$d8e6], a
     ld [$d8ee], a
-    call Call_000_0f0d
+    call InitSound
     ld a, $34
-    call Call_000_0f32
+    call PlaySound_Queue3
     ret
 
 
-Jump_002_64c0:
-jr_002_64c0:
+jr_002_64c0::
     ld a, [$d977]
     and $03
     ld hl, $67d5
@@ -5998,7 +5990,7 @@ jr_002_64c0:
     ret
 
 
-Call_002_64d9:
+Call_002_64d9::
     ld a, [$d955]
     or a
     ret z
@@ -6027,7 +6019,7 @@ Call_002_64d9:
     ret
 
 
-Call_002_6509:
+Call_002_6509::
     push hl
     ld hl, $d858
     ld a, c
@@ -6046,7 +6038,7 @@ Call_002_6509:
     inc [hl]
     inc hl
 
-jr_002_651e:
+jr_002_651e::
     dec hl
     ld a, [hl]
     cp $0e
@@ -6056,12 +6048,12 @@ jr_002_651e:
     ld [hl-], a
     inc [hl]
 
-jr_002_6528:
+jr_002_6528::
     ld de, $d856
     ld hl, $9a21
     ld b, $03
 
-jr_002_6530:
+jr_002_6530::
     ld a, [de]
     cp $04
     jr nz, jr_002_653a
@@ -6071,9 +6063,9 @@ jr_002_6530:
     dec b
     jr nz, jr_002_6530
 
-jr_002_653a:
+jr_002_653a::
     ld c, $01
-    call Call_000_061f
+    call QueueTilemapRect
     ld a, [$d811]
     ld b, a
     add a
@@ -6083,7 +6075,7 @@ jr_002_653a:
     ld de, $d856
     ld b, $03
 
-jr_002_654c:
+jr_002_654c::
     ld a, [de]
     sub [hl]
     ret c
@@ -6095,7 +6087,7 @@ jr_002_654c:
     dec b
     jr nz, jr_002_654c
 
-jr_002_6556:
+jr_002_6556::
     or a
     ret
 
@@ -6115,7 +6107,7 @@ jr_002_6556:
 
     ld hl, $796e
 
-jr_002_6572:
+jr_002_6572::
     ld a, l
     ld [$d800], a
     ld a, h
@@ -6123,7 +6115,7 @@ jr_002_6572:
     xor a
     ld [$d802], a
 
-jr_002_657e:
+jr_002_657e::
     ld a, [$d852]
     inc a
     ld [$d852], a
@@ -6135,7 +6127,7 @@ jr_002_657e:
 
     ld a, $01
     ld [$d954], a
-    ldh a, [$ff8a]
+    ldh a, [hJoyHeld]
     bit 0, a
     ret z
 
@@ -6153,10 +6145,10 @@ jr_002_657e:
     ld [$d8dd], a
     ld a, $c0
     ld [$d956], a
-    jp Jump_002_64c0
+    jp jr_002_64c0
 
 
-Call_002_65b3:
+Call_002_65b3::
     ld hl, $d8e2
     ld de, $67cd
     ld a, [$d811]
@@ -6170,7 +6162,7 @@ Call_002_65b3:
     ret
 
 
-Call_002_65d0:
+Call_002_65d0::
     ld a, [hl+]
     or a
     jp nz, Jump_002_66d7
@@ -6189,7 +6181,7 @@ Call_002_65d0:
     inc a
     set 0, c
 
-jr_002_65e8:
+jr_002_65e8::
     ldh [$ffc9], a
     ld a, [hl+]
     add $08
@@ -6203,7 +6195,7 @@ jr_002_65e8:
     inc a
     set 1, c
 
-jr_002_65fa:
+jr_002_65fa::
     ldh [$ffca], a
     push hl
     inc hl
@@ -6220,7 +6212,7 @@ jr_002_65fa:
     ld [hl], c
     jr jr_002_6615
 
-jr_002_660d:
+jr_002_660d::
     inc hl
     ld a, [hl+]
     ldh [$ffc9], a
@@ -6228,7 +6220,7 @@ jr_002_660d:
     ldh [$ffca], a
     ld c, [hl]
 
-jr_002_6615:
+jr_002_6615::
     pop hl
     ldh a, [$ffc9]
     ld b, a
@@ -6243,22 +6235,22 @@ jr_002_6615:
     ld b, $02
     jr jr_002_6630
 
-jr_002_6628:
+jr_002_6628::
     ld b, $01
     bit 0, c
     jr nz, jr_002_6630
 
     ld b, $03
 
-jr_002_6630:
+jr_002_6630::
     ld a, b
     cp $01
     jr z, jr_002_6636
 
     xor a
 
-jr_002_6636:
-    ldh [$ff9d], a
+jr_002_6636::
+    ldh [hSpriteFlags], a
     pop de
     ld a, b
     rst $30
@@ -6282,7 +6274,7 @@ jr_002_6636:
     ld e, $ff
     jr jr_002_6664
 
-jr_002_6656:
+jr_002_6656::
     ldh a, [$ffca]
     ld b, a
     ld a, [hl]
@@ -6294,7 +6286,7 @@ jr_002_6656:
 
     ld d, $ff
 
-jr_002_6664:
+jr_002_6664::
     dec hl
     ld a, [hl]
     add e
@@ -6315,14 +6307,14 @@ jr_002_6664:
     cp $f0
     jr c, jr_002_6685
 
-jr_002_667c:
+jr_002_667c::
     call Call_002_495b
     and $03
     add $03
     ld [hl+], a
     ld [hl-], a
 
-jr_002_6685:
+jr_002_6685::
     pop bc
     push bc
     ld a, [$d975]
@@ -6361,7 +6353,7 @@ jr_002_6685:
     ld a, $02
     ld [$d8dd], a
 
-jr_002_66c7:
+jr_002_66c7::
     pop bc
     ldh a, [$ffcb]
     ld d, a
@@ -6371,12 +6363,12 @@ jr_002_66c7:
 
     inc d
 
-jr_002_66d3:
-    call Call_000_0794
+jr_002_66d3::
+    call jr_000_0794
     ret
 
 
-Jump_002_66d7:
+Jump_002_66d7::
     ld a, [$d8f2]
     ld b, a
     call Call_002_4968
@@ -6386,13 +6378,13 @@ Jump_002_66d7:
 
     inc b
 
-jr_002_66e3:
+jr_002_66e3::
     cp $0c
     jr c, jr_002_66e9
 
     sub $0c
 
-jr_002_66e9:
+jr_002_66e9::
     ld [hl], a
     ld a, [$d852]
     cp $01
@@ -6542,14 +6534,14 @@ jr_002_66e9:
     xor b
 
     xor a
-    ldh [$ff8f], a
+    ldh [hNeedsReset], a
     ld a, $83
-    ld [$c0a2], a
+    ld [wLCDCShadow], a
     ld a, $a0
-    ldh [$ff9a], a
+    ldh [hOamMaxY], a
     xor a
-    ldh [$ff92], a
-    ldh [$ff90], a
+    ldh [hSCX], a
+    ldh [hSCY], a
     ld a, [$d93d]
     rst $00
 
@@ -6560,43 +6552,43 @@ jr_002_66e9:
 
     db $67, $69, $f8, $6c
 
-    call Call_000_0f0d
+    call InitSound
     ld a, $14
-    call Call_000_0f32
+    call PlaySound_Queue3
     ld a, [$dff8]
     or a
     jr z, jr_002_68ae
 
-    call Call_000_0403
+    call DelayFramesOrCycles
     ld hl, $6947
     call Call_000_03c8
-    call Call_000_0403
+    call DelayFramesOrCycles
     call Call_000_0709
     xor a
     ldh [rBGP], a
-    call Call_000_02d6
+    call DisableLCD
 
-jr_002_68ae:
+jr_002_68ae::
     ld a, $83
-    ld [$c0a2], a
+    ld [wLCDCShadow], a
     ld a, $e4
-    ld [$c0a3], a
+    ld [wPaletteBGP], a
     ld a, $d0
-    ld [$c0a4], a
-    ld [$c0a5], a
+    ld [wPaletteOBP0], a
+    ld [wPaletteOBP1], a
     ld a, $06
     ld hl, $50c4
     ld de, $8800
     ld bc, $0200
-    call LoadGameGfx
+    call BankedMemcpy
     ld a, $06
     ld hl, $6156
     ld de, $8a00
-    call LoadMainGfx
+    call LoadMaskedGfx
     ld a, $06
     ld hl, $4bc0
     ld de, $9000
-    call LoadMainGfx
+    call LoadMaskedGfx
     xor a
     ldh [$ffc9], a
     call Call_002_4295
@@ -6632,12 +6624,12 @@ jr_002_68ae:
     or a
     ret z
 
-    call Call_000_00f7
-    call Call_000_0403
-    call Call_000_02d6
+    call ApplyLCDC
+    call DelayFramesOrCycles
+    call DisableLCD
     ld hl, $6957
     call Call_000_03c8
-    call Call_000_0403
+    call DelayFramesOrCycles
     ret
 
 
@@ -6676,14 +6668,14 @@ jr_002_68ae:
     ld hl, $762c
     ld de, $c800
     ld bc, $0168
-    call Call_000_0387
+    call BankedMemcpy_RLEFF
     ld de, $c800
     ld hl, $9800
     ld bc, $1412
-    call Call_000_05f7
-    call Call_000_0f0d
+    call jr_000_05f7
+    call InitSound
     ld a, $20
-    call Call_000_0f32
+    call PlaySound_Queue3
     ld a, $81
     ld [$d970], a
     ld a, [$d979]
@@ -6710,18 +6702,18 @@ jr_002_68ae:
     ld d, $b1
     call Call_000_0791
     call Call_000_0719
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     bit 3, a
     jp nz, Jump_002_705e
 
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     bit 0, a
     jr z, jr_002_69ca
 
     ld a, $02
     ld [$d981], a
 
-jr_002_69ca:
+jr_002_69ca::
     ld a, [$d96d]
     or a
     ret nz
@@ -6736,9 +6728,9 @@ jr_002_69ca:
 
     ld a, $81
 
-jr_002_69e1:
-    call Call_000_0517
-    ldh a, [$ff8b]
+jr_002_69e1::
+    call QueueTilemapByte
+    ldh a, [hJoyPressed]
     bit 0, a
     ret z
 
@@ -6754,17 +6746,17 @@ jr_002_69e1:
     cp $ff
     jr z, jr_002_6a04
 
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     bit 0, a
     ret z
 
-jr_002_6a04:
+jr_002_6a04::
     xor a
     ld [$d96d], a
-    ld [$c100], a
+    ld [wVramQueue], a
     ld a, $02
     ld [$d93d], a
-    ldh [$ff8f], a
+    ldh [hNeedsReset], a
     ret
 
 
@@ -6779,36 +6771,36 @@ jr_002_6a04:
     ld a, $00
     ld e, $00
     ld a, $e4
-    ld [$c0a3], a
-    ld [$c0a5], a
+    ld [wPaletteBGP], a
+    ld [wPaletteOBP1], a
     ld a, $d0
-    ld [$c0a4], a
+    ld [wPaletteOBP0], a
     ld a, $07
     ld [$d933], a
     ld a, $06
     ld hl, $641e
     ld de, $8000
-    call LoadMainGfx
+    call LoadMaskedGfx
     ld a, $06
     ld hl, $663c
     ld de, $8800
-    call LoadMainGfx
+    call LoadMaskedGfx
     ld a, $06
     ld hl, $4bc0
     ld de, $9000
-    call LoadMainGfx
+    call LoadMaskedGfx
     ld a, $06
     ld hl, $6801
     ld de, $c800
     ld bc, $0168
-    call Call_000_0387
+    call BankedMemcpy_RLEFF
     ld de, $c800
     ld hl, $9800
     ld bc, $1412
-    call Call_000_05f7
-    call Call_000_0f0d
+    call jr_000_05f7
+    call InitSound
     ld a, $10
-    call Call_000_0f32
+    call PlaySound_Queue3
     ld a, [$d97a]
     or a
     jr z, jr_002_6a90
@@ -6822,7 +6814,7 @@ jr_002_6a04:
     ld a, $6a
     call Call_000_0710
 
-jr_002_6a90:
+jr_002_6a90::
     ld a, [$d97a]
     ld [$d971], a
     ld a, $02
@@ -6861,7 +6853,7 @@ jr_002_6a90:
     ld de, $6cd8
     ld b, $10
 
-jr_002_6ade:
+jr_002_6ade::
     ld a, [de]
     ld [hl+], a
     inc de
@@ -6886,7 +6878,7 @@ jr_002_6ade:
     ld hl, $d985
     call Call_000_03c8
 
-jr_002_6b07:
+jr_002_6b07::
     ld a, [$d93a]
     ld c, a
     ld b, $58
@@ -6914,8 +6906,8 @@ jr_002_6b07:
     jp Jump_002_6be7
 
 
-jr_002_6b34:
-    ldh a, [$ff8b]
+jr_002_6b34::
+    ldh a, [hJoyPressed]
     and $09
     jr z, jr_002_6bb2
 
@@ -6953,17 +6945,17 @@ jr_002_6b34:
     ld a, $19
     call Call_000_0710
 
-Jump_002_6b82:
+Jump_002_6b82::
     ld bc, $98c7
     ld de, $0006
-    call Call_000_0501
+    call QueueVramFill
     ld bc, $98e7
     ld de, $0006
-    call Call_000_0501
+    call QueueVramFill
     ret
 
 
-jr_002_6b95:
+jr_002_6b95::
     ld a, $02
     ld [$d93f], a
     xor a
@@ -6979,7 +6971,7 @@ jr_002_6b95:
     ret
 
 
-jr_002_6bb2:
+jr_002_6bb2::
     ld a, [$d93c]
     ld hl, $9987
     bit 0, a
@@ -6987,10 +6979,10 @@ jr_002_6bb2:
 
     ld hl, $99c7
 
-jr_002_6bbf:
+jr_002_6bbf::
     xor a
-    call Call_000_0517
-    ldh a, [$ff8b]
+    call QueueTilemapByte
+    ldh a, [hJoyPressed]
     and $c4
     jr z, jr_002_6bd5
 
@@ -6998,9 +6990,9 @@ jr_002_6bbf:
     cpl
     ld [$d93c], a
     ld a, $40
-    call Call_000_0f3b
+    call PlaySound
 
-jr_002_6bd5:
+jr_002_6bd5::
     ld a, [$d93c]
     ld hl, $9987
     bit 0, a
@@ -7008,11 +7000,11 @@ jr_002_6bd5:
 
     ld hl, $99c7
 
-jr_002_6be2:
+jr_002_6be2::
     ld a, $0e
-    call Call_000_0517
+    call QueueTilemapByte
 
-Jump_002_6be7:
+Jump_002_6be7::
     ld a, [$d93b]
     and $80
     ld b, a
@@ -7031,13 +7023,13 @@ Jump_002_6be7:
 
     ld a, $1b
 
-jr_002_6c07:
+jr_002_6c07::
     call Call_000_0710
     ld bc, $98c7
     ld de, $0006
-    call Call_000_0501
+    call QueueVramFill
 
-jr_002_6c13:
+jr_002_6c13::
     ret
 
 
@@ -7056,7 +7048,7 @@ jr_002_6c13:
 
     ld d, $ff
 
-jr_002_6c2b:
+jr_002_6c2b::
     ld a, c
     add e
     ld c, a
@@ -7087,14 +7079,14 @@ jr_002_6c2b:
     ret
 
 
-jr_002_6c57:
+jr_002_6c57::
     ld a, $02
-    ldh [$ff8e], a
-    ldh [$ff8f], a
+    ldh [hGameState], a
+    ldh [hNeedsReset], a
     ret
 
 
-Call_002_6c5e:
+Call_002_6c5e::
     ld a, [$d93b]
     add c
     ld [$d93b], a
@@ -7110,9 +7102,9 @@ Call_002_6c5e:
     jr nz, jr_002_6c7b
 
     ld a, $5b
-    call Call_000_0f3b
+    call PlaySound
 
-jr_002_6c7b:
+jr_002_6c7b::
     ld bc, $ff20
     ld a, [$d97c]
     add c
@@ -7142,7 +7134,7 @@ jr_002_6c7b:
     jp Jump_002_6b82
 
 
-jr_002_6cb4:
+jr_002_6cb4::
     jp nc, Jump_002_6be7
 
     ld bc, $ff20
@@ -7153,7 +7145,7 @@ jr_002_6cb4:
 
     ld bc, $0001
     ld de, $0001
-    jp Jump_002_42d6
+    jp jr_002_42d6
 
 
     ret
@@ -7161,7 +7153,7 @@ jr_002_6cb4:
 
     jr nc, jr_002_6ccf
 
-jr_002_6ccf:
+jr_002_6ccf::
     ld a, [de]
     ldh a, [$ff30]
     nop
@@ -7197,10 +7189,10 @@ jr_002_6ccf:
     db $01
 
     ld a, $83
-    ld [$c0a2], a
+    ld [wLCDCShadow], a
     xor a
-    ldh [$ff8f], a
-    ld [$c100], a
+    ldh [hNeedsReset], a
+    ld [wVramQueue], a
     ld [$d954], a
     ld [$d955], a
     ld [$d956], a
@@ -7208,31 +7200,31 @@ jr_002_6ccf:
     bit 0, a
     jr z, jr_002_6d1b
 
-    call Call_000_0f0d
+    call InitSound
     ld a, $20
-    call Call_000_0f32
+    call PlaySound_Queue3
 
-jr_002_6d1b:
+jr_002_6d1b::
     ld a, $06
-    ld hl, $7700
+    ld hl, Call_002_7700
     ld de, $8000
-    call LoadMainGfx
+    call LoadMaskedGfx
     ld hl, $71ef
     ld a, [$d979]
     srl a
     rst $20
     ld de, $8600
     ld a, $06
-    call LoadMainGfx
+    call LoadMaskedGfx
     ld a, $06
     ld hl, $50c4
     ld de, $8e00
     ld bc, $0200
-    call LoadGameGfx
+    call BankedMemcpy
     ld a, $06
     ld hl, $4bc0
     ld de, $9000
-    call LoadMainGfx
+    call LoadMaskedGfx
     ld a, $60
     ldh [$ffc9], a
     call Call_002_4295
@@ -7263,19 +7255,19 @@ jr_002_6d1b:
     ld [$d810], a
     xor a
     ldh [$ffcb], a
-    call Call_002_6f1e
+    call Jump_002_6f1e
     ld a, $e4
-    ld [$c0a3], a
+    ld [wPaletteBGP], a
     ld a, $d0
-    ld [$c0a4], a
-    ld [$c0a5], a
+    ld [wPaletteOBP0], a
+    ld [wPaletteOBP1], a
     ld a, [$d979]
     srl a
     jr nc, jr_002_6dae
 
     add $08
 
-jr_002_6dae:
+jr_002_6dae::
     add $08
     ld [$d933], a
     ret
@@ -7286,15 +7278,15 @@ jr_002_6dae:
     cp $07
     jr z, jr_002_6dc5
 
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     bit 3, a
     jp nz, Jump_002_7066
 
-jr_002_6dc5:
+jr_002_6dc5::
     ld de, $d80e
     ld b, $03
 
-jr_002_6dca:
+jr_002_6dca::
     push bc
     ld a, b
     dec a
@@ -7315,7 +7307,7 @@ jr_002_6dca:
     call Call_000_0791
     jr jr_002_6df9
 
-jr_002_6de5:
+jr_002_6de5::
     ld de, $d800
     ld a, b
     sla a
@@ -7329,7 +7321,7 @@ jr_002_6de5:
     ld b, $88
     call Call_000_0720
 
-jr_002_6df9:
+jr_002_6df9::
     pop de
     pop bc
     dec b
@@ -7339,21 +7331,21 @@ jr_002_6df9:
     cp $ff
     jr nz, jr_002_6e11
 
-    call Call_000_0f0d
+    call InitSound
     ld a, $18
-    call Call_000_0f32
+    call PlaySound_Queue3
     xor a
     ld [$d955], a
 
-jr_002_6e11:
+jr_002_6e11::
     ld a, [$d955]
     cp $30
     jr nz, jr_002_6e1d
 
     ld a, $49
-    call Call_000_0f38
+    call PlaySound_Queue1
 
-jr_002_6e1d:
+jr_002_6e1d::
     ld a, [$d955]
     or a
     jr z, jr_002_6e38
@@ -7365,15 +7357,15 @@ jr_002_6e1d:
 
     cpl
 
-jr_002_6e2d:
-    ld [$c0a3], a
+jr_002_6e2d::
+    ld [wPaletteBGP], a
     ld a, [$d955]
     dec a
     ld [$d955], a
     ret
 
 
-jr_002_6e38:
+jr_002_6e38::
     call Call_000_0719
     ld hl, $9911
     ld a, [$d954]
@@ -7383,20 +7375,20 @@ jr_002_6e38:
 
     ld a, $e1
 
-jr_002_6e49:
-    call Call_000_0517
+jr_002_6e49::
+    call QueueTilemapByte
     ld a, [$d979]
     cp $07
     jr z, jr_002_6e5e
 
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     bit 0, a
     jr z, jr_002_6e5e
 
     ld a, $02
     ld [$d981], a
 
-jr_002_6e5e:
+jr_002_6e5e::
     ld a, [$d96d]
     or a
     ret nz
@@ -7404,7 +7396,7 @@ jr_002_6e5e:
     ld a, [$d954]
     inc a
     ld [$d954], a
-    ldh a, [$ff8b]
+    ldh a, [hJoyPressed]
     bit 0, a
     jr nz, jr_002_6e75
 
@@ -7412,7 +7404,7 @@ jr_002_6e5e:
     or a
     ret z
 
-jr_002_6e75:
+jr_002_6e75::
     ld a, [$d93c]
     inc a
     ld [$d93c], a
@@ -7425,13 +7417,13 @@ jr_002_6e75:
     ret
 
 
-jr_002_6e86:
+jr_002_6e86::
     dec a
     add a
     ld h, a
     ld l, $02
 
-jr_002_6e8b:
+jr_002_6e8b::
     ld bc, $9822
     ld de, $e210
     ld a, h
@@ -7440,7 +7432,7 @@ jr_002_6e8b:
 
     ld d, $00
 
-jr_002_6e97:
+jr_002_6e97::
     swap a
     and $f0
     add a
@@ -7450,7 +7442,7 @@ jr_002_6e97:
     adc b
     ld b, a
     push hl
-    call Call_000_0501
+    call QueueVramFill
     pop hl
     inc h
     dec l
@@ -7460,7 +7452,7 @@ jr_002_6e97:
     ret
 
 
-Call_002_6ead:
+Call_002_6ead::
     ld a, [$dff8]
     or a
     ret z
@@ -7483,22 +7475,22 @@ Call_002_6ead:
     call Call_000_04eb
     ld b, $0d
 
-jr_002_6ed3:
+jr_002_6ed3::
     ld a, [hl+]
     ld [de], a
     inc de
     dec b
     jr nz, jr_002_6ed3
 
-    ldh a, [$ff99]
+    ldh a, [hVramQueuePos]
     add $0c
-    ldh [$ff99], a
+    ldh [hVramQueuePos], a
     ld a, $01
     ld [$d956], a
     ret
 
 
-jr_002_6ee5:
+jr_002_6ee5::
     ld hl, $720c
     ld a, [$d979]
     rst $38
@@ -7522,10 +7514,10 @@ jr_002_6ee5:
     ld hl, $7217
     rst $20
     call Call_000_04eb
-    ldh a, [$ff99]
+    ldh a, [hVramQueuePos]
     ld b, a
 
-jr_002_6f0d:
+jr_002_6f0d::
     ld a, [hl+]
     ld [de], a
     inc de
@@ -7535,14 +7527,13 @@ jr_002_6f0d:
 
     dec b
     ld a, b
-    ldh [$ff99], a
+    ldh [hVramQueuePos], a
     ld a, $01
     ld [$d956], a
     ret
 
 
-Call_002_6f1e:
-Jump_002_6f1e:
+Jump_002_6f1e::
     xor a
     ld [$d93c], a
     ld [$d954], a
@@ -7576,7 +7567,7 @@ Jump_002_6f1e:
 
     ld b, $3c
 
-jr_002_6f57:
+jr_002_6f57::
     ld a, $e0
     ld [$d970], a
     ld hl, $46f1
@@ -7594,11 +7585,11 @@ jr_002_6f57:
 
     ld a, $04
 
-jr_002_6f75:
+jr_002_6f75::
     add d
     ld de, $0014
 
-jr_002_6f79:
+jr_002_6f79::
     add hl, de
     dec a
     jr nz, jr_002_6f79
@@ -7618,13 +7609,13 @@ jr_002_6f79:
     sub b
     ld l, a
     ld bc, $0a02
-    call Call_000_061f
-    call Call_000_0f0d
+    call QueueTilemapRect
+    call InitSound
     ld a, $64
-    call Call_000_0f32
+    call PlaySound_Queue3
     pop bc
 
-jr_002_6fa2:
+jr_002_6fa2::
     ld a, b
     call Call_000_0710
     pop hl
@@ -7633,7 +7624,7 @@ jr_002_6fa2:
     ld b, $03
     ld de, $d80e
 
-jr_002_6faf:
+jr_002_6faf::
     ld a, [de]
     ld c, a
     ld a, [hl+]
@@ -7669,7 +7660,7 @@ jr_002_6faf:
     pop de
     pop hl
 
-jr_002_6fd9:
+jr_002_6fd9::
     inc de
     dec b
     jr nz, jr_002_6faf
@@ -7686,7 +7677,7 @@ jr_002_6fd9:
     ld a, [hl+]
     ld [$d973], a
 
-jr_002_6fef:
+jr_002_6fef::
     ld a, l
     ld [$d80c], a
     ld a, h
@@ -7699,7 +7690,7 @@ jr_002_6fef:
     ld de, $d985
     ld b, $10
 
-jr_002_7005:
+jr_002_7005::
     ld a, [hl+]
     ld [de], a
     inc de
@@ -7721,13 +7712,13 @@ jr_002_7005:
     ld hl, $d985
     call Call_000_03c8
 
-jr_002_7026:
+jr_002_7026::
     ld b, $03
     ld hl, $9924
     ldh a, [$ffca]
     ld c, a
 
-jr_002_702e:
+jr_002_702e::
     ld de, $71ce
     rr c
     jr c, jr_002_703d
@@ -7740,16 +7731,16 @@ jr_002_702e:
     adc d
     ld d, a
 
-jr_002_703d:
+jr_002_703d::
     push bc
     push hl
     ld bc, $0102
     ldh a, [$ffcb]
     or a
-    call z, Call_000_05f7
+    call z, jr_000_05f7
     ldh a, [$ffcb]
     or a
-    call nz, Call_000_061f
+    call nz, QueueTilemapRect
     pop hl
     pop bc
     ld de, $0006
@@ -7760,22 +7751,22 @@ jr_002_703d:
 
     dec hl
 
-jr_002_705a:
+jr_002_705a::
     dec b
     jr nz, jr_002_702e
 
     ret
 
 
-Jump_002_705e:
+Jump_002_705e::
     ld a, [$d979]
     sla a
     ld [$d979], a
 
-Jump_002_7066:
+Jump_002_7066::
     xor a
     ld [$d96d], a
-    ld [$c100], a
+    ld [wVramQueue], a
     ld a, [$d95f]
     cp $04
     jp z, Jump_002_4301
@@ -7787,25 +7778,25 @@ Jump_002_7066:
     srl a
     ldh [$ff9f], a
     ld a, $02
-    ldh [$ff8e], a
-    ldh [$ff8f], a
+    ldh [hGameState], a
+    ldh [hNeedsReset], a
     ld a, [$d979]
     inc a
     ld [$d979], a
     cp $01
     ret nz
 
-    ldh a, [$ff8a]
+    ldh a, [hJoyHeld]
     and $08
     ret nz
 
     ld a, $08
-    ldh [$ff8e], a
-    ldh [$ff8f], a
+    ldh [hGameState], a
+    ldh [hNeedsReset], a
     ret
 
 
-jr_002_709c:
+jr_002_709c::
     inc a
     ld [$d979], a
     cp $08
@@ -7814,10 +7805,10 @@ jr_002_709c:
     ld e, a
     ld d, $08
     ld bc, $0100
-    jp Jump_002_42d6
+    jp jr_002_42d6
 
 
-jr_002_70ad:
+jr_002_70ad::
     ld b, $09
     ld a, [$dffe]
     ld c, $00
@@ -7826,9 +7817,9 @@ jr_002_70ad:
 
     ld c, $01
 
-jr_002_70b9:
+jr_002_70b9::
     ld de, $0400
-    jp Jump_002_42d6
+    jp jr_002_42d6
 
 
     rst $08
@@ -8115,16 +8106,16 @@ jr_002_70b9:
     ld a, $01
     ldh [rIE], a
     xor a
-    ldh [$ff8f], a
-    ld [$c100], a
+    ldh [hNeedsReset], a
+    ld [wVramQueue], a
     ld [$d93d], a
-    ldh [$ff92], a
-    ldh [$ff90], a
+    ldh [hSCX], a
+    ldh [hSCY], a
     ld a, $a0
-    ldh [$ff9a], a
-    call Call_000_0f0d
+    ldh [hOamMaxY], a
+    call InitSound
     ld a, $3c
-    call Call_000_0f32
+    call PlaySound_Queue3
     ld a, [$d8f3]
     and $01
     rst $00
@@ -8135,16 +8126,16 @@ jr_002_70b9:
     ld [hl], e
 
     ld a, $e3
-    ld [$c0a2], a
+    ld [wLCDCShadow], a
     ld a, $e4
-    ld [$c0a3], a
-    ld [$c0a5], a
+    ld [wPaletteBGP], a
+    ld [wPaletteOBP1], a
     ld a, $d0
-    ld [$c0a4], a
+    ld [wPaletteOBP0], a
     ld a, $07
-    ldh [$ff95], a
+    ldh [hWX], a
     ld a, $50
-    ldh [$ff94], a
+    ldh [hWY], a
     xor a
     ld [$d8fc], a
     ld a, $31
@@ -8152,25 +8143,25 @@ jr_002_70b9:
     ld a, $06
     ld hl, $7099
     ld de, $8000
-    call LoadMainGfx
+    call LoadMaskedGfx
     ld a, $06
     ld hl, $7581
     ld de, $8900
-    call LoadMainGfx
+    call LoadMaskedGfx
     ld a, $06
     ld hl, $50c4
     ld de, $8800
     ld bc, $0100
-    call LoadGameGfx
+    call BankedMemcpy
     ld a, $06
     ld hl, $4bc0
     ld de, $9000
-    call LoadMainGfx
+    call LoadMaskedGfx
     ld a, $06
     ld hl, $75fe
     ld de, $c800
     ld bc, $00a0
-    call Call_000_0387
+    call BankedMemcpy_RLEFF
     ld de, $c800
     ld hl, $9800
     ld bc, $100a
@@ -8192,7 +8183,7 @@ jr_002_70b9:
     ld hl, $77f1
     ld b, $04
 
-jr_002_73ca:
+jr_002_73ca::
     ld a, [hl+]
     ld [de], a
     inc de
@@ -8206,7 +8197,7 @@ jr_002_73ca:
     ld de, $77f5
     ld b, $04
 
-jr_002_73db:
+jr_002_73db::
     ld a, [de]
     ld [hl+], a
     inc de
@@ -8224,13 +8215,13 @@ jr_002_73db:
 
 
     ld a, $83
-    ld [$c0a2], a
+    ld [wLCDCShadow], a
     ld a, $e1
-    ld [$c0a3], a
+    ld [wPaletteBGP], a
     ldh [rBGP], a
     ld a, $e0
-    ld [$c0a4], a
-    ld [$c0a5], a
+    ld [wPaletteOBP0], a
+    ld [wPaletteOBP1], a
     ld a, $0f
     ld [$d933], a
     xor a
@@ -8239,23 +8230,23 @@ jr_002_73db:
     ld a, $02
     ld hl, $7b8e
     ld de, $8000
-    call LoadMainGfx
+    call LoadMaskedGfx
     ld a, $02
     ld hl, $7fe0
     ld de, $8800
-    call LoadMainGfx
+    call LoadMaskedGfx
     ld a, $06
     ld hl, $4bc0
     ld de, $9000
-    call LoadMainGfx
+    call LoadMaskedGfx
     ld hl, $9800
     ld b, $20
 
-jr_002_7432:
+jr_002_7432::
     ld c, $14
     ld de, $7875
 
-jr_002_7437:
+jr_002_7437::
     ld a, [de]
     inc de
     ld [hl+], a
@@ -8271,10 +8262,10 @@ jr_002_7437:
     ld b, $7c
     ld a, $ff
 
-jr_002_744b:
+jr_002_744b::
     ld c, $08
 
-jr_002_744d:
+jr_002_744d::
     ld [hl+], a
     inc hl
     dec c
@@ -8287,7 +8278,7 @@ jr_002_744d:
     ld hl, $d915
     ld de, $7889
 
-jr_002_745d:
+jr_002_745d::
     ld a, $f0
     ld [hl+], a
     ld [hl+], a
@@ -8345,7 +8336,7 @@ jr_002_745d:
     ld hl, $d8f4
     ld de, $d800
 
-jr_002_74bf:
+jr_002_74bf::
     ld b, $48
     ld c, [hl]
     inc hl
@@ -8381,9 +8372,9 @@ jr_002_74bf:
     and $03
     ret z
 
-    ldh a, [$ff92]
+    ldh a, [hSCX]
     dec a
-    ldh [$ff92], a
+    ldh [hSCX], a
     ret
 
 
@@ -8391,14 +8382,14 @@ jr_002_74bf:
     and $03
     jr z, jr_002_7513
 
-    ldh a, [$ff92]
+    ldh a, [hSCX]
     dec a
-    ldh [$ff92], a
+    ldh [hSCX], a
     ld a, [bc]
     inc a
     ld [bc], a
 
-jr_002_7513:
+jr_002_7513::
     ld a, [$d8fd]
     ld e, a
     ld a, [bc]
@@ -8466,7 +8457,7 @@ jr_002_7513:
     ld a, [$d8fc]
     ld b, a
 
-jr_002_7577:
+jr_002_7577::
     dec [hl]
     inc hl
     inc hl
@@ -8493,11 +8484,11 @@ jr_002_7577:
     and $03
     jr z, jr_002_75a4
 
-    ldh a, [$ff92]
+    ldh a, [hSCX]
     dec a
-    ldh [$ff92], a
+    ldh [hSCX], a
 
-jr_002_75a4:
+jr_002_75a4::
     ld a, [$d956]
     inc a
     ld [$d956], a
@@ -8509,11 +8500,11 @@ jr_002_75a4:
     ret
 
 
-Call_002_75b3:
+Call_002_75b3::
     ld b, $04
     ld de, $d800
 
-jr_002_75b8:
+jr_002_75b8::
     ld a, [hl+]
     cp $ff
     jr nz, jr_002_75c2
@@ -8523,7 +8514,7 @@ jr_002_75b8:
     inc de
     jr jr_002_75d3
 
-jr_002_75c2:
+jr_002_75c2::
     push hl
     ld hl, $7849
     push de
@@ -8540,14 +8531,14 @@ jr_002_75c2:
     inc de
     pop hl
 
-jr_002_75d3:
+jr_002_75d3::
     dec b
     jr nz, jr_002_75b8
 
     ret
 
 
-Call_002_75d7:
+Call_002_75d7::
     ld a, [$d954]
     cp $31
     ret nz
@@ -8568,7 +8559,7 @@ Call_002_75d7:
     ld de, $d8fd
     ld b, $18
 
-jr_002_75fb:
+jr_002_75fb::
     ld a, [hl+]
     ld [de], a
     inc de
@@ -8583,7 +8574,7 @@ jr_002_75fb:
     ret
 
 
-Call_002_760e:
+Call_002_760e::
     ld a, [$d954]
     cp $31
     jr z, jr_002_761f
@@ -8596,7 +8587,7 @@ Call_002_760e:
     ret
 
 
-jr_002_761f:
+jr_002_761f::
     xor a
     ld [$d954], a
     ld a, $09
@@ -8607,13 +8598,13 @@ jr_002_761f:
     ld a, $10
     ld [$d981], a
 
-jr_002_7634:
+jr_002_7634::
     ld a, [$d939]
     call Call_000_0710
     ret
 
 
-jr_002_763b:
+jr_002_763b::
     ld a, [$d939]
     cp $59
     jr nz, jr_002_7653
@@ -8625,10 +8616,10 @@ jr_002_763b:
 
     ld bc, $0203
     ld de, $0000
-    jp Jump_002_42d6
+    jp jr_002_42d6
 
 
-jr_002_7653:
+jr_002_7653::
     ld a, $0d
     ld [$d970], a
     ld a, $0c
@@ -8652,7 +8643,7 @@ jr_002_7653:
 
     ld d, $02
 
-jr_002_767c:
+jr_002_767c::
     ld a, [hl]
     add d
     ld c, a
@@ -8689,7 +8680,7 @@ jr_002_767c:
     xor a
     ld [hl+], a
 
-jr_002_76a3:
+jr_002_76a3::
     ld d, $f1
     ld a, [$d954]
     bit 3, a
@@ -8697,7 +8688,7 @@ jr_002_76a3:
 
     ld d, $f0
 
-jr_002_76ae:
+jr_002_76ae::
     call Call_000_0791
     pop de
     pop hl
@@ -8715,9 +8706,9 @@ jr_002_76ae:
     and $03
     ret nz
 
-    ldh a, [$ff90]
+    ldh a, [hSCY]
     inc a
-    ldh [$ff90], a
+    ldh [hSCY], a
     and $0f
     jr nz, jr_002_76d5
 
@@ -8725,13 +8716,13 @@ jr_002_76ae:
     ret
 
 
-jr_002_76d5:
-    ldh a, [$ff90]
+jr_002_76d5::
+    ldh a, [hSCY]
     and $07
     cp $04
     ret nz
 
-    ldh a, [$ff90]
+    ldh a, [hSCY]
     and $f8
     ld l, a
     ld h, $00
@@ -8749,11 +8740,11 @@ jr_002_76d5:
     ld c, l
     ld b, h
     ld de, $010a
-    call Call_000_0501
+    call QueueVramFill
     ret
 
 
-Call_002_7700:
+Call_002_7700::
     ld a, [$d955]
     ld d, a
     ld a, $38
@@ -8796,10 +8787,10 @@ Call_002_7700:
 
     ld a, $30
 
-jr_002_7740:
+jr_002_7740::
     ld [$d955], a
 
-jr_002_7743:
+jr_002_7743::
     ld a, [$d974]
     cp $01
     ret nz
@@ -8820,10 +8811,10 @@ jr_002_7743:
 
     xor a
 
-jr_002_775f:
+jr_002_775f::
     ld [$d955], a
 
-jr_002_7762:
+jr_002_7762::
     ld a, [$d974]
     cp $02
     ret nz
@@ -8851,10 +8842,10 @@ jr_002_7762:
 
     ld a, $30
 
-jr_002_778e:
+jr_002_778e::
     ld [$d955], a
 
-jr_002_7791:
+jr_002_7791::
     ld a, [$d974]
     cp $03
     ret nz
@@ -8886,7 +8877,7 @@ jr_002_7791:
 
     ld a, $30
 
-jr_002_77c7:
+jr_002_77c7::
     ld [$d956], a
     ld a, [$d96d]
     or a
@@ -8898,7 +8889,7 @@ jr_002_77c7:
     ret
 
 
-Call_002_77d7:
+Call_002_77d7::
     call Call_000_07f8
     ld a, [$d95c]
     or a
@@ -8911,9 +8902,9 @@ Call_002_77d7:
 
     ld bc, $0205
 
-jr_002_77eb:
+jr_002_77eb::
     ld de, $0000
-    jp Jump_002_42d6
+    jp jr_002_42d6
 
 
     db $50, $f0, $f0, $f0, $97, $7a, $7c, $7a, $88, $7a, $91, $7a, $50, $53, $56, $8e
@@ -9024,7 +9015,7 @@ jr_002_77eb:
     inc b
     ld h, $04
 
-jr_002_7979:
+jr_002_7979::
     daa
     inc b
     jr z, jr_002_7981
@@ -9034,7 +9025,7 @@ jr_002_7979:
     ld d, d
     db $10
 
-jr_002_7981:
+jr_002_7981::
     ld d, e
     db $10
     ld d, d
@@ -9092,7 +9083,7 @@ jr_002_7981:
     ld a, c
     ld [$087a], sp
 
-jr_002_79e1:
+jr_002_79e1::
     ld a, c
     ld [$fe78], sp
     db $10
@@ -9198,1021 +9189,137 @@ jr_002_79e1:
     xor $ff
     add l
     ld a, e
-    and d
-    nop
-    ld d, l
-    inc bc
-    rrca
-    rra
-    ccf
-    nop
-    ld e, e
-    ld b, e
-    ld a, e
-    ld a, b
-    db $fd
-    db $fc
-    rst $38
-    adc $7f
-    rst $38
-    ret nz
 
-    cp a
-    ccf
-    rst $30
-    rlca
-    db $dd
-    inc e
-    ld d, l
-    nop
-    ret nz
+    db $a2, $00, $55, $03, $0f, $1f, $3f, $00, $5b, $43, $7b, $78, $fd, $fc, $ff, $ce
+    db $7f, $ff, $c0, $bf, $3f, $f7, $07, $dd, $1c, $55, $00, $c0, $f0, $f8, $75, $fc
+    db $fe, $7e, $10, $07, $04, $05, $0f, $0a, $1f, $10, $00, $2f, $20, $3f, $20, $3f
+    db $20, $2f, $20, $00
+
+jr_002_7bc2::
+    db $ff, $33, $ff, $c3, $ff, $20, $ff, $11, $00, $ef, $e2, $ff, $b7, $7f, $75, $fb
+    db $03, $00, $ff, $f9, $7f, $1c, $ff, $0c, $ff, $e0, $00, $ff, $10, $7f, $08, $ff
+    db $80, $fe, $80, $7c, $f0, $68, $08, $01, $f8, $08, $f8, $08, $e8, $08, $f0, $01
+    db $3f, $20, $17, $10, $0f, $0d, $0b, $00, $09
+
+jr_002_7bfb::
+    db $08, $0b, $08, $0b, $08, $0d, $0c, $00, $ff, $00, $ff, $00, $fb, $03, $ff, $fc
+    db $00
+
+jr_002_7c0c::
+    db $ff, $00, $ff, $00, $ff, $00, $ff, $00, $00, $f6, $06, $ba, $3a, $fd, $c1, $ff
+    db $01, $00, $ff, $01, $fb, $09, $ff, $07, $f7, $05, $75, $03, $01, $00, $ff, $07
+    db $7f, $00, $df, $c0, $ff, $40, $15, $1c, $1f, $38, $3f, $01, $3f, $15, $ef, $0f
+    db $7c, $f8, $f0, $00, $60, $3e, $e0, $be, $c0, $f8, $c0, $e0, $05, $3f, $20, $17
+    db $13, $1d, $13, $05, $1a, $12, $17, $15, $0f, $02, $00, $f7, $07, $bb, $38, $ff
+    db $c0, $ff, $06, $00, $fd, $05, $fc
+
+jr_002_7c63::
+    db $04, $fa, $02, $f2, $02, $51, $00, $80, $c0, $40, $60, $17, $e0, $a0, $e0, $00
+    db $05, $bf, $80
+
+jr_002_7c76::
+    db $ef, $e0, $7f, $3f, $14, $06, $04, $05, $0f, $06, $07, $04, $f7, $07, $be, $3e
+    db $fc, $f0, $f7, $00, $a0, $bf, $00, $fe, $00, $f8, $00, $c0, $7e, $00, $f0, $1f
+    db $00, $e0, $00, $05, $1f, $10, $0b, $09, $06, $03, $41, $02, $03, $02, $05, $04
+    db $06, $00, $ff, $00, $ff, $80, $fd, $81, $ff, $fe, $00, $ff, $00, $ff, $00, $ff
+    db $00, $ff, $00, $00, $fb, $03, $dc, $1c, $fa, $e2, $fe, $02, $06, $5a, $42, $f6
+    db $a6, $fa, $02, $7f, $03, $85, $02, $03, $02, $07, $03, $07, $7f, $00, $df, $c0
+    db $ff, $40, $40, $80, $87, $80, $bf, $00, $ff, $14, $ee, $0e, $7c, $fe, $fb, $f9
+    db $00, $2f, $27, $1d, $fd, $00, $e0, $00, $80, $01, $1f, $10, $0b, $08, $0f, $0e
+    db $1b, $10, $3c, $34, $3f, $1f, $18, $1e, $10, $01, $ff, $00, $ff, $00, $fd, $81
+    db $fe, $00, $33, $32, $8f, $8c, $4d, $4c, $ff, $fb, $80, $03, $dc, $1c, $fe, $e0
+    db $ff, $00, $05, $cf, $00, $be
+
+jr_002_7d1c::
+    db $20, $c3, $ff
+
+jr_002_7d1f::
+    db $55, $00, $80, $40, $60, $7c, $e0, $f0, $d0, $55, $10, $0f, $01, $07, $04, $0e
+    db $08, $1d, $11, $12, $1f, $1e, $45, $ff, $df, $d0, $70, $ef, $5e, $70, $ff, $8f
+    db $00, $df, $1f, $9b, $1b, $37, $36, $f7, $f5, $00, $57, $55, $f7, $f4, $fb, $fa
+    db $0f, $ff, $01, $b0, $90, $f8, $c8, $d8, $48, $b0, $01, $f0, $b8, $a0, $30, $c0
+    db $70, $c0, $05, $17, $15, $17, $16, $1b, $0f, $7f, $00, $00, $f0, $ff, $c0, $ff
+    db $c0, $fe, $80, $f0, $7f, $00, $07, $0f, $ff, $00, $c0, $00, $ff, $01, $1f, $10
+    db $0b, $08, $0f, $0e, $0b, $51, $09, $1a, $3c, $34, $3f, $00, $ff, $00, $ff, $00
+    db $fd, $81, $ff, $fe, $00, $8f, $80, $43, $42, $35, $34, $8f, $8c, $00, $fb, $03
+    db $dc, $1c, $fe, $e0, $ff, $00, $00, $ff, $00, $fe, $00, $cf, $01, $b9, $21, $55
+    db $00, $80, $40, $60, $d8, $fe, $f2, $ee, $e6, $0d, $1f, $18, $1e, $10, $0f, $50
+    db $01, $07, $0e, $08, $1d, $11, $04, $4d, $4c, $ff, $fb, $ff, $df, $d0, $55, $70
+    db $ef, $70, $ff, $50, $c7, $ff, $df, $1f, $9b, $1b, $00
+
+jr_002_7dda::
+    db $37, $36, $f7, $f5, $57, $55, $fb, $fa, $d5, $c0, $80, $c0, $90, $40, $a0, $e0
+    db $a0, $c0, $60, $01, $95, $91, $ff, $f7, $5f, $5c, $6f, $1f, $3e, $3f, $00, $40
+    db $ff, $f8, $ff, $c0, $7f, $c0, $fe, $1f, $00, $f0, $00, $01, $7e, $ff, $3c, $fe
+    db $00, $f0, $00, $ff, $50, $c7, $ff, $df, $1f, $9b, $1b, $00, $37, $36, $f7, $f5
+    db $57, $55, $f7, $f4, $55, $fa, $c0, $80, $c0, $92, $40, $a0, $e0, $a0, $20, $40
+    db $97, $ff, $f4, $5f, $57, $5f, $5b, $47, $6f, $3e, $3f, $00, $40, $ff, $f8, $7f
+    db $c0, $ff, $00, $ff, $07, $00, $f8, $00, $c0, $00, $00, $de, $d2, $7e, $ff, $3c
+    db $fe, $00, $80, $7f, $00, $50, $03, $04, $07, $04, $06, $04, $50, $05, $0f, $3f
+    db $30, $7f, $58, $54, $80, $81, $82, $0d, $0c, $00, $f7, $f0, $ef, $0c, $fb, $03
+
+jr_002_7e6a::
+    db $fe, $00, $00, $bf, $a4, $ff, $80, $ff, $90, $ff, $80, $05, $7f, $40, $35, $34
+    db $0f, $03, $00, $ff, $00, $ff, $00, $ff, $03, $ff, $00, $01, $ff, $00, $7f, $02
+    db $bf, $80, $7f, $75, $00, $20, $30, $40
+
+jr_002_7e92::
+    db $28, $38, $28, $fc, $ec, $ea, $42, $00, $ff, $01, $ff, $01, $fd, $01, $7e, $1f
+    db $00, $aa, $a3, $5e, $43, $fc, $7e, $e0, $3e, $00, $e0, $bc, $e0, $b0, $e0, $20
+    db $c0, $40, $5f, $80, $00, $44, $03, $05, $04, $0f, $3f, $30, $00
+
+jr_002_7ebf::
+    db $7f, $58
+
+jr_002_7ec1::
+    db $bf, $a4, $ff, $80, $ff, $90, $00, $ff, $80, $7f, $40
+
+jr_002_7ecc::
+    db $75, $74, $df, $9f, $07, $e3, $ef, $00, $1c, $00, $ff, $55, $03, $06, $01
+
+jr_002_7edb::
+    db $83, $00, $cd, $4c, $f7, $f0, $ef, $0c, $fb, $03, $00, $fe, $00, $ff, $00, $ff
+    db $00, $ff, $03, $00, $ff, $00, $ff, $00, $7f, $02, $bf, $80, $41, $ff, $f0, $9e
+    db $e0, $bc, $c0, $7f, $00, $40, $c0, $a0, $20, $7c, $3c, $fa, $a2, $00, $bf, $81
+    db $ff, $01, $ff, $01, $73, $01, $00, $e7, $e1, $57, $55, $fe, $6e, $f8, $2e, $00
+    db $f0, $bc, $e0, $b8, $e0, $30, $c0, $60, $1f, $80, $c0, $00, $45, $01, $03, $02
+    db $05, $0f, $00, $3f, $30, $7f, $58, $bf, $a4, $ff, $80, $00, $ff, $90, $ff, $80
+    db $7f, $40, $35, $34, $61, $1f, $17, $18, $1f, $00, $ff, $54, $03, $06, $c1, $c3
+    db $43, $00, $8d, $8c, $f7, $f0, $ef, $0c, $fb, $03, $00, $fe, $00, $ff, $00, $ff
+    db $00, $ff, $03, $00, $ff, $00, $ff, $00
+
+jr_002_7f63::
+    db $7f, $02, $bf, $80, $41, $7f, $38, $2f, $30, $3c, $00, $ff, $40, $c0, $a0, $20
+    db $7c, $3c, $fb, $a3, $00, $bf, $80, $fe, $00, $f9, $01, $72, $02, $40
 
-    ldh a, [$fff8]
-    ld [hl], l
-    db $fc
-    cp $7e
-    db $10
-    rlca
-    inc b
-    dec b
-    rrca
-    ld a, [bc]
-    rra
-    stop
-    cpl
-    jr nz, jr_002_7bfb
+jr_002_7f81::
+    db $b4, $58, $48, $ec, $64, $fc, $3f, $00
 
-    jr nz, @+$41
+jr_002_7f89::
+    db $e0, $be, $e0, $bc, $e0, $30, $c0, $40, $5f, $80, $00, $65, $c0, $40, $80, $00
+    db $ff
 
-    jr nz, @+$31
+jr_002_7f9a::
+    db $d4, $88, $d9, $fb, $ab, $22, $af, $ad, $a9, $a2, $82
 
-    jr nz, jr_002_7bc2
+jr_002_7fa5::
+    db $83, $54, $02, $06, $0a, $13, $17, $00, $26, $2e, $48
 
-jr_002_7bc2:
-    rst $38
-    inc sp
-    rst $38
-    jp $20ff
+jr_002_7fb0::
+    db $5b, $81, $ff, $00, $57, $50, $10, $30, $d0, $f0, $10
 
+jr_002_7fbb::
+    db $70, $00, $3e, $fe, $e4, $fc, $18, $f8, $20, $e0, $75, $00, $07, $18, $00
 
-    rst $38
-    ld de, $ef00
-    ldh [c], a
-    rst $38
-    or a
-    ld a, a
-    ld [hl], l
-    ei
-    inc bc
-    nop
-    rst $38
-    ld sp, hl
-    ld a, a
-    inc e
-    rst $38
-    inc c
-    rst $38
-    ldh [rP1], a
-    rst $38
-    db $10
-    ld a, a
-    ld [$80ff], sp
-    cp $80
-    ld a, h
-    ldh a, [rBCPS]
-    ld [$f801], sp
-    ld [$08f8], sp
-    add sp, $08
-    ldh a, [rSB]
-    ccf
-    jr nz, jr_002_7c0c
+jr_002_7fca::
+    db $23, $2f, $44, $5c, $88, $fb, $01, $5f, $55, $00, $04, $cc, $94, $00, $f4, $fc
+    db $14, $7c, $e8, $f8, $10, $f0
 
-    db $10
-    rrca
-    dec c
-    dec bc
-    nop
-    add hl, bc
+    db $02, $00, $00, $ff, $80, $ff, $80, $ff, $80, $ff, $80, $00, $ff, $80, $ff, $80
 
-jr_002_7bfb:
-    ld [$080b], sp
-    dec bc
-    ld [$0c0d], sp
-    nop
-    rst $38
-    nop
-    rst $38
-    nop
-    ei
-    inc bc
-    rst $38
-    db $fc
-    nop
+jr_002_7ff0::
+    db $ff, $80, $ff, $80
 
-jr_002_7c0c:
-    rst $38
-    nop
-    rst $38
-    nop
-    rst $38
-    nop
-    rst $38
-    nop
-    nop
-    or $06
-    cp d
-    ld a, [hl-]
-    db $fd
-    pop bc
-    rst $38
-    ld bc, $ff00
-    ld bc, $09fb
-    rst $38
-    rlca
-    rst $30
-    dec b
-    ld [hl], l
-    inc bc
-    ld bc, $ff00
-    rlca
-    ld a, a
-    nop
-    rst $18
-    ret nz
-
-    rst $38
-    ld b, b
-    dec d
-    inc e
-    rra
-    jr c, jr_002_7c76
-
-    ld bc, $153f
-    rst $28
-    rrca
-    ld a, h
-    ld hl, sp-$10
-    nop
-    ld h, b
-    ld a, $e0
-    cp [hl]
-    ret nz
-
-    ld hl, sp-$40
-    ldh [rTIMA], a
-    ccf
-    jr nz, jr_002_7c63
-
-    inc de
-    dec e
-    inc de
-    dec b
-    ld a, [de]
-    ld [de], a
-    rla
-    dec d
-    rrca
-    ld [bc], a
-    nop
-    rst $30
-    rlca
-    cp e
-    jr c, @+$01
-
-    ret nz
-
-    rst $38
-    ld b, $00
-    db $fd
-    dec b
-    db $fc
-
-jr_002_7c63:
-    inc b
-    ld a, [$f202]
-    ld [bc], a
-    ld d, c
-    nop
-    add b
-    ret nz
-
-    ld b, b
-    ld h, b
-    rla
-    ldh [$ffa0], a
-    ldh [rP1], a
-    dec b
-    cp a
-    add b
-
-jr_002_7c76:
-    rst $28
-    ldh [$ff7f], a
-    ccf
-    inc d
-    ld b, $04
-    dec b
-    rrca
-    ld b, $07
-    inc b
-    rst $30
-    rlca
-    cp [hl]
-    ld a, $fc
-    ldh a, [$fff7]
-    nop
-    and b
-    cp a
-    nop
-    cp $00
-    ld hl, sp+$00
-    ret nz
-
-    ld a, [hl]
-    nop
-    ldh a, [$ff1f]
-    nop
-    ldh [rP1], a
-    dec b
-    rra
-    db $10
-    dec bc
-    add hl, bc
-    ld b, $03
-    ld b, c
-    ld [bc], a
-    inc bc
-    ld [bc], a
-    dec b
-    inc b
-    ld b, $00
-    rst $38
-    nop
-    rst $38
-    add b
-    db $fd
-    add c
-    rst $38
-    cp $00
-    rst $38
-    nop
-    rst $38
-    nop
-    rst $38
-    nop
-    rst $38
-    nop
-    nop
-    ei
-    inc bc
-    call c, $fa1c
-    ldh [c], a
-    cp $02
-    ld b, $5a
-    ld b, d
-    or $a6
-    ld a, [$7f02]
-    inc bc
-    add l
-    ld [bc], a
-    inc bc
-    ld [bc], a
-    rlca
-    inc bc
-    rlca
-    ld a, a
-    nop
-    rst $18
-    ret nz
-
-    rst $38
-    ld b, b
-    ld b, b
-    add b
-    add a
-    add b
-    cp a
-    nop
-    rst $38
-    inc d
-    xor $0e
-    ld a, h
-    cp $fb
-    ld sp, hl
-    nop
-    cpl
-    daa
-    dec e
-    db $fd
-    nop
-    ldh [rP1], a
-    add b
-    ld bc, $101f
-    dec bc
-    ld [$0e0f], sp
-    dec de
-    db $10
-    inc a
-    inc [hl]
-    ccf
-    rra
-    jr jr_002_7d1c
-
-    db $10
-    ld bc, $00ff
-    rst $38
-    nop
-    db $fd
-    add c
-    cp $00
-    inc sp
-    ld [hl-], a
-    adc a
-    adc h
-    ld c, l
-    ld c, h
-    rst $38
-    ei
-    add b
-    inc bc
-    call c, $fe1c
-    ldh [rIE], a
-    nop
-    dec b
-    rst $08
-    nop
-    cp [hl]
-
-jr_002_7d1c:
-    jr nz, @-$3b
-
-    rst $38
-
-jr_002_7d1f:
-    ld d, l
-    nop
-    add b
-    ld b, b
-    ld h, b
-    ld a, h
-    ldh [$fff0], a
-    ret nc
-
-    ld d, l
-    db $10
-    rrca
-    ld bc, $0407
-    ld c, $08
-    dec e
-    ld de, $1f12
-    ld e, $45
-    rst $38
-    rst $18
-    ret nc
-
-    ld [hl], b
-    rst $28
-    ld e, [hl]
-    ld [hl], b
-    rst $38
-    adc a
-    nop
-    rst $18
-    rra
-    sbc e
-    dec de
-    scf
-    ld [hl], $f7
-    push af
-    nop
-    ld d, a
-    ld d, l
-    rst $30
-    db $f4
-    ei
-    ld a, [$ff0f]
-    ld bc, $90b0
-    ld hl, sp-$38
-    ret c
-
-    ld c, b
-    or b
-    ld bc, $b8f0
-    and b
-    jr nc, jr_002_7d1f
-
-    ld [hl], b
-    ret nz
-
-    dec b
-    rla
-    dec d
-    rla
-    ld d, $1b
-    rrca
-    ld a, a
-    nop
-    nop
-    ldh a, [rIE]
-    ret nz
-
-    rst $38
-    ret nz
-
-    cp $80
-    ldh a, [$ff7f]
-    nop
-    rlca
-    rrca
-    rst $38
-    nop
-    ret nz
-
-    nop
-    rst $38
-    ld bc, $101f
-    dec bc
-    ld [$0e0f], sp
-    dec bc
-    ld d, c
-    add hl, bc
-    ld a, [de]
-    inc a
-    inc [hl]
-    ccf
-    nop
-    rst $38
-    nop
-    rst $38
-    nop
-    db $fd
-    add c
-    rst $38
-    cp $00
-    adc a
-    add b
-    ld b, e
-    ld b, d
-    dec [hl]
-    inc [hl]
-    adc a
-    adc h
-    nop
-    ei
-    inc bc
-    call c, $fe1c
-    ldh [rIE], a
-    nop
-    nop
-    rst $38
-    nop
-    cp $00
-    rst $08
-    ld bc, $21b9
-    ld d, l
-    nop
-    add b
-    ld b, b
-    ld h, b
-    ret c
-
-    cp $f2
-    xor $e6
-    dec c
-    rra
-    jr jr_002_7dda
-
-    db $10
-    rrca
-    ld d, b
-    ld bc, $0e07
-    ld [$111d], sp
-    inc b
-    ld c, l
-    ld c, h
-    rst $38
-    ei
-    rst $38
-    rst $18
-    ret nc
-
-    ld d, l
-    ld [hl], b
-    rst $28
-    ld [hl], b
-    rst $38
-    ld d, b
-    rst $00
-    rst $38
-    rst $18
-    rra
-    sbc e
-    dec de
-    nop
-
-jr_002_7dda:
-    scf
-    ld [hl], $f7
-    push af
-    ld d, a
-    ld d, l
-    ei
-    ld a, [$c0d5]
-    add b
-    ret nz
-
-    sub b
-    ld b, b
-    and b
-    ldh [$ffa0], a
-    ret nz
-
-    ld h, b
-    ld bc, $9195
-    rst $38
-    rst $30
-    ld e, a
-    ld e, h
-    ld l, a
-    rra
-    ld a, $3f
-    nop
-    ld b, b
-    rst $38
-    ld hl, sp-$01
-    ret nz
-
-    ld a, a
-    ret nz
-
-    cp $1f
-    nop
-    ldh a, [rP1]
-    ld bc, $ff7e
-    inc a
-    cp $00
-    ldh a, [rP1]
-    rst $38
-    ld d, b
-    rst $00
-    rst $38
-    rst $18
-    rra
-    sbc e
-    dec de
-    nop
-    scf
-    ld [hl], $f7
-    push af
-    ld d, a
-    ld d, l
-    rst $30
-    db $f4
-    ld d, l
-    ld a, [$80c0]
-    ret nz
-
-    sub d
-    ld b, b
-    and b
-    ldh [$ffa0], a
-    jr nz, jr_002_7e6a
-
-    sub a
-    rst $38
-    db $f4
-    ld e, a
-    ld d, a
-    ld e, a
-    ld e, e
-    ld b, a
-    ld l, a
-    ld a, $3f
-    nop
-    ld b, b
-    rst $38
-    ld hl, sp+$7f
-    ret nz
-
-    rst $38
-    nop
-    rst $38
-    rlca
-    nop
-    ld hl, sp+$00
-    ret nz
-
-    nop
-    nop
-    sbc $d2
-    ld a, [hl]
-    rst $38
-    inc a
-    cp $00
-    add b
-    ld a, a
-    nop
-    ld d, b
-    inc bc
-    inc b
-    rlca
-    inc b
-    ld b, $04
-    ld d, b
-    dec b
-    rrca
-    ccf
-    jr nc, jr_002_7edb
-
-    ld e, b
-    ld d, h
-    add b
-    add c
-    add d
-    dec c
-    inc c
-    nop
-    rst $30
-    ldh a, [$ffef]
-    inc c
-    ei
-    inc bc
-
-jr_002_7e6a:
-    cp $00
-    nop
-    cp a
-    and h
-    rst $38
-    add b
-    rst $38
-    sub b
-    rst $38
-    add b
-    dec b
-    ld a, a
-    ld b, b
-    dec [hl]
-    inc [hl]
-    rrca
-    inc bc
-    nop
-    rst $38
-    nop
-    rst $38
-    nop
-    rst $38
-    inc bc
-    rst $38
-    nop
-    ld bc, $00ff
-    ld a, a
-    ld [bc], a
-    cp a
-    add b
-    ld a, a
-    ld [hl], l
-    nop
-    jr nz, jr_002_7ec1
-
-    ld b, b
-
-jr_002_7e92:
-    jr z, jr_002_7ecc
-
-    jr z, jr_002_7e92
-
-    db $ec
-    ld [$0042], a
-    rst $38
-    ld bc, $01ff
-    db $fd
-    ld bc, $1f7e
-    nop
-    xor d
-    and e
-    ld e, [hl]
-    ld b, e
-    db $fc
-    ld a, [hl]
-    ldh [$ff3e], a
-    nop
-    ldh [$ffbc], a
-    ldh [$ffb0], a
-    ldh [rNR41], a
-    ret nz
-
-    ld b, b
-    ld e, a
-    add b
-    nop
-    ld b, h
-    inc bc
-    dec b
-    inc b
-    rrca
-    ccf
-    jr nc, jr_002_7ebf
-
-jr_002_7ebf:
-    ld a, a
-    ld e, b
-
-jr_002_7ec1:
-    cp a
-    and h
-    rst $38
-    add b
-    rst $38
-    sub b
-    nop
-    rst $38
-    add b
-    ld a, a
-    ld b, b
-
-jr_002_7ecc:
-    ld [hl], l
-    ld [hl], h
-    rst $18
-    sbc a
-    rlca
-    db $e3
-    rst $28
-    nop
-    inc e
-    nop
-    rst $38
-    ld d, l
-    inc bc
-    ld b, $01
-
-jr_002_7edb:
-    add e
-    nop
-    call $f74c
-    ldh a, [$ffef]
-    inc c
-    ei
-    inc bc
-    nop
-    cp $00
-    rst $38
-    nop
-    rst $38
-    nop
-    rst $38
-    inc bc
-    nop
-    rst $38
-    nop
-    rst $38
-    nop
-    ld a, a
-    ld [bc], a
-    cp a
-    add b
-    ld b, c
-    rst $38
-    ldh a, [$ff9e]
-    ldh [$ffbc], a
-    ret nz
-
-    ld a, a
-    nop
-    ld b, b
-    ret nz
-
-    and b
-    jr nz, jr_002_7f81
-
-    inc a
-    ld a, [$00a2]
-    cp a
-    add c
-    rst $38
-    ld bc, $01ff
-    ld [hl], e
-    ld bc, $e700
-    pop hl
-    ld d, a
-    ld d, l
-    cp $6e
-    ld hl, sp+$2e
-    nop
-    ldh a, [$ffbc]
-    ldh [$ffb8], a
-    ldh [$ff30], a
-    ret nz
-
-    ld h, b
-    rra
-    add b
-    ret nz
-
-    nop
-    ld b, l
-    ld bc, $0203
-    dec b
-    rrca
-    nop
-    ccf
-    jr nc, jr_002_7fb0
-
-    ld e, b
-    cp a
-    and h
-    rst $38
-    add b
-    nop
-    rst $38
-    sub b
-    rst $38
-    add b
-    ld a, a
-    ld b, b
-    dec [hl]
-    inc [hl]
-    ld h, c
-    rra
-    rla
-    jr jr_002_7f63
-
-    nop
-    rst $38
-    ld d, h
-    inc bc
-    ld b, $c1
-    jp Jump_000_0043
-
-
-    adc l
-    adc h
-    rst $30
-    ldh a, [$ffef]
-    inc c
-    ei
-    inc bc
-    nop
-    cp $00
-    rst $38
-    nop
-    rst $38
-    nop
-    rst $38
-    inc bc
-    nop
-    rst $38
-    nop
-    rst $38
-    nop
-
-jr_002_7f63:
-    ld a, a
-    ld [bc], a
-    cp a
-    add b
-    ld b, c
-    ld a, a
-    jr c, jr_002_7f9a
-
-    jr nc, @+$3e
-
-    nop
-    rst $38
-    ld b, b
-    ret nz
-
-    and b
-    jr nz, jr_002_7ff0
-
-    inc a
-    ei
-    and e
-    nop
-    cp a
-    add b
-    cp $00
-    ld sp, hl
-    ld bc, $0272
-    ld b, b
-
-jr_002_7f81:
-    or h
-    ld e, b
-    ld c, b
-    db $ec
-    ld h, h
-    db $fc
-    ccf
-    nop
-
-jr_002_7f89:
-    ldh [$ffbe], a
-    ldh [$ffbc], a
-    ldh [$ff30], a
-    ret nz
-
-    ld b, b
-    ld e, a
-    add b
-    nop
-    ld h, l
-    ret nz
-
-    ld b, b
-    add b
-    nop
-    rst $38
-
-jr_002_7f9a:
-    call nc, $d988
-    ei
-    xor e
-    ld [hl+], a
-    xor a
-    xor l
-    xor c
-    and d
-    add d
-
-jr_002_7fa5:
-    add e
-    ld d, h
-    ld [bc], a
-    ld b, $0a
-    inc de
-    rla
-    nop
-    ld h, $2e
-    ld c, b
-
-jr_002_7fb0:
-    ld e, e
-    add c
-    rst $38
-    nop
-    ld d, a
-    ld d, b
-    db $10
-    jr nc, jr_002_7f89
-
-    ldh a, [rNR10]
-
-jr_002_7fbb:
-    ld [hl], b
-    nop
-    ld a, $fe
-    db $e4
-    db $fc
-    jr jr_002_7fbb
-
-    jr nz, jr_002_7fa5
-
-    ld [hl], l
-    nop
-    rlca
-    jr jr_002_7fca
-
-jr_002_7fca:
-    inc hl
-    cpl
-    ld b, h
-    ld e, h
-    adc b
-    ei
-    ld bc, $555f
-    nop
-    inc b
-    call z, Call_000_0094
-    db $f4
-    db $fc
-    inc d
-    ld a, h
-    add sp, -$08
-    db $10
-    ldh a, [rSC]
-    nop
-    nop
-    rst $38
-    add b
-    rst $38
-    add b
-    rst $38
-    add b
-    rst $38
-    add b
-    nop
-    rst $38
-    add b
-    rst $38
-    add b
-
-jr_002_7ff0:
-    rst $38
-    add b
-    rst $38
-    add b
     rst $38
     rst $38
     rst $38

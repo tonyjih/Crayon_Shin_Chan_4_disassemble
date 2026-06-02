@@ -3551,7 +3551,7 @@ jr_005_7da6:
     nop
     rrca
     nop
-    ld bc, $c000
+    ld bc, wOamBuffer
     nop
 
     db $00

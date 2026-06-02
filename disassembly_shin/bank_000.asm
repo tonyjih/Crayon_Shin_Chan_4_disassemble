@@ -5,7 +5,39 @@
 
 SECTION "ROM Bank $000", ROM0[$0]
 
-RST_00::
+
+; Hardware / memory aliases identified during cleanup pass 1.
+; Keep these conservative: names below are based on direct register usage in bank 0.
+DEF hJoyHeld       EQU $ff8a
+DEF hJoyPressed    EQU $ff8b
+DEF hJoyLast       EQU $ff8c
+DEF hVBlankBusy    EQU $ff8d
+DEF hGameState     EQU $ff8e
+DEF hNeedsReset    EQU $ff8f
+
+DEF hSCY           EQU $ff90
+DEF hSCYHigh       EQU $ff91
+DEF hSCX           EQU $ff92
+DEF hSCXHigh       EQU $ff93
+DEF hWY            EQU $ff94
+DEF hWX            EQU $ff95
+DEF hCollisionFlag EQU $ff96
+
+DEF hVramQueuePos  EQU $ff99
+DEF hOamMaxY       EQU $ff9a
+DEF hOamWritePos   EQU $ff9b
+DEF hPrevOamPos    EQU $ff9c
+DEF hSpriteFlags   EQU $ff9d
+
+DEF wOamBuffer     EQU $c000
+DEF wVramQueue     EQU $c100
+DEF wLCDCShadow    EQU $c0a2
+DEF wPaletteBGP    EQU $c0a3
+DEF wPaletteOBP0   EQU $c0a4
+DEF wPaletteOBP1   EQU $c0a5
+
+
+RST_00:: ; Jump table dispatch. A indexes word table after rst call, then jumps to target.
     jr jr_000_0061
 
     rst $38
@@ -27,7 +59,7 @@ RST_08::
     rst $38
     rst $38
 
-Call_000_000e:
+Call_000_000e::
     rst $38
     rst $38
 
@@ -55,12 +87,10 @@ RST_18::
     rst $38
     rst $38
 
-RST_20::
+RST_20:: ; Pointer table helper. HL points to word table, A selects entry, returns pointer in HL.
     jr jr_000_006b
 
-Call_000_0022:
-Jump_000_0022:
-jr_000_0022:
+jr_000_0022::
     ld [hl+], a
     dec b
     jr nz, jr_000_0022
@@ -68,10 +98,10 @@ jr_000_0022:
     ret
 
 
-Jump_000_0027:
+Jump_000_0027::
     rst $38
 
-RST_28::
+RST_28:: ; abs(A).
     bit 7, a
     ret z
 
@@ -83,7 +113,7 @@ RST_28::
     rst $38
     rst $38
 
-RST_30::
+RST_30:: ; Add A to DE.
     add e
     ld e, a
     ld a, $00
@@ -94,7 +124,7 @@ RST_30::
 
     rst $38
 
-RST_38::
+RST_38:: ; Add A to HL.
     add l
     ld l, a
     ld a, $00
@@ -103,13 +133,13 @@ RST_38::
     ret
 
 
-Call_000_003f:
+Call_000_003f::
     rst $38
 
 VBlankInterrupt::
-    call Call_000_01dd
+    call VBlankHandler
 
-Jump_000_0043:
+Jump_000_0043::
     reti
 
 
@@ -137,8 +167,7 @@ TimerOverflowInterrupt::
     rst $38
     rst $38
 
-Call_000_0055:
-Jump_000_0055:
+Jump_000_0055::
     rst $38
     rst $38
     rst $38
@@ -152,7 +181,7 @@ SerialTransferCompleteInterrupt::
     rst $38
     rst $38
 
-Call_000_005d:
+Call_000_005d::
     rst $38
     rst $38
     rst $38
@@ -161,7 +190,7 @@ JoypadTransitionInterrupt::
     reti
 
 
-jr_000_0061:
+jr_000_0061::
     add a
     pop hl
     ld e, a
@@ -173,7 +202,7 @@ jr_000_0061:
     jp hl
 
 
-jr_000_006b:
+jr_000_006b::
     ld e, a
     ld d, $00
     add hl, de
@@ -187,7 +216,7 @@ jr_000_006b:
 bzero::
     xor a
 
-Call_000_0075:
+Call_000_0075::
     ld [hl+], a
     dec bc
     ld a, c
@@ -200,11 +229,11 @@ Call_000_0075:
     rst $38
     rst $38
 
-Jump_000_007e:
+Jump_000_007e::
     rst $38
     rst $38
 
-Call_000_0080:
+Call_000_0080::
     ld a, [hl+]
     ld h, [hl]
     ld l, a
@@ -217,8 +246,7 @@ Call_000_0080:
     ret
 
 
-Call_000_0089:
-Jump_000_0089:
+Jump_000_0089::
     ld a, [$4000]
     push af
     ld a, h
@@ -226,7 +254,7 @@ Jump_000_0089:
     ld a, $01
     add l
 
-Call_000_0094:
+Call_000_0094::
     ld l, a
     ld a, $40
     ld h, a
@@ -239,16 +267,16 @@ Call_000_0094:
     ret
 
 
-Call_000_00a3:
+Call_000_00a3::
     jp hl
 
 
-Call_000_00a4:
+CopyDmaStubToHram::
     ld c, $80
     ld b, $0a
     ld hl, $00b2
 
-jr_000_00ab:
+jr_000_00ab::
     ld a, [hl+]
     ldh [c], a
     inc c
@@ -260,7 +288,7 @@ jr_000_00ab:
 
     db $3e, $c0, $e0, $46, $3e, $28, $3d, $20, $fd, $c9
 
-Call_000_00bc:
+ReadJoypad:: ; Updates hJoyHeld, hJoyPressed, and hJoyLast from rP1.
     ld a, $20
     ldh [rP1], a
     ldh a, [rP1]
@@ -285,20 +313,20 @@ Call_000_00bc:
     and $0f
     or b
     ld c, a
-    ldh a, [$ff8c]
+    ldh a, [hJoyLast]
     xor c
     and c
-    ldh [$ff8b], a
+    ldh [hJoyPressed], a
     ld a, c
-    ldh [$ff8a], a
-    ldh [$ff8c], a
+    ldh [hJoyHeld], a
+    ldh [hJoyLast], a
     ld a, $30
     ldh [rP1], a
     ret
 
 
-Call_000_00f7:
-    ld a, [$c0a2]
+ApplyLCDC::
+    ld a, [wLCDCShadow]
     ldh [rLCDC], a
     ret
 
@@ -306,7 +334,7 @@ Call_000_00f7:
     rst $38
     rst $38
 
-Jump_000_00ff:
+Jump_000_00ff::
     rst $38
 
 Boot::
@@ -352,7 +380,7 @@ HeaderComplementCheck::
 HeaderGlobalChecksum::
     db $fb, $dc
 
-Jump_000_0150:
+Jump_000_0150::
     ld sp, $dff0
     ld a, $01
     ld [$dff9], a
@@ -370,10 +398,9 @@ Jump_000_0150:
     ld a, $ff
     ld [$dff8], a
     ld hl, $030a
-    call Call_000_0089
+    call Jump_000_0089
 
-Jump_000_017c:
-jr_000_017c:
+jr_000_017c::
     di
     xor a
     ldh [rIE], a
@@ -381,88 +408,88 @@ jr_000_017c:
     ld hl, $ff80
     ld bc, $007f
     call bzero
-    call Call_000_02d6
+    call DisableLCD
     ld hl, $8000
     ld bc, $5f80
     call bzero
-    call Call_000_00a4
-    call Call_000_00bc
-    call Call_000_0f0d
+    call CopyDmaStubToHram
+    call ReadJoypad
+    call InitSound
 
-jr_000_01a1:
+jr_000_01a1::
     di
-    call Call_000_02d6
+    call DisableLCD
     xor a
     ld [$d933], a
     call Call_000_079b
     ld hl, $fe00
     ld bc, $00a0
     call bzero
-    ld hl, $c000
+    ld hl, wOamBuffer
     ld bc, $00a0
     call bzero
     call Call_000_0986
     xor a
-    ldh [$ff9c], a
-    call Call_000_00f7
-    ldh a, [$ff8f]
+    ldh [hPrevOamPos], a
+    call ApplyLCDC
+    ldh a, [hNeedsReset]
     or a
     jr nz, jr_000_01a1
 
-    call Call_000_05c8
-    call Call_000_03fe
+    call ApplyScrollRegs
+    call SgbDelayIfEnabled
     call Call_000_079b
     ei
 
-jr_000_01d6:
-    ldh a, [$ff8f]
+jr_000_01d6::
+    ldh a, [hNeedsReset]
     or a
     jr z, jr_000_01d6
 
     jr jr_000_01a1
 
-Call_000_01dd:
+VBlankHandler:: ; Main VBlank handler: DMA/OAM, VRAM queue, palettes, joypad, sound.
     push af
     push bc
     push de
     push hl
-    ldh a, [$ff8d]
+    ldh a, [hVBlankBusy]
     and a
     jr nz, jr_000_0230
 
     inc a
-    ldh [$ff8d], a
+    ldh [hVBlankBusy], a
     call $ff80
-    ld de, $c100
-    call Call_000_0347
-    call Call_000_05c8
-    call Call_000_05ea
+    ld de, wVramQueue
+    call jr_000_0347
+    call ApplyScrollRegs
+    call ApplyPalettes
     xor a
-    ld [$c100], a
+    ld [wVramQueue], a
 
-Call_000_01fc:
-    ldh [$ff99], a
-    ldh [$ff9b], a
+Call_000_01fc::
+    ldh [hVramQueuePos], a
+    ldh [hOamWritePos], a
     ld a, [$4000]
     push af
     ld a, $07
     ld [$2100], a
-    call Call_000_0f9d
+    call UpdateSound
     pop af
     ld [$2100], a
     ei
     call Call_000_04f2
-    call Call_000_00bc
+    call ReadJoypad
     call Call_000_090b
-    ldh a, [$ff9b]
-    ldh [$ff9c], a
-    call Call_000_05d9
-    ldh a, [$ff8a]
+    ldh a, [hOamWritePos]
+    ldh [hPrevOamPos], a
+    call ClearUnusedOAM
+    ldh a, [hJoyHeld]
     cp $0f
-    jp z, Jump_000_017c
+    jp z, jr_000_017c
 
     xor a
-    ldh [$ff8d], a
+    ldh [hVBlankBusy], a
     pop hl
     pop de
     pop bc
@@ -470,17 +497,17 @@ Call_000_01fc:
     ret
 
 
-jr_000_0230:
+jr_000_0230::
     ld a, [$4000]
     push af
     ld a, $07
     ld [$2100], a
-    call Call_000_0f9d
+    call UpdateSound
     pop af
     ld [$2100], a
-    ldh a, [$ff8d]
+    ldh a, [hVBlankBusy]
     dec a
-    ldh [$ff8d], a
+    ldh [hVBlankBusy], a
     pop hl
     pop de
     pop bc
@@ -488,7 +515,7 @@ jr_000_0230:
     ret
 
 
-Call_000_024a:
+Call_000_024a::
     push af
     push bc
     push de
@@ -501,45 +528,42 @@ Call_000_024a:
     ret
 
 
-Call_000_0256:
+Call_000_0256::
     ret
 
 
     ld a, $03
-    ldh [$ff9d], a
+    ldh [hSpriteFlags], a
     jr jr_000_026c
 
-Jump_000_025d:
+Jump_000_025d::
     ld a, $02
-    ldh [$ff9d], a
+    ldh [hSpriteFlags], a
     jr jr_000_026c
 
     ld a, $01
-    ldh [$ff9d], a
+    ldh [hSpriteFlags], a
     jr jr_000_026c
 
-Call_000_0269:
-Jump_000_0269:
+Jump_000_0269::
     xor a
-    ldh [$ff9d], a
+    ldh [hSpriteFlags], a
 
-Call_000_026c:
-Jump_000_026c:
-jr_000_026c:
+jr_000_026c::
     ld a, $10
     add b
     ld b, a
     ld a, $08
     add c
     ld c, a
-    ldh a, [$ff9b]
+    ldh a, [hOamWritePos]
     cp $a0
     ret z
 
     ld e, a
     ld d, $c0
 
-jr_000_027c:
+jr_000_027c::
     ld a, [hl+]
     cp $80
     jr z, jr_000_029c
@@ -548,7 +572,7 @@ jr_000_027c:
     ld [de], a
     push de
     ld d, a
-    ldh a, [$ff9a]
+    ldh a, [hOamMaxY]
     cp d
     pop de
     jr c, jr_000_02a0
@@ -565,20 +589,20 @@ jr_000_027c:
     cp $a0
     jr nz, jr_000_027c
 
-jr_000_029c:
+jr_000_029c::
     ld a, e
-    ldh [$ff9b], a
+    ldh [hOamWritePos], a
     ret
 
 
-jr_000_02a0:
+jr_000_02a0::
     inc hl
     inc hl
     inc hl
     jr jr_000_027c
 
-Call_000_02a5:
-    ldh a, [$ff9d]
+Call_000_02a5::
+    ldh a, [hSpriteFlags]
     bit 0, a
     jr nz, jr_000_02af
 
@@ -588,7 +612,7 @@ Call_000_02a5:
     ret
 
 
-jr_000_02af:
+jr_000_02af::
     ld a, [hl+]
     cpl
     inc a
@@ -598,8 +622,8 @@ jr_000_02af:
     ret
 
 
-Call_000_02b7:
-    ldh a, [$ff9d]
+Call_000_02b7::
+    ldh a, [hSpriteFlags]
     or a
     jr z, jr_000_02d3
 
@@ -616,27 +640,27 @@ Call_000_02b7:
     ret
 
 
-jr_000_02c9:
+jr_000_02c9::
     ld a, [hl+]
     set 7, a
     ld [de], a
     ret
 
 
-jr_000_02ce:
+jr_000_02ce::
     ld a, [hl+]
     xor $20
     ld [de], a
     ret
 
 
-jr_000_02d3:
+jr_000_02d3::
     ld a, [hl+]
     ld [de], a
     ret
 
 
-Call_000_02d6:
+DisableLCD::
     ld hl, $ff40
     bit 7, [hl]
     ret z
@@ -646,7 +670,7 @@ Call_000_02d6:
     res 0, a
     ldh [rIE], a
 
-jr_000_02e3:
+jr_000_02e3::
     ldh a, [rLY]
     cp $91
     jr nz, jr_000_02e3
@@ -657,7 +681,7 @@ jr_000_02e3:
     ret
 
 
-Jump_000_02ef:
+EnableInterruptsFromShadow::
     xor a
     ldh [rIF], a
     ld a, [$c0a0]
@@ -665,13 +689,13 @@ Jump_000_02ef:
     ret
 
 
-Call_000_02f8:
+Call_000_02f8::
     ld hl, $9bff
 
-jr_000_02fb:
+jr_000_02fb::
     ld bc, $0400
 
-jr_000_02fe:
+jr_000_02fe::
     ld a, $00
     ld [hl-], a
     dec bc
@@ -682,14 +706,14 @@ jr_000_02fe:
     ret
 
 
-Call_000_0307:
+Call_000_0307::
     ld hl, $9fff
     jr jr_000_02fb
 
     ld hl, $9bff
     ld bc, $0400
 
-jr_000_0312:
+jr_000_0312::
     ldh a, [$ffc9]
     ld [hl-], a
     dec bc
@@ -700,7 +724,7 @@ jr_000_0312:
     ret
 
 
-jr_000_031b:
+jr_000_031b::
     inc de
     ld h, a
     ld a, [de]
@@ -723,7 +747,7 @@ jr_000_031b:
     dec a
     jr z, jr_000_0354
 
-jr_000_0333:
+jr_000_0333::
     ld a, [de]
     ld [hl], a
     ld a, b
@@ -736,15 +760,14 @@ jr_000_0333:
     inc de
     jr jr_000_0347
 
-jr_000_0341:
+jr_000_0341::
     ld a, [de]
     ld [hl+], a
     inc de
     dec b
     jr nz, jr_000_0341
 
-Call_000_0347:
-jr_000_0347:
+jr_000_0347::
     ld a, [de]
     or a
     jr nz, jr_000_031b
@@ -752,18 +775,18 @@ jr_000_0347:
     ret
 
 
-jr_000_034c:
+jr_000_034c::
     ld a, [de]
     inc de
 
-jr_000_034e:
+jr_000_034e::
     ld [hl+], a
     dec b
     jr nz, jr_000_034e
 
     jr jr_000_0347
 
-jr_000_0354:
+jr_000_0354::
     ld a, [de]
     ld [hl], a
     inc de
@@ -776,8 +799,7 @@ jr_000_0354:
 
     jr jr_000_0347
 
-Jump_000_0362:
-jr_000_0362:
+jr_000_0362::
     ld a, [hl+]
     ld [de], a
     inc de
@@ -799,7 +821,7 @@ memcpy::
     ret
 
 
-LoadGameGfx::
+BankedMemcpy:: ; Copy BC bytes from A:HL to DE, preserving the current ROM bank.
     push hl
     ld l, a
     ld a, [$4000]
@@ -815,8 +837,7 @@ LoadGameGfx::
     ret
 
 
-Call_000_0387:
-Jump_000_0387:
+BankedMemcpy_RLEFF:: ; Banked copy with $ff count/value RLE expansion.
     push hl
     ld l, a
     ld a, [$4000]
@@ -828,14 +849,13 @@ Jump_000_0387:
     ld a, h
     pop hl
     push af
-    call Call_000_039e
+    call jr_000_039e
     pop af
     ld [$2100], a
     ret
 
 
-Call_000_039e:
-jr_000_039e:
+jr_000_039e::
     ld a, [hl+]
     cp $ff
     jr z, jr_000_03ab
@@ -850,7 +870,7 @@ jr_000_039e:
     ret
 
 
-jr_000_03ab:
+jr_000_03ab::
     ld a, [hl+]
     ldh [$ffc9], a
     ld a, [hl+]
@@ -859,7 +879,7 @@ jr_000_03ab:
     ldh a, [$ffc9]
     ld l, a
 
-jr_000_03b4:
+jr_000_03b4::
     ld a, h
     ld [de], a
     inc de
@@ -875,7 +895,7 @@ jr_000_03b4:
     ret
 
 
-jr_000_03c1:
+jr_000_03c1::
     pop hl
     dec bc
     ld a, b
@@ -885,7 +905,7 @@ jr_000_03c1:
     ret
 
 
-Call_000_03c8:
+Call_000_03c8::
     ld a, [hl]
     and $07
     ret z
@@ -893,7 +913,7 @@ Call_000_03c8:
     ld b, a
     ld c, $00
 
-jr_000_03cf:
+jr_000_03cf::
     push bc
     ld a, $00
     ldh [c], a
@@ -901,19 +921,19 @@ jr_000_03cf:
     ldh [c], a
     ld b, $10
 
-jr_000_03d8:
+jr_000_03d8::
     ld e, $08
     ld a, [hl+]
     ld d, a
 
-jr_000_03dc:
+jr_000_03dc::
     bit 0, d
     ld a, $10
     jr nz, jr_000_03e4
 
     ld a, $20
 
-jr_000_03e4:
+jr_000_03e4::
     ldh [c], a
     ld a, $30
     ldh [c], a
@@ -932,18 +952,18 @@ jr_000_03e4:
     dec b
     ret z
 
-    call Call_000_0403
+    call DelayFramesOrCycles
     jr jr_000_03cf
 
-Call_000_03fe:
+SgbDelayIfEnabled::
     ld a, [$dff8]
     or a
     ret z
 
-Call_000_0403:
+DelayFramesOrCycles::
     ld de, $1b58
 
-jr_000_0406:
+jr_000_0406::
     nop
     nop
     nop
@@ -955,10 +975,10 @@ jr_000_0406:
     ret
 
 
-Call_000_040f:
+Call_000_040f::
     ld hl, $0480
     call Call_000_03c8
-    call Call_000_0403
+    call DelayFramesOrCycles
     ldh a, [rP1]
     and $03
     cp $03
@@ -968,10 +988,10 @@ Call_000_040f:
     ldh [rP1], a
     ldh a, [rP1]
     ldh a, [rP1]
-    call Call_000_0403
+    call DelayFramesOrCycles
     ld a, $30
     ldh [rP1], a
-    call Call_000_0403
+    call DelayFramesOrCycles
     ld a, $10
     ldh [rP1], a
     ldh a, [rP1]
@@ -980,13 +1000,13 @@ Call_000_040f:
     ldh a, [rP1]
     ldh a, [rP1]
     ldh a, [rP1]
-    call Call_000_0403
+    call DelayFramesOrCycles
     ld a, $30
     ldh [rP1], a
     ldh a, [rP1]
     ldh a, [rP1]
     ldh a, [rP1]
-    call Call_000_0403
+    call DelayFramesOrCycles
     ldh a, [rP1]
     and $03
     cp $03
@@ -994,15 +1014,15 @@ Call_000_040f:
 
     ld hl, $0470
     call Call_000_03c8
-    call Call_000_0403
+    call DelayFramesOrCycles
     sub a
     ret
 
 
-jr_000_0465:
+jr_000_0465::
     ld hl, $0470
     call Call_000_03c8
-    call Call_000_0403
+    call DelayFramesOrCycles
     scf
     ret
 
@@ -1010,26 +1030,26 @@ jr_000_0465:
     db $89, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
     db $89, $01, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 
-Call_000_0490:
+Call_000_0490::
     push de
     push hl
-    call Call_000_02d6
+    call DisableLCD
     pop hl
     ld a, $e4
     ldh [rBGP], a
     ld de, $8800
     call memcpy
 
-jr_000_04a0:
+jr_000_04a0::
     ld hl, $9800
     ld de, $000c
     ld a, $80
     ld c, $0d
 
-jr_000_04aa:
+jr_000_04aa::
     ld b, $14
 
-jr_000_04ac:
+jr_000_04ac::
     ld [hl+], a
     inc a
     dec b
@@ -1041,26 +1061,26 @@ jr_000_04ac:
 
     ld a, $81
     ldh [rLCDC], a
-    call Call_000_0403
+    call DelayFramesOrCycles
     pop hl
     call Call_000_03c8
-    call Call_000_0403
+    call DelayFramesOrCycles
 
-Jump_000_04c3:
+Jump_000_04c3::
     ret
 
 
     ldh [$ffc9], a
     push de
 
-Call_000_04c7:
-    call Call_000_02d6
+Call_000_04c7::
+    call DisableLCD
     ld a, $e4
     ldh [rBGP], a
     ld de, $8800
     ld bc, $1000
     ldh a, [$ffc9]
-    call LoadGameGfx
+    call BankedMemcpy
     jr jr_000_04a0
 
     ld hl, $ffc9
@@ -1068,21 +1088,21 @@ Call_000_04c7:
     jp bzero
 
 
-Call_000_04e4:
-    ld hl, $c100
-    ldh a, [$ff99]
+GetVramQueueTail:: ; HL = wVramQueue + hVramQueuePos.
+    ld hl, wVramQueue
+    ldh a, [hVramQueuePos]
     rst $38
     ret
 
 
-Call_000_04eb:
-    ld de, $c100
-    ldh a, [$ff99]
+Call_000_04eb::
+    ld de, wVramQueue
+    ldh a, [hVramQueuePos]
     rst $30
     ret
 
 
-Call_000_04f2:
+Call_000_04f2::
     ldh a, [$ff9e]
     ld b, a
     add a
@@ -1091,18 +1111,16 @@ Call_000_04f2:
     add $11
     ldh [$ff9e], a
 
-Call_000_04fc:
+Call_000_04fc::
     ret
 
 
-Call_000_04fd:
+QueueVramFill_SetHighBit::
     set 7, e
-    jr jr_000_0501
+    jr QueueVramFill
 
-Call_000_0501:
-Jump_000_0501:
-jr_000_0501:
-    call Call_000_04e4
+QueueVramFill:: ; Queue a VRAM fill/single-byte command at wVramQueue.
+    call GetVramQueueTail
     ld a, b
     ld [hl+], a
     ld a, c
@@ -1113,26 +1131,24 @@ jr_000_0501:
     ld a, d
     ld [hl+], a
     ld [hl], $00
-    ldh a, [$ff99]
+    ldh a, [hVramQueuePos]
     add $04
-    ldh [$ff99], a
+    ldh [hVramQueuePos], a
     ret
 
 
-Call_000_0517:
-Jump_000_0517:
+QueueTilemapByte:: ; Queue one tile byte A at tilemap address HL.
     push de
     ld d, a
     ld e, $01
     ld b, h
     ld c, l
-    call Call_000_0501
+    call QueueVramFill
     pop de
     ret
 
 
-Call_000_0522:
-Jump_000_0522:
+Jump_000_0522::
     ld a, [$4000]
     push af
     ld a, d
@@ -1143,20 +1159,20 @@ Jump_000_0522:
     ret
 
 
-Jump_000_0532:
+Jump_000_0532::
     ld a, [$4000]
     push af
     ld a, d
     ld [$2100], a
 
-Jump_000_053a:
+Jump_000_053a::
     call Call_000_0542
     pop af
     ld [$2100], a
     ret
 
 
-Call_000_0542:
+Call_000_0542::
     ld a, c
     ld b, h
     ld c, l
@@ -1177,7 +1193,7 @@ Call_000_0542:
     ld de, $9000
     jr jr_000_0570
 
-Call_000_055a:
+Call_000_055a::
     ld a, c
     ld b, h
     ld c, l
@@ -1197,11 +1213,11 @@ Call_000_055a:
     add hl, hl
     ld de, $8000
 
-jr_000_0570:
+jr_000_0570::
     add hl, de
     ld d, h
     ld e, l
-    call Call_000_04e4
+    call GetVramQueueTail
     ld a, d
     ld [hl+], a
     ld a, e
@@ -1211,7 +1227,7 @@ jr_000_0570:
     pop de
     ld b, $10
 
-jr_000_0580:
+jr_000_0580::
     ld a, [de]
     ld [hl+], a
     inc de
@@ -1219,9 +1235,9 @@ jr_000_0580:
     jr nz, jr_000_0580
 
     ld [hl], $00
-    ldh a, [$ff99]
+    ldh a, [hVramQueuePos]
     add $13
-    ldh [$ff99], a
+    ldh [hVramQueuePos], a
     ret
 
 
@@ -1230,7 +1246,7 @@ jr_000_0580:
     ld e, a
     xor a
 
-jr_000_0594:
+jr_000_0594::
     add hl, hl
     rla
     jr c, jr_000_059b
@@ -1238,11 +1254,11 @@ jr_000_0594:
     cp e
     jr c, jr_000_059d
 
-jr_000_059b:
+jr_000_059b::
     sub e
     inc l
 
-jr_000_059d:
+jr_000_059d::
     dec d
     jr nz, jr_000_0594
 
@@ -1250,10 +1266,10 @@ jr_000_059d:
     ret
 
 
-Call_000_05a2:
+Call_000_05a2::
     ld de, $0000
 
-jr_000_05a5:
+jr_000_05a5::
     ld e, a
     sub $0a
     jr c, jr_000_05ad
@@ -1261,7 +1277,7 @@ jr_000_05a5:
     inc d
     jr jr_000_05a5
 
-jr_000_05ad:
+jr_000_05ad::
     ld a, e
     ldh [$ffc9], a
     ld a, d
@@ -1269,19 +1285,19 @@ jr_000_05ad:
     ret
 
 
-Call_000_05b4:
+Call_000_05b4::
     push de
     ld hl, $0000
     ld b, l
     ld d, $08
 
-jr_000_05bb:
+jr_000_05bb::
     rrca
     jr nc, jr_000_05bf
 
     add hl, bc
 
-jr_000_05bf:
+jr_000_05bf::
     sla c
     rl b
     dec d
@@ -1291,21 +1307,21 @@ jr_000_05bf:
     ret
 
 
-Call_000_05c8:
-    ldh a, [$ff90]
+ApplyScrollRegs:: ; Copy scroll/window shadow values to hardware registers.
+    ldh a, [hSCY]
     ldh [rSCY], a
-    ldh a, [$ff92]
+    ldh a, [hSCX]
     ldh [rSCX], a
-    ldh a, [$ff94]
+    ldh a, [hWY]
     ldh [rWY], a
-    ldh a, [$ff95]
+    ldh a, [hWX]
     ldh [rWX], a
     ret
 
 
-Call_000_05d9:
+ClearUnusedOAM::
     ld h, $c0
-    ldh a, [$ff9b]
+    ldh a, [hOamWritePos]
     ld l, a
     sub $a0
     ret nc
@@ -1315,7 +1331,7 @@ Call_000_05d9:
     ld b, a
     xor a
 
-jr_000_05e5:
+jr_000_05e5::
     ld [hl+], a
     dec b
     jr nz, jr_000_05e5
@@ -1323,8 +1339,8 @@ jr_000_05e5:
     ret
 
 
-Call_000_05ea:
-    ld hl, $c0a3
+ApplyPalettes:: ; Copy palette shadow bytes to BGP/OBP0/OBP1.
+    ld hl, wPaletteBGP
     ld a, [hl+]
     ldh [rBGP], a
     ld a, [hl+]
@@ -1334,9 +1350,7 @@ Call_000_05ea:
     ret
 
 
-Call_000_05f7:
-Jump_000_05f7:
-jr_000_05f7:
+jr_000_05f7::
     call Call_000_05fe
     dec c
     jr nz, jr_000_05f7
@@ -1344,11 +1358,11 @@ jr_000_05f7:
     ret
 
 
-Call_000_05fe:
+Call_000_05fe::
     push bc
     push hl
 
-jr_000_0600:
+jr_000_0600::
     ld a, [de]
     inc de
     ld [hl+], a
@@ -1366,7 +1380,7 @@ jr_000_0600:
     ld b, $10
     ld hl, $da80
 
-jr_000_0613:
+jr_000_0613::
     ld [hl+], a
     inc a
     dec b
@@ -1376,15 +1390,14 @@ jr_000_0613:
     ld de, $da80
     ld bc, $0404
 
-Call_000_061f:
-Jump_000_061f:
+QueueTilemapRect:: ; Queue a rectangular tilemap upload. HL=dest, DE=src, B=width, C=height.
     ld a, l
     ldh [$ffc5], a
     ld a, h
     ldh [$ffc6], a
-    call Call_000_04e4
+    call GetVramQueueTail
 
-jr_000_0628:
+jr_000_0628::
     ldh a, [$ffc6]
     ld [hl+], a
     ldh a, [$ffc5]
@@ -1393,7 +1406,7 @@ jr_000_0628:
     ld [hl+], a
     push bc
 
-jr_000_0631:
+jr_000_0631::
     ld a, [de]
     inc de
     ld [hl+], a
@@ -1401,10 +1414,10 @@ jr_000_0631:
     jr nz, jr_000_0631
 
     pop bc
-    ldh a, [$ff99]
+    ldh a, [hVramQueuePos]
     add b
     add $03
-    ldh [$ff99], a
+    ldh [hVramQueuePos], a
     ldh a, [$ffc5]
     add $20
     ldh [$ffc5], a
@@ -1418,12 +1431,12 @@ jr_000_0631:
     ret
 
 
-Call_000_0651:
+Call_000_0651::
     ld a, [$4000]
     push af
     ldh a, [$ffc9]
     ld [$2100], a
-    call Call_000_05f7
+    call jr_000_05f7
     pop af
     ld [$2100], a
     ret
@@ -1433,14 +1446,13 @@ Call_000_0651:
     push af
     ldh a, [$ffc9]
     ld [$2100], a
-    call Call_000_061f
+    call QueueTilemapRect
     pop af
     ld [$2100], a
     ret
 
 
-Call_000_0673:
-jr_000_0673:
+jr_000_0673::
     ld a, [de]
     inc de
     cp $ff
@@ -1455,7 +1467,7 @@ jr_000_0673:
     ld [hl+], a
     jr jr_000_0673
 
-jr_000_0683:
+jr_000_0683::
     ld bc, $ffe0
     add hl, bc
     ld [hl], a
@@ -1463,14 +1475,14 @@ jr_000_0683:
     add hl, bc
     jr jr_000_0673
 
-Jump_000_068e:
+Jump_000_068e::
     push hl
     push de
     call Call_000_06bc
     pop de
     pop hl
     push hl
-    call Call_000_04e4
+    call GetVramQueueTail
     ld a, b
     pop bc
     ld [hl], b
@@ -1481,7 +1493,7 @@ Jump_000_068e:
     add $03
     ld b, a
 
-jr_000_06a3:
+jr_000_06a3::
     ld a, [de]
     cp $ff
     jr z, jr_000_06b4
@@ -1496,20 +1508,20 @@ jr_000_06a3:
     ld [hl+], a
     jr jr_000_06a3
 
-jr_000_06b4:
+jr_000_06b4::
     ld [hl], $00
-    ldh a, [$ff99]
+    ldh a, [hVramQueuePos]
     add b
-    ldh [$ff99], a
+    ldh [hVramQueuePos], a
     ret
 
 
-Call_000_06bc:
+Call_000_06bc::
     ld bc, $ffe0
     add hl, bc
     ld b, $00
 
-jr_000_06c2:
+jr_000_06c2::
     ld a, [de]
     cp $ff
     ret z
@@ -1525,10 +1537,10 @@ jr_000_06c2:
     inc hl
     jr jr_000_06c2
 
-jr_000_06d3:
+jr_000_06d3::
     push hl
     push bc
-    call Call_000_0517
+    call QueueTilemapByte
     pop bc
     pop hl
     jr jr_000_06c2
@@ -1543,8 +1555,7 @@ jr_000_06d3:
     ret
 
 
-Jump_000_06ea:
-jr_000_06ea:
+jr_000_06ea::
     ld a, [hl]
     cp $ff
     ret z
@@ -1566,35 +1577,35 @@ jr_000_06ea:
     ld b, a
     ld a, [hl+]
 
-Call_000_06fe:
+Call_000_06fe::
     pop de
     pop hl
-    call LoadGameGfx
+    call BankedMemcpy
     pop hl
     ld a, $07
     rst $38
     jr jr_000_06ea
 
-Call_000_0709:
+Call_000_0709::
     ld hl, $030c
-    call Call_000_0089
+    call Jump_000_0089
     ret
 
 
-Call_000_0710:
+Call_000_0710::
     ldh [$ffc9], a
     ld hl, $0300
-    call Call_000_0089
+    call Jump_000_0089
     ret
 
 
-Call_000_0719:
+Call_000_0719::
     ld hl, $0302
-    call Call_000_0089
+    call Jump_000_0089
     ret
 
 
-Call_000_0720:
+Call_000_0720::
     ld a, [$4000]
     push af
     xor a
@@ -1617,7 +1628,7 @@ Call_000_0720:
     ldh [$ffce], a
     jr jr_000_0757
 
-jr_000_073d:
+jr_000_073d::
     ld a, [hl+]
     cp $ff
     jr nz, jr_000_074a
@@ -1630,11 +1641,11 @@ jr_000_073d:
     inc hl
     jr jr_000_074c
 
-jr_000_074a:
+jr_000_074a::
     ld [de], a
     inc hl
 
-jr_000_074c:
+jr_000_074c::
     dec de
     ld a, h
     ld [de], a
@@ -1647,7 +1658,7 @@ jr_000_074c:
     dec a
     ld [de], a
 
-jr_000_0757:
+jr_000_0757::
     dec hl
     ld a, [de]
     bit 7, a
@@ -1656,8 +1667,8 @@ jr_000_0757:
 
     ld a, $01
 
-jr_000_0761:
-    ldh [$ff9d], a
+jr_000_0761::
+    ldh [hSpriteFlags], a
     push bc
     ld c, [hl]
     ld b, $00
@@ -1674,40 +1685,39 @@ jr_000_0761:
     ld h, [hl]
     ld l, a
     pop bc
-    call Call_000_026c
+    call jr_000_026c
     pop af
     ld [$2100], a
     ldh a, [$ffce]
     ret
 
 
-Call_000_0785:
+Call_000_0785::
     ld a, $02
-    ldh [$ff9d], a
+    ldh [hSpriteFlags], a
     jr jr_000_0794
 
     ld a, $01
-    ldh [$ff9d], a
+    ldh [hSpriteFlags], a
     jr jr_000_0794
 
-Call_000_0791:
+Call_000_0791::
     xor a
-    ldh [$ff9d], a
+    ldh [hSpriteFlags], a
 
-Call_000_0794:
-jr_000_0794:
+jr_000_0794::
     ld hl, $0306
-    call Call_000_0089
+    call Jump_000_0089
     ret
 
 
-Call_000_079b:
+Call_000_079b::
     ld hl, $0308
-    call Call_000_0089
+    call Jump_000_0089
     ret
 
 
-LoadMainGfx::
+LoadMaskedGfx:: ; Load custom bitmask-compressed graphics from A:HL to DE.
     push hl
     ld l, a
     ld a, [$4000]
@@ -1723,20 +1733,20 @@ LoadMainGfx::
     ld b, a
     dec de
 
-jr_000_07b4:
+jr_000_07b4::
     push bc
     ld b, $08
     ld c, [hl]
     inc hl
     ld a, [de]
 
-jr_000_07ba:
+jr_000_07ba::
     sla c
     jr c, jr_000_07bf
 
     ld a, [hl+]
 
-jr_000_07bf:
+jr_000_07bf::
     inc de
     ld [de], a
     dec b
@@ -1753,7 +1763,7 @@ jr_000_07bf:
     ret
 
 
-Call_000_07cf:
+Call_000_07cf::
     ld a, [$d95c]
     or a
     ret z
@@ -1776,13 +1786,13 @@ Call_000_07cf:
 
     ld hl, $088d
 
-jr_000_07f1:
+jr_000_07f1::
     push bc
     call Call_000_03c8
     pop bc
     jr jr_000_0803
 
-Call_000_07f8:
+Call_000_07f8::
     ld a, [$d95c]
     or a
     ret z
@@ -1791,7 +1801,7 @@ Call_000_07f8:
     call z, Call_000_0864
     ld b, a
 
-jr_000_0803:
+jr_000_0803::
     ld a, [$d95c]
     dec a
     ld [$d95c], a
@@ -1818,18 +1828,18 @@ jr_000_0803:
 
     inc hl
 
-jr_000_0829:
+jr_000_0829::
     ld a, [hl]
-    ld [$c0a3], a
-    ld [$c0a5], a
+    ld [wPaletteBGP], a
+    ld [wPaletteOBP1], a
     ld bc, $0005
     add hl, bc
     ld a, [hl]
-    ld [$c0a4], a
+    ld [wPaletteOBP0], a
     ret
 
 
-jr_000_0839:
+jr_000_0839::
     ld hl, $08a7
     ld a, b
     srl a
@@ -1837,9 +1847,9 @@ jr_000_0839:
     srl a
     rst $38
     ld a, [hl]
-    ld [$c0a3], a
-    ld [$c0a4], a
-    ld [$c0a5], a
+    ld [wPaletteBGP], a
+    ld [wPaletteOBP0], a
+    ld [wPaletteOBP1], a
     ld a, [$d933]
     cp $18
     ret nz
@@ -1847,17 +1857,17 @@ jr_000_0839:
     ld hl, $08af
     ld a, b
 
-Call_000_0858:
+Call_000_0858::
     srl a
     srl a
     srl a
     rst $38
     ld a, [hl]
-    ld [$c0a4], a
+    ld [wPaletteOBP0], a
     ret
 
 
-Call_000_0864:
+Call_000_0864::
     push af
     ld hl, $086d
     call Call_000_03c8
@@ -1888,7 +1898,7 @@ Call_000_0864:
 
     ret nc
 
-Call_000_08b7:
+Call_000_08b7::
     push bc
     push hl
     ldh a, [$ffc9]
@@ -1899,7 +1909,7 @@ Call_000_08b7:
     ld a, [$0903]
     and e
 
-jr_000_08c5:
+jr_000_08c5::
     ld [hl+], a
     dec b
     jr nz, jr_000_08c5
@@ -1913,7 +1923,7 @@ jr_000_08c5:
     pop bc
     ld d, b
 
-jr_000_08d4:
+jr_000_08d4::
     ld b, d
     push hl
     ld a, [$0905]
@@ -1922,7 +1932,7 @@ jr_000_08d4:
     ld a, [$0906]
     and e
 
-jr_000_08df:
+jr_000_08df::
     ld [hl+], a
     dec b
     jr nz, jr_000_08df
@@ -1942,7 +1952,7 @@ jr_000_08df:
     ld a, [$0909]
     and e
 
-jr_000_08f8:
+jr_000_08f8::
     ld [hl+], a
     dec d
     jr nz, jr_000_08f8
@@ -1955,8 +1965,8 @@ jr_000_08f8:
 
     db $f9, $f2, $f8, $f3, $00, $f4, $f7, $f5, $f6
 
-Call_000_090b:
-    ldh a, [$ff8e]
+Call_000_090b::
+    ldh a, [hGameState]
     rst $00
 
     db $20, $09
@@ -1992,38 +2002,38 @@ Call_000_090b:
 
 
     ld a, $93
-    ld [$c0a3], a
-    ldh a, [$ff9c]
-    ldh [$ff9b], a
-    ldh a, [$ff8b]
+    ld [wPaletteBGP], a
+    ldh a, [hPrevOamPos]
+    ldh [hOamWritePos], a
+    ldh a, [hJoyPressed]
     bit 3, a
     ret z
 
     ld a, $e4
-    ld [$c0a3], a
+    ld [wPaletteBGP], a
     ld a, $02
-    ldh [$ff8e], a
+    ldh [hGameState], a
     ld a, $80
     ld [$dd9f], a
     ld a, $5e
-    call Call_000_0f38
+    call PlaySound_Queue1
     ret
 
 
-Call_000_0963:
-    call Call_000_0f0d
+Call_000_0963::
+    call InitSound
     ldh a, [$ffbb]
     cp $04
     ld a, $0c
-    jp z, Jump_000_0f32
+    jp z, PlaySound_Queue3
 
     ldh a, [$ff9f]
     cp $03
     ld a, $04
-    jp c, Jump_000_0f32
+    jp c, PlaySound_Queue3
 
     ld a, $08
-    jp Jump_000_0f32
+    jp PlaySound_Queue3
 
 
     jp Jump_000_09c9
@@ -2033,8 +2043,8 @@ Call_000_0963:
     jp Jump_000_0089
 
 
-Call_000_0986:
-    ldh a, [$ff8e]
+Call_000_0986::
+    ldh a, [hGameState]
     rst $00
 
     db $9b, $09
@@ -2079,13 +2089,13 @@ Call_000_0986:
 
 
     ld hl, $0102
-    call Call_000_0089
+    call Jump_000_0089
     ld a, $18
     ld [$d933], a
     ret
 
 
-Jump_000_09c9:
+Jump_000_09c9::
     ld a, [$c0bd]
     or a
     jr z, jr_000_09e0
@@ -2098,11 +2108,11 @@ Jump_000_09c9:
     xor a
     ld [$c0bd], a
     ld a, $02
-    ldh [$ff8e], a
+    ldh [hGameState], a
     ret
 
 
-jr_000_09e0:
+jr_000_09e0::
     call Call_000_07f8
     ld a, [$d95c]
     or a
@@ -2112,22 +2122,22 @@ jr_000_09e0:
     ld [$d95c], a
     ld a, $01
     ld [$c0bd], a
-    ldh [$ff8f], a
+    ldh [hNeedsReset], a
     ret
 
 
     ld a, $04
     ldh [$ff9f], a
     ld hl, $0102
-    call Call_000_0089
+    call Jump_000_0089
     ld hl, $0106
     jp Jump_000_0089
 
 
-jr_000_0a05:
-    ldh a, [$ff92]
+jr_000_0a05::
+    ldh a, [hSCX]
     ld b, a
-    ldh a, [$ff90]
+    ldh a, [hSCY]
     ld c, a
     ldh a, [$ffb1]
     sub b
@@ -2138,19 +2148,19 @@ jr_000_0a05:
     ret
 
 
-Call_000_0a16:
-    ldh a, [$ff96]
+Call_000_0a16::
+    ldh a, [hCollisionFlag]
     cp $ff
     jr z, jr_000_0a05
 
     xor a
-    ldh [$ff96], a
+    ldh [hCollisionFlag], a
     ldh a, [$ffa4]
     ld c, a
-    ldh a, [$ff90]
+    ldh a, [hSCY]
     add c
     ld c, a
-    ldh a, [$ff91]
+    ldh a, [hSCYHigh]
     adc $00
     ld b, a
     ld hl, $ffae
@@ -2160,10 +2170,10 @@ Call_000_0a16:
     call Call_000_0b5b
     ldh a, [$ffa5]
     ld c, a
-    ldh a, [$ff92]
+    ldh a, [hSCX]
     add c
     ld c, a
-    ldh a, [$ff93]
+    ldh a, [hSCXHigh]
     adc $00
     ld b, a
     ld hl, $ffb1
@@ -2171,7 +2181,7 @@ Call_000_0a16:
     ld h, [hl]
     ld l, a
     call Call_000_0a80
-    ldh a, [$ff96]
+    ldh a, [hCollisionFlag]
     rlca
     ret nc
 
@@ -2179,10 +2189,10 @@ Call_000_0a16:
     push af
     ld a, $04
     ld [$2100], a
-    ldh a, [$ff96]
+    ldh a, [hCollisionFlag]
     bit 6, a
     call nz, Call_000_0ca1
-    ldh a, [$ff96]
+    ldh a, [hCollisionFlag]
     bit 5, a
     call nz, Call_000_0c00
     pop af
@@ -2190,15 +2200,14 @@ Call_000_0a16:
     ret
 
 
-Call_000_0a69:
-Jump_000_0a69:
+Jump_000_0a69::
     ld a, [$4000]
     push af
     ld a, $04
     ld [$2100], a
-    ldh a, [$ff90]
+    ldh a, [hSCY]
     ld e, a
-    ldh a, [$ff91]
+    ldh a, [hSCYHigh]
     ld d, a
     call Call_000_0c10
     pop af
@@ -2206,7 +2215,7 @@ Jump_000_0a69:
     ret
 
 
-Call_000_0a80:
+Call_000_0a80::
     ld a, l
     sub c
     ld l, a
@@ -2231,23 +2240,23 @@ Call_000_0a80:
 
     ret z
 
-    ldh a, [$ff96]
+    ldh a, [hCollisionFlag]
     or $c0
     res 0, a
-    ldh [$ff96], a
+    ldh [hCollisionFlag], a
     ld a, l
     cp c
     jr c, jr_000_0aa9
 
     ld a, c
 
-jr_000_0aa9:
+jr_000_0aa9::
     ld b, a
     ld hl, $c418
     ld a, [hl+]
     ld d, [hl]
     ld e, a
-    ld hl, $ff92
+    ld hl, hSCX
     ld a, [hl]
     add b
     ld [hl+], a
@@ -2263,12 +2272,12 @@ jr_000_0aa9:
     ret
 
 
-jr_000_0ac6:
+jr_000_0ac6::
     ld hl, $c418
     ld a, [hl+]
-    ldh [$ff92], a
+    ldh [hSCX], a
     ld a, [hl-]
-    ldh [$ff93], a
+    ldh [hSCXHigh], a
     ldh a, [$ffb1]
     sub [hl]
     ldh [$ffa5], a
@@ -2283,31 +2292,31 @@ jr_000_0ac6:
     cp $02
     ret nz
 
-jr_000_0ae4:
+jr_000_0ae4::
     ldh a, [$ffaa]
     or a
     ret nz
 
-jr_000_0ae8:
-    ldh a, [$ff96]
+jr_000_0ae8::
+    ldh a, [hCollisionFlag]
     cp $ff
     ret z
 
     ld a, $ff
-    ldh [$ff96], a
+    ldh [hCollisionFlag], a
     ld a, $ff
     ld [$c0b5], a
     ld hl, $c410
-    ldh a, [$ff92]
+    ldh a, [hSCX]
     ld [hl+], a
-    ldh a, [$ff93]
+    ldh a, [hSCXHigh]
     ld [hl+], a
-    call Call_000_0f0d
+    call InitSound
     ld a, $60
-    jp Jump_000_0f32
+    jp PlaySound_Queue3
 
 
-jr_000_0b07:
+jr_000_0b07::
     ld a, [$c0b3]
     cp $06
     jr z, jr_000_0ae8
@@ -2315,7 +2324,7 @@ jr_000_0b07:
     ret
 
 
-Jump_000_0b0f:
+Jump_000_0b0f::
     ld a, l
     cpl
     inc a
@@ -2332,23 +2341,23 @@ Jump_000_0b0f:
     cp b
     ret nc
 
-    ldh a, [$ff96]
+    ldh a, [hCollisionFlag]
     or $c0
     set 0, a
-    ldh [$ff96], a
+    ldh [hCollisionFlag], a
     ld a, l
     cp c
     jr c, jr_000_0b30
 
     ld a, c
 
-jr_000_0b30:
+jr_000_0b30::
     ld b, a
     ld hl, $c40e
     ld a, [hl+]
     ld d, [hl]
     ld e, a
-    ld hl, $ff92
+    ld hl, hSCX
     ld a, [hl]
     sub b
     ld [hl+], a
@@ -2366,18 +2375,18 @@ jr_000_0b30:
     ret
 
 
-jr_000_0b4f:
+jr_000_0b4f::
     ld a, e
-    ldh [$ff92], a
+    ldh [hSCX], a
     ld a, d
-    ldh [$ff93], a
+    ldh [hSCXHigh], a
     ldh a, [$ffb1]
     sub e
     ldh [$ffa5], a
     ret
 
 
-Call_000_0b5b:
+Call_000_0b5b::
     ld a, l
     sub c
     ret z
@@ -2404,23 +2413,23 @@ Call_000_0b5b:
     cp $02
     ret z
 
-    ldh a, [$ff96]
+    ldh a, [hCollisionFlag]
     or $a0
     set 1, a
-    ldh [$ff96], a
+    ldh [hCollisionFlag], a
     ld a, l
     cp c
     jr c, jr_000_0b87
 
     ld a, c
 
-jr_000_0b87:
+jr_000_0b87::
     ld b, a
     ld hl, $c41a
     ld a, [hl+]
     ld d, [hl]
     ld e, a
-    ld hl, $ff90
+    ld hl, hSCY
     ld a, [hl]
     add b
     ld [hl+], a
@@ -2436,19 +2445,19 @@ jr_000_0b87:
     ret
 
 
-jr_000_0ba4:
+jr_000_0ba4::
     ld hl, $c41a
     ld a, [hl+]
-    ldh [$ff90], a
+    ldh [hSCY], a
     ld a, [hl-]
-    ldh [$ff91], a
+    ldh [hSCYHigh], a
     ldh a, [$ffae]
     sub [hl]
     ldh [$ffa4], a
     ret
 
 
-Jump_000_0bb3:
+Jump_000_0bb3::
     ld a, [$c40a]
     ld b, a
     ld a, [$c40d]
@@ -2467,19 +2476,19 @@ Jump_000_0bb3:
     cp $02
     ret z
 
-    ldh a, [$ff96]
+    ldh a, [hCollisionFlag]
     or $a0
     res 0, a
-    ldh [$ff96], a
+    ldh [hCollisionFlag], a
     ld a, l
     cp c
     jr c, jr_000_0bd8
 
     ld a, c
 
-jr_000_0bd8:
+jr_000_0bd8::
     ld b, a
-    ld hl, $ff90
+    ld hl, hSCY
     ld a, [hl]
     sub b
     ld [hl+], a
@@ -2493,26 +2502,26 @@ jr_000_0bd8:
     ret
 
 
-jr_000_0beb:
+jr_000_0beb::
     xor a
-    ldh [$ff90], a
-    ldh [$ff91], a
+    ldh [hSCY], a
+    ldh [hSCYHigh], a
     ldh a, [$ffae]
     ldh [$ffa4], a
     ret
 
 
-jr_000_0bf5:
-    ldh a, [$ff96]
+jr_000_0bf5::
+    ldh a, [hCollisionFlag]
     cp $ff
     ret z
 
-    ld hl, $ff96
+    ld hl, hCollisionFlag
     res 5, [hl]
     ret
 
 
-Call_000_0c00:
+Call_000_0c00::
     call Call_000_0d73
     ldh a, [$ff98]
     and $f8
@@ -2524,7 +2533,7 @@ Call_000_0c00:
 
     ldh [$ff98], a
 
-Call_000_0c10:
+Call_000_0c10::
     ld a, e
     and $f8
     ld l, a
@@ -2535,7 +2544,7 @@ Call_000_0c10:
     add hl, bc
     ld b, h
     ld c, l
-    call Call_000_04e4
+    call GetVramQueueTail
     ld a, b
     ld [hl+], a
     ld a, c
@@ -2547,19 +2556,19 @@ Call_000_0c10:
     add hl, bc
     ld [hl], $00
     pop hl
-    ldh a, [$ff99]
+    ldh a, [hVramQueuePos]
     add $23
-    ldh [$ff99], a
-    ldh a, [$ff92]
+    ldh [hVramQueuePos], a
+    ldh a, [hSCX]
     srl a
     srl a
     srl a
     ld c, a
     ld b, $00
     add hl, bc
-    ldh a, [$ff93]
+    ldh a, [hSCXHigh]
     ld b, a
-    ldh a, [$ff92]
+    ldh a, [hSCX]
     and $f8
     ld c, a
     ld a, $20
@@ -2567,12 +2576,12 @@ Call_000_0c10:
     ld a, l
     ldh [$ffc9], a
 
-jr_000_0c51:
+jr_000_0c51::
     push de
-    call Call_000_0d36
+    call Jump_000_0d36
     pop de
 
-jr_000_0c56:
+jr_000_0c56::
     ld a, [hl]
     push hl
     ld l, a
@@ -2584,13 +2593,13 @@ jr_000_0c56:
 
     set 0, l
 
-jr_000_0c63:
+jr_000_0c63::
     bit 3, e
     jr z, jr_000_0c69
 
     set 1, l
 
-jr_000_0c69:
+jr_000_0c69::
     ldh a, [$ffa2]
     add l
     ld l, a
@@ -2610,7 +2619,7 @@ jr_000_0c69:
 
     inc hl
 
-jr_000_0c81:
+jr_000_0c81::
     ldh a, [$ffcb]
     dec a
     ldh [$ffcb], a
@@ -2627,17 +2636,17 @@ jr_000_0c81:
     ldh [$ffc9], a
     jr jr_000_0c51
 
-jr_000_0c96:
-    ldh a, [$ff96]
+jr_000_0c96::
+    ldh a, [hCollisionFlag]
     cp $ff
     ret z
 
-    ld hl, $ff96
+    ld hl, hCollisionFlag
     res 6, [hl]
     ret
 
 
-Call_000_0ca1:
+Call_000_0ca1::
     call Call_000_0d5b
     ldh a, [$ff97]
     and $f8
@@ -2649,8 +2658,8 @@ Call_000_0ca1:
 
     ldh [$ff97], a
 
-Call_000_0cb1:
-    call Call_000_04e4
+Call_000_0cb1::
+    call GetVramQueueTail
     ld a, $98
     ld [hl+], a
     ld a, c
@@ -2666,19 +2675,19 @@ Call_000_0cb1:
     add hl, de
     ld [hl], $00
     pop hl
-    ldh a, [$ff99]
+    ldh a, [hVramQueuePos]
     add $23
-    ldh [$ff99], a
-    ldh a, [$ff90]
+    ldh [hVramQueuePos], a
+    ldh a, [hSCY]
     srl a
     srl a
     srl a
     ld e, a
     ld d, $00
     add hl, de
-    ldh a, [$ff91]
+    ldh a, [hSCYHigh]
     ld d, a
-    ldh a, [$ff90]
+    ldh a, [hSCY]
     and $f8
     ld e, a
     ld a, $20
@@ -2686,12 +2695,12 @@ Call_000_0cb1:
     ld a, l
     ldh [$ffc9], a
 
-jr_000_0cea:
+jr_000_0cea::
     push de
-    call Call_000_0d36
+    call Jump_000_0d36
     pop de
 
-jr_000_0cef:
+jr_000_0cef::
     ld a, [hl]
     push hl
     ld l, a
@@ -2703,13 +2712,13 @@ jr_000_0cef:
 
     set 0, l
 
-jr_000_0cfc:
+jr_000_0cfc::
     bit 3, e
     jr z, jr_000_0d02
 
     set 1, l
 
-jr_000_0d02:
+jr_000_0d02::
     ldh a, [$ffa2]
     add l
     ld l, a
@@ -2734,7 +2743,7 @@ jr_000_0d02:
     adc h
     ld h, a
 
-jr_000_0d21:
+jr_000_0d21::
     ldh a, [$ffcb]
     dec a
     ldh [$ffcb], a
@@ -2751,20 +2760,19 @@ jr_000_0d21:
     ldh [$ffc9], a
     jr jr_000_0cea
 
-Call_000_0d36:
-Jump_000_0d36:
+Jump_000_0d36::
     ld a, d
     or a
     jr z, jr_000_0d40
 
     xor a
 
-jr_000_0d3b:
+jr_000_0d3b::
     add $0e
     dec d
     jr nz, jr_000_0d3b
 
-jr_000_0d40:
+jr_000_0d40::
     add b
     ld hl, $c41c
     add l
@@ -2787,62 +2795,62 @@ jr_000_0d40:
     ret
 
 
-Call_000_0d5b:
-    ldh a, [$ff96]
+Call_000_0d5b::
+    ldh a, [hCollisionFlag]
     bit 0, a
     jr nz, jr_000_0d6c
 
-    ldh a, [$ff92]
+    ldh a, [hSCX]
     add $e8
     ld c, a
-    ldh a, [$ff93]
+    ldh a, [hSCXHigh]
     adc $00
     ld b, a
     ret
 
 
-jr_000_0d6c:
-    ldh a, [$ff92]
+jr_000_0d6c::
+    ldh a, [hSCX]
     ld c, a
-    ldh a, [$ff93]
+    ldh a, [hSCXHigh]
     ld b, a
     ret
 
 
-Call_000_0d73:
-    ldh a, [$ff96]
+Call_000_0d73::
+    ldh a, [hCollisionFlag]
     bit 1, a
     jr z, jr_000_0d84
 
-    ldh a, [$ff90]
+    ldh a, [hSCY]
     add $e8
     ld e, a
-    ldh a, [$ff91]
+    ldh a, [hSCYHigh]
     adc $00
     ld d, a
     ret
 
 
-jr_000_0d84:
-    ldh a, [$ff90]
+jr_000_0d84::
+    ldh a, [hSCY]
     ld e, a
-    ldh a, [$ff91]
+    ldh a, [hSCYHigh]
     ld d, a
     ret
 
 
-Jump_000_0d8b:
+Jump_000_0d8b::
     ld a, [$4000]
     push af
     ld a, $04
     ld [$2100], a
-    ld hl, $ff92
+    ld hl, hSCX
     ld a, [hl+]
     ld c, a
     ld b, [hl]
     xor a
 
-jr_000_0d9b:
+jr_000_0d9b::
     push af
     push bc
     add c
@@ -2851,29 +2859,29 @@ jr_000_0d9b:
     adc b
     ld b, a
     call Call_000_0cb1
-    ld de, $c100
-    call Call_000_0347
+    ld de, wVramQueue
+    call jr_000_0347
     xor a
-    ld [$c100], a
-    ldh [$ff99], a
+    ld [wVramQueue], a
+    ldh [hVramQueuePos], a
     pop bc
     pop af
     add $08
     jr nz, jr_000_0d9b
 
-    call Call_000_05c8
+    call ApplyScrollRegs
     pop af
     ld [$2100], a
     ret
 
 
-Call_000_0dc0:
+Call_000_0dc0::
     call Call_000_0307
     ld a, $07
-    ldh [$ff95], a
+    ldh [hWX], a
     ldh [rWX], a
     ld a, $80
-    ldh [$ff94], a
+    ldh [hWY], a
     ldh [rWY], a
     call Call_000_0e27
     ld a, $df
@@ -2883,22 +2891,21 @@ Call_000_0dc0:
     ld de, $0dfe
     ld hl, $9c0f
     ld bc, $0202
-    call Call_000_05f7
-    call Call_000_0e02
-    call Call_000_0e85
-    call Call_000_0e8c
-    ld de, $c100
-    call Call_000_0347
+    call jr_000_05f7
+    call Jump_000_0e02
+    call Jump_000_0e85
+    call Jump_000_0e8c
+    ld de, wVramQueue
+    call jr_000_0347
     xor a
-    ld [$c100], a
-    ldh [$ff99], a
+    ld [wVramQueue], a
+    ldh [hVramQueuePos], a
     ret
 
 
     db $e5, $e6, $e7, $e8
 
-Call_000_0e02:
-Jump_000_0e02:
+Jump_000_0e02::
     ldh a, [$ffbb]
     add a
     add a
@@ -2906,19 +2913,19 @@ Jump_000_0e02:
     rst $30
     ld hl, $9c08
     ld bc, $0202
-    jp Jump_000_061f
+    jp QueueTilemapRect
 
 
     db $fa, $fb, $fc, $fd, $d0, $d1, $d2, $d3, $dc, $dd, $d2, $de, $d8, $d9, $da, $db
     db $d4, $d5, $d6, $d7
 
-Call_000_0e27:
+Call_000_0e27::
     ldh a, [$ffb9]
     ldh [$ffc9], a
     or a
     ret z
 
-jr_000_0e2d:
+jr_000_0e2d::
     call Call_000_0e38
     ldh a, [$ffc9]
     dec a
@@ -2928,17 +2935,17 @@ jr_000_0e2d:
     ret
 
 
-Call_000_0e38:
+Call_000_0e38::
     ldh a, [$ffc9]
     dec a
     ld hl, $0e60
     rst $20
     ld de, $0e66
     ld bc, $0202
-    jp Jump_000_05f7
+    jp jr_000_05f7
 
 
-Jump_000_0e48:
+Jump_000_0e48::
     ld a, [$c402]
     res 0, a
     ld [$c402], a
@@ -2948,41 +2955,37 @@ Jump_000_0e48:
     rst $20
     ld de, $0e66
     ld bc, $0202
-    jp Jump_000_061f
+    jp QueueTilemapRect
 
 
     db $01, $9c, $03, $9c, $05, $9c, $e1, $e2, $e3, $e4, $00, $00, $00, $00
 
-Call_000_0e6e:
-Jump_000_0e6e:
+Jump_000_0e6e::
     ld a, [$c402]
     res 1, a
     ld [$c402], a
 
-Call_000_0e76:
+Call_000_0e76::
     ldh a, [$ffb9]
     ld hl, $0e60
     rst $20
     ld de, $0e6a
     ld bc, $0202
-    jp Jump_000_061f
+    jp QueueTilemapRect
 
 
-Call_000_0e85:
-Jump_000_0e85:
+Jump_000_0e85::
     ld bc, $9c2c
     ldh a, [$ffb8]
     jr jr_000_0e91
 
-Call_000_0e8c:
-Jump_000_0e8c:
+Jump_000_0e8c::
     ld bc, $9c31
     ldh a, [$ffba]
 
-Jump_000_0e91:
-jr_000_0e91:
+jr_000_0e91::
     ld d, a
-    call Call_000_04e4
+    call GetVramQueueTail
     ld a, b
     ld [hl+], a
     ld a, c
@@ -3000,33 +3003,31 @@ jr_000_0e91:
     call Call_000_0eb7
     ld [hl+], a
     ld [hl], $00
-    ldh a, [$ff99]
+    ldh a, [hVramQueuePos]
     add $05
-    ldh [$ff99], a
+    ldh [hVramQueuePos], a
     ret
 
 
-Call_000_0eb7:
+Call_000_0eb7::
     add $f0
     ret
 
 
-Call_000_0eba:
-Jump_000_0eba:
+Jump_000_0eba::
     ld hl, $ffb8
     add [hl]
     cp $1e
     jr nc, jr_000_0ec7
 
-Call_000_0ec2:
-jr_000_0ec2:
+jr_000_0ec2::
     ldh [$ffb8], a
     jp Jump_000_0e85
 
 
-jr_000_0ec7:
+jr_000_0ec7::
     sub $1e
-    call Call_000_0ec2
+    call jr_000_0ec2
     jr jr_000_0ef9
 
     ld b, a
@@ -3037,7 +3038,7 @@ jr_000_0ec7:
     xor a
     jr jr_000_0ec2
 
-Jump_000_0ed7:
+Jump_000_0ed7::
     ld a, [$c402]
     set 0, a
     ld [$c402], a
@@ -3048,12 +3049,12 @@ Jump_000_0ed7:
 
     ld a, $03
 
-jr_000_0ee8:
+jr_000_0ee8::
     ldh [$ffb9], a
     ret
 
 
-Call_000_0eeb:
+Call_000_0eeb::
     ld a, [$c402]
     set 1, a
     ld [$c402], a
@@ -3063,13 +3064,11 @@ Call_000_0eeb:
     ret
 
 
-Call_000_0ef9:
-Jump_000_0ef9:
-jr_000_0ef9:
+jr_000_0ef9::
     ld a, $46
-    call Call_000_0f38
+    call PlaySound_Queue1
 
-Call_000_0efe:
+Call_000_0efe::
     ld hl, $ffba
     inc [hl]
     ld a, [hl]
@@ -3083,7 +3082,7 @@ Call_000_0efe:
     ret
 
 
-Call_000_0f0d:
+InitSound::
     ld a, $80
     ldh [rNR52], a
     ld [$dd9f], a
@@ -3096,7 +3095,7 @@ Call_000_0f0d:
     ld b, $06
     ld a, $ff
 
-jr_000_0f25:
+jr_000_0f25::
     ld [hl], a
     ld de, $0017
     add hl, de
@@ -3106,19 +3105,16 @@ jr_000_0f25:
     dec b
     jr nz, jr_000_0f25
 
-Call_000_0f32:
-Jump_000_0f32:
-    call Call_000_0f3b
+PlaySound_Queue3::
+    call PlaySound
 
-Jump_000_0f35:
-    call Call_000_0f3b
+PlaySound_Queue2::
+    call PlaySound
 
-Call_000_0f38:
-Jump_000_0f38:
-    call Call_000_0f3b
+PlaySound_Queue1::
+    call PlaySound
 
-Call_000_0f3b:
-Jump_000_0f3b:
+PlaySound::
     push bc
     push de
     push hl
@@ -3161,12 +3157,12 @@ Jump_000_0f3b:
 
     ld b, $77
 
-jr_000_0f79:
+jr_000_0f79::
     ld a, [$dd97]
     and b
     ld [$dd97], a
 
-jr_000_0f80:
+jr_000_0f80::
     xor a
     ld [hl+], a
     ld a, [de]
@@ -3192,7 +3188,7 @@ jr_000_0f80:
     ret
 
 
-Call_000_0f9d:
+UpdateSound::
     xor a
     ld [$dd9d], a
     ld [$dd96], a
@@ -3200,12 +3196,12 @@ Call_000_0f9d:
     inc [hl]
     ld hl, $dd00
 
-Jump_000_0fab:
+Jump_000_0fab::
     push hl
     ld de, $ffe6
     ld b, $19
 
-jr_000_0fb1:
+jr_000_0fb1::
     ld a, [hl+]
     ld [de], a
     inc e
@@ -3223,7 +3219,7 @@ jr_000_0fb1:
     inc b
     ld a, $88
 
-jr_000_0fc8:
+jr_000_0fc8::
     rlca
     dec b
     jr nz, jr_000_0fc8
@@ -3252,7 +3248,7 @@ jr_000_0fc8:
     ld [$dd97], a
     jr jr_000_1056
 
-jr_000_0ff6:
+jr_000_0ff6::
     ldh a, [$ffe6]
     ld b, a
     ldh a, [$fffd]
@@ -3276,7 +3272,7 @@ jr_000_0ff6:
 
     ld a, b
 
-jr_000_1016:
+jr_000_1016::
     ldh [$fff3], a
     ld hl, $ffeb
     dec [hl]
@@ -3295,17 +3291,17 @@ jr_000_1016:
     dec a
     ldh [$fffc], a
 
-jr_000_1031:
+jr_000_1031::
     ld hl, $ffed
     dec [hl]
     jr nz, jr_000_103e
 
-jr_000_1037:
+jr_000_1037::
     ldh a, [$fffb]
     ldh [$fffc], a
-    call Call_000_1110
+    call Jump_000_1110
 
-jr_000_103e:
+jr_000_103e::
     ld a, [$dd99]
     ld b, a
     ld a, [$dd96]
@@ -3316,14 +3312,14 @@ jr_000_103e:
     ld de, $ffe6
     ld b, $19
 
-jr_000_1050:
+jr_000_1050::
     ld a, [de]
     ld [hl+], a
     inc e
     dec b
     jr nz, jr_000_1050
 
-jr_000_1056:
+jr_000_1056::
     pop hl
     ld de, $0019
     add hl, de
@@ -3338,7 +3334,7 @@ jr_000_1056:
     ret
 
 
-jr_000_106d:
+jr_000_106d::
     ldh a, [$ffe8]
     ld l, a
     ldh a, [$ffe9]
@@ -3357,7 +3353,7 @@ jr_000_106d:
     and $c0
     or d
 
-jr_000_1086:
+jr_000_1086::
     ldh [$ffea], a
     ld a, [hl+]
     swap a
@@ -3369,7 +3365,7 @@ jr_000_1086:
     ld a, [hl+]
     ldh [$ffee], a
 
-jr_000_1097:
+jr_000_1097::
     xor a
     ldh [$ffef], a
     ldh [$fff0], a
@@ -3382,13 +3378,13 @@ jr_000_1097:
     ldh [$ffe6], a
     jr jr_000_1037
 
-jr_000_10ab:
+jr_000_10ab::
     ld a, [hl+]
     ldh [$fff2], a
     ld a, d
     jr jr_000_1086
 
-jr_000_10b1:
+jr_000_10b1::
     xor a
     ldh [rNR30], a
     ld a, [hl]
@@ -3398,16 +3394,16 @@ jr_000_10b1:
 
     ld de, $0010
 
-jr_000_10bf:
+jr_000_10bf::
     add hl, de
     dec a
     jr nz, jr_000_10bf
 
-jr_000_10c3:
+jr_000_10c3::
     ld de, $ff30
     ld b, $10
 
-jr_000_10c8:
+jr_000_10c8::
     ld a, [hl+]
     ld [de], a
     inc de
@@ -3445,8 +3441,7 @@ jr_000_10c8:
     db $11
     nop
 
-Call_000_1110:
-Jump_000_1110:
+Jump_000_1110::
     ldh a, [$ffe6]
     ld l, a
     ldh a, [$fffd]
@@ -3458,8 +3453,7 @@ Jump_000_1110:
     ld d, a
     add hl, de
 
-Jump_000_111e:
-jr_000_111e:
+jr_000_111e::
     ldh a, [$ffe6]
     add $01
     ldh [$ffe6], a
@@ -3479,7 +3473,7 @@ jr_000_111e:
     jp Jump_000_1296
 
 
-jr_000_113b:
+jr_000_113b::
     cp $fd
     jr nz, jr_000_114a
 
@@ -3488,11 +3482,11 @@ jr_000_113b:
     ldh a, [$fffd]
     ldh [$fffe], a
 
-jr_000_1147:
+jr_000_1147::
     inc hl
     jr jr_000_111e
 
-jr_000_114a:
+jr_000_114a::
     cp $ff
     jr nz, jr_000_1147
 
@@ -3502,7 +3496,7 @@ jr_000_114a:
     ret
 
 
-jr_000_1156:
+jr_000_1156::
     cp $f0
     jr nc, jr_000_113b
 
@@ -3512,12 +3506,12 @@ jr_000_1156:
     and $0f
     jr jr_000_1166
 
-jr_000_1162:
+jr_000_1162::
     and $0f
     cpl
     inc a
 
-jr_000_1166:
+jr_000_1166::
     ld b, a
     ld a, [$dd98]
     cp $02
@@ -3529,11 +3523,11 @@ jr_000_1166:
     ldh [$fff5], a
     ldh [$fff6], a
 
-jr_000_1176:
+jr_000_1176::
     inc hl
     jr jr_000_111e
 
-jr_000_1179:
+jr_000_1179::
     and $0f
     ld b, a
     ld a, [$dd98]
@@ -3550,11 +3544,11 @@ jr_000_1179:
     swap a
     ldh [$fff1], a
 
-jr_000_1191:
+jr_000_1191::
     inc hl
     jr jr_000_111e
 
-jr_000_1194:
+jr_000_1194::
     cp $c0
     jr nc, jr_000_1179
 
@@ -3578,7 +3572,7 @@ jr_000_1194:
     ldh [$ffef], a
     jr jr_000_11bf
 
-jr_000_11b1:
+jr_000_11b1::
     ldh a, [$fff0]
     dec a
     ldh [$fff0], a
@@ -3590,51 +3584,51 @@ jr_000_11b1:
     ld a, e
     ldh [$fff0], a
 
-jr_000_11bf:
+jr_000_11bf::
     ld a, [hl]
     and a
     jr nz, jr_000_11c5
 
     ldh a, [$fff9]
 
-jr_000_11c5:
+jr_000_11c5::
     ldh [$ffe6], a
     jr nz, jr_000_11cd
 
     ldh a, [$fffe]
     jr jr_000_11ce
 
-jr_000_11cd:
+jr_000_11cd::
     xor a
 
-jr_000_11ce:
+jr_000_11ce::
     ldh [$fffd], a
 
-jr_000_11d0:
+jr_000_11d0::
     jp Jump_000_1110
 
 
-Jump_000_11d3:
+Jump_000_11d3::
     cp $a0
     jr nz, jr_000_11e2
 
     ld a, [hl+]
     swap a
     ldh [$ffec], a
-    call Call_000_13df
-    jp Jump_000_111e
+    call jr_000_13df
+    jp jr_000_111e
 
 
-jr_000_11e2:
+jr_000_11e2::
     cp $a1
     jr nz, jr_000_11ec
 
     ld a, [hl+]
     ldh [$ffee], a
-    jp Jump_000_111e
+    jp jr_000_111e
 
 
-jr_000_11ec:
+jr_000_11ec::
     cp $a2
     jr nz, jr_000_120d
 
@@ -3651,16 +3645,16 @@ jr_000_11ec:
     and $3f
     or d
     ldh [$ffea], a
-    jp Jump_000_111e
+    jp jr_000_111e
 
 
-jr_000_1207:
+jr_000_1207::
     ld a, [hl+]
     ldh [$fff2], a
-    jp Jump_000_111e
+    jp jr_000_111e
 
 
-jr_000_120d:
+jr_000_120d::
     cp $a3
     jr nz, jr_000_1234
 
@@ -3681,17 +3675,17 @@ jr_000_120d:
     or e
     or $80
 
-jr_000_1229:
+jr_000_1229::
     ldh [$ffe7], a
-    jp Jump_000_111e
+    jp jr_000_111e
 
 
-jr_000_122e:
+jr_000_122e::
     ldh a, [$ffe7]
     and $0f
     jr jr_000_1229
 
-jr_000_1234:
+jr_000_1234::
     cp $a5
     jr nz, jr_000_1246
 
@@ -3702,21 +3696,21 @@ jr_000_1234:
     ldh a, [$fffa]
     swap a
 
-jr_000_1241:
+jr_000_1241::
     ldh [$fffa], a
-    jp Jump_000_111e
+    jp jr_000_111e
 
 
-jr_000_1246:
+jr_000_1246::
     cp $a6
     jr nz, jr_000_1250
 
     ld a, [hl+]
     ldh [rNR50], a
-    jp Jump_000_111e
+    jp jr_000_111e
 
 
-jr_000_1250:
+jr_000_1250::
     cp $a7
     jr nz, jr_000_125a
 
@@ -3725,7 +3719,7 @@ jr_000_1250:
     jp Jump_000_1348
 
 
-jr_000_125a:
+jr_000_125a::
     cp $ae
     jr nz, jr_000_126a
 
@@ -3735,10 +3729,10 @@ jr_000_125a:
     ldh a, [$ffea]
     or b
     ldh [$ffea], a
-    jp Jump_000_111e
+    jp jr_000_111e
 
 
-jr_000_126a:
+jr_000_126a::
     cp $af
     jr nz, jr_000_127e
 
@@ -3750,12 +3744,12 @@ jr_000_126a:
     and $f0
     or b
     ldh [$ffea], a
-    jp Jump_000_111e
+    jp jr_000_111e
 
 
-jr_000_127e:
+jr_000_127e::
     inc hl
-    jp Jump_000_111e
+    jp jr_000_111e
 
 
     nop
@@ -3767,12 +3761,12 @@ jr_000_127e:
 
     db $53, $62
 
-jr_000_1292:
+jr_000_1292::
     call Call_000_14a8
     ret
 
 
-Jump_000_1296:
+Jump_000_1296::
     ld b, a
     ld a, [hl]
     ldh [$ffed], a
@@ -3797,12 +3791,12 @@ Jump_000_1296:
     ld h, $00
     jr jr_000_12f0
 
-jr_000_12b8:
+jr_000_12b8::
     ld l, a
     ld h, $00
     jr jr_000_12f0
 
-jr_000_12bd:
+jr_000_12bd::
     ld a, b
     and $0f
     cp $0c
@@ -3818,7 +3812,7 @@ jr_000_12bd:
     add $18
     ld e, a
 
-jr_000_12d0:
+jr_000_12d0::
     ld d, $00
     ld hl, $14c3
     add hl, de
@@ -3832,13 +3826,13 @@ jr_000_12d0:
 
     ld b, a
 
-jr_000_12e1:
+jr_000_12e1::
     srl h
     rr l
     dec b
     jr nz, jr_000_12e1
 
-jr_000_12e8:
+jr_000_12e8::
     ld a, $00
     sub l
     ld l, a
@@ -3846,7 +3840,7 @@ jr_000_12e8:
     sbc h
     ld h, a
 
-jr_000_12f0:
+jr_000_12f0::
     xor a
     ldh [$fff3], a
     call Call_000_14b8
@@ -3857,7 +3851,7 @@ jr_000_12f0:
     ld a, $80
     ldh [rNR30], a
 
-jr_000_1301:
+jr_000_1301::
     push hl
     call Call_000_13d1
     pop hl
@@ -3865,10 +3859,10 @@ jr_000_1301:
     and a
     ldh a, [$ffee]
     ld c, $10
-    call z, Call_000_13ed
+    call z, jr_000_13ed
     ld a, l
     ld c, $13
-    call Call_000_13ed
+    call jr_000_13ed
     ld a, l
     cp $02
     jr c, jr_000_1324
@@ -3879,10 +3873,10 @@ jr_000_1301:
     ld a, $fd
     jr jr_000_1326
 
-jr_000_1324:
+jr_000_1324::
     ld a, $02
 
-jr_000_1326:
+jr_000_1326::
     ldh [$fff7], a
     ld a, [$dd98]
     cp $02
@@ -3894,19 +3888,19 @@ jr_000_1326:
     ldh a, [$ffea]
     and $c0
     ld c, $11
-    call Call_000_13ed
+    call jr_000_13ed
 
-jr_000_133c:
+jr_000_133c::
     ld a, h
     and $07
     or $80
 
-jr_000_1341:
+jr_000_1341::
     ldh [$fff8], a
     ld c, $14
-    call Call_000_13ed
+    call jr_000_13ed
 
-Jump_000_1348:
+Jump_000_1348::
     ld a, [$dd9a]
     ld b, a
     cpl
@@ -3921,7 +3915,7 @@ Jump_000_1348:
     ret
 
 
-jr_000_135b:
+jr_000_135b::
     xor a
     ldh [rNR31], a
     ldh a, [rNR52]
@@ -3932,7 +3926,7 @@ jr_000_135b:
     and $07
     jr jr_000_1341
 
-Call_000_1369:
+Call_000_1369::
     ld a, [$dd98]
     cp $02
     ret z
@@ -3967,10 +3961,10 @@ Call_000_1369:
     ldh a, [$ffec]
     add $10
     ldh [$ffec], a
-    jp Jump_000_13df
+    jp jr_000_13df
 
 
-jr_000_139c:
+jr_000_139c::
     inc [hl]
     ld a, b
     and a
@@ -3981,7 +3975,7 @@ jr_000_139c:
     ldh [$ffec], a
     jr jr_000_13df
 
-Call_000_13a8:
+Call_000_13a8::
     call Call_000_14b8
     ld a, [$dd98]
     cp $03
@@ -4009,7 +4003,7 @@ Call_000_13a8:
     ld c, $13
     jr jr_000_13ed
 
-Call_000_13d1:
+Call_000_13d1::
     ld a, [$dd98]
     cp $02
     jr z, jr_000_13f6
@@ -4020,19 +4014,16 @@ Call_000_13d1:
 
     ldh a, [$ffec]
 
-Call_000_13df:
-Jump_000_13df:
-jr_000_13df:
+jr_000_13df::
     ld c, a
     call Call_000_14b8
     ld a, c
     ld c, $12
-    call Call_000_13ed
+    call jr_000_13ed
     ldh a, [$fff8]
     ld c, $14
 
-Call_000_13ed:
-jr_000_13ed:
+jr_000_13ed::
     ld b, a
     ld a, [$dd9b]
     add c
@@ -4042,12 +4033,12 @@ jr_000_13ed:
     ret
 
 
-jr_000_13f6:
+jr_000_13f6::
     ldh a, [$ffec]
     ld c, $12
     jr jr_000_13ed
 
-jr_000_13fc:
+jr_000_13fc::
     ld a, e
     srl a
     add $02
@@ -4061,7 +4052,7 @@ jr_000_13fc:
     ret
 
 
-Call_000_140d:
+Call_000_140d::
     call Call_000_14b8
     ld a, [$dd98]
     cp $02
@@ -4071,7 +4062,7 @@ Call_000_140d:
     and a
     ret z
 
-jr_000_141b:
+jr_000_141b::
     ldh a, [$fff2]
     and a
     ret z
@@ -4081,14 +4072,14 @@ jr_000_141b:
     ldh a, [$fff3]
     ld b, $04
 
-jr_000_1426:
+jr_000_1426::
     add a
     cp c
     jr c, jr_000_142b
 
     sub c
 
-jr_000_142b:
+jr_000_142b::
     ccf
     rl e
     dec b
@@ -4133,15 +4124,15 @@ jr_000_142b:
     bit 1, e
     jr z, jr_000_146f
 
-jr_000_146a:
+jr_000_146a::
     ld a, b
     cp $08
     jr c, jr_000_1471
 
-jr_000_146f:
+jr_000_146f::
     ld b, $00
 
-jr_000_1471:
+jr_000_1471::
     ld a, h
     and $08
     or b
@@ -4163,10 +4154,10 @@ jr_000_1471:
     ret z
 
     ld a, b
-    jp Jump_000_13df
+    jp jr_000_13df
 
 
-jr_000_148f:
+jr_000_148f::
     ld c, $12
     ld a, [$dd9b]
     add c
@@ -4183,10 +4174,10 @@ jr_000_148f:
     add hl, de
     ld a, [hl]
     or b
-    jp Jump_000_13df
+    jp jr_000_13df
 
 
-Call_000_14a8:
+Call_000_14a8::
     call Call_000_14b8
     ld a, [$dd99]
     cpl
@@ -4197,7 +4188,7 @@ Call_000_14a8:
     ret
 
 
-Call_000_14b8:
+Call_000_14b8::
     ld a, [$dd99]
     ld b, a
     ld a, [$dd96]
@@ -4414,7 +4405,7 @@ Call_000_14b8:
 
     db $40
 
-jr_000_15df:
+jr_000_15df::
     ld b, b
     ld b, b
     ld d, b
@@ -4433,12 +4424,12 @@ jr_000_15df:
 
     db $50
 
-jr_000_15f1:
+jr_000_15f1::
     ld h, b
 
     db $60
 
-jr_000_15f3:
+jr_000_15f3::
     nop
     nop
     db $10
@@ -4454,7 +4445,7 @@ jr_000_15f3:
 
     db $50, $50
 
-jr_000_15ff:
+jr_000_15ff::
     ld h, b
     ld h, b
     ld [hl], b
@@ -4472,7 +4463,7 @@ jr_000_15ff:
 
     db $40, $50, $50
 
-jr_000_160e:
+jr_000_160e::
     ld h, b
 
     db $60
@@ -4488,7 +4479,7 @@ jr_000_160e:
 
     db $30
 
-jr_000_1619:
+jr_000_1619::
     ld b, b
     ld b, b
 
@@ -4590,10 +4581,10 @@ jr_000_1619:
     db $10
     jr nz, @+$32
 
-jr_000_1667:
+jr_000_1667::
     ld b, b
 
-jr_000_1668:
+jr_000_1668::
     ld d, b
     ld h, b
     ld [hl], b
@@ -4630,7 +4621,7 @@ jr_000_1668:
     ld bc, $0001
     nop
 
-jr_000_1689:
+jr_000_1689::
     rst $38
     rst $38
     nop
@@ -4672,18 +4663,18 @@ jr_000_1689:
     add [hl]
     ld [$c0d7], a
     ld a, $01
-    ldh [$ff8e], a
-    ldh [$ff8f], a
+    ldh [hGameState], a
+    ldh [hNeedsReset], a
     ret
 
 
-Jump_000_1716:
+Jump_000_1716::
     call Call_000_17bb
     call Call_000_171d
     ret
 
 
-Call_000_171d:
+Call_000_171d::
     call Call_000_17a1
     call Call_000_1736
     call Call_000_1741
@@ -4695,14 +4686,14 @@ Call_000_171d:
     ret
 
 
-Call_000_1736:
+Call_000_1736::
     ld a, [$c0d7]
     add $f1
     ld hl, $986f
-    jp Jump_000_0517
+    jp QueueTilemapByte
 
 
-Call_000_1741:
+Call_000_1741::
     ld hl, $98ad
     ld de, $19ef
     ld a, [$c0a8]
@@ -4713,7 +4704,7 @@ Call_000_1741:
     jp Jump_000_068e
 
 
-Call_000_1754:
+Call_000_1754::
     ld hl, $98ed
     ld de, $19ef
     ldh a, [$ffbe]
@@ -4724,16 +4715,16 @@ Call_000_1754:
     jp Jump_000_068e
 
 
-Call_000_1766:
+Call_000_1766::
     ld bc, $992e
     ldh a, [$ffba]
-    jp Jump_000_0e91
+    jp jr_000_0e91
 
 
-Call_000_176e:
+Call_000_176e::
     ld bc, $994b
     ld de, $0005
-    call Call_000_0501
+    call QueueVramFill
     ld hl, $1785
     ldh a, [$ffbb]
     rst $20
@@ -4754,33 +4745,33 @@ Call_000_176e:
     ld [de], a
     ld a, [de]
 
-Call_000_178f:
+Call_000_178f::
     ld bc, $99ae
     ld a, [$c0d9]
-    jp Jump_000_0e91
+    jp jr_000_0e91
 
 
-Call_000_1798:
+Call_000_1798::
     ld bc, $99ee
     ld a, [$c0da]
-    jp Jump_000_0e91
+    jp jr_000_0e91
 
 
-Call_000_17a1:
+Call_000_17a1::
     ld bc, $9863
     ld de, $000e
-    call Call_000_04fd
+    call QueueVramFill_SetHighBit
     ld a, [$c0d8]
     ld c, $40
     call Call_000_05b4
     ld bc, $9863
     add hl, bc
     ld a, $0e
-    jp Jump_000_0517
+    jp QueueTilemapByte
 
 
-Call_000_17bb:
-    ldh a, [$ff8b]
+Call_000_17bb::
+    ldh a, [hJoyPressed]
     bit 0, a
     jr nz, jr_000_17ed
 
@@ -4802,7 +4793,7 @@ Call_000_17bb:
     ret
 
 
-jr_000_17d7:
+jr_000_17d7::
     ld hl, $c0d8
     inc [hl]
     ld a, [hl]
@@ -4813,7 +4804,7 @@ jr_000_17d7:
     ret
 
 
-jr_000_17e2:
+jr_000_17e2::
     ld hl, $c0d8
     dec [hl]
     ld a, [hl]
@@ -4824,12 +4815,12 @@ jr_000_17e2:
     ret
 
 
-jr_000_17ed:
+jr_000_17ed::
     ld a, $03
     ld [$c0a9], a
     ld a, $02
-    ldh [$ff8e], a
-    ldh [$ff8f], a
+    ldh [hGameState], a
+    ldh [hNeedsReset], a
     ld hl, $0800
     ld a, l
     ld [$c0a6], a
@@ -4849,7 +4840,7 @@ jr_000_17ed:
     ret
 
 
-jr_000_1818:
+jr_000_1818::
     ld a, [$c0d8]
     rst $00
     ld a, [hl+]
@@ -4861,7 +4852,7 @@ jr_000_1818:
 
     jr @+$52
 
-jr_000_1825:
+jr_000_1825::
     jr jr_000_1883
 
     jr @+$7c
@@ -4909,18 +4900,18 @@ jr_000_1825:
     ret
 
 
-    call Call_000_0f0d
+    call InitSound
     call Call_000_186b
-    ld hl, $18d5
+    ld hl, jr_000_18d5
     rst $38
     ld a, [hl]
 
-jr_000_1867:
-    call Call_000_0f32
+jr_000_1867::
+    call PlaySound_Queue3
     ret
 
 
-Call_000_186b:
+Call_000_186b::
     ld a, [$c0d9]
     sub $01
     ld [$c0d9], a
@@ -4935,10 +4926,10 @@ Call_000_186b:
     jp Jump_000_1907
 
 
-Call_000_1880:
+Call_000_1880::
     ld a, [$c0da]
 
-jr_000_1883:
+jr_000_1883::
     sub $01
     ld [$c0da], a
     ret nc
@@ -4948,7 +4939,7 @@ jr_000_1883:
     ret
 
 
-Jump_000_188f:
+Jump_000_188f::
     ld a, [$c0d8]
     rst $00
     and c
@@ -4967,7 +4958,7 @@ Jump_000_188f:
     add hl, de
     ld a, [$c0d7]
 
-jr_000_18a4:
+jr_000_18a4::
     inc a
     and $07
     ld [$c0d7], a
@@ -4996,17 +4987,17 @@ jr_000_18a4:
     ret
 
 
-    call Call_000_0f0d
-    call Call_000_0f32
+    call InitSound
+    call PlaySound_Queue3
     call $18f5
-    ld hl, $18d5
+    ld hl, jr_000_18d5
     rst $38
     ld a, [hl]
-    call Call_000_0f32
+    call PlaySound_Queue3
     ret
 
 
-jr_000_18d5:
+jr_000_18d5::
     nop
     inc b
     ld [$100c], sp
@@ -5032,7 +5023,7 @@ jr_000_18d5:
 
     jr @+$1a
 
-jr_000_18f0:
+jr_000_18f0::
     jr jr_000_190a
 
     jr @+$1a
@@ -5051,31 +5042,31 @@ jr_000_18f0:
 
     xor a
 
-jr_000_1900:
+jr_000_1900::
     ld [$c0d9], a
     ret
 
 
-jr_000_1904:
+jr_000_1904::
     call Call_000_1956
 
-Jump_000_1907:
+Jump_000_1907::
     ld hl, $191e
 
-jr_000_190a:
+jr_000_190a::
     ld a, [$c0da]
     rst $20
     ld a, l
     dec h
-    jp z, Jump_000_0f3b
+    jp z, PlaySound
 
     dec h
-    jp z, Jump_000_0f38
+    jp z, PlaySound_Queue1
 
     dec h
-    jp z, Jump_000_0f35
+    jp z, PlaySound_Queue2
 
-    jp Jump_000_0f32
+    jp PlaySound_Queue3
 
 
     ld b, b
@@ -5093,7 +5084,7 @@ jr_000_190a:
     ld c, l
     ld bc, HeaderGlobalChecksum
     ld c, a
-    ld bc, $0150
+    ld bc, Jump_000_0150
     ld d, c
     ld bc, $0152
     ld d, e
@@ -5109,7 +5100,7 @@ jr_000_190a:
     ld b, b
     ld bc, $0140
 
-Call_000_1956:
+Call_000_1956::
     ld a, [$c0da]
     inc a
     ld [$c0da], a
@@ -5125,38 +5116,38 @@ LoadDebugMenu::
     xor a
     call Call_000_3f6a
     xor a
-    ldh [$ff90], a
+    ldh [hSCY], a
     ldh [$ffbe], a
     ld a, $06
     ld hl, $4bc0
     ld de, $9000
-    call LoadMainGfx
+    call LoadMaskedGfx
     call Call_000_02f8
     ld hl, $9864
     ld de, $19c6
-    call Call_000_0673
+    call jr_000_0673
     ld hl, $98a4
     ld de, $19cc
-    call Call_000_0673
+    call jr_000_0673
     ld hl, $98e4
     ld de, $19d3
-    call Call_000_0673
+    call jr_000_0673
     ld hl, $9924
     ld de, $19d7
-    call Call_000_0673
+    call jr_000_0673
     ld hl, $9964
     ld de, $19dd
-    call Call_000_0673
+    call jr_000_0673
     ld hl, $99a4
     ld de, $19e2
-    call Call_000_0673
+    call jr_000_0673
     ld hl, $99e4
     ld de, $19e9
-    call Call_000_0673
-    ld hl, $c0a3
+    call jr_000_0673
+    ld hl, wPaletteBGP
     ld [hl], $e4
     ld a, $83
-    ld [$c0a2], a
+    ld [wLCDCShadow], a
     ret
 
 
@@ -5219,7 +5210,7 @@ LoadDebugMenu::
     inc l
     dec [hl]
 
-jr_000_1a0b:
+jr_000_1a0b::
     rst $38
     nop
     ld h, $3f
@@ -5325,7 +5316,7 @@ jr_000_1a0b:
     ld l, b
     cpl
 
-jr_000_1ad1:
+jr_000_1ad1::
     add l
     cpl
     and [hl]
@@ -5479,7 +5470,7 @@ jr_000_1ad1:
     ldh a, [c]
     ld de, $0092
 
-jr_000_1d01:
+jr_000_1d01::
     ei
     ld sp, hl
     adc a
@@ -5552,7 +5543,7 @@ jr_000_1d01:
     ldh a, [c]
     ld de, $0083
 
-jr_000_1e53:
+jr_000_1e53::
     ei
     ld sp, hl
     add b
@@ -5882,7 +5873,7 @@ jr_000_1e53:
 
     add b
 
-jr_000_2afc:
+jr_000_2afc::
     db $ec
     ld sp, hl
     inc hl
@@ -6018,7 +6009,7 @@ jr_000_2afc:
 
     add b
 
-jr_000_2d2d:
+jr_000_2d2d::
     db $ec
     ld sp, hl
     inc hl
@@ -6036,7 +6027,7 @@ jr_000_2d2d:
     cpl
     ld bc, $f9fc
     dec l
-    ld bc, $01fc
+    ld bc, Call_000_01fc
     ld l, $01
     add b
     db $ec
@@ -6049,7 +6040,7 @@ jr_000_2d2d:
 
     db $f4
 
-jr_000_2d5f:
+jr_000_2d5f::
     pop af
     add hl, hl
     ld bc, $f9f4
@@ -6060,7 +6051,7 @@ jr_000_2d5f:
     inc l
     ld bc, $f9fc
     dec l
-    ld bc, $01fc
+    ld bc, Call_000_01fc
     ld l, $01
     add b
     db $ec
@@ -6078,7 +6069,7 @@ jr_000_2d5f:
     inc l
     ld bc, $f9fc
     dec l
-    ld bc, $01fc
+    ld bc, Call_000_01fc
     ld l, $01
     add b
 
@@ -6160,7 +6151,7 @@ jr_000_2d5f:
 
     push af
 
-jr_000_2f71:
+jr_000_2f71::
     ldh a, [rNR42]
     ld bc, $f8f5
     ld [hl+], a
@@ -6178,7 +6169,7 @@ jr_000_2f71:
 
     db $f4
 
-jr_000_2f8e:
+jr_000_2f8e::
     rst $30
     ld h, $01
     db $f4
@@ -6189,12 +6180,12 @@ jr_000_2f8e:
 
     pop af
 
-jr_000_2f9a:
+jr_000_2f9a::
     dec c
     dec hl
     ld bc, $f9fc
     add hl, hl
-    ld bc, $01fc
+    ld bc, Call_000_01fc
     ld a, [hl+]
     ld bc, $ec80
     ld sp, hl
@@ -6214,10 +6205,10 @@ jr_000_2f9a:
 
     db $fc
 
-jr_000_2fbf:
+jr_000_2fbf::
     ld sp, hl
     add hl, hl
-    ld bc, $01fc
+    ld bc, Call_000_01fc
     ld a, [hl+]
     ld bc, $ec80
     ld sp, hl
@@ -6227,7 +6218,7 @@ jr_000_2fbf:
 
     db $f4
 
-jr_000_2fd0:
+jr_000_2fd0::
     rst $30
     ld h, $01
     db $f4
@@ -6238,10 +6229,10 @@ jr_000_2fd0:
 
     db $fc
 
-jr_000_2fdc:
+jr_000_2fdc::
     ld sp, hl
     add hl, hl
-    ld bc, $01fc
+    ld bc, Call_000_01fc
     ld a, [hl+]
     db $01
     add b
@@ -6331,7 +6322,7 @@ jr_000_2fdc:
 
     db $f4
 
-jr_000_3196:
+jr_000_3196::
     add hl, bc
     add hl, hl
     ld bc, $0df1
@@ -6353,7 +6344,7 @@ jr_000_3196:
 
     db $f4
 
-jr_000_31bb:
+jr_000_31bb::
     add hl, bc
     add hl, hl
     ld bc, $f7fc
@@ -6372,7 +6363,7 @@ jr_000_31bb:
 
     db $f4
 
-jr_000_31d8:
+jr_000_31d8::
     add hl, bc
     add hl, hl
     ld bc, $f7fc
@@ -6437,7 +6428,7 @@ jr_000_31d8:
 
     add b
 
-jr_000_3287:
+jr_000_3287::
     db $eb
     ld hl, sp+$4d
     ld bc, $00eb
@@ -6481,7 +6472,7 @@ jr_000_3287:
     inc e
     ld bc, $01f0
     dec e
-    ld bc, $08f8
+    ld bc, jr_000_08f8
     ld [hl+], a
     ld bc, $00f8
     ld hl, $f801
@@ -6492,7 +6483,7 @@ jr_000_3287:
     inc e
     ld bc, $01f0
     dec e
-    ld bc, $08f8
+    ld bc, jr_000_08f8
     ld [hl+], a
     ld bc, $00f8
     ld hl, $f801
@@ -6502,7 +6493,7 @@ jr_000_3287:
     inc e
     ld bc, $01f0
     dec e
-    ld bc, $08f8
+    ld bc, jr_000_08f8
     ld [hl+], a
     ld bc, $00f8
     ld hl, $f801
@@ -6679,7 +6670,7 @@ jr_000_3287:
     nop
     nop
 
-jr_000_3cd2:
+jr_000_3cd2::
     nop
     ld c, $11
     and c
@@ -6722,7 +6713,7 @@ jr_000_3cd2:
     inc bc
     inc c
 
-Jump_000_3cff:
+Jump_000_3cff::
     db $10
     jr nz, jr_000_3d22
 
@@ -6758,7 +6749,7 @@ Jump_000_3cff:
     add h
     add e
 
-jr_000_3d22:
+jr_000_3d22::
     nop
     add b
     nop
@@ -6777,7 +6768,7 @@ jr_000_3d22:
     inc b
     add d
 
-jr_000_3d3c:
+jr_000_3d3c::
     ld b, d
     ld b, d
     add b
@@ -6794,7 +6785,7 @@ jr_000_3d3c:
     ld hl, $1010
     ld [$0c0b], sp
 
-jr_000_3d51:
+jr_000_3d51::
     db $10
     ld [$e010], sp
     add b
@@ -6849,7 +6840,7 @@ jr_000_3d51:
     nop
     nop
 
-jr_000_3d8d:
+jr_000_3d8d::
     rst $38
     rst $38
     nop
@@ -6877,7 +6868,7 @@ jr_000_3d8d:
     inc bc
     add a
 
-jr_000_3da7:
+jr_000_3da7::
     add [hl]
     ld bc, $f082
     cp $ff
@@ -6900,7 +6891,7 @@ jr_000_3da7:
     ld [bc], a
     jr z, jr_000_3de4
 
-jr_000_3dc4:
+jr_000_3dc4::
     ld b, c
     add e
     inc bc
@@ -6926,7 +6917,7 @@ jr_000_3dc4:
     ld [bc], a
     ld [bc], a
 
-jr_000_3de4:
+jr_000_3de4::
     ld bc, $0000
     nop
     nop
@@ -6962,7 +6953,7 @@ jr_000_3de4:
     nop
     nop
 
-jr_000_3e0c:
+jr_000_3e0c::
     nop
     nop
     ldh a, [$ff08]
@@ -6981,7 +6972,7 @@ jr_000_3e0c:
     db $fd
     add hl, bc
 
-jr_000_3e21:
+jr_000_3e21::
     stop
     nop
     ret nz
@@ -7022,7 +7013,7 @@ jr_000_3e21:
     add b
     ld b, b
 
-jr_000_3e4f:
+jr_000_3e4f::
     ret nz
 
     jr nz, jr_000_3e72
@@ -7030,7 +7021,7 @@ jr_000_3e4f:
     ld [$0204], sp
     ld bc, $0003
 
-jr_000_3e58:
+jr_000_3e58::
     nop
     nop
     sub h
@@ -7039,7 +7030,7 @@ jr_000_3e58:
     ld b, b
     ret nz
 
-jr_000_3e5f:
+jr_000_3e5f::
     nop
     nop
     nop
@@ -7059,7 +7050,7 @@ jr_000_3e5f:
     nop
     nop
 
-jr_000_3e72:
+jr_000_3e72::
     nop
     nop
     nop
@@ -7073,7 +7064,7 @@ jr_000_3e72:
     inc bc
     inc b
 
-jr_000_3e7e:
+jr_000_3e7e::
     dec bc
     inc d
     db $10
@@ -7100,7 +7091,7 @@ jr_000_3e7e:
     ld b, b
     ld b, b
 
-jr_000_3e9a:
+jr_000_3e9a::
     db $10
     db $10
     ld [$0007], sp
@@ -7177,13 +7168,12 @@ jr_000_3e9a:
 
     ld b, b
 
-jr_000_3efd:
+jr_000_3efd::
     ld b, b
     add b
     add b
 
-Call_000_3f00:
-Jump_000_3f00:
+Jump_000_3f00::
     add b
     add a
     ld [$9060], sp
@@ -7192,7 +7182,7 @@ Jump_000_3f00:
     inc bc
     inc b
 
-jr_000_3f09:
+jr_000_3f09::
     inc b
     rra
     inc bc
@@ -7211,7 +7201,7 @@ jr_000_3f09:
 
     ld sp, $b89c
 
-jr_000_3f1c:
+jr_000_3f1c::
     ldh a, [$ffe0]
     add b
     nop
@@ -7258,7 +7248,7 @@ jr_000_3f1c:
     ld [de], a
     ld [hl-], a
 
-jr_000_3f4e:
+jr_000_3f4e::
     call $0605
     nop
     add hl, bc
@@ -7286,14 +7276,14 @@ jr_000_3f4e:
     nop
     nop
 
-Call_000_3f6a:
-    ldh [$ff8f], a
-    ldh [$ff92], a
+Call_000_3f6a::
+    ldh [hNeedsReset], a
+    ldh [hSCX], a
     ld hl, $5701
     ld de, $8d00
     ld bc, $0300
     ld a, $05
-    call LoadGameGfx
+    call BankedMemcpy
     ld a, $04
     ld [$d933], a
     ret
