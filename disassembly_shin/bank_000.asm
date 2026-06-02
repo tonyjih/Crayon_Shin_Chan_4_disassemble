@@ -106,6 +106,11 @@ DEF SPAWN_LIST_END      EQU $ff
 
 
 ; Object type constants. Corrected in pass 12: the first dispatch-table entry is dw $4867.
+DEF OBJ_NONE                       EQU $00
+DEF OBJ_STAGE_EVENT_TYPE_01        EQU $01 ; Stage-specific event/object, exact role pending.
+DEF OBJ_STAGE_EVENT_TYPE_02        EQU $02 ; Stage-specific event/object, exact role pending.
+DEF OBJ_STAGE_EVENT_TYPE_03        EQU $03 ; Stage-specific event/object, exact role pending.
+DEF OBJ_STAGE_EVENT_TYPE_04        EQU $04 ; Stage-specific event/object, exact role pending.
 DEF OBJ_STAGE_EVENT_TYPE_05        EQU $05 ; Stage-specific object, exact role pending.
 DEF OBJ_STAGE_EVENT_CHILD_A        EQU $06 ; Enemy-like child actor behavior, exact source pending.
 DEF OBJ_STAGE_EVENT_TYPE_07        EQU $07 ; Stage-specific event/object, exact role pending.
@@ -136,6 +141,8 @@ DEF OBJ_PLATFORM_BOUNCE_PAD          EQU $1d
 DEF OBJ_PLATFORM_DROP_B              EQU $1e
 DEF OBJ_STAGE_EVENT_TYPE_21          EQU $21 ; Stage-specific event/controller, not a simple platform.
 DEF OBJ_PLATFORM_MOVING_HORIZONTAL   EQU $22
+DEF OBJ_STAGE_EVENT_TYPE_23          EQU $23 ; Stage-specific event/object, exact role pending.
+DEF OBJ_STAGE_EVENT_CHILD_24         EQU $24 ; Child/effect actor spawned by stage event type $03.
 
 ; Player form/action work variables.
 DEF wSavedPlayerState     EQU $c0ac

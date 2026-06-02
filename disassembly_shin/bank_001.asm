@@ -993,56 +993,32 @@ Call_001_46f6:: ; Compatibility alias.
     and $3f
     rst $00
 
-    db $8a, $47, $8c, $47
-
-    adc [hl]
-    ld b, a
-    sub h
-    ld b, a
-
-    db $9a, $47
-
-    and d
-    ld b, a
-
-    db $8a, $47
-
-    sbc d
-    ld b, a
-    and d
-    ld b, a
-    adc d
-    ld b, a
-    sbc d
-    ld b, a
-    adc d
-    ld b, a
-    xor [hl]
-    ld b, a
-    or h
-    ld b, a
-    sbc d
-    ld b, a
-    adc d
-    ld b, a
-    adc d
-    ld b, a
-    adc h
-    ld b, a
-    adc h
-    ld b, a
-    adc d
-    ld b, a
-    adc h
-    ld b, a
-    sbc d
-    ld b, a
-    adc d
-    ld b, a
-    sbc d
-    ld b, a
-    sbc d
-    ld b, a
+    ; Projectile tile passability dispatch table. rst $00 consumes these words as data.
+    dw $478a ; 00
+    dw $478c ; 01
+    dw $478e ; 02
+    dw $4794 ; 03
+    dw $479a ; 04
+    dw $47a2 ; 05
+    dw $478a ; 06
+    dw $479a ; 07
+    dw $47a2 ; 08
+    dw $478a ; 09
+    dw $479a ; 0a
+    dw $478a ; 0b
+    dw $47ae ; 0c
+    dw $47b4 ; 0d
+    dw $479a ; 0e
+    dw $478a ; 0f
+    dw $478a ; 10
+    dw $478c ; 11
+    dw $478c ; 12
+    dw $478a ; 13
+    dw $478c ; 14
+    dw $479a ; 15
+    dw $478a ; 16
+    dw $479a ; 17
+    dw $479a ; 18
     adc d
     ld b, a
     sbc d
@@ -1270,46 +1246,47 @@ Call_001_4812:: ; Compatibility alias.
     rst $00
 
     ; Object behavior dispatch table. rst $00 consumes these words as data.
-    dw $4867 ; 00
-    dw $672f ; 01
-    dw $6856 ; 02
-    dw $6973 ; 03
-    dw $6b47 ; 04
-    dw $6650 ; 05: OBJ_STAGE_EVENT_TYPE_05
-    dw $61de ; 06: OBJ_STAGE_EVENT_CHILD_A
-    dw $7322 ; 07: OBJ_STAGE_EVENT_TYPE_07
-    dw $73c7 ; 08: OBJ_STAGE_EVENT_TYPE_08
-    dw $7004 ; 09: OBJ_PLATFORM_DROP_A_VARIANT
-    dw $627e ; 0a: OBJ_ENEMY_WALKING_KID
-    dw $63e1 ; 0b: OBJ_ENEMY_PARTY_HORN_KID
-    dw $64cf ; 0c: OBJ_ENEMY_UMBRELLA_KID
-    dw $6524 ; 0d: OBJ_ENEMY_PAPER_AIRPLANE_KID
-    dw $65f8 ; 0e: OBJ_ENEMY_PAPER_AIRPLANE
-    dw $66be ; 0f: OBJ_ENEMY_PROJECTILE_B
-    dw $5f72 ; 10: OBJ_PICKUP_BONUS_COUNTER
-    dw $5fb7 ; 11: OBJ_PICKUP_BONUS_COUNTER_ANIM
-    dw $6042 ; 12: OBJ_PICKUP_EXTRA_LIFE
-    dw $6068 ; 13: OBJ_PICKUP_EXTRA_LIFE_ANIM
-    dw $60a0 ; 14: OBJ_PICKUP_HEALTH
-    dw $60ca ; 15: OBJ_PICKUP_HEALTH_ANIM
-    dw $6103 ; 16: OBJ_FORM_FLYING_SQUIRREL
-    dw $613a ; 17: OBJ_FORM_COCKROACH
-    dw $616e ; 18: OBJ_FORM_CHICKEN
-    dw $61a3 ; 19: OBJ_FORM_ACTION_KAMEN
-    dw $6ee1 ; 1a: OBJ_PLATFORM_MOVING_VERTICAL_A
-    dw $6f83 ; 1b: OBJ_PLATFORM_MOVING_VERTICAL_B
-    dw $7004 ; 1c: OBJ_PLATFORM_DROP_A
-    dw $6e2a ; 1d: OBJ_PLATFORM_BOUNCE_PAD
-    dw $7081 ; 1e: OBJ_PLATFORM_DROP_B
-    dw $721b ; 1f: platform/event, pending
-    dw $729a ; 20: platform/event, pending
-    dw $6af3 ; 21: OBJ_STAGE_EVENT_TYPE_21
-    dw $70ff ; 22: OBJ_PLATFORM_MOVING_HORIZONTAL
-    dw $7454 ; 23: stage/event, pending
-    dw $6df5 ; 24: stage/event, pending
-    dw $4867 ; 25: unused/fallback
-    dw $4867 ; 26: unused/fallback
-    dw $4867 ; 27: unused/fallback
+    dw UpdateObjNone00 ; 00: OBJ_NONE
+    dw UpdateObjStageEvent01 ; 01: OBJ_STAGE_EVENT_TYPE_01
+    dw UpdateObjStageEvent02 ; 02: OBJ_STAGE_EVENT_TYPE_02
+    dw UpdateObjStageEvent03 ; 03: OBJ_STAGE_EVENT_TYPE_03
+    dw UpdateObjStageEvent04 ; 04: OBJ_STAGE_EVENT_TYPE_04
+    dw UpdateObjStageEvent05 ; 05: OBJ_STAGE_EVENT_TYPE_05
+    dw UpdateObjStageEventChildA ; 06: OBJ_STAGE_EVENT_CHILD_A
+    dw UpdateObjStageEvent07 ; 07: OBJ_STAGE_EVENT_TYPE_07
+    dw UpdateObjStageEvent08 ; 08: OBJ_STAGE_EVENT_TYPE_08
+    dw UpdateObjDropPlatformA ; 09: OBJ_PLATFORM_DROP_A_VARIANT
+    dw UpdateObjEnemyWalkingKid ; 0a: OBJ_ENEMY_WALKING_KID
+    dw UpdateObjEnemyPartyHornKid ; 0b: OBJ_ENEMY_PARTY_HORN_KID
+    dw UpdateObjEnemyUmbrellaKid ; 0c: OBJ_ENEMY_UMBRELLA_KID
+    dw UpdateObjEnemyPaperAirplaneKid ; 0d: OBJ_ENEMY_PAPER_AIRPLANE_KID
+    dw UpdateObjEnemyPaperAirplane ; 0e: OBJ_ENEMY_PAPER_AIRPLANE
+    dw UpdateObjEnemyProjectileB ; 0f: OBJ_ENEMY_PROJECTILE_B
+    dw UpdateObjPickupBonusCounter ; 10: OBJ_PICKUP_BONUS_COUNTER
+    dw UpdateObjPickupBonusCounterAnim ; 11: OBJ_PICKUP_BONUS_COUNTER_ANIM
+    dw UpdateObjPickupExtraLife ; 12: OBJ_PICKUP_EXTRA_LIFE
+    dw UpdateObjPickupExtraLifeAnim ; 13: OBJ_PICKUP_EXTRA_LIFE_ANIM
+    dw UpdateObjPickupHealth ; 14: OBJ_PICKUP_HEALTH
+    dw UpdateObjPickupHealthAnim ; 15: OBJ_PICKUP_HEALTH_ANIM
+    dw UpdateObjFormFlyingSquirrel ; 16: OBJ_FORM_FLYING_SQUIRREL
+    dw UpdateObjFormCockroach ; 17: OBJ_FORM_COCKROACH
+    dw UpdateObjFormChicken ; 18: OBJ_FORM_CHICKEN
+    dw UpdateObjFormActionKamen ; 19: OBJ_FORM_ACTION_KAMEN
+    dw UpdateObjMovingPlatformVerticalA ; 1a: OBJ_PLATFORM_MOVING_VERTICAL_A
+    dw UpdateObjMovingPlatformVerticalB ; 1b: OBJ_PLATFORM_MOVING_VERTICAL_B
+    dw UpdateObjDropPlatformA ; 1c: OBJ_PLATFORM_DROP_A
+    dw UpdateObjPlatformBouncePad ; 1d: OBJ_PLATFORM_BOUNCE_PAD
+    dw UpdateObjDropPlatformB ; 1e: OBJ_PLATFORM_DROP_B
+    dw UpdateObjStageEventType1F ; 1f: platform/event, pending
+    dw UpdateObjStageEventType20 ; 20: platform/event, pending
+    dw $6af3 ; 21: OBJ_STAGE_EVENT_TYPE_21 (UpdateObjStageEvent21; raw pointer preserves original target)
+    dw UpdateObjMovingPlatformHorizontal ; 22: OBJ_PLATFORM_MOVING_HORIZONTAL
+    dw UpdateObjStageEvent23 ; 23: OBJ_STAGE_EVENT_TYPE_23
+    dw UpdateObjStageEventChild24 ; 24: OBJ_STAGE_EVENT_CHILD_24
+    dw UpdateObjNone00 ; 25: unused/fallback
+    dw UpdateObjNone00 ; 26: unused/fallback
+    dw UpdateObjNone00 ; 27: unused/fallback
+UpdateObjNone00:: ; Object type $00 / fallback: no-op object behavior.
     ret
 
 
@@ -1562,54 +1539,56 @@ InitSpawnedObjectByType:: ; Run object-type-specific initialization after spawni
     rst $00
 
     ; Spawned object initialization dispatch table. rst $00 consumes these words as data.
-    dw $49d8 ; 00
-    dw $4abc ; 01
-    dw $4ac9 ; 02
-    dw $4ad6 ; 03
-    dw $4ae3 ; 04
-    dw $49d8 ; 05
-    dw $49d8 ; 06
-    dw $49f7 ; 07
-    dw $49d8 ; 08
-    dw $49d8 ; 09
-    dw $4a3d ; 0a
-    dw $4a3d ; 0b
-    dw $4a4a ; 0c
-    dw $4a57 ; 0d
-    dw $49d8 ; 0e
-    dw $4a64 ; 0f
-    dw $49d8 ; 10
-    dw $49d8 ; 11
-    dw $49d8 ; 12
-    dw $49d8 ; 13
-    dw $49d8 ; 14
-    dw $49d8 ; 15
-    dw $49d8 ; 16
-    dw $49d8 ; 17
-    dw $49d8 ; 18
-    dw $49d8 ; 19
-    dw $4a23 ; 1a
-    dw $4a23 ; 1b
-    dw $49d8 ; 1c
-    dw $4a19 ; 1d
-    dw $49d8 ; 1e
-    dw $49d8 ; 1f
-    dw $49ea ; 20
-    dw $49d8 ; 21
-    dw $49ea ; 22
-    dw $49d8 ; 23
-    dw $49d8 ; 24
-    dw $49d8 ; 25
-    dw $49d8 ; 26
-    dw $49d8 ; 27
-    dw $49d8 ; 28
-    dw $49d8 ; 29
-    dw $49d8 ; 2a
-    dw $49d8 ; 2b
-    dw $49d8 ; 2c
-    dw $49d8 ; 2d
-    dw $49d8 ; 2e
-    dw $49d8 ; 2f
+    dw InitSpawnedObjectNoInit ; 00
+    dw InitSpawnedObjectParamBlockA ; 01
+    dw InitSpawnedObjectParamBlockB ; 02
+    dw InitSpawnedObjectParamBlockC ; 03
+    dw InitSpawnedObjectParamBlockD ; 04
+    dw InitSpawnedObjectNoInit ; 05
+    dw InitSpawnedObjectNoInit ; 06
+    dw InitSpawnedObjectAnimParamFromTable ; 07
+    dw InitSpawnedObjectNoInit ; 08
+    dw InitSpawnedObjectNoInit ; 09
+    dw InitSpawnedObjectMotionBlockA ; 0a
+    dw InitSpawnedObjectMotionBlockA ; 0b
+    dw InitSpawnedObjectMotionBlockB ; 0c
+    dw InitSpawnedObjectMotionBlockC ; 0d
+    dw InitSpawnedObjectNoInit ; 0e
+    dw InitSpawnedObjectMotionBlockD ; 0f
+    dw InitSpawnedObjectNoInit ; 10
+    dw InitSpawnedObjectNoInit ; 11
+    dw InitSpawnedObjectNoInit ; 12
+    dw InitSpawnedObjectNoInit ; 13
+    dw InitSpawnedObjectNoInit ; 14
+    dw InitSpawnedObjectNoInit ; 15
+    dw InitSpawnedObjectNoInit ; 16
+    dw InitSpawnedObjectNoInit ; 17
+    dw InitSpawnedObjectNoInit ; 18
+    dw InitSpawnedObjectNoInit ; 19
+    dw InitSpawnedObjectPlatformParamFromTable ; 1a
+    dw InitSpawnedObjectPlatformParamFromTable ; 1b
+    dw InitSpawnedObjectNoInit ; 1c
+    dw InitSpawnedObjectSpawnParamLowBits ; 1d
+    dw InitSpawnedObjectNoInit ; 1e
+    dw InitSpawnedObjectNoInit ; 1f
+    dw InitSpawnedObjectFacingFromSpawnParam ; 20
+    dw InitSpawnedObjectNoInit ; 21
+    dw InitSpawnedObjectFacingFromSpawnParam ; 22
+    dw InitSpawnedObjectNoInit ; 23
+    dw InitSpawnedObjectNoInit ; 24
+    dw InitSpawnedObjectNoInit ; 25
+    dw InitSpawnedObjectNoInit ; 26
+    dw InitSpawnedObjectNoInit ; 27
+    dw InitSpawnedObjectNoInit ; 28
+    dw InitSpawnedObjectNoInit ; 29
+    dw InitSpawnedObjectNoInit ; 2a
+    dw InitSpawnedObjectNoInit ; 2b
+    dw InitSpawnedObjectNoInit ; 2c
+    dw InitSpawnedObjectNoInit ; 2d
+    dw InitSpawnedObjectNoInit ; 2e
+    dw InitSpawnedObjectNoInit ; 2f
+
+InitSpawnedObjectNoInit:: ; Default spawned-object init: no extra setup.
     ret
 
 
@@ -1630,6 +1609,7 @@ Call_001_49d9:: ; Compatibility alias.
     ret
 
 
+InitSpawnedObjectFacingFromSpawnParam:: ; Use spawn param bit 0 to set object facing flag.
     ldh a, [$ffc9]
     srl a
     ld a, [bc]
@@ -1643,6 +1623,7 @@ jr_001_49f5::
     ret
 
 
+InitSpawnedObjectAnimParamFromTable:: ; Initialize object animation params from low spawn bits.
     ld a, [bc]
     and $7f
     ld [bc], a
@@ -1672,6 +1653,7 @@ jr_001_49f5::
     ld l, b
     ld [hl], b
 
+InitSpawnedObjectSpawnParamLowBits:: ; Store low 3 spawn parameter bits in object param A.
     ldh a, [$ffc9]
     and $07
     ld hl, $000a
@@ -1680,6 +1662,7 @@ jr_001_49f5::
     ret
 
 
+InitSpawnedObjectPlatformParamFromTable:: ; Initialize platform param from low spawn bits.
     ldh a, [$ffc9]
     and $07
     ld hl, $4a37
@@ -1701,6 +1684,7 @@ jr_001_49f5::
 
     db $aa
 
+InitSpawnedObjectMotionBlockA:: ; Initialize motion params from block A.
     ld de, $4a42
     jr jr_001_4a71
 
@@ -1710,6 +1694,7 @@ jr_001_49f5::
     ld [bc], a
     ld [bc], a
 
+InitSpawnedObjectMotionBlockB:: ; Initialize motion params from block B.
     ld de, $4a4f
     jr jr_001_4a71
 
@@ -1719,6 +1704,7 @@ jr_001_49f5::
     ld [bc], a
     ld [bc], a
 
+InitSpawnedObjectMotionBlockC:: ; Initialize motion params from block C.
     ld de, $4a5c
     jr jr_001_4a71
 
@@ -1728,6 +1714,7 @@ jr_001_49f5::
     ld [bc], a
     ld [bc], a
 
+InitSpawnedObjectMotionBlockD:: ; Initialize motion params from block D.
     ld de, $4a69
     jr jr_001_4a71
 
@@ -1792,6 +1779,7 @@ jr_001_4a95::
     add b
     and b
 
+InitSpawnedObjectParamBlockA:: ; Initialize params from block A.
     ld de, $4ac1
     jr jr_001_4a71
 
@@ -1801,6 +1789,7 @@ jr_001_4a95::
     add b
     ld bc, $0606
 
+InitSpawnedObjectParamBlockB:: ; Initialize params from block B.
     ld de, $4ace
     jr jr_001_4a71
 
@@ -1810,6 +1799,7 @@ jr_001_4a95::
     add b
     ld bc, $0808
 
+InitSpawnedObjectParamBlockC:: ; Initialize params from block C.
     ld de, $4adb
     jr jr_001_4a71
 
@@ -1819,6 +1809,7 @@ jr_001_4a95::
     ld b, b
     ld bc, $0505
 
+InitSpawnedObjectParamBlockD:: ; Initialize params from block D and clear event substate.
     xor a
     ld [$c0ba], a
     ld de, $4aed
@@ -2419,18 +2410,15 @@ Call_001_4e05::
     and $07
     rst $00
 
-    db $1f, $4e, $20, $4e, $27, $4e
-
-    rra
-    ld c, [hl]
-    rra
-    ld c, [hl]
-    rra
-    ld c, [hl]
-    rra
-    ld c, [hl]
-    rra
-    ld c, [hl]
+    ; Player tile-effect Y alignment dispatch table.
+    dw $4e1f ; 00
+    dw $4e20 ; 01
+    dw $4e27 ; 02
+    dw $4e1f ; 03
+    dw $4e1f ; 04
+    dw $4e1f ; 05
+    dw $4e1f ; 06
+    dw $4e1f ; 07
 
     ret
 
@@ -2638,7 +2626,15 @@ Call_001_4f08:: ; Compatibility alias.
 Call_001_4f46::
     rst $00
 
-    db $57, $4f, $58, $4f, $69, $4f, $7d, $4f, $91, $4f, $a4, $4f, $b1, $4f, $be, $4f
+    ; Stage animated tile sub-dispatch table.
+    dw $4f57 ; 00
+    dw $4f58 ; 01
+    dw $4f69 ; 02
+    dw $4f7d ; 03
+    dw $4f91 ; 04
+    dw $4fa4 ; 05
+    dw $4fb1 ; 06
+    dw $4fbe ; 07
 
     ret
 
@@ -2735,7 +2731,10 @@ jr_001_4f9c::
 Call_001_500b::
     rst $00
 
-    db $12, $50, $13, $50, $1f, $50
+    ; Stage animated tile sub-dispatch table.
+    dw $5012 ; 00
+    dw $5013 ; 01
+    dw $501f ; 02
 
     ret
 
@@ -2792,7 +2791,10 @@ Jump_001_502a::
 Call_001_5073::
     rst $00
 
-    db $7a, $50, $7b, $50, $87, $50
+    ; Stage animated tile sub-dispatch table.
+    dw $507a ; 00
+    dw $507b ; 01
+    dw $5087 ; 02
 
     ret
 
@@ -3269,36 +3271,30 @@ Call_001_52cc::
     and $3f
     rst $00
 
-    db $50, $53, $5d, $53, $50, $53, $50, $53, $50, $53, $50, $53, $50, $53, $69, $53
-
-    ld d, b
-    ld d, e
-
-    db $50, $53, $50, $53, $77, $53
-
-    ld d, b
-    ld d, e
-    ld d, b
-    ld d, e
-    ld [hl], a
-    ld d, e
-    ld d, b
-    ld d, e
-    ld d, b
-    ld d, e
-    ld e, l
-    ld d, e
-    ld e, l
-    ld d, e
-
-    db $50, $53
-
-    ld e, l
-    ld d, e
-    ld d, b
-    ld d, e
-
-    db $69, $53
+    ; Tile collision / interaction dispatch table.
+    dw $5350 ; 00
+    dw $535d ; 01
+    dw $5350 ; 02
+    dw $5350 ; 03
+    dw $5350 ; 04
+    dw $5350 ; 05
+    dw $5350 ; 06
+    dw $5369 ; 07
+    dw $5350 ; 08
+    dw $5350 ; 09
+    dw $5350 ; 0a
+    dw $5377 ; 0b
+    dw $5350 ; 0c
+    dw $5350 ; 0d
+    dw $5377 ; 0e
+    dw $5350 ; 0f
+    dw $5350 ; 10
+    dw $535d ; 11
+    dw $535d ; 12
+    dw $5350 ; 13
+    dw $535d ; 14
+    dw $5350 ; 15
+    dw $5369 ; 16
 
     ld d, b
     ld d, e
@@ -3457,38 +3453,34 @@ Call_001_53be::
     and $3f
     rst $00
 
-    db $91, $54, $b3, $54, $c2, $54, $c8, $54, $ce, $54, $db, $54, $91, $54, $ce, $54
-
-    db $db
-    ld d, h
-
-    db $91, $54, $ce, $54, $91, $54
-
-    db $ec
-    ld d, h
-    ldh a, [c]
-    ld d, h
-    adc $54
-    ld hl, sp+$54
-    inc bc
-    ld d, l
-    ld c, $55
-    ld a, [de]
-    ld d, l
-
-    db $26, $55, $2e, $55
-
-    ld [hl], $55
-
-    db $91, $54
-
-    ld a, $55
-    ld c, d
-    ld d, l
-    sub c
-    ld d, h
-
-    db $56, $55
+    ; Tile collision / interaction dispatch table.
+    dw $5491 ; 00
+    dw $54b3 ; 01
+    dw $54c2 ; 02
+    dw $54c8 ; 03
+    dw $54ce ; 04
+    dw $54db ; 05
+    dw $5491 ; 06
+    dw $54ce ; 07
+    dw $54db ; 08
+    dw $5491 ; 09
+    dw $54ce ; 0a
+    dw $5491 ; 0b
+    dw $54ec ; 0c
+    dw $54f2 ; 0d
+    dw $54ce ; 0e
+    dw $54f8 ; 0f
+    dw $5503 ; 10
+    dw $550e ; 11
+    dw $551a ; 12
+    dw $5526 ; 13
+    dw $552e ; 14
+    dw $5536 ; 15
+    dw $5491 ; 16
+    dw $553e ; 17
+    dw $554a ; 18
+    dw $5491 ; 19
+    dw $5556 ; 1a
 
     xor l
     ld d, h
@@ -3917,7 +3909,11 @@ Call_001_560e:: ; Compatibility alias.
     ld a, [$c0b1]
     rst $00
 
-    db $db, $56, $a9, $56, $81, $56, $47, $56
+    ; Player normal-ground sequence dispatch table.
+    dw $56db ; 00
+    dw $56a9 ; 01
+    dw $5681 ; 02
+    dw $5647 ; 03
 
     xor a
     ld [$c0b1], a
@@ -4406,7 +4402,9 @@ PlayerState_GroundedSnap:: ; State 03: grounded snap/settle state after specific
     ldh a, [$ffc1]
     rst $00
 
-    db $1b, $59, $20, $59
+    ; Grounded snap animation dispatch table.
+    dw $591b ; 00
+    dw $5920 ; 01
 
     ld a, $10
     ldh [hPlayerAnimId], a
@@ -4822,7 +4820,10 @@ jr_001_5b31::
     ldh a, [$ffc1]
     rst $00
 
-    db $63, $5b, $68, $5b, $9c, $5b
+    ; Ground/air animation dispatch table.
+    dw $5b63 ; 00
+    dw $5b68 ; 01
+    dw $5b9c ; 02
 
 jr_001_5b3a::
     ldh a, [$ffc1]
@@ -5064,7 +5065,12 @@ Call_001_5c78:: ; Compatibility alias.
     ldh a, [hPlayerForm]
     rst $00
 
-    db $85, $5c, $92, $5c, $c5, $5c, $b0, $5c, $85, $5c
+    ; Airborne animation/form behavior dispatch table.
+    dw $5c85 ; 00: PLAYER_FORM_NORMAL
+    dw $5c92 ; 01: PLAYER_FORM_FLYING_SQUIRREL
+    dw $5cc5 ; 02: PLAYER_FORM_COCKROACH
+    dw $5cb0 ; 03: PLAYER_FORM_CHICKEN
+    dw $5c85 ; 04: PLAYER_FORM_ACTION_KAMEN
 
     ld a, $0e
     ldh [hPlayerAnimId], a
@@ -5165,7 +5171,10 @@ Call_001_5d04:: ; Compatibility alias.
     ld a, [wFormActionStep]
     rst $00
 
-    db $0e, $5d, $2f, $5d, $50, $5d
+    ; Player form action animation-step dispatch table.
+    dw $5d0e ; 00
+    dw $5d2f ; 01
+    dw $5d50 ; 02
 
     ld h, $08
     ld l, $03
@@ -5457,21 +5466,15 @@ Jump_001_5e78:: ; Compatibility alias.
     and $07
     rst $00
 
-    sbc d
-    ld e, [hl]
-    and h
-    ld e, [hl]
-    xor c
-    ld e, [hl]
-
-    db $ae, $5e, $b3, $5e
-
-    cp b
-    ld e, [hl]
-    cp l
-    ld e, [hl]
-    db $c2
-    ld e, [hl]
+    ; Jump profile velocity dispatch table.
+    dw SetPlayerJumpVelocity ; 00
+    dw $5ea4 ; 01
+    dw $5ea9 ; 02
+    dw $5eae ; 03
+    dw $5eb3 ; 04
+    dw $5eb8 ; 05
+    dw $5ebd ; 06
+    dw $5ec2 ; 07
 
 SetPlayerJumpVelocity:: ; Jump velocity table targets write initial signed Y velocity.
 Call_001_5e9a:: ; Compatibility alias.
@@ -6111,12 +6114,11 @@ Call_001_61f6:: ; Compatibility alias.
     ld a, [hl]
     rst $00
 
-    db $06, $62
-
-    ld b, d
-    ld h, d
-
-    db $42, $62, $52, $62
+    ; Stage event child state dispatch table.
+    dw $6206 ; 00
+    dw $6242 ; 01
+    dw $6242 ; 02
+    dw $6252 ; 03
 
     ld a, $13
     ldh [$ffd6], a
@@ -6227,14 +6229,11 @@ Call_001_6292:: ; Compatibility alias.
     call Call_001_629e
     rst $00
 
-    db $af, $62
-
-    and $62
-
-    db $0c, $63
-
-    inc c
-    ld h, e
+    ; Walking kid state dispatch table.
+    dw $62af ; 00
+    dw $62e6 ; 01
+    dw $630c ; 02
+    dw $630c ; 03
 
 GetObjectStateAndDirectionFlags::
 Call_001_629e:: ; Compatibility alias.
@@ -6540,12 +6539,11 @@ Call_001_63fe:: ; Compatibility alias.
     call Call_001_629e
     rst $00
 
-    db $0a, $64
-
-    ld a, [de]
-    ld h, h
-
-    db $22, $64, $2a, $64
+    ; Party-horn kid state dispatch table.
+    dw $640a ; 00
+    dw $641a ; 01
+    dw $6422 ; 02
+    dw $642a ; 03
 
     ld hl, $6416
     call Jump_001_62cb
@@ -6739,15 +6737,11 @@ Call_001_64e3:: ; Compatibility alias.
     call Call_001_629e
     rst $00
 
-    db $ef, $64
-
-    rst $38
-    ld h, h
-
-    db $07, $65
-
-    rlca
-    ld h, l
+    ; Umbrella kid state dispatch table.
+    dw $64ef ; 00
+    dw $64ff ; 01
+    dw $6507 ; 02
+    dw $6507 ; 03
 
     ld hl, $64fb
     call Jump_001_62cb
@@ -6808,12 +6802,11 @@ Call_001_653b:: ; Compatibility alias.
     call Call_001_629e
     rst $00
 
-    db $47, $65
-
-    ld d, a
-    ld h, l
-
-    db $5f, $65, $67, $65
+    ; Paper-airplane kid state dispatch table.
+    dw $6547 ; 00
+    dw $6557 ; 01
+    dw $655f ; 02
+    dw $6567 ; 03
 
     ld hl, $6553
     call Jump_001_62cb
@@ -7005,10 +6998,11 @@ Call_001_661b:: ; Compatibility alias.
     call Call_001_629e
     rst $00
 
-    db $27, $66, $38, $66, $3b, $66
-
-    dec sp
-    ld h, [hl]
+    ; Paper-airplane projectile state dispatch table.
+    dw $6627 ; 00
+    dw $6638 ; 01
+    dw $663b ; 02
+    dw $663b ; 03
 
     call MoveObjectXBySpeed
     ld hl, $000a
@@ -7065,7 +7059,9 @@ Call_001_6664::
     call Call_001_629e
     rst $00
 
-    db $6c, $66, $a4, $66
+    ; Enemy projectile substate dispatch table.
+    dw $666c ; 00
+    dw $66a4 ; 01
 
     ld a, $80
     ld hl, $0008
@@ -7143,10 +7139,11 @@ Call_001_66d2:: ; Compatibility alias.
     call Call_001_629e
     rst $00
 
-    db $de, $66, $f4, $66, $1a, $67
-
-    ld a, [de]
-    ld h, a
+    ; Enemy projectile B state dispatch table.
+    dw $66de ; 00
+    dw $66f4 ; 01
+    dw $671a ; 02
+    dw $671a ; 03
 
     ld hl, $66ec
     ld d, $0f
@@ -7206,6 +7203,7 @@ Call_001_672a:: ; Compatibility alias.
     jp CheckPlayerBodyCollision
 
 
+UpdateObjStageEvent01:: ; Object type $01: stage-specific event/object, exact role pending.
     call ProjectObjectToScreenAndCull
     call Call_001_6751
     ld a, [$d931]
@@ -7234,7 +7232,12 @@ Call_001_6751::
     ld a, [hl]
     rst $00
 
-    db $00, $68, $f0, $67, $d0, $67, $60, $67, $9e, $67
+    ; Stage event 01 state dispatch table.
+    dw $6800 ; 00
+    dw $67f0 ; 01
+    dw $67d0 ; 02
+    dw $6760 ; 03
+    dw $679e ; 04
 
     ld a, $10
     ldh [$ffd6], a
@@ -7422,6 +7425,7 @@ Call_001_6851::
     jp CheckPlayerBodyCollision
 
 
+UpdateObjStageEvent02:: ; Object type $02: stage-specific event/object, exact role pending.
     call ProjectObjectToScreenAndCull
     call Call_001_6878
     ld a, [$d931]
@@ -7450,12 +7454,12 @@ Call_001_6878::
     ld a, [hl]
     rst $00
 
-    db $b7, $68, $87, $68, $97, $68
-
-    or a
-    ld l, b
-
-    db $9e, $67
+    ; Stage event 02 state dispatch table.
+    dw $68b7 ; 00
+    dw $6887 ; 01
+    dw $6897 ; 02
+    dw $68b7 ; 03
+    dw $679e ; 04
 
     pop af
     ld a, $84
@@ -7489,7 +7493,12 @@ Call_001_6878::
     and $0f
     rst $00
 
-    db $e4, $68, $e4, $68, $f4, $68, $2b, $69, $70, $69
+    ; Stage event 02 script dispatch table.
+    dw $68e4 ; 00
+    dw $68e4 ; 01
+    dw $68f4 ; 02
+    dw $692b ; 03
+    dw $6970 ; 04
 
 Call_001_68c7::
     ldh a, [$ffd3]
@@ -7612,6 +7621,7 @@ jr_001_6952::
     jp Jump_001_68e4
 
 
+UpdateObjStageEvent03:: ; Object type $03: scripted stage event that can spawn OBJ_STAGE_EVENT_CHILD_24.
     call ProjectObjectToScreenAndCull
     call Call_001_69a0
     ld a, [$d931]
@@ -7654,7 +7664,12 @@ Call_001_69a0::
     ld a, [hl]
     rst $00
 
-    db $e3, $69, $b3, $69, $c3, $69, $59, $6a, $9e, $67
+    ; Stage event 03 state dispatch table.
+    dw $69e3 ; 00
+    dw $69b3 ; 01
+    dw $69c3 ; 02
+    dw $6a59 ; 03
+    dw $679e ; 04
 
     pop af
     ld a, $84
@@ -7700,7 +7715,12 @@ UpdateObjStageEvent20:: ; Compatibility alias from pass 10.
     ld a, [$c0b7]
     rst $00
 
-    db $18, $6a, $22, $6a, $28, $6a, $32, $6a, $38, $6a
+    ; Stage event 03 script dispatch table.
+    dw $6a18 ; 00
+    dw $6a22 ; 01
+    dw $6a28 ; 02
+    dw $6a32 ; 03
+    dw $6a38 ; 04
 
 Call_001_6a09::
     ld a, $15
@@ -7834,8 +7854,9 @@ jr_001_6aa6::
     ret
 
 
-jr_001_6aac::
-    ld a, $a1
+SpawnStageEvent21Child::
+jr_001_6aac:: ; Compatibility alias.
+    ld a, $80 | OBJ_STAGE_EVENT_TYPE_21
     ld [hl+], a
     xor a
     ld [hl+], a
@@ -7919,7 +7940,9 @@ Call_001_6b07::
     and $01
     rst $00
 
-    db $15, $6b, $2f, $6b
+    ; Stage event 04 direction dispatch table.
+    dw $6b15 ; 00
+    dw $6b2f ; 01
 
     ld a, $80
     ld hl, $0008
@@ -7957,6 +7980,7 @@ Call_001_6b3c::
     jp CheckPlayerBodyCollision
 
 
+UpdateObjStageEvent04:: ; Object type $04: stage-specific event/object with custom action hitbox handling.
     call ProjectObjectToScreenAndCull
     call Call_001_6bd6
     ld a, [$d931]
@@ -8064,12 +8088,12 @@ Call_001_6bd6::
     ld a, [hl]
     rst $00
 
-    db $15, $6c, $e5, $6b, $f5, $6b
-
-    dec d
-    ld l, h
-
-    db $9e, $67
+    ; Stage event 21 state dispatch table.
+    dw $6c15 ; 00
+    dw $6be5 ; 01
+    dw $6bf5 ; 02
+    dw $6c15 ; 03
+    dw $679e ; 04
 
     pop af
     ld a, $84
@@ -8102,8 +8126,21 @@ Call_001_6bd6::
     ld a, [$c0b7]
     rst $00
 
-    db $35, $6c, $4f, $6c, $72, $6c, $92, $6c, $14, $6d, $92, $6c, $24, $6d, $92, $6c
-    db $34, $6d, $92, $6c, $44, $6d, $54, $6d, $8b, $6d, $d3, $6d
+    ; Stage event 21 script dispatch table.
+    dw $6c35 ; 00
+    dw $6c4f ; 01
+    dw $6c72 ; 02
+    dw $6c92 ; 03
+    dw $6d14 ; 04
+    dw $6c92 ; 05
+    dw $6d24 ; 06
+    dw $6c92 ; 07
+    dw $6d34 ; 08
+    dw $6c92 ; 09
+    dw $6d44 ; 0a
+    dw $6d54 ; 0b
+    dw $6d8b ; 0c
+    dw $6dd3 ; 0d
 
     call Call_001_6c45
     ldh a, [$ffd3]
@@ -8195,7 +8232,8 @@ jr_001_6c82::
     ret
 
 
-jr_001_6cb8::
+SpawnStageEventChild24::
+jr_001_6cb8:: ; Compatibility alias.
     ld a, $1c
     ldh [$ffd6], a
     ld hl, wObjectSlots
@@ -8219,7 +8257,7 @@ jr_001_6ccd::
 
 
 jr_001_6cd3::
-    ld a, $24
+    ld a, OBJ_STAGE_EVENT_CHILD_24
     ld [hl+], a
     xor a
     ld [hl+], a
@@ -8425,6 +8463,7 @@ jr_001_6dbd::
     ret
 
 
+UpdateObjStageEventChild24:: ; Object type $24: stage event child/effect actor spawned by OBJ_STAGE_EVENT_TYPE_03.
     call Call_001_6e0c
     call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
@@ -8592,10 +8631,10 @@ jr_001_6e93:: ; Compatibility alias.
     ld a, [hl]
     rst $00
 
-    db $cf, $6e, $d5, $6e
-
-    db $db
-    ld l, [hl]
+    ; Bounce pad strength dispatch table.
+    dw $6ecf ; 00
+    dw $6ed5 ; 01
+    dw $6edb ; 02
 
     ld hl, $fc70
     jp jr_001_5e9d
@@ -8638,7 +8677,11 @@ Call_001_6efb:: ; Compatibility alias.
     and $03
     rst $00
 
-    db $4b, $6f, $62, $6f, $77, $6f, $62, $6f
+    ; Moving vertical platform A sub-dispatch table.
+    dw $6f4b ; 00
+    dw $6f62 ; 01
+    dw $6f77 ; 02
+    dw $6f62 ; 03
 
 CheckPlayerStandingOnPlatform::
 Jump_001_6f0a:: ; Compatibility alias.
@@ -8766,7 +8809,11 @@ Call_001_6f91:: ; Compatibility alias.
     and $03
     rst $00
 
-    db $a0, $6f, $d1, $6f, $d7, $6f, $d1, $6f
+    ; Moving vertical platform B sub-dispatch table.
+    dw $6fa0 ; 00
+    dw $6fd1 ; 01
+    dw $6fd7 ; 02
+    dw $6fd1 ; 03
 
     ld hl, $0002
     add hl, bc
@@ -9201,6 +9248,7 @@ jr_001_7208::
     ret
 
 
+UpdateObjStageEventType1F:: ; Object type $1f: platform/event behavior, exact role pending.
     call CullObjectAndReleaseSpawn
     ret nz
 
@@ -9300,6 +9348,7 @@ jr_001_728c::
     ret
 
 
+UpdateObjStageEventType20:: ; Object type $20: platform/event behavior, exact role pending.
     call CullObjectAndReleaseSpawn
     ret nz
 
@@ -9640,6 +9689,7 @@ jr_001_7442::
     jp ResetPlayerToNormalState
 
 
+UpdateObjStageEvent23:: ; Object type $23: stage-specific event/object, exact role pending.
     call CullObjectAndReleaseSpawn
     ret nz
 
