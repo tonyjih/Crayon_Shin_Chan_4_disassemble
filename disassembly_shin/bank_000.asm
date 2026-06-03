@@ -28,6 +28,7 @@ DEF hOamMaxY       EQU $ff9a
 DEF hOamWritePos   EQU $ff9b
 DEF hPrevOamPos    EQU $ff9c
 DEF hSpriteFlags   EQU $ff9d
+DEF hStageIndex    EQU $ff9f ; Current gameplay stage/area index used by bank 1 stage tables.
 
 ; Gameplay aliases identified during cleanup pass 3.
 ; These are based on direct use in bank 1 gameplay update/player/object code.
@@ -93,6 +94,15 @@ DEF wObjectSlots        EQU $c180
 DEF wSpawnCursor        EQU $c380
 DEF wSpawnStateList     EQU $c381
 DEF wPendingVramUpdates EQU $c402
+
+; Stage layout/map runtime buffers.
+DEF wStageTileAttrTable       EQU $c700 ; 256-byte tile/metatile collision/attribute lookup.
+DEF wStageLayoutMap           EQU $c800 ; Decompressed stage metatile layout pages.
+DEF wStageLayoutPageHighTable EQU $c41c ; Page high-byte table used by world->layout lookup.
+
+; Stage metatile graphics table pointer in HRAM. Each metatile id maps to 4 BG tile bytes.
+DEF hStageMetatileTableLo EQU $ffa2
+DEF hStageMetatileTableHi EQU $ffa3
 
 ; Object system constants. Object type is stored in slot byte +0, masked by OBJECT_TYPE_MASK.
 DEF OBJECT_SLOT_SIZE  EQU $10
@@ -2756,10 +2766,10 @@ jr_000_0c63::
     set 1, l
 
 jr_000_0c69::
-    ldh a, [$ffa2]
+    ldh a, [hStageMetatileTableLo]
     add l
     ld l, a
-    ldh a, [$ffa3]
+    ldh a, [hStageMetatileTableHi]
     adc h
     ld h, a
     ld a, [hl]
@@ -2875,10 +2885,10 @@ jr_000_0cfc::
     set 1, l
 
 jr_000_0d02::
-    ldh a, [$ffa2]
+    ldh a, [hStageMetatileTableLo]
     add l
     ld l, a
-    ldh a, [$ffa3]
+    ldh a, [hStageMetatileTableHi]
     adc h
     ld h, a
     ld a, [hl]
@@ -2916,7 +2926,8 @@ jr_000_0d21::
     ldh [$ffc9], a
     jr jr_000_0cea
 
-Jump_000_0d36::
+GetStageLayoutTileAtWorldPixel:: ; Return layout metatile id for world pixel coords BC=X, DE=Y.
+Jump_000_0d36:: ; Compatibility alias.
     ld a, d
     or a
     jr z, jr_000_0d40
@@ -2930,7 +2941,7 @@ jr_000_0d3b::
 
 jr_000_0d40::
     add b
-    ld hl, $c41c
+    ld hl, wStageLayoutPageHighTable
     add l
     ld l, a
     ld a, h
@@ -2945,7 +2956,7 @@ jr_000_0d40::
     or d
     ld e, a
     ld d, [hl]
-    ld hl, $c800
+    ld hl, wStageLayoutMap
     add hl, de
     ld a, [hl]
     ret
