@@ -1003,137 +1003,26 @@ Call_001_46f6:: ; Compatibility alias.
     and $3f
     rst $00
 
-    db $8a, $47, $8c, $47
+    ; rst $00 jump table (64 entries)
+    dw jr_001_478a, label_001_478c, label_001_478e, label_001_4794
+    dw jr_001_479a, jr_001_47a2, jr_001_478a, jr_001_479a
+    dw jr_001_47a2, jr_001_478a, jr_001_479a, jr_001_478a
+    dw label_001_47ae, label_001_47b4, jr_001_479a, jr_001_478a
+    dw jr_001_478a, label_001_478c, label_001_478c, jr_001_478a
+    dw label_001_478c, jr_001_479a, jr_001_478a, jr_001_479a
+    dw jr_001_479a, jr_001_478a, jr_001_479a, label_001_4782
+    dw jr_001_478a, jr_001_478a, label_001_4779, jr_001_478a
+    dw label_001_478c, label_001_478c, label_001_478c, label_001_478c
+    dw label_001_478c, jr_001_478a, jr_001_478a, jr_001_478a
+    dw jr_001_478a, jr_001_478a, jr_001_478a, jr_001_478a
+    dw jr_001_478a, jr_001_478a, jr_001_478a, jr_001_478a
+    dw jr_001_478a, jr_001_478a, jr_001_478a, jr_001_478a
+    dw jr_001_478a, jr_001_478a, jr_001_478a, jr_001_478a
+    dw jr_001_478a, jr_001_478a, jr_001_478a, jr_001_478a
+    dw jr_001_478a, jr_001_478a, jr_001_478a, jr_001_478a
 
-    adc [hl]
-    ld b, a
-    sub h
-    ld b, a
 
-    db $9a, $47
-
-    and d
-    ld b, a
-
-    db $8a, $47
-
-    sbc d
-    ld b, a
-    and d
-    ld b, a
-    adc d
-    ld b, a
-    sbc d
-    ld b, a
-    adc d
-    ld b, a
-    xor [hl]
-    ld b, a
-    or h
-    ld b, a
-    sbc d
-    ld b, a
-    adc d
-    ld b, a
-    adc d
-    ld b, a
-    adc h
-    ld b, a
-    adc h
-    ld b, a
-    adc d
-    ld b, a
-    adc h
-    ld b, a
-    sbc d
-    ld b, a
-    adc d
-    ld b, a
-    sbc d
-    ld b, a
-    sbc d
-    ld b, a
-    adc d
-    ld b, a
-    sbc d
-    ld b, a
-    add d
-    ld b, a
-    adc d
-    ld b, a
-    adc d
-    ld b, a
-
-    db $79, $47
-
-    adc d
-    ld b, a
-    adc h
-    ld b, a
-
-    db $8c, $47
-
-    adc h
-    ld b, a
-    adc h
-    ld b, a
-    adc h
-    ld b, a
-    adc d
-    ld b, a
-    adc d
-    ld b, a
-    adc d
-    ld b, a
-    adc d
-    ld b, a
-    adc d
-    ld b, a
-    adc d
-    ld b, a
-    adc d
-    ld b, a
-    adc d
-    ld b, a
-    adc d
-    ld b, a
-    adc d
-    ld b, a
-    adc d
-    ld b, a
-    adc d
-    ld b, a
-    adc d
-    ld b, a
-    adc d
-    ld b, a
-    adc d
-    ld b, a
-    adc d
-    ld b, a
-    adc d
-    ld b, a
-    adc d
-    ld b, a
-    adc d
-    ld b, a
-    adc d
-    ld b, a
-    adc d
-    ld b, a
-    adc d
-    ld b, a
-    adc d
-    ld b, a
-    adc d
-    ld b, a
-    adc d
-    ld b, a
-    adc d
-    ld b, a
-    adc d
-    ld b, a
-
+label_001_4779::
     ld a, c
     and $0f
     cp $08
@@ -1144,6 +1033,7 @@ Call_001_46f6:: ; Compatibility alias.
     ret
 
 
+label_001_4782::
     ld a, c
     and $0f
     cp $08
@@ -1158,15 +1048,18 @@ jr_001_478a::
     ret
 
 
+label_001_478c::
     scf
     ret
 
 
+label_001_478e::
     bit 3, b
     jr z, jr_001_478a
 
     jr jr_001_479a
 
+label_001_4794::
     bit 3, b
     jr nz, jr_001_478a
 
@@ -1195,11 +1088,13 @@ jr_001_47a2::
     ret
 
 
+label_001_47ae::
     bit 3, b
     jr z, jr_001_478a
 
     jr jr_001_47a2
 
+label_001_47b4::
     bit 3, b
     jr nz, jr_001_478a
 
@@ -1313,7 +1208,7 @@ Call_001_4812:: ; Compatibility alias.
     dw UpdateObjDropPlatformB ; 1e: OBJ_PLATFORM_DROP_B
     dw UpdateObjStageEventType1F ; 1f: platform/event, pending
     dw UpdateObjStageEventType20 ; 20: platform/event, pending
-    dw UpdateObjStageEvent21 ; 21: OBJ_STAGE_EVENT_TYPE_21 ($6af3)
+    dw UpdateObjStageEvent21 ; 21: OBJ_STAGE_EVENT_TYPE_21 (UpdateObjStageEvent21)
     dw UpdateObjMovingPlatformHorizontal ; 22: OBJ_PLATFORM_MOVING_HORIZONTAL
     dw UpdateObjStageEvent23 ; 23: OBJ_STAGE_EVENT_TYPE_23
     dw UpdateObjStageEventChild24 ; 24: OBJ_STAGE_EVENT_CHILD_24
@@ -5204,8 +5099,11 @@ Call_001_5d04:: ; Compatibility alias.
     ld a, [wFormActionStep]
     rst $00
 
-    db $0e, $5d, $2f, $5d, $50, $5d
+    ; rst $00 jump table (3 entries)
+    dw label_001_5d0e, label_001_5d2f, label_001_5d50
 
+
+label_001_5d0e::
     ld h, $08
     ld l, $03
     ld e, $00
@@ -5230,6 +5128,7 @@ Call_001_5d04:: ; Compatibility alias.
     ret
 
 
+label_001_5d2f::
     ld h, $08
     ld l, $04
     ld e, $02
@@ -5254,6 +5153,7 @@ Call_001_5d04:: ; Compatibility alias.
     ret
 
 
+label_001_5d50::
     ld h, $08
     ld l, $06
     ld e, $04
@@ -5496,21 +5396,10 @@ Jump_001_5e78:: ; Compatibility alias.
     and $07
     rst $00
 
-    sbc d
-    ld e, [hl]
-    and h
-    ld e, [hl]
-    xor c
-    ld e, [hl]
+    ; rst $00 jump table (8 entries)
+    dw SetPlayerJumpVelocity, label_001_5ea4, label_001_5ea9, Jump_001_5eae
+    dw label_001_5eb3, label_001_5eb8, label_001_5ebd, label_001_5ec2
 
-    db $ae, $5e, $b3, $5e
-
-    cp b
-    ld e, [hl]
-    cp l
-    ld e, [hl]
-    db $c2
-    ld e, [hl]
 
 SetPlayerJumpVelocity:: ; Jump velocity table targets write initial signed Y velocity.
 Call_001_5e9a:: ; Compatibility alias.
@@ -5524,9 +5413,11 @@ jr_001_5e9d::
     ret
 
 
+label_001_5ea4::
     ld hl, $ff00
     jr jr_001_5e9d
 
+label_001_5ea9::
     ld hl, $fe00
     jr jr_001_5e9d
 
@@ -5534,15 +5425,19 @@ Jump_001_5eae::
     ld hl, $fd00
     jr jr_001_5e9d
 
+label_001_5eb3::
     ld hl, $fc70
     jr jr_001_5e9d
 
+label_001_5eb8::
     ld hl, $fc00
     jr jr_001_5e9d
 
+label_001_5ebd::
     ld hl, $fb80
     jr jr_001_5e9d
 
+label_001_5ec2::
     ld hl, $fb00
     jr jr_001_5e9d
 
@@ -6150,13 +6045,11 @@ Call_001_61f6:: ; Compatibility alias.
     ld a, [hl]
     rst $00
 
-    db $06, $62
+    ; rst $00 jump table (4 entries)
+    dw label_001_6206, label_001_6242, label_001_6242, label_001_6252
 
-    ld b, d
-    ld h, d
 
-    db $42, $62, $52, $62
-
+label_001_6206::
     ld a, $13
     ldh [$ffd6], a
     ld hl, $000d
@@ -6200,6 +6093,7 @@ jr_001_623a::
     ret
 
 
+label_001_6242::
     pop af
     ld a, $12
     ldh [$ffd6], a
@@ -6211,6 +6105,7 @@ jr_001_623a::
     jp Jump_001_6311
 
 
+label_001_6252::
     ld a, $12
     ldh [$ffd6], a
     call MoveObjectXBySpeed
@@ -6266,14 +6161,9 @@ Call_001_6292:: ; Compatibility alias.
     call Call_001_629e
     rst $00
 
-    db $af, $62
+    ; rst $00 jump table (4 entries)
+    dw label_001_62af, label_001_62e6, label_001_630c, label_001_630c
 
-    and $62
-
-    db $0c, $63
-
-    inc c
-    ld h, e
 
 GetObjectStateAndDirectionFlags::
 Call_001_629e:: ; Compatibility alias.
@@ -6294,6 +6184,7 @@ jr_001_62ab::
     ret
 
 
+label_001_62af::
     ld hl, $62e2
     call Jump_001_62cb
     call MoveObjectXBySpeed
@@ -6338,6 +6229,7 @@ Call_001_62cd::
 
     db $00, $01, $00, $02
 
+label_001_62e6::
     pop af
     ld a, $03
     ldh [$ffd6], a
@@ -6372,6 +6264,7 @@ Call_001_62f8:: ; Compatibility alias.
     ret
 
 
+label_001_630c::
     pop af
     ld a, $03
     ldh [$ffd6], a
@@ -6579,13 +6472,11 @@ Call_001_63fe:: ; Compatibility alias.
     call Call_001_629e
     rst $00
 
-    db $0a, $64
+    ; rst $00 jump table (4 entries)
+    dw label_001_640a, label_001_641a, label_001_6422, label_001_642a
 
-    ld a, [de]
-    ld h, h
 
-    db $22, $64, $2a, $64
-
+label_001_640a::
     ld hl, $6416
     call Jump_001_62cb
     call MoveObjectXBySpeed
@@ -6594,18 +6485,21 @@ Call_001_63fe:: ; Compatibility alias.
 
     db $06, $07, $06, $08
 
+label_001_641a::
     pop af
     ld a, $0b
     ldh [$ffd6], a
     jp Jump_001_62eb
 
 
+label_001_6422::
     pop af
     ld a, $0b
     ldh [$ffd6], a
     jp Jump_001_6311
 
 
+label_001_642a::
     ld a, $09
     ldh [$ffd6], a
     ld hl, $0005
@@ -6778,16 +6672,11 @@ Call_001_64e3:: ; Compatibility alias.
     call Call_001_629e
     rst $00
 
-    db $ef, $64
+    ; rst $00 jump table (4 entries)
+    dw label_001_64ef, label_001_64ff, label_001_6507, label_001_6507
 
-    rst $38
-    ld h, h
 
-    db $07, $65
-
-    rlca
-    ld h, l
-
+label_001_64ef::
     ld hl, $64fb
     call Jump_001_62cb
     call MoveObjectXBySpeed
@@ -6796,12 +6685,14 @@ Call_001_64e3:: ; Compatibility alias.
 
     db $0c, $0d, $0c, $0e
 
+label_001_64ff::
     pop af
     ld a, $0f
     ldh [$ffd6], a
     jp Jump_001_62eb
 
 
+label_001_6507::
     pop af
     ld a, $0f
     ldh [$ffd6], a
@@ -6847,13 +6738,11 @@ Call_001_653b:: ; Compatibility alias.
     call Call_001_629e
     rst $00
 
-    db $47, $65
+    ; rst $00 jump table (4 entries)
+    dw label_001_6547, label_001_6557, label_001_655f, label_001_6567
 
-    ld d, a
-    ld h, l
 
-    db $5f, $65, $67, $65
-
+label_001_6547::
     ld hl, $6553
     call Jump_001_62cb
     call MoveObjectXBySpeed
@@ -6862,18 +6751,21 @@ Call_001_653b:: ; Compatibility alias.
 
     db $00, $01, $00, $02
 
+label_001_6557::
     pop af
     ld a, $05
     ldh [$ffd6], a
     jp Jump_001_62eb
 
 
+label_001_655f::
     pop af
     ld a, $05
     ldh [$ffd6], a
     jp Jump_001_6311
 
 
+label_001_6567::
     ld a, $03
     ldh [$ffd6], a
     ld hl, $0005
@@ -7044,11 +6936,11 @@ Call_001_661b:: ; Compatibility alias.
     call Call_001_629e
     rst $00
 
-    db $27, $66, $38, $66, $3b, $66
+    ; rst $00 jump table (4 entries)
+    dw label_001_6627, label_001_6638, label_001_663b, label_001_663b
 
-    dec sp
-    ld h, [hl]
 
+label_001_6627::
     call MoveObjectXBySpeed
     ld hl, $000a
     add hl, bc
@@ -7064,7 +6956,9 @@ Call_001_661b:: ; Compatibility alias.
     ret
 
 
+label_001_6638::
     call MoveObjectXBySpeed
+label_001_663b::
     ld de, $0100
     ld hl, $0005
     add hl, bc
@@ -7104,8 +6998,11 @@ Call_001_6664::
     call Call_001_629e
     rst $00
 
-    db $6c, $66, $a4, $66
+    ; rst $00 jump table (2 entries)
+    dw label_001_666c, label_001_66a4
 
+
+label_001_666c::
     ld a, $80
     ld hl, $0008
     add hl, bc
@@ -7147,6 +7044,7 @@ Call_001_6693::
     ret
 
 
+label_001_66a4::
     call MoveObjectXBySpeed
     ld hl, $0005
     add hl, bc
@@ -7182,11 +7080,11 @@ Call_001_66d2:: ; Compatibility alias.
     call Call_001_629e
     rst $00
 
-    db $de, $66, $f4, $66, $1a, $67
+    ; rst $00 jump table (4 entries)
+    dw label_001_66de, label_001_66f4, label_001_671a, label_001_671a
 
-    ld a, [de]
-    ld h, a
 
+label_001_66de::
     ld hl, $66ec
     ld d, $0f
     call Call_001_62cd
@@ -7196,6 +7094,7 @@ Call_001_66d2:: ; Compatibility alias.
 
     db $10, $11, $10, $12, $13, $14, $13, $14
 
+label_001_66f4::
     pop af
     ld hl, $66f0
 
@@ -7227,6 +7126,7 @@ Call_001_670a::
     ret
 
 
+label_001_671a::
     pop af
     ld hl, $66f0
     call Jump_001_62cb
@@ -7274,8 +7174,12 @@ Call_001_6751::
     ld a, [hl]
     rst $00
 
-    db $00, $68, $f0, $67, $d0, $67, $60, $67, $9e, $67
+    ; rst $00 jump table (5 entries)
+    dw label_001_6800, label_001_67f0, label_001_67d0, label_001_6760
+    dw label_001_679e
 
+
+label_001_6760::
     ld a, $10
     ldh [$ffd6], a
     ld hl, $000d
@@ -7329,6 +7233,7 @@ jr_001_6795::
     jp Jump_001_6598
 
 
+label_001_679e::
     ld a, $10
     ldh [hJoyHeld], a
     ldh [hJoyPressed], a
@@ -7360,6 +7265,7 @@ jr_001_6795::
     ret
 
 
+label_001_67d0::
     pop af
     ld a, $ff
     ld [$c0b6], a
@@ -7379,6 +7285,7 @@ jr_001_6795::
     ret
 
 
+label_001_67f0::
     pop af
     ld a, $84
     ld [$d931], a
@@ -7388,6 +7295,7 @@ jr_001_6795::
 
     db $15, $16, $15, $16
 
+label_001_6800::
     call Call_001_6810
     ld hl, $680c
     call Jump_001_62cb
@@ -7491,13 +7399,12 @@ Call_001_6878::
     ld a, [hl]
     rst $00
 
-    db $b7, $68, $87, $68, $97, $68
+    ; rst $00 jump table (5 entries)
+    dw label_001_68b7, label_001_6887, label_001_6897, label_001_68b7
+    dw label_001_679e
 
-    or a
-    ld l, b
 
-    db $9e, $67
-
+label_001_6887::
     pop af
     ld a, $84
     ld [$d931], a
@@ -7507,6 +7414,7 @@ Call_001_6878::
 
     db $17, $18, $17, $18
 
+label_001_6897::
     pop af
     ld a, $ff
     ld [$c0b6], a
@@ -7526,11 +7434,15 @@ Call_001_6878::
     ret
 
 
+label_001_68b7::
     ld a, [$c0b7]
     and $0f
     rst $00
 
-    db $e4, $68, $e4, $68, $f4, $68, $2b, $69, $70, $69
+    ; rst $00 jump table (5 entries)
+    dw Jump_001_68e4, Jump_001_68e4, label_001_68f4, label_001_692b
+    dw label_001_6970
+
 
 Call_001_68c7::
     ldh a, [$ffd3]
@@ -7568,6 +7480,7 @@ Jump_001_68e4::
 
     db $14, $15, $14, $16
 
+label_001_68f4::
     ld a, $19
     ldh [$ffd6], a
     ld a, [$c0b8]
@@ -7604,6 +7517,7 @@ jr_001_6927::
     ret
 
 
+label_001_692b::
     call MoveObjectXBySpeed
     call Call_001_6940
     ld a, $1a
@@ -7650,6 +7564,7 @@ jr_001_6952::
     ld [hl], a
     jr jr_001_6911
 
+label_001_6970::
     jp Jump_001_68e4
 
 
@@ -7696,8 +7611,12 @@ Call_001_69a0::
     ld a, [hl]
     rst $00
 
-    db $e3, $69, $b3, $69, $c3, $69, $59, $6a, $9e, $67
+    ; rst $00 jump table (5 entries)
+    dw UpdateObjStageEvent03ScriptController, label_001_69b3, label_001_69c3, label_001_6a59
+    dw label_001_679e
 
+
+label_001_69b3::
     pop af
     ld a, $84
     ld [$d931], a
@@ -7707,6 +7626,7 @@ Call_001_69a0::
 
     db $19, $1a, $19, $1a
 
+label_001_69c3::
     pop af
     ld a, $ff
     ld [$c0b6], a
@@ -7742,7 +7662,10 @@ UpdateObjStageEvent20:: ; Compatibility alias from pass 10.
     ld a, [$c0b7]
     rst $00
 
-    db $18, $6a, $22, $6a, $28, $6a, $32, $6a, $38, $6a
+    ; rst $00 jump table (5 entries)
+    dw Jump_001_6a18, label_001_6a22, label_001_6a28, label_001_6a32
+    dw label_001_6a38
+
 
 Call_001_6a09::
     ld a, $15
@@ -7765,11 +7688,13 @@ Jump_001_6a18::
     ret
 
 
+label_001_6a22::
     ld a, $02
     ld [$c0b7], a
     ret
 
 
+label_001_6a28::
     ld a, $03
     ld [$c0b7], a
     ld a, [bc]
@@ -7778,11 +7703,13 @@ Jump_001_6a18::
     ret
 
 
+label_001_6a32::
     ld a, $04
     ld [$c0b7], a
     ret
 
 
+label_001_6a38::
     jp Jump_001_6a18
 
 
@@ -7807,6 +7734,7 @@ Call_001_6a3b::
     ret
 
 
+label_001_6a59::
     ld a, $17
     ldh [$ffd6], a
     ld hl, $000d
@@ -7963,8 +7891,11 @@ Call_001_6b07::
     and $01
     rst $00
 
-    db $15, $6b, $2f, $6b
+    ; rst $00 jump table (2 entries)
+    dw label_001_6b15, label_001_6b2f
 
+
+label_001_6b15::
     ld a, $80
     ld hl, $0008
     add hl, bc
@@ -7985,6 +7916,7 @@ Call_001_6b07::
     ret
 
 
+label_001_6b2f::
     call MoveObjectXBySpeed
     ld hl, $0005
     add hl, bc
@@ -8109,13 +8041,12 @@ Call_001_6bd6::
     ld a, [hl]
     rst $00
 
-    db $15, $6c, $e5, $6b, $f5, $6b
+    ; rst $00 jump table (5 entries)
+    dw label_001_6c15, label_001_6be5, label_001_6bf5, label_001_6c15
+    dw label_001_679e
 
-    dec d
-    ld l, h
 
-    db $9e, $67
-
+label_001_6be5::
     pop af
     ld a, $84
     ld [$d931], a
@@ -8125,6 +8056,7 @@ Call_001_6bd6::
 
     db $18, $19, $18, $19
 
+label_001_6bf5::
     pop af
     ld a, $ff
     ld [$c0b6], a
@@ -8144,12 +8076,18 @@ Call_001_6bd6::
     ret
 
 
+label_001_6c15::
     ld a, [$c0b7]
     rst $00
 
-    db $35, $6c, $4f, $6c, $72, $6c, $92, $6c, $14, $6d, $92, $6c, $24, $6d, $92, $6c
-    db $34, $6d, $92, $6c, $44, $6d, $54, $6d, $8b, $6d, $d3, $6d
+    ; rst $00 jump table (14 entries)
+    dw label_001_6c35, label_001_6c4f, label_001_6c72, label_001_6c92
+    dw label_001_6d14, label_001_6c92, label_001_6d24, label_001_6c92
+    dw label_001_6d34, label_001_6c92, label_001_6d44, label_001_6d54
+    dw label_001_6d8b, label_001_6dd3
 
+
+label_001_6c35::
     call Call_001_6c45
     ldh a, [$ffd3]
     cp $8d
@@ -8167,6 +8105,7 @@ Call_001_6c45::
 
     db $15, $16, $15, $17
 
+label_001_6c4f::
     ldh a, [$ffd4]
     cp $21
     jr c, jr_001_6c65
@@ -8191,6 +8130,7 @@ Call_001_6c6b::
     jp jr_001_4bee
 
 
+label_001_6c72::
     call Call_001_6c45
     ldh a, [$ffd3]
     cp $70
@@ -8213,6 +8153,7 @@ jr_001_6c82::
     ret
 
 
+label_001_6c92::
     ld a, [bc]
     res 7, a
     ld [bc], a
@@ -8322,6 +8263,7 @@ Call_001_6d04::
     ret
 
 
+label_001_6d14::
     call Call_001_6c45
     ldh a, [$ffd3]
     cp $58
@@ -8332,6 +8274,7 @@ Call_001_6d04::
     ret
 
 
+label_001_6d24::
     call Call_001_6c45
     ldh a, [$ffd3]
     cp $38
@@ -8342,6 +8285,7 @@ Call_001_6d04::
     ret
 
 
+label_001_6d34::
     call Call_001_6c45
     ldh a, [$ffd3]
     cp $18
@@ -8352,6 +8296,7 @@ Call_001_6d04::
     ret
 
 
+label_001_6d44::
     call Call_001_6c45
     ldh a, [$ffd3]
     cp $14
@@ -8362,6 +8307,7 @@ Call_001_6d04::
     ret
 
 
+label_001_6d54::
     ld a, [bc]
     res 7, a
     ld [bc], a
@@ -8399,6 +8345,7 @@ Call_001_6d85::
     ret
 
 
+label_001_6d8b::
     ld a, $1a
     ldh [$ffd6], a
     ld a, [$c0b8]
@@ -8452,6 +8399,7 @@ jr_001_6dbd::
     ret
 
 
+label_001_6dd3::
     ld a, $01
     ld [$c0ba], a
     ld a, $01
@@ -8688,7 +8636,9 @@ Call_001_6efb:: ; Compatibility alias.
     and $03
     rst $00
 
-    db $4b, $6f, $62, $6f, $77, $6f, $62, $6f
+    ; rst $00 jump table (4 entries)
+    dw label_001_6f4b, Jump_001_6f62, label_001_6f77, Jump_001_6f62
+
 
 CheckPlayerStandingOnPlatform::
 Jump_001_6f0a:: ; Compatibility alias.
@@ -8751,6 +8701,7 @@ Call_001_6f28:: ; Compatibility alias.
     ret
 
 
+label_001_6f4b::
     ld hl, $0005
     add hl, bc
     ld de, $00c0
@@ -8789,6 +8740,7 @@ Jump_001_6f62::
     ret
 
 
+label_001_6f77::
     ld hl, $0005
     add hl, bc
     ld de, $00c0
@@ -8816,8 +8768,11 @@ Call_001_6f91:: ; Compatibility alias.
     and $03
     rst $00
 
-    db $a0, $6f, $d1, $6f, $d7, $6f, $d1, $6f
+    ; rst $00 jump table (4 entries)
+    dw label_001_6fa0, label_001_6fd1, label_001_6fd7, label_001_6fd1
 
+
+label_001_6fa0::
     ld hl, $0002
     add hl, bc
     ldh a, [hJoyHeld]
@@ -8849,10 +8804,12 @@ jr_001_6fad::
     jp Jump_001_6f19
 
 
+label_001_6fd1::
     call Jump_001_6f62
     jp Jump_001_6f0a
 
 
+label_001_6fd7::
     ld hl, $0002
     add hl, bc
     ldh a, [hJoyHeld]
