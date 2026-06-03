@@ -53,14 +53,14 @@ InitGameplaySubstateCommon::
 Call_001_4047::
     call Call_001_425e
     call Call_001_420f
-    ld hl, $40af
+    ld hl, StageCollisionAttrPtrs
     ldh a, [$ff9f]
     rst $20
     ld de, $c700
     ld bc, $0100
     ld a, $04
     call BankedMemcpy
-    ld hl, $40b9
+    ld hl, StageMetatileQuadPtrs
     ldh a, [$ff9f]
     rst $20
     ld a, l
@@ -90,7 +90,7 @@ Call_001_4047::
     xor a
     ld [$c40e], a
     ld [$c40f], a
-    ld hl, $40c3
+    ld hl, StageInitBlockPtrs
     ldh a, [$ff9f]
     rst $20
     ld de, $c414
@@ -98,33 +98,44 @@ Call_001_4047::
     jp jr_000_0362
 
 
-    db $32, $76, $ea, $76, $ca, $77, $fa, $78
+StageCollisionAttrPtrs:: ; Bank4 collision attribute source windows selected by hStageIndex/$ff9f.
+    dw Stage0CollisionAttrsWindow_Bank4
+    dw Stage1CollisionAttrsWindow_Bank4
+    dw Stage2CollisionAttrsWindow_Bank4
+    dw Stage3CollisionAttrsWindow_Bank4
+    dw Stage4CollisionAttrsWindow_Bank4
 
-    cp d
-    ld a, c
+StageMetatileQuadPtrs:: ; Bank4 16x16 metatile quad tables selected by hStageIndex/$ff9f.
+    dw Stage0MetatileQuads_Bank4
+    dw Stage1MetatileQuads_Bank4
+    dw Stage2MetatileQuads_Bank4
+    dw Stage3MetatileQuads_Bank4
+    dw Stage4MetatileQuads_Bank4
 
-    db $01, $40, $e1, $42, $31, $46, $c9, $4a
+StageInitBlockPtrs:: ; Per-stage camera/layout init blocks copied to $c414.
+    dw StageInitBlock_0_1_4
+    dw StageInitBlock_0_1_4
+    dw StageInitBlock_2
+    dw StageInitBlock_3
+    dw StageInitBlock_0_1_4
 
-    cp c
-    ld c, l
-
-    db $cd, $40, $cd, $40, $f1, $40, $31, $41
-
-    db $cd
-    ld b, b
-
+StageInitBlock_0_1_4::
     db $f8, $0d, $ff, $00, $60, $0d, $80, $00, $00, $01, $02, $03, $04, $05, $06, $07
     db $08, $09, $0a, $0b, $0c, $0d, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-    db $00, $00, $00, $00, $00, $04, $00, $04, $60, $03, $80, $03, $0c, $0d, $00, $00
-    db $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $08, $09, $0a, $0b, $00, $00
-    db $00, $00, $00, $00, $00, $00, $00, $00, $04, $05, $06, $07, $00, $00, $00, $00
-    db $00, $00, $00, $00, $00, $00, $00, $01, $02, $03, $00, $00, $00, $00, $00, $00
-    db $00, $00, $00, $00, $f8, $09, $00, $05, $60, $09, $80, $04, $00, $00, $00, $10
-    db $08, $09, $0a, $0b, $0c, $0d, $00, $00, $00, $00, $00, $00, $00, $10, $07, $10
-    db $10, $10, $10, $10, $00, $00, $00, $00, $00, $00, $00, $10, $06, $10, $00, $00
-    db $00, $00, $00, $00, $00, $00, $0e, $0e, $0e, $0f, $05, $10, $00, $00, $00, $00
-    db $00, $00, $00, $00, $00, $01, $02, $03, $04, $10, $00, $00, $00, $00, $00, $00
-    db $00, $00
+    db $00, $00, $00, $00
+
+StageInitBlock_2::
+    db $00, $04, $00, $04, $60, $03, $80, $03, $0c, $0d, $00, $00, $00, $00, $00, $00
+    db $00, $00, $00, $00, $00, $00, $08, $09, $0a, $0b, $00, $00, $00, $00, $00, $00
+    db $00, $00, $00, $00, $04, $05, $06, $07, $00, $00, $00, $00, $00, $00, $00, $00
+    db $00, $00, $00, $01, $02, $03, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+
+StageInitBlock_3::
+    db $f8, $09, $00, $05, $60, $09, $80, $04, $00, $00, $00, $10, $08, $09, $0a, $0b
+    db $0c, $0d, $00, $00, $00, $00, $00, $00, $00, $10, $07, $10, $10, $10, $10, $10
+    db $00, $00, $00, $00, $00, $00, $00, $10, $06, $10, $00, $00, $00, $00, $00, $00
+    db $00, $00, $0e, $0e, $0e, $0f, $05, $10, $00, $00, $00, $00, $00, $00, $00, $00
+    db $00, $01, $02, $03, $04, $10, $00, $00, $00, $00, $00, $00, $00, $00
 
 Call_001_417f::
     xor a
@@ -214,7 +225,7 @@ Call_001_420f::
     or a
     jr z, jr_001_4225
 
-    ld hl, $4246
+    ld hl, StageResumeLayoutPatchOffsets
     ldh a, [$ff9f]
     rst $20
     ld bc, $c800
@@ -228,7 +239,7 @@ jr_001_4225::
     cp $03
     jr z, jr_001_4250
 
-    ld hl, $423c
+    ld hl, StageLayoutRlePtrs
     ldh a, [$ff9f]
     rst $20
     ld de, $c800
@@ -237,24 +248,22 @@ jr_001_4225::
     jp BankedMemcpy_RLEFF
 
 
-    db $39, $4e, $4b, $58, $3a, $61
+StageLayoutRlePtrs:: ; Bank4 RLEFF layout streams selected by hStageIndex/$ff9f.
+    dw Stage0LayoutRle_Bank4
+    dw Stage1LayoutRle_Bank4
+    dw Stage2LayoutRle_Bank4
+    dw Stage3LayoutRle_Bank4
+    dw Stage4LayoutRle_Bank4
 
-    ld [hl], a
-    ld l, e
-    db $d3
-    ld [hl], l
-    ld d, d
-    rlca
-
-    db $72, $07
-
-    ld l, d
-    dec b
-    ld b, c
-    ld [$0000], sp
+StageResumeLayoutPatchOffsets:: ; Offsets into $c800 patched to metatile $05 when resuming/after checkpoint.
+    dw $0752
+    dw $0772
+    dw $056a
+    dw $0841
+    dw $0000
 
 jr_001_4250::
-    ld hl, $6b77
+    ld hl, Stage3LayoutRle_Bank4
     ld de, $c800
     ld bc, $1100
     ld a, $04
@@ -3855,12 +3864,12 @@ label_001_5647::
     ld [$c418], a
     ld a, h
     ld [$c419], a
-    ld hl, $4a31
+    ld hl, Stage2MetatileQuadsAfterSwitch_Bank4
     ld a, l
     ldh [$ffa2], a
     ld a, h
     ldh [$ffa3], a
-    ld hl, $78ca
+    ld hl, Stage2CollisionPatch_Bank4
     ld de, $c700
     ld bc, $0030
     ld a, $04
