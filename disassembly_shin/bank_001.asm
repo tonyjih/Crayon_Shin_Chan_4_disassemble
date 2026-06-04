@@ -5,6 +5,32 @@
 
 SECTION "ROM Bank $001", ROMX[$4000], BANK[$1]
 
+; Runtime camera/stage-transition work RAM aliases used by this bank.
+DEF wCameraDeadzoneLeft       EQU $c408
+DEF wCameraDeadzoneRight      EQU $c409
+DEF wCameraDeadzoneTop        EQU $c40a
+DEF wCameraDeadzoneBottom     EQU $c40b
+DEF wCameraMaxStepX           EQU $c40c
+DEF wCameraMaxStepY           EQU $c40d
+DEF wCameraScrollXMinLo       EQU $c40e
+DEF wCameraScrollXMinHi       EQU $c40f
+DEF wPlayerXMinLo             EQU $c410
+DEF wPlayerXMinHi             EQU $c411
+DEF wPlayerXMaxLo             EQU $c414
+DEF wPlayerXMaxHi             EQU $c415
+DEF wCameraScrollXMaxLo       EQU $c418
+DEF wCameraScrollXMaxHi       EQU $c419
+DEF wCameraScrollYMaxLo       EQU $c41a
+DEF wCameraScrollYMaxHi       EQU $c41b
+
+; These $c0b* slots are shared by several stage systems.  The aliases below
+; are used only in the Stage 1 camera-profile and Stage 2 transition code.
+DEF wStageInteractionSubstate EQU $c0b1
+DEF wStageInteractionCounter  EQU $c0b2
+DEF wStage2TransitionStep     EQU $c0b3
+DEF wStage1CameraProfileIndex EQU $c0b4
+DEF wStage1ResumeProfileFlag  EQU $c0bc
+
     db $01, $bf, $44, $09, $40
 
     db $ed
@@ -68,28 +94,28 @@ Call_001_4047::
     ld a, h
     ldh [$ffa3], a
     ld a, $48
-    ld [$c408], a
+    ld [wCameraDeadzoneLeft], a
     ld a, $58
-    ld [$c409], a
+    ld [wCameraDeadzoneRight], a
     ld a, $40
-    ld [$c40a], a
+    ld [wCameraDeadzoneTop], a
     ld a, $58
-    ld [$c40b], a
+    ld [wCameraDeadzoneBottom], a
     ld a, $02
-    ld [$c40c], a
+    ld [wCameraMaxStepX], a
     ld a, $04
-    ld [$c40d], a
+    ld [wCameraMaxStepY], a
     xor a
-    ld [$c411], a
+    ld [wPlayerXMinHi], a
     ld a, $08
-    ld [$c410], a
+    ld [wPlayerXMinLo], a
     xor a
     ld [$c413], a
     ld a, $04
     ld [$c412], a
     xor a
-    ld [$c40e], a
-    ld [$c40f], a
+    ld [wCameraScrollXMinLo], a
+    ld [wCameraScrollXMinHi], a
     ld hl, StageInitBlockPtrs
     ldh a, [$ff9f]
     rst $20
@@ -112,25 +138,25 @@ StageMetatileQuadPtrs:: ; Bank4 16x16 metatile quad tables selected by hStageInd
     dw Stage3MetatileQuads_Bank4
     dw Stage4MetatileQuads_Bank4
 
-StageInitBlockPtrs:: ; Per-stage camera/layout init blocks copied to $c414.
+StageInitBlockPtrs:: ; Per-stage camera/layout init blocks copied to wPlayerXMaxLo ($c414).
     dw StageInitBlock_0_1_4
     dw StageInitBlock_0_1_4
     dw StageInitBlock_2
     dw StageInitBlock_3
     dw StageInitBlock_0_1_4
 
-StageInitBlock_0_1_4::
+StageInitBlock_0_1_4:: ; +00 player_x_max, +04 camera_x_max, +06 camera_y_max, +08 page table.
     db $f8, $0d, $ff, $00, $60, $0d, $80, $00, $00, $01, $02, $03, $04, $05, $06, $07
     db $08, $09, $0a, $0b, $0c, $0d, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
     db $00, $00, $00, $00
 
-StageInitBlock_2::
+StageInitBlock_2:: ; Stage 2 initial clamp/page data.  Covers a $400x$400 multi-layer room.
     db $00, $04, $00, $04, $60, $03, $80, $03, $0c, $0d, $00, $00, $00, $00, $00, $00
     db $00, $00, $00, $00, $00, $00, $08, $09, $0a, $0b, $00, $00, $00, $00, $00, $00
     db $00, $00, $00, $00, $04, $05, $06, $07, $00, $00, $00, $00, $00, $00, $00, $00
     db $00, $00, $00, $01, $02, $03, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 
-StageInitBlock_3::
+StageInitBlock_3:: ; Stage 3 initial clamp/page data.
     db $f8, $09, $00, $05, $60, $09, $80, $04, $00, $00, $00, $10, $08, $09, $0a, $0b
     db $0c, $0d, $00, $00, $00, $00, $00, $00, $00, $10, $07, $10, $10, $10, $10, $10
     db $00, $00, $00, $00, $00, $00, $00, $10, $06, $10, $00, $00, $00, $00, $00, $00
@@ -452,13 +478,14 @@ jr_001_43af::
     ret
 
 
-Call_001_43c8::
+InitStageStartAndCheckpointState:: ; Select player start/camera profile and replay stage-specific checkpoint graphics.
+Call_001_43c8:: ; Compatibility alias.
     ldh a, [$ff9f]
     cp $01
-    jr z, jr_001_4408
+    jr z, InitStage1CameraProfile
 
     cp $02
-    call z, Call_001_43e1
+    call z, Stage2ApplyCheckpointGraphics
     ld hl, $439f
     ldh a, [$ff9f]
     rst $20
@@ -468,7 +495,8 @@ Call_001_43c8::
 
     jr jr_001_43af
 
-Call_001_43e1::
+Stage2ApplyCheckpointGraphics:: ; If resuming Stage 2, replay checkpoint graphics and set transition step to 3.
+Call_001_43e1:: ; Compatibility alias.
     ld a, [$c0a8]
     or a
     ret z
@@ -484,58 +512,61 @@ Call_001_43e1::
     ld a, $05
     call BankedMemcpy
     ld a, $03
-    ld [$c0b3], a
+    ld [wStage2TransitionStep], a
     ret
 
 
-jr_001_4408::
-    ld a, [$c0bc]
+InitStage1CameraProfile::
+jr_001_4408:: ; Compatibility alias.
+    ld a, [wStage1ResumeProfileFlag]
     or a
-    jr nz, jr_001_4418
+    jr nz, Stage1LoadSelectedCameraProfile
 
     ld a, [$c0a8]
     or a
-    jr nz, jr_001_4475
+    jr nz, Stage1UseResumeCameraProfile
 
     xor a
-    ld [$c0b4], a
+    ld [wStage1CameraProfileIndex], a
 
-jr_001_4418::
+Stage1LoadSelectedCameraProfile::
+jr_001_4418:: ; Compatibility alias.
     xor a
-    ld [$c0bc], a
-    ld hl, $447f
-    ld a, [$c0b4]
+    ld [wStage1ResumeProfileFlag], a
+    ld hl, Stage1CameraProfile0
+    ld a, [wStage1CameraProfileIndex]
     or a
-    jr z, jr_001_443c
+    jr z, Stage1ApplyCameraProfile
 
-    ld hl, $448f
+    ld hl, Stage1CameraProfile1
     dec a
-    jr z, jr_001_443c
+    jr z, Stage1ApplyCameraProfile
 
     ld hl, $4ee1
     ld de, $91a0
     ld bc, $0480
     ld a, $07
     call BankedMemcpy
-    ld hl, $449f
+    ld hl, Stage1CameraProfileAfterCheckpoint2
 
-jr_001_443c::
+Stage1ApplyCameraProfile:: ; Copy a 16-byte Stage 1 camera/start profile into runtime camera/player registers.
+jr_001_443c:: ; Compatibility alias.
     ld a, [hl+]
-    ld [$c40e], a
+    ld [wCameraScrollXMinLo], a
     ld a, [hl+]
-    ld [$c40f], a
+    ld [wCameraScrollXMinHi], a
     ld a, [hl+]
-    ld [$c418], a
+    ld [wCameraScrollXMaxLo], a
     ld a, [hl+]
-    ld [$c419], a
+    ld [wCameraScrollXMaxHi], a
     ld a, [hl+]
-    ld [$c410], a
+    ld [wPlayerXMinLo], a
     ld a, [hl+]
-    ld [$c411], a
+    ld [wPlayerXMinHi], a
     ld a, [hl+]
-    ld [$c414], a
+    ld [wPlayerXMaxLo], a
     ld a, [hl+]
-    ld [$c415], a
+    ld [wPlayerXMaxHi], a
     ld a, [hl+]
     ldh [hPlayerX], a
     ld a, [hl+]
@@ -555,16 +586,21 @@ jr_001_443c::
     ret
 
 
-jr_001_4475::
+Stage1UseResumeCameraProfile::
+jr_001_4475:: ; Compatibility alias.
     ld a, $01
-    ld [$c0b4], a
-    ld hl, $44af
-    jr jr_001_443c
+    ld [wStage1CameraProfileIndex], a
+    ld hl, Stage1CameraProfileResume
+    jr Stage1ApplyCameraProfile
 
+Stage1CameraProfile0:: ; camera_x_min, camera_x_max, player_x_min, player_x_max, player_start_xy, initial_scroll_xy.
     db $00, $00, $60, $04, $08, $00, $00, $05, $18, $00, $70, $00, $00, $00, $18, $00
+Stage1CameraProfile1::
     db $00, $05, $60, $08, $08, $05, $00, $09, $18, $05, $c0, $00, $00, $05, $68, $00
+Stage1CameraProfileAfterCheckpoint2:: ; Also loads bank7:$4ee1->$91a0 before applying this profile.
     db $00, $09, $60, $0d, $08, $09, $f8, $0d, $18, $09, $f0, $00, $00, $09, $80, $00
 
+Stage1CameraProfileResume:: ; Raw profile at $44af; still emitted as original instruction-looking bytes.
     nop
     dec b
     ld h, b
@@ -2188,7 +2224,7 @@ jr_001_4d04::
     jr z, jr_001_4d14
 
     ld hl, hSCY
-    ld a, [$c41a]
+    ld a, [wCameraScrollYMaxLo]
     cp [hl]
     ret z
 
@@ -2414,9 +2450,9 @@ Jump_001_4e48:: ; Compatibility alias.
     ld a, $00
     adc [hl]
     ld [hl-], a
-    ld a, [$c414]
+    ld a, [wPlayerXMaxLo]
     ld e, a
-    ld a, [$c415]
+    ld a, [wPlayerXMaxHi]
     ld d, a
     call Call_000_0080
     ret c
@@ -2425,9 +2461,9 @@ Jump_001_4e48:: ; Compatibility alias.
     cp $ff
     ret z
 
-    ld a, [$c415]
+    ld a, [wPlayerXMaxHi]
     ldh [hPlayerXHigh], a
-    ld a, [$c414]
+    ld a, [wPlayerXMaxLo]
     ldh [hPlayerX], a
     ret
 
@@ -2447,16 +2483,16 @@ jr_001_4e79::
     ld a, [hl]
     sbc $00
     ld [hl-], a
-    ld a, [$c410]
+    ld a, [wPlayerXMinLo]
     ld e, a
-    ld a, [$c411]
+    ld a, [wPlayerXMinHi]
     ld d, a
     call Call_000_0080
     ret nc
 
-    ld a, [$c411]
+    ld a, [wPlayerXMinHi]
     ldh [hPlayerXHigh], a
-    ld a, [$c410]
+    ld a, [wPlayerXMinLo]
     ldh [hPlayerX], a
     ret
 
@@ -3830,42 +3866,45 @@ Call_001_560e:: ; Compatibility alias.
     dw PlayerState_ActionKamenAction     ; 09
     dw PlayerState_DamageBounce          ; 0a: damage bounce state
     dw PlayerState_DeathFall             ; 0b
-    dw PlayerState_StageInteraction0C    ; 0c: special/stage interaction state
+    dw PlayerState_StageTransition0C     ; 0c: scripted stage transition state
     dw PlayerState_StageInteraction0D    ; 0d: special/stage interaction state
 
-PlayerState_StageInteraction0C::
+PlayerState_StageTransition0C:: ; Scripted stage transition handler; Stage 2 uses it for layered vertical-room transitions.
+PlayerState_StageInteraction0C:: ; Compatibility alias.
     ld hl, $fe00
     ld a, l
     ldh [hPlayerVelY], a
     ld a, h
     ldh [hPlayerVelYHigh], a
     call Call_001_5c78
-    ld a, [$c0b1]
+    ld a, [wStageInteractionSubstate]
     rst $00
 
-	dw label_001_56db
-	dw label_001_56a9
-	dw label_001_5681
-	dw label_001_5647
+    ; Stage transition substate dispatch table.
+	dw StageTransitionScrollViewportUp       ; 00: scroll camera/player anchor up by one screen
+	dw Stage2TransitionCopyBgTiles          ; 01: queue bank0:$3572/$3902 tiles into VRAM $9450-$97ff
+	dw Stage2TransitionCopyExtraTiles       ; 02: queue bank5:$6411 tiles into VRAM $8c00+
+	dw Stage2TransitionFinalize             ; 03: reset substate; at step 5 switch Stage 2 metatile/collision
 
-label_001_5647::
+Stage2TransitionFinalize::
+label_001_5647:: ; Compatibility alias.
     xor a
-    ld [$c0b1], a
-    ld [$c0b2], a
-    ld a, [$c0b3]
+    ld [wStageInteractionSubstate], a
+    ld [wStageInteractionCounter], a
+    ld a, [wStage2TransitionStep]
     cp $05
     ret nz
 
     ld hl, $01f8
     ld a, l
-    ld [$c414], a
+    ld [wPlayerXMaxLo], a
     ld a, h
-    ld [$c415], a
+    ld [wPlayerXMaxHi], a
     ld hl, $0160
     ld a, l
-    ld [$c418], a
+    ld [wCameraScrollXMaxLo], a
     ld a, h
-    ld [$c419], a
+    ld [wCameraScrollXMaxHi], a
     ld hl, Stage2MetatileQuadsAfterSwitch_Bank4
     ld a, l
     ldh [$ffa2], a
@@ -3877,65 +3916,70 @@ label_001_5647::
     ld a, $04
     jp BankedMemcpy
 
-label_001_5681::
-    call Call_001_569a
-    ld a, [$c0b2]
+Stage2TransitionCopyExtraTiles::
+label_001_5681:: ; Compatibility alias.
+    call Stage2QueueTransitionExtraTile
+    ld a, [wStageInteractionCounter]
     inc a
-    ld [$c0b2], a
+    ld [wStageInteractionCounter], a
     cp $0d
     ret c
 
-    ld a, [$c0b1]
+    ld a, [wStageInteractionSubstate]
     inc a
-    ld [$c0b1], a
+    ld [wStageInteractionSubstate], a
     xor a
-    ld [$c0b2], a
+    ld [wStageInteractionCounter], a
     ret
 
 
-Call_001_569a::
+Stage2QueueTransitionExtraTile:: ; Queue one tile from bank5:$6411 into the Stage 2 transition overlay area.
+Call_001_569a:: ; Compatibility alias.
     ld hl, $6411
-    ld a, [$c0b2]
+    ld a, [wStageInteractionCounter]
     ld c, a
     add $c0
     ld e, a
     ld d, $05
     jp Jump_000_0522
 
-label_001_56a9::
-    call Call_001_56c2
-    ld a, [$c0b2]
+Stage2TransitionCopyBgTiles::
+label_001_56a9:: ; Compatibility alias.
+    call Stage2QueueTransitionBgTile
+    ld a, [wStageInteractionCounter]
     inc a
-    ld [$c0b2], a
+    ld [wStageInteractionCounter], a
     cp $3b
     ret c
 
-    ld a, [$c0b1]
+    ld a, [wStageInteractionSubstate]
     inc a
-    ld [$c0b1], a
+    ld [wStageInteractionSubstate], a
     xor a
-    ld [$c0b2], a
+    ld [wStageInteractionCounter], a
     ret
 
 
-Call_001_56c2::
+Stage2QueueTransitionBgTile:: ; Queue one 8x8 tile update for Stage 2 tile ids $45-$7f.
+Call_001_56c2:: ; Compatibility alias.
     ld hl, $3572
-    ld a, [$c0b3]
+    ld a, [wStage2TransitionStep]
     cp $02
     jr z, jr_001_56cf
 
     ld hl, $3902
 
 jr_001_56cf::
-    ld a, [$c0b2]
+    ld a, [wStageInteractionCounter]
     ld c, a
     add $45
     ld e, a
     ld d, $00
     jp Jump_000_0532
 
-label_001_56db::
-    call Call_001_5707
+StageTransitionScrollViewportUp::
+label_001_56db:: ; Compatibility alias.
+    call StageTransitionMovePlayerAnchorUp
     ld hl, hSCY
     ld a, [hl]
     sub $01
@@ -3944,9 +3988,9 @@ label_001_56db::
     sbc $00
     ld [hl], a
     call Jump_000_0a69
-    ld a, [$c0b2]
+    ld a, [wStageInteractionCounter]
     inc a
-    ld [$c0b2], a
+    ld [wStageInteractionCounter], a
     cp $80
     ret c
 
@@ -3954,14 +3998,15 @@ label_001_56db::
     ld [$c0b0], a
     ld a, $02
     ldh [hPlayerState], a
-    ld a, [$c0b3]
+    ld a, [wStage2TransitionStep]
     inc a
-    ld [$c0b3], a
+    ld [wStage2TransitionStep], a
     ret
 
 
-Call_001_5707::
-    ld a, [$c0b2]
+StageTransitionMovePlayerAnchorUp:: ; During the first $20 frames, keep the player/screen anchor moving with the camera scroll.
+Call_001_5707:: ; Compatibility alias.
+    ld a, [wStageInteractionCounter]
     cp $20
     ret nc
 
