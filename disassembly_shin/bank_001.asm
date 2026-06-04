@@ -145,22 +145,56 @@ StageInitBlockPtrs:: ; Per-stage camera/layout init blocks copied to wPlayerXMax
     dw StageInitBlock_3
     dw StageInitBlock_0_1_4
 
-StageInitBlock_0_1_4:: ; +00 player_x_max, +04 camera_x_max, +06 camera_y_max, +08 page table.
-    db $f8, $0d, $ff, $00, $60, $0d, $80, $00, $00, $01, $02, $03, $04, $05, $06, $07
-    db $08, $09, $0a, $0b, $0c, $0d, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+DEF STAGE_INIT_BLOCK_COPY_SIZE EQU $4e
+DEF STAGE_LAYOUT_PAGE_COLS EQU $0e
+
+; Stage init blocks are copied to $c414 for STAGE_INIT_BLOCK_COPY_SIZE bytes.
+; +00 word: player_x_max -> wPlayerXMax
+; +02 word: player_y_fall_threshold -> $c416/$c417, used by ApplyPlayerYVelocity to enter death-fall
+; +04 word: camera_x_max -> wCameraScrollXMax
+; +06 word: camera_y_max -> wCameraScrollYMax
+; +08 byte[]: virtual-to-physical layout page map copied to $c41c
+;             indexed as row * STAGE_LAYOUT_PAGE_COLS + column.
+;             Each value selects a physical decompressed layout page at $c800 + page*$100.
+;
+; Important original-game quirk:
+;   The copy size is fixed at $4e bytes.  StageInitBlock_0_1_4 is shorter than
+;   $4e on purpose in the original layout, so the copy continues into the next
+;   bytes in ROM.  Do not insert unrelated data between these init blocks unless
+;   every block is first made explicitly $4e bytes long.
+StageInitBlock_0_1_4::
+    dw $0df8 ; player_x_max
+    dw $00ff ; player_y_fall_threshold
+    dw $0d60 ; camera_x_max
+    dw $0080 ; camera_y_max
+    ; virtual page row 0 -> physical pages $00-$0d, followed by two fallback entries
+    db $00, $01, $02, $03, $04, $05, $06, $07, $08, $09, $0a, $0b, $0c, $0d
+    db $00, $00
+    ; trailing fallback/unused virtual page entries
+    db $00, $00, $00, $00, $00, $00, $00, $00
     db $00, $00, $00, $00
 
-StageInitBlock_2:: ; Stage 2 initial clamp/page data.  Covers a $400x$400 multi-layer room.
-    db $00, $04, $00, $04, $60, $03, $80, $03, $0c, $0d, $00, $00, $00, $00, $00, $00
-    db $00, $00, $00, $00, $00, $00, $08, $09, $0a, $0b, $00, $00, $00, $00, $00, $00
-    db $00, $00, $00, $00, $04, $05, $06, $07, $00, $00, $00, $00, $00, $00, $00, $00
-    db $00, $00, $00, $01, $02, $03, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+StageInitBlock_2:: ; Stage 2 initial clamp/page data. Covers a $400x$400 multi-layer room.
+    dw $0400 ; player_x_max
+    dw $0400 ; player_y_fall_threshold
+    dw $0360 ; camera_x_max
+    dw $0380 ; camera_y_max
+    ; virtual-to-physical layout page map, 14 columns per row
+    db $0c, $0d, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+    db $08, $09, $0a, $0b, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+    db $04, $05, $06, $07, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+    db $00, $01, $02, $03, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 
 StageInitBlock_3:: ; Stage 3 initial clamp/page data.
-    db $f8, $09, $00, $05, $60, $09, $80, $04, $00, $00, $00, $10, $08, $09, $0a, $0b
-    db $0c, $0d, $00, $00, $00, $00, $00, $00, $00, $10, $07, $10, $10, $10, $10, $10
-    db $00, $00, $00, $00, $00, $00, $00, $10, $06, $10, $00, $00, $00, $00, $00, $00
-    db $00, $00, $0e, $0e, $0e, $0f, $05, $10, $00, $00, $00, $00, $00, $00, $00, $00
+    dw $09f8 ; player_x_max
+    dw $0500 ; player_y_fall_threshold
+    dw $0960 ; camera_x_max
+    dw $0480 ; camera_y_max
+    ; virtual-to-physical layout page map, 14 columns per row
+    db $00, $00, $00, $10, $08, $09, $0a, $0b, $0c, $0d, $00, $00, $00, $00
+    db $00, $00, $00, $10, $07, $10, $10, $10, $10, $10, $00, $00, $00, $00
+    db $00, $00, $00, $10, $06, $10, $00, $00, $00, $00, $00, $00, $00, $00
+    db $0e, $0e, $0e, $0f, $05, $10, $00, $00, $00, $00, $00, $00, $00, $00
     db $00, $01, $02, $03, $04, $10, $00, $00, $00, $00, $00, $00, $00, $00
 
 Call_001_417f::
@@ -593,27 +627,46 @@ jr_001_4475:: ; Compatibility alias.
     ld hl, Stage1CameraProfileResume
     jr Stage1ApplyCameraProfile
 
-Stage1CameraProfile0:: ; camera_x_min, camera_x_max, player_x_min, player_x_max, player_start_xy, initial_scroll_xy.
-    db $00, $00, $60, $04, $08, $00, $00, $05, $18, $00, $70, $00, $00, $00, $18, $00
+; Stage 1 camera profiles are copied by Stage1ApplyCameraProfile.
+; Each profile is 8 little-endian words:
+;   camera_x_min, camera_x_max, player_x_min, player_x_max,
+;   player_start_x, player_start_y, initial_scroll_x, initial_scroll_y
+Stage1CameraProfile0::
+    dw $0000 ; camera_x_min
+    dw $0460 ; camera_x_max
+    dw $0008 ; player_x_min
+    dw $0500 ; player_x_max
+    dw $0018 ; player_start_x
+    dw $0070 ; player_start_y
+    dw $0000 ; initial_scroll_x
+    dw $0018 ; initial_scroll_y
 Stage1CameraProfile1::
-    db $00, $05, $60, $08, $08, $05, $00, $09, $18, $05, $c0, $00, $00, $05, $68, $00
+    dw $0500 ; camera_x_min
+    dw $0860 ; camera_x_max
+    dw $0508 ; player_x_min
+    dw $0900 ; player_x_max
+    dw $0518 ; player_start_x
+    dw $00c0 ; player_start_y
+    dw $0500 ; initial_scroll_x
+    dw $0068 ; initial_scroll_y
 Stage1CameraProfileAfterCheckpoint2:: ; Also loads bank7:$4ee1->$91a0 before applying this profile.
-    db $00, $09, $60, $0d, $08, $09, $f8, $0d, $18, $09, $f0, $00, $00, $09, $80, $00
-
-Stage1CameraProfileResume:: ; Raw profile at $44af; still emitted as original instruction-looking bytes.
-    nop
-    dec b
-    ld h, b
-    ld [$0508], sp
-    nop
-    add hl, bc
-    jr z, @+$09
-
-    add b
-    nop
-    db $d3
-    ld b, $28
-    nop
+    dw $0900 ; camera_x_min
+    dw $0d60 ; camera_x_max
+    dw $0908 ; player_x_min
+    dw $0df8 ; player_x_max
+    dw $0918 ; player_start_x
+    dw $00f0 ; player_start_y
+    dw $0900 ; initial_scroll_x
+    dw $0080 ; initial_scroll_y
+Stage1CameraProfileResume:: ; Raw profile at $44af.
+    dw $0500 ; camera_x_min
+    dw $0860 ; camera_x_max
+    dw $0508 ; player_x_min
+    dw $0900 ; player_x_max
+    dw $0728 ; player_start_x
+    dw $0080 ; player_start_y
+    dw $06d3 ; initial_scroll_x
+    dw $0028 ; initial_scroll_y
 
 UpdateGameplayState:: ; Main gameplay frame update for hGameState=2.
     ldh a, [hJoyPressed]
