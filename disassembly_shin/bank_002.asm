@@ -268,12 +268,12 @@ jr_002_41af::
 UpdateMenuCursor:: ; Move menu cursor using hJoyPressed, wrapping through options.
 Call_002_41e9:: ; Compatibility alias.
     ld a, $03
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     ld hl, $99a5
     ld a, l
     ldh [$ffca], a
     ld a, h
-    ldh [$ffcb], a
+    ldh [hTileStreamCount], a
 
 Call_002_41f6::
     ld a, [$d93c]
@@ -304,7 +304,7 @@ Call_002_41f6::
     ld a, $40
     call PlaySound
     inc d
-    ldh a, [$ffc9]
+    ldh a, [hTileStreamWritePos]
     dec a
     cp d
     jr nc, jr_002_423d
@@ -319,7 +319,7 @@ jr_002_422f::
     bit 7, d
     jr z, jr_002_423d
 
-    ldh a, [$ffc9]
+    ldh a, [hTileStreamWritePos]
     dec a
     ld d, a
 
@@ -416,7 +416,7 @@ jr_002_42b4::
     jr z, jr_002_42bb
 
     ld b, a
-    ldh a, [$ffc9]
+    ldh a, [hTileStreamWritePos]
     add b
 
 jr_002_42bb::
@@ -1426,12 +1426,12 @@ jr_002_4869::
     add $05
     call QueueTilemapByte
     ld a, $04
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     ld hl, $98a5
     ld a, l
     ldh [$ffca], a
     ld a, h
-    ldh [$ffcb], a
+    ldh [hTileStreamCount], a
     call Call_002_41f6
     ret
 
@@ -1611,14 +1611,14 @@ jr_002_499c::
     ld hl, $d853
     ld a, [hl+]
     add $04
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     ld a, [hl+]
     add $04
     ldh [$ffca], a
     ld a, [hl+]
     add $04
-    ldh [$ffcb], a
-    ld hl, $ffc9
+    ldh [hTileStreamCount], a
+    ld hl, hTileStreamWritePos
     ld a, [hl]
     cp $04
     jr nz, jr_002_49bf
@@ -1633,7 +1633,7 @@ jr_002_499c::
     ld [hl], a
 
 jr_002_49bf::
-    ld de, $ffc9
+    ld de, hTileStreamWritePos
     ld hl, $9a28
     ld bc, $0301
     call QueueTilemapRect
@@ -1841,10 +1841,10 @@ jr_002_4b08::
     ld a, $83
     ld [wLCDCShadow], a
     xor a
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     call Call_002_4295
     ld a, $8f
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     ld hl, $9823
     ld bc, $0c0d
     call Call_000_08b7
@@ -3011,7 +3011,7 @@ jr_002_52e1::
 
 jr_002_52f1::
     ld a, d
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     call Call_002_5419
     call Call_002_5658
     call Call_002_5521
@@ -3019,7 +3019,7 @@ jr_002_52f1::
 
 
     ld a, $9f
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     call Call_002_5419
     call Call_002_5521
     ld a, [$d819]
@@ -3051,7 +3051,7 @@ jr_002_52f1::
 
 jr_002_5337::
     ld a, d
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     call Call_002_5419
     call Call_002_5658
     call Call_002_5521
@@ -3121,7 +3121,7 @@ jr_002_538b::
     ld a, h
     ld [$d818], a
     ld a, $9c
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     call Call_002_5419
     call Call_002_5658
     call Call_002_5521
@@ -3314,7 +3314,7 @@ jr_002_54d2::
     or a
     jr nz, jr_002_54f1
 
-    ldh a, [$ffc9]
+    ldh a, [hTileStreamWritePos]
     cp $9c
     jr nz, jr_002_54e3
 
@@ -3333,10 +3333,10 @@ jr_002_54e9::
     ld a, $a7
 
 jr_002_54ef::
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
 
 jr_002_54f1::
-    ldh a, [$ffc9]
+    ldh a, [hTileStreamWritePos]
     ld d, a
     call jr_000_0794
     ld a, [$d824]
@@ -3392,7 +3392,7 @@ Call_002_5521::
     ld a, l
     ldh [$ffca], a
     ld a, h
-    ldh [$ffcb], a
+    ldh [hTileStreamCount], a
     ld a, [$d811]
     dec a
     ld hl, $5704
@@ -3408,7 +3408,7 @@ jr_002_5547::
     cp l
     jr nz, jr_002_555c
 
-    ldh a, [$ffcb]
+    ldh a, [hTileStreamCount]
     cp h
     jr nz, jr_002_555c
 
@@ -3416,7 +3416,7 @@ jr_002_5547::
 
 jr_002_555c::
     ld a, d
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     ld e, [hl]
     inc hl
     ld d, [hl]
@@ -3461,13 +3461,13 @@ jr_002_555c::
     jr nz, jr_002_559f
 
     ld a, $ad
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     ld a, [$d95d]
     or a
     jr z, jr_002_55a5
 
 jr_002_559f::
-    ldh a, [$ffc9]
+    ldh a, [hTileStreamWritePos]
     ld d, a
     call Call_000_0791
 
@@ -4430,10 +4430,10 @@ jr_002_5b7a::
 
 Call_002_5b7f::
     call Call_002_5e5a
-    ldh a, [$ffcb]
+    ldh a, [hTileStreamCount]
     ldh [$ffcc], a
     xor a
-    ldh [$ffcb], a
+    ldh [hTileStreamCount], a
     ld a, $04
     ldh [$ffcd], a
     ld hl, $d84b
@@ -4445,7 +4445,7 @@ Jump_002_5b90::
     swap a
     add a
     or $17
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     ld bc, $fff8
     add hl, bc
     push hl
@@ -4463,9 +4463,9 @@ jr_002_5bac::
     cp $01
     jr nz, jr_002_5bb9
 
-    ldh a, [$ffcb]
+    ldh a, [hTileStreamCount]
     inc a
-    ldh [$ffcb], a
+    ldh [hTileStreamCount], a
 
 jr_002_5bb9::
     ld bc, $0200
@@ -4644,7 +4644,7 @@ jr_002_5c97::
 jr_002_5ca5::
     dec hl
     push hl
-    ldh a, [$ffc9]
+    ldh a, [hTileStreamWritePos]
     ld b, a
     ld a, c
     srl a
@@ -4721,7 +4721,7 @@ jr_002_5d00::
 jr_002_5d0e::
     ld [hl], a
     ld c, a
-    ldh a, [$ffc9]
+    ldh a, [hTileStreamWritePos]
     ld b, a
     ld d, $72
     call Call_000_0791
@@ -5359,7 +5359,7 @@ jr_002_6176::
 
     inc hl
     ld a, [hl+]
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     ld a, [hl]
     ldh [$ffca], a
     ld a, [$d811]
@@ -5382,14 +5382,14 @@ jr_002_61a4::
 
 jr_002_61ab::
     ld a, b
-    ldh [$ffcb], a
+    ldh [hTileStreamCount], a
     ld a, [$d859]
     ld b, a
     add a
     add b
     ld hl, $675f
     rst $38
-    ldh a, [$ffcb]
+    ldh a, [hTileStreamCount]
     cp $03
     jr nz, jr_002_61c8
 
@@ -5422,11 +5422,11 @@ jr_002_61d2::
     jr jr_002_6204
 
 jr_002_61df::
-    ldh a, [$ffcb]
+    ldh a, [hTileStreamCount]
     ld [hl+], a
     ld [hl], d
     inc hl
-    ldh a, [$ffc9]
+    ldh a, [hTileStreamWritePos]
     ld [hl+], a
     ldh a, [$ffca]
     ld [hl+], a
@@ -5868,13 +5868,13 @@ jr_002_640f::
     ld c, a
     ld a, [hl+]
     add b
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     ld a, [hl+]
     add c
     ldh [$ffca], a
     ld a, [hl+]
     add b
-    ldh [$ffcb], a
+    ldh [hTileStreamCount], a
     ld a, [hl+]
     add c
     ldh [$ffcc], a
@@ -5889,11 +5889,11 @@ jr_002_642c::
 
     inc hl
     ld c, [hl]
-    ldh a, [$ffc9]
+    ldh a, [hTileStreamWritePos]
     cp c
     jr nc, jr_002_645d
 
-    ldh a, [$ffcb]
+    ldh a, [hTileStreamCount]
     cp c
     jr c, jr_002_645d
 
@@ -6184,7 +6184,7 @@ Call_002_65d0::
     set 0, c
 
 jr_002_65e8::
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     ld a, [hl+]
     add $08
     ld b, a
@@ -6207,7 +6207,7 @@ jr_002_65fa::
 
     dec a
     ld [hl+], a
-    ldh a, [$ffc9]
+    ldh a, [hTileStreamWritePos]
     ld [hl+], a
     ldh a, [$ffca]
     ld [hl+], a
@@ -6217,14 +6217,14 @@ jr_002_65fa::
 jr_002_660d::
     inc hl
     ld a, [hl+]
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     ld a, [hl+]
     ldh [$ffca], a
     ld c, [hl]
 
 jr_002_6615::
     pop hl
-    ldh a, [$ffc9]
+    ldh a, [hTileStreamWritePos]
     ld b, a
     ldh a, [$ffca]
     cp b
@@ -6257,7 +6257,7 @@ jr_002_6636::
     ld a, b
     rst $30
     ld a, [de]
-    ldh [$ffcb], a
+    ldh [hTileStreamCount], a
     ld d, $00
     ld e, d
     ld a, [hl]
@@ -6266,7 +6266,7 @@ jr_002_6636::
     cp b
     jr c, jr_002_6656
 
-    ldh a, [$ffc9]
+    ldh a, [hTileStreamWritePos]
     add b
     ld [hl], a
     ld e, $01
@@ -6357,7 +6357,7 @@ jr_002_6685::
 
 jr_002_66c7::
     pop bc
-    ldh a, [$ffcb]
+    ldh a, [hTileStreamCount]
     ld d, a
     ld a, [$d957]
     bit 3, a
@@ -6592,10 +6592,10 @@ jr_002_68ae::
     ld de, $9000
     call LoadMaskedGfx
     xor a
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     call Call_002_4295
     ld a, $8f
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     ld hl, $9823
     ld bc, $0c04
     call Call_000_08b7
@@ -7228,10 +7228,10 @@ jr_002_6d1b::
     ld de, $9000
     call LoadMaskedGfx
     ld a, $60
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     call Call_002_4295
     ld a, $ef
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     ld hl, $9821
     ld bc, $1007
     call Call_000_08b7
@@ -7256,7 +7256,7 @@ jr_002_6d1b::
     ld [$d80f], a
     ld [$d810], a
     xor a
-    ldh [$ffcb], a
+    ldh [hTileStreamCount], a
     call Jump_002_6f1e
     ld a, $e4
     ld [wPaletteBGP], a
@@ -7410,7 +7410,7 @@ jr_002_6e75::
     ld a, [$d93c]
     inc a
     ld [$d93c], a
-    ldh [$ffcb], a
+    ldh [hTileStreamCount], a
     cp $05
     jp z, Jump_002_6f1e
 
@@ -7737,10 +7737,10 @@ jr_002_703d::
     push bc
     push hl
     ld bc, $0102
-    ldh a, [$ffcb]
+    ldh a, [hTileStreamCount]
     or a
     call z, jr_000_05f7
-    ldh a, [$ffcb]
+    ldh a, [hTileStreamCount]
     or a
     call nz, QueueTilemapRect
     pop hl
@@ -8173,7 +8173,7 @@ jr_002_70b9::
     ld bc, $100a
     call Call_000_0651
     ld a, $8f
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     ld hl, $9c00
     ld bc, $1206
     call Call_000_08b7

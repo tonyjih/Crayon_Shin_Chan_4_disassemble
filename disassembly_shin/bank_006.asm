@@ -9387,7 +9387,7 @@ jr_006_6087::
 
     rst $38
     ldh a, [rIE]
-    ldh a, [$ffcb]
+    ldh a, [hTileStreamCount]
     db $cc
     rlca
 

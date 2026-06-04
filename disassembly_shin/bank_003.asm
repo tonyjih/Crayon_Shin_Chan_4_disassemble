@@ -38,7 +38,7 @@ rle_b03_400f_to_8900::
     db $c0, $7f, $a0, $7f, $58, $bf, $00, $e9, $1f, $da, $2f, $ad, $5e, $77, $88, $68
     db $ff, $01, $ff, $89, $ff, $00, $99, $ff, $aa, $ff, $dd, $ee, $77, $88
 
-    ldh a, [$ffc9]
+    ldh a, [hTileStreamWritePos]
     add a
     push af
     ld hl, $5f2f
@@ -370,7 +370,7 @@ Call_003_4359::
     ret nz
 
     ld a, e
-    ldh [$ffcb], a
+    ldh [hTileStreamCount], a
     ld a, d
     ldh [$ffcc], a
     push hl
@@ -390,7 +390,7 @@ jr_003_4379::
     ld a, [de]
     ret z
 
-    ldh a, [$ffcb]
+    ldh a, [hTileStreamCount]
     ld e, a
     ldh a, [$ffcc]
     ld d, a
@@ -960,7 +960,7 @@ jr_003_4642::
 
 
     ld a, $1f
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
 
 jr_003_46aa::
     push hl
@@ -980,9 +980,9 @@ jr_003_46ad::
     jr nz, jr_003_46ad
 
     pop hl
-    ldh a, [$ffc9]
+    ldh a, [hTileStreamWritePos]
     sub $02
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     jr nc, jr_003_46aa
 
     ret
@@ -1040,7 +1040,7 @@ Call_003_46f9::
     push hl
     xor $1f
     ld c, a
-    ldh a, [$ffc9]
+    ldh a, [hTileStreamWritePos]
     call Call_000_05b4
     ld c, $ff
 

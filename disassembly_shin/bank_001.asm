@@ -12,16 +12,6 @@ DEF wCameraDeadzoneTop        EQU $c40a
 DEF wCameraDeadzoneBottom     EQU $c40b
 DEF wCameraMaxStepX           EQU $c40c
 DEF wCameraMaxStepY           EQU $c40d
-DEF wCameraScrollXMinLo       EQU $c40e
-DEF wCameraScrollXMinHi       EQU $c40f
-DEF wPlayerXMinLo             EQU $c410
-DEF wPlayerXMinHi             EQU $c411
-DEF wPlayerXMaxLo             EQU $c414
-DEF wPlayerXMaxHi             EQU $c415
-DEF wCameraScrollXMaxLo       EQU $c418
-DEF wCameraScrollXMaxHi       EQU $c419
-DEF wCameraScrollYMaxLo       EQU $c41a
-DEF wCameraScrollYMaxHi       EQU $c41b
 
 ; These $c0b* slots are shared by several stage systems.  The aliases below
 ; are used only in the Stage 1 camera-profile and Stage 2 transition code.
@@ -169,10 +159,8 @@ StageInitBlock_0_1_4::
     dw $0080 ; camera_y_max
     ; virtual page row 0 -> physical pages $00-$0d, followed by two fallback entries
     db $00, $01, $02, $03, $04, $05, $06, $07, $08, $09, $0a, $0b, $0c, $0d
-    db $00, $00
+    db $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
     ; trailing fallback/unused virtual page entries
-    db $00, $00, $00, $00, $00, $00, $00, $00
-    db $00, $00, $00, $00
 
 StageInitBlock_2:: ; Stage 2 initial clamp/page data. Covers a $400x$400 multi-layer room.
     dw $0400 ; player_x_max
@@ -256,14 +244,14 @@ jr_001_41c7::
     ldh [$ffc3], a
     ldh [hPlayerVelY], a
     ldh [hPlayerVelYHigh], a
-    ldh [$ffbf], a
+    ldh [hPlayerTileEffect], a
     ldh [hPlayerActionLock], a
     ldh [hPlayerAnimTimer], a
     ldh [$ffc1], a
     ld [$c0b0], a
     ldh [hCollisionFlag], a
-    ldh [$ff97], a
-    ldh [$ff98], a
+    ldh [hStreamedColumnX], a
+    ldh [hStreamedRowY], a
     ld hl, $c0b1
     ld [hl+], a
     ld [hl+], a
@@ -1397,7 +1385,7 @@ jr_001_489a:: ; Compatibility alias.
     ld a, h
     ldh [$ffc6], a
     ld a, [hl+]
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     ld a, [hl+]
     ld e, a
     ld a, [hl+]
@@ -1434,7 +1422,7 @@ jr_001_48e5::
     or a
     ret nz
 
-    ldh a, [$ffc9]
+    ldh a, [hTileStreamWritePos]
     cp $10
     jr c, jr_001_48f6
 
@@ -1541,7 +1529,7 @@ jr_001_4939:: ; Compatibility alias.
     ld [de], a
     inc de
     ld a, [hl+]
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     and $f8
     ld [de], a
     inc de
@@ -1637,7 +1625,7 @@ Call_001_49d9:: ; Compatibility alias.
 
 
 InitSpawnedObjectFacingFromSpawnParam:: ; Use spawn param bit 0 to set object facing flag.
-    ldh a, [$ffc9]
+    ldh a, [hTileStreamWritePos]
     srl a
     ld a, [bc]
     res 7, a
@@ -1654,7 +1642,7 @@ InitSpawnedObjectAnimParamFromTable:: ; Initialize object animation params from 
     ld a, [bc]
     and $7f
     ld [bc], a
-    ldh a, [$ffc9]
+    ldh a, [hTileStreamWritePos]
     and $07
     ld hl, $4a11
     rst $38
@@ -1681,7 +1669,7 @@ InitSpawnedObjectAnimParamFromTable:: ; Initialize object animation params from 
     ld [hl], b
 
 InitSpawnedObjectSpawnParamLowBits:: ; Store low 3 spawn parameter bits in object param A.
-    ldh a, [$ffc9]
+    ldh a, [hTileStreamWritePos]
     and $07
     ld hl, $000a
     add hl, bc
@@ -1690,7 +1678,7 @@ InitSpawnedObjectSpawnParamLowBits:: ; Store low 3 spawn parameter bits in objec
 
 
 InitSpawnedObjectPlatformParamFromTable:: ; Initialize platform param from low spawn bits.
-    ldh a, [$ffc9]
+    ldh a, [hTileStreamWritePos]
     and $07
     ld hl, $4a37
     rst $38
@@ -1779,7 +1767,7 @@ jr_001_4a71::
     ld l, $08
 
 jr_001_4a95::
-    ldh a, [$ffc9]
+    ldh a, [hTileStreamWritePos]
     and $07
     add l
     ld hl, $4aac
@@ -1911,7 +1899,7 @@ Call_001_4b2e:: ; Compatibility alias.
     ldh [$ffd3], a
     ld a, [hl+]
     sbc d
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     call Call_001_4b6c
     ldh a, [hSCYHigh]
     ld d, a
@@ -1977,7 +1965,7 @@ jr_001_4b7f::
 CullObjectAndReleaseSpawn:: ; Despawn object when far offscreen and mark its spawn record ready again.
 Call_001_4b84:: ; Compatibility alias.
     call ProjectObjectToScreenAndCull
-    ldh a, [$ffc9]
+    ldh a, [hTileStreamWritePos]
     ld d, a
     ldh a, [$ffd3]
     ld e, a
@@ -2137,7 +2125,7 @@ jr_001_4c2e::
     ld d, $00
     add hl, de
     ld a, [hl+]
-    ldh [$ffcb], a
+    ldh [hTileStreamCount], a
     ld a, [hl+]
     ldh [$ffcc], a
     ld a, [hl+]
@@ -2167,7 +2155,7 @@ jr_001_4c2e::
     ld [hl+], a
 
 Call_001_4c9e::
-    ldh a, [$ffcb]
+    ldh a, [hTileStreamCount]
     ld l, a
     ldh a, [hPlayerScreenX]
     ld h, a
@@ -2258,7 +2246,7 @@ jr_001_4cf6::
     ret nc
 
     inc hl
-    ldh a, [$ffc9]
+    ldh a, [hTileStreamWritePos]
     sub [hl]
     bit 7, a
     jr z, jr_001_4d02
@@ -2431,10 +2419,10 @@ Jump_001_4dc7:: ; Compatibility alias.
 
 
 Call_001_4e05::
-    ldh a, [$ffbf]
+    ldh a, [hPlayerTileEffect]
     ld b, a
     xor a
-    ldh [$ffbf], a
+    ldh [hPlayerTileEffect], a
     ld a, b
     and $07
     rst $00
@@ -2920,7 +2908,7 @@ Jump_001_50a1:: ; Compatibility alias.
 
 jr_001_50e0::
     xor a
-    ldh [$ffbf], a
+    ldh [hPlayerTileEffect], a
     ldh a, [hPlayerX]
     and $f8
     or $08
@@ -3618,7 +3606,7 @@ PlayerTileSnapLowHalf::
     ld a, $ff
     ld [$c0aa], a
     xor a
-    ldh [$ffbf], a
+    ldh [hPlayerTileEffect], a
     ldh a, [hPlayerY]
     and $f0
     or $08
@@ -3634,7 +3622,7 @@ PlayerTileSnapToTileTopClearEffect::
     ld a, $ff
     ld [$c0aa], a
     xor a
-    ldh [$ffbf], a
+    ldh [hPlayerTileEffect], a
     ldh a, [hPlayerY]
     and $f0
     ldh [hPlayerY], a
@@ -3659,7 +3647,7 @@ PlayerTileSetEffect1IfNearTop::
     jr nc, PlayerTileContactSolid
 
     ld a, $01
-    ldh [$ffbf], a
+    ldh [hPlayerTileEffect], a
     ret
 
 PlayerTileSetEffect2IfMiddle::
@@ -3672,7 +3660,7 @@ PlayerTileSetEffect2IfMiddle::
     jr nc, PlayerTileContactSolid
 
     ld a, $02
-    ldh [$ffbf], a
+    ldh [hPlayerTileEffect], a
     ret
 
 PlayerTileEffect2LeftHalf::
@@ -4077,7 +4065,7 @@ PlayerState_DamageBounce::
     call Call_001_5381
     ld a, $15
     ldh [hPlayerAnimId], a
-    ld hl, $ffbd
+    ld hl, hPlayerAnimTimer
     dec [hl]
     ld a, [hl]
     cp $16
@@ -4548,7 +4536,7 @@ PlayerState_ChickenAction:: ; State 08: mother-hen form action.
     call Call_001_5381
     ld e, $05
     call UpdatePlayerFormActionAnim
-    ld hl, $ffbd
+    ld hl, hPlayerAnimTimer
     dec [hl]
     ret nz
 
@@ -4645,7 +4633,7 @@ jr_001_5a14::
 PlayerState_FlyingSquirrelAction:: ; State 07: flying-squirrel form action.
     call Call_001_5381
     call UpdateFlyingSquirrelActionAnim
-    ld hl, $ffbd
+    ld hl, hPlayerAnimTimer
     dec [hl]
     ret nz
 
@@ -4789,7 +4777,6 @@ jr_001_5ac1:: ; Compatibility alias.
     call CalcSpecialActorY
 
 StoreSpecialActorPos:: ; Store BC as a 16-bit position field in the current special actor struct.
-jr_001_5ae3:: ; Compatibility alias.
     xor a
     ld [hl+], a
     ld a, c
@@ -4800,7 +4787,6 @@ jr_001_5ae3:: ; Compatibility alias.
 
 
 InitPlayerSpecialActor:: ; Initialize wPlayerSpecialActor0 and set hPlayerActionLock.
-Call_001_5aea:: ; Compatibility alias.
     ld hl, wPlayerSpecialActor0
     ld [hl+], a
     ldh a, [hPlayerDirection]
@@ -4819,7 +4805,6 @@ Jump_001_5afe::
     ret nz
 
 EnterPlayerFallState:: ; Switch to airborne/falling state when no ground is supporting the player.
-Jump_001_5b06:: ; Compatibility alias.
     ldh a, [$ffc4]
     or a
     ret nz
@@ -6456,7 +6441,7 @@ Call_001_6355:: ; Compatibility alias.
     ld d, a
     ldh a, [$ffd4]
     sub e
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     ldh a, [hActionHitboxHalfHeight]
     add e
     ld e, a
@@ -6493,7 +6478,7 @@ jr_001_6389:: ; Compatibility alias.
     ld d, a
     ldh a, [$ffd4]
     sub e
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     ldh a, [hActionHitboxHalfHeight]
     add e
     ld e, a
@@ -8091,7 +8076,7 @@ Call_001_6b7c::
     ld d, a
     ldh a, [$ffd4]
     sub e
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     ldh a, [hActionHitboxHalfHeight]
     add e
     ld e, a
@@ -8118,7 +8103,7 @@ jr_001_6ba6::
     ld d, a
     ldh a, [$ffd4]
     sub e
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     ldh a, [hActionHitboxHalfHeight]
     add e
     ld e, a
@@ -9341,7 +9326,7 @@ jr_001_722f::
     call Call_001_4c9e
     ld hl, $000a
     add hl, bc
-    ldh a, [$ffc9]
+    ldh a, [hTileStreamWritePos]
     ld d, [hl]
     bit 3, d
     jr z, jr_001_7246
@@ -9366,7 +9351,7 @@ jr_001_7246::
 
 Call_001_725f::
     xor a
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     ld hl, $000a
     add hl, bc
     ld a, [hl]
@@ -9378,7 +9363,7 @@ Call_001_725f::
     or $40
     ld [hl], a
     ld a, $04
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     ld hl, $0006
     add hl, bc
 
@@ -9399,7 +9384,7 @@ jr_001_7282::
     inc a
     ld [hl], a
     ld a, $02
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     ret
 
 
@@ -9422,7 +9407,7 @@ UpdateObjStageEventType20:: ; Object type $20: platform/event behavior, exact ro
     ret nz
 
     call Call_001_72e8
-    ldh a, [$ffc9]
+    ldh a, [hTileStreamWritePos]
     or a
     jr nz, jr_001_72b0
 
@@ -9479,7 +9464,7 @@ jr_001_72df::
 
 Call_001_72e8::
     xor a
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     ld hl, $0003
     add hl, bc
     ld e, [hl]
@@ -9520,7 +9505,7 @@ jr_001_72ff::
     add hl, bc
     call ApplyObjectXVelocity
     ld a, $01
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     ret
 
 
@@ -9543,7 +9528,7 @@ UpdateObjStageEvent07:: ; Object type $07: stage-specific object, exact role pen
 
 Call_001_7339::
     xor a
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     ldh a, [$ffd3]
     ld e, a
     ldh a, [hPlayerScreenX]
@@ -9606,7 +9591,7 @@ jr_001_737d::
     cp $0d
     call nz, Call_001_57d9
     ld a, $01
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
 
 jr_001_7394::
     ld hl, $000d
@@ -9624,7 +9609,7 @@ jr_001_7394::
     ld hl, $0002
     add hl, bc
     call ApplyObjectXVelocity
-    ldh a, [$ffc9]
+    ldh a, [hTileStreamWritePos]
     or a
     ret z
 
@@ -9868,7 +9853,7 @@ Stage4SpawnList:: ; $7b7b-$7b8a
     ld a, $5c
     ldh [hOamMaxY], a
     ld a, $8f
-    ldh [$ffc9], a
+    ldh [hTileStreamWritePos], a
     ld hl, $9c00
     ld bc, $1206
     call Call_000_08b7
