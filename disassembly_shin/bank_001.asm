@@ -41,13 +41,14 @@ DEF PlayerState_DeathFall             EQU $0b
 DEF PlayerState_StageTransition0C     EQU $0c; scripted stage transition state
 DEF PlayerState_StageInteraction0D    EQU $0d; special/stage interaction state
 	
-    db $01, $bf, $44, $09, $40
+    db $01
 
-    db $ed
-    ld a, e
-    adc e
-    ld a, e
+	dw UpdateGameplayState 
+	dw label_001_4009
+	dw label_001_7bed
+    dw label_001_7b8b
 
+label_001_4009::
     ldh a, [hStageIndex]
     add $1a
     ld [wScreenPaletteId], a
@@ -349,29 +350,75 @@ Call_001_425e::
     ld bc, $0300
     ld a, $05
     call BankedMemcpy
-    call Call_001_42fd
-    ld hl, $4286
+    call LoadPlayerFormGfx
+    ld hl, StageGfxListPointers
     ldh a, [hStageIndex]
     rst $20
     jp jr_000_06ea
 
+StageGfxListPointers::
+    dw StageGfxLoadList_Stage0
+    dw StageGfxLoadList_Stage1
+	dw StageGfxLoadList_Stage2
+	dw StageGfxLoadList_Stage3
+	dw StageGfxLoadList_Stage3
+	
+StageGfxLoadList_Stage0::
+	dw $5ad1, $8700, $03f0	;source offset, dest, size
+	db $05					;source bank
 
-    db $90, $42, $a6, $42, $bc, $42, $d9, $42
+	dw $5a01, $8b00, $00d0
+	db $05
 
-    reti
+	dw $4001, $9000, $0800
+	db $07
 
+	db $ff	;stop bit
+StageGfxLoadList_Stage1::
+	dw $5bc1, $8700, $0300
+	db $05
 
-    ld b, d
+	dw $5ed1, $8a00, $02a0
+	db $05
 
-    db $d1, $5a, $00, $87, $f0, $03, $05, $01, $5a, $00, $8b, $d0, $00, $05, $01, $40
-    db $00, $90, $00, $08, $07, $ff, $c1, $5b, $00, $87, $00, $03, $05, $d1, $5e, $00
-    db $8a, $a0, $02, $05, $e1, $46, $00, $90, $00, $08, $07, $ff, $61, $5d, $00, $87
-    db $60, $01, $05, $d1, $5e, $60, $88, $e0, $01, $05, $71, $61, $40, $8a, $a0, $02
-    db $05, $61, $53, $00, $90, $00, $08, $07, $ff, $c1, $5b, $00, $87, $a0, $01, $05
-    db $d1, $5e, $a0, $88, $e0, $01, $05, $71, $61, $80, $8a, $c0, $01, $05, $e1, $64
-    db $40, $8c, $80, $00, $05, $f1, $5a, $00, $90, $00, $08, $07, $ff
+	dw $46e1, $9000, $0800
+	db $07
 
-Call_001_42fd::
+	db $ff
+StageGfxLoadList_Stage2::
+	dw $5d61, $8700, $0160
+	db $05
+
+	dw $5ed1, $8860, $01e0
+	db $05
+
+	dw $6171, $8a40, $02a0
+	db $05
+
+	dw $5361, $9000, $0800
+	db $07
+
+	db $ff
+
+StageGfxLoadList_Stage3::
+	dw $5bc1, $8700, $01a0
+	db $05
+
+	dw $5ed1, $88a0, $01e0
+	db $05
+
+	dw $6171, $8a80, $01c0
+	db $05
+
+	dw $64e1, $8c40, $0080
+	db $05
+
+	dw $5af1, $9000, $0800
+	db $07
+
+	db $ff
+
+LoadPlayerFormGfx::
     ldh a, [hPlayerForm]
     rst $00
 
@@ -383,10 +430,10 @@ Call_001_42fd::
     dw LoadPlayerFormGfxActionKamen ; PLAYER_FORM_ACTION_KAMEN
 
 LoadPlayerFormGfxNormal::
-    ld hl, $4131
-    ld de, $8130
-    ld bc, $0470
-    ld a, $05
+    ld hl, $4131			;source (05:4131)
+    ld de, $8130			;dest (VRAM)
+    ld bc, $0470			;size
+    ld a, $05				;source bank
     call BankedMemcpy
     ret
 
@@ -426,77 +473,72 @@ LoadPlayerFormGfxActionKamen::
     call BankedMemcpy
     ret
 
+; 8 bytes
+; playerXLo, playerXHi
+; playerYLo, playerYHi
+; cameraXLo, cameraXHi
+; cameraYLo, cameraYHi
+PlayerStartCameraInit_Stage0::
+    dw $0018 ; player X
+    dw $00f0 ; player Y
+    dw $0000 ; camera X
+    dw $0080 ; camera Y
+PlayerStartCameraInit_435d::
+    dw $0728 ; player X
+    dw $0060 ; player Y
+    dw $06d8 ; camera X
+    dw $0010 ; camera Y
 
-    db $18, $00, $f0, $00, $00, $00, $80, $00
+PlayerStartCameraInit_4365::
+    dw $0018 ; player X
+    dw $03f0 ; player Y
+    dw $0000 ; camera X
+    dw $0380 ; camera Y
+	
+PlayerStartCameraInit_436d::
+    dw $01a8 ; player X
+    dw $0270 ; player Y
+    dw $0150 ; camera X
+    dw $0200 ; camera Y
 
-    jr z, @+$09
+PlayerStartCameraInit_4375::
+    dw $0018 ; player X
+    dw $04f0 ; player Y
+    dw $0000 ; camera X
+    dw $0480 ; camera Y
 
-    ld h, b
-    nop
-    ret c
+PlayerStartCameraInit_437d::
+    dw $0428 ; player X
+    dw $0050 ; player Y
+    dw $03d0 ; camera X
+    dw $0000 ; camera Y
 
-    ld b, $10
-    nop
+PlayerStartCameraInit_4385::
+	dw $0018
+	dw $0040
+	dw $0000
+	dw $0000
 
-    db $18, $00, $f0, $03, $00, $00, $80, $03
+PlayerStartCameraInit_438d::
+	dw $0548
+	dw $00F0
+	dw $04F2
+	dw $0080
 
-    xor b
-    ld bc, $0270
-    ld d, b
-    ld bc, $0200
-
-    db $18, $00, $f0, $04, $00, $00, $80, $04
-
-    jr z, jr_001_4383
-
-    ld d, b
-    nop
-    ret nc
-
-    inc bc
-
-jr_001_4383::
-    nop
-    nop
-    jr jr_001_4387
-
-jr_001_4387::
-    ld b, b
-    nop
-    nop
-    nop
-    nop
-    nop
-    ld c, b
-    dec b
-    ldh a, [rP1]
-    ldh a, [c]
-    inc b
-    add b
-    nop
-
-    db $55, $43
-
-    ld a, a
-    ld b, h
-
-    db $65, $43, $75, $43
-
-    add l
-    ld b, e
-
-    db $5d, $43
-
-    or a
-    ld b, h
-
-    db $6d, $43, $7d, $43
-
-    adc l
-    ld b, e
+PlayerStartCameraInit_Pointers::
+    dw PlayerStartCameraInit_Stage0
+	dw Stage1CameraProfile0
+	dw PlayerStartCameraInit_4365
+	dw PlayerStartCameraInit_4375
+	dw PlayerStartCameraInit_4385
+	dw PlayerStartCameraInit_435d
+	dw PlayerStartCameraInit_44b7	;Weird
+	dw PlayerStartCameraInit_436d
+	dw PlayerStartCameraInit_437d
+	dw PlayerStartCameraInit_438d
 
 jr_001_43a9::
-    ld hl, $4395
+    ld hl, PlayerStartCameraInit_Pointers
     ldh a, [hStageIndex]
     rst $20
 
@@ -665,6 +707,7 @@ Stage1CameraProfileResume:: ; Raw profile at $44af.
     dw $0860 ; camera_x_max
     dw $0508 ; player_x_min
     dw $0900 ; player_x_max
+PlayerStartCameraInit_44b7::	
     dw $0728 ; player_start_x
     dw $0080 ; player_start_y
     dw $06d3 ; initial_scroll_x
@@ -9702,6 +9745,7 @@ Stage3SpawnList:: ; $79c7-$7b7a
 Stage4SpawnList:: ; $7b7b-$7b8a
     INCBIN "assets/levels/stage4/spawns.bin"
 
+label_001_7b8b::
     ld hl, $7d32
     ld a, l
     ld [$d92f], a
@@ -9742,7 +9786,7 @@ Stage4SpawnList:: ; $7b7b-$7b8a
     call PlaySound_Queue3
     ret
 
-
+label_001_7bed::
     ld hl, $00e0
     ld a, l
     ldh [hPlayerSpeedX], a

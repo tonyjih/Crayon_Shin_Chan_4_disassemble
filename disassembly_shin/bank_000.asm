@@ -3130,7 +3130,7 @@ QueueOneHealthHeartHudTile:: ; Queue one 2x2 heart tile group at the HUD positio
     dec a
     ld hl, HudHealthIconPos
     rst $20
-    ld de, HealthIconTileID
+    ld de, HudIconHealth
     ld bc, $0202
     jp jr_000_05f7
 
