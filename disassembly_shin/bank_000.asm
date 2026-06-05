@@ -2142,45 +2142,52 @@ UpdateCurrentGameState:: ; Per-frame state dispatcher, called from VBlank after 
     rst $00
 
     ; hGameState update jump table. rst $00 consumes these words as data.
-    dw $0920 ; 00: bank 2 title/menu update
-    dw $0926 ; 01: debug menu update
-    dw $0929 ; 02: bank 1 gameplay update
-    dw $092f ; 03: bank 2 screen/update path
-    dw $0935 ; 04: bank 2 screen/update path
-    dw $093b ; 05: bank 2 screen/update path
-    dw $0941 ; 06: pause-ish handler
-    dw $097d ; 07: unused/variant update path
-    dw $0980 ; 08: tutorial mode
+    dw UpdateGameState_TitleMenu ; 00: bank 2 title/menu update
+    dw UpdateGameState_DebugMenu ; 01: debug menu update
+    dw UpdateGameState_Gameplay ; 02: bank 1 gameplay update
+    dw UpdateGameState_Bank2Screen0 ; 03: bank 2 screen/update path
+    dw UpdateGameState_Bank2Screen1 ; 04: bank 2 screen/update path
+    dw UpdateGameState_Bank2Screen2 ; 05: bank 2 screen/update path
+    dw UpdateGameState_Pause ; 06: pause-ish handler
+    dw UpdateGameState_FadeReturn ; 07: unused/variant update path
+    dw UpdateGameState_TutorialMode ; 08: tutorial mode
 
+UpdateGameState_TitleMenu::
 	; hGameState == 00
     ld hl, $0202
     jp FarCallFromBankTable
 
 
+UpdateGameState_DebugMenu::
 	; hGameState == 01
     jp Jump_000_1716
 
 
+UpdateGameState_Gameplay::
 	; hGameState == 02
     ld hl, $0100
     jp FarCallFromBankTable
 
 
+UpdateGameState_Bank2Screen0::
 	; hGameState == 03
     ld hl, $0206
     jp FarCallFromBankTable
 
 
+UpdateGameState_Bank2Screen1::
 	; hGameState == 04
     ld hl, $020e
     jp FarCallFromBankTable
 
 
+UpdateGameState_Bank2Screen2::
 	; hGameState == 05
     ld hl, $0212
     jp FarCallFromBankTable
 
 
+UpdateGameState_Pause::
 	; hGameState == 06
     ld a, $93
     ld [wPaletteBGP], a
@@ -2218,8 +2225,10 @@ Call_000_0963::
     jp PlaySound_Queue3
 
 
+UpdateGameState_FadeReturn::
     jp Jump_000_09c9
 
+UpdateGameState_TutorialMode::
 	; hGameState == 08
     ld hl, HeaderLogo
     jp FarCallFromBankTable
@@ -2239,42 +2248,50 @@ InitCurrentGameState:: ; State init dispatcher, called with LCD off from ReinitC
     rst $00
 
     ; hGameState init jump table. rst $00 consumes these words as data.
-    dw $099b ; 00: bank 2 title/menu init
-    dw $09a1 ; 01: debug menu init
-    dw $09a4 ; 02: bank 1 gameplay init
-    dw $09aa ; 03: bank 2 screen init
-    dw $09b0 ; 04: bank 2 screen init
-    dw $09b6 ; 05: bank 2 screen init
-    dw $09bc ; 06: no init
-    dw $09bd ; 07: bank 1 gameplay init variant
-    dw $09f5 ; 08: unused/variant init path
+    dw InitGameState_TitleMenu ; 00: bank 2 title/menu init
+    dw InitGameState_DebugMenu ; 01: debug menu init
+    dw InitGameState_Gameplay ; 02: bank 1 gameplay init
+    dw InitGameState_Bank2Screen0 ; 03: bank 2 screen init
+    dw InitGameState_Bank2Screen1 ; 04: bank 2 screen init
+    dw InitGameState_Bank2Screen2 ; 05: bank 2 screen init
+    dw InitGameState_NoInit ; 06: no init
+    dw InitGameState_GameplayStage18Variant ; 07: bank 1 gameplay init variant
+    dw label_09f5 ; 08: unused/variant init path
 
+InitGameState_TitleMenu::
     ld hl, $0200
     jp FarCallFromBankTable
 
 
+InitGameState_DebugMenu::
     jp LoadDebugMenu
 
 
+InitGameState_Gameplay::
     ld hl, $0102
     jp FarCallFromBankTable
 
 
+InitGameState_Bank2Screen0::
     ld hl, $0204
     jp FarCallFromBankTable
 
 
+InitGameState_Bank2Screen1::
     ld hl, $020c
     jp FarCallFromBankTable
 
 
+InitGameState_Bank2Screen2::
     ld hl, $0210
     jp FarCallFromBankTable
 
 
+InitGameState_NoInit::
     ret
 
 
+InitGameState_GameplayStage18Variant::
     ld hl, $0102
     call FarCallFromBankTable
     ld a, $18
@@ -2312,7 +2329,7 @@ jr_000_09e0::
     ldh [hNeedsReset], a
     ret
 
-
+label_09f5::
     ld a, $04
     ldh [hStageIndex], a
     ld hl, $0102
@@ -4929,16 +4946,12 @@ Call_000_176e::
     jp Jump_000_068e
 
 
-    rst $30
-    add hl, de
-    db $fd
-    add hl, de
-    inc b
-    ld a, [de]
-    inc c
-    ld a, [de]
-    ld [de], a
-    ld a, [de]
+DebugPlayerFormNameTable::
+    dw DebugTextFormNormal
+    dw DebugTextFormFlyingSquirrel
+    dw DebugTextFormCockroach
+    dw DebugTextFormChicken
+    dw DebugTextFormActionKamen
 
 Call_000_178f::
     ld bc, $99ae
@@ -5351,78 +5364,34 @@ ENDC
     ret
 
 
-    ld d, a
-    ld e, [hl]
-    ld a, [hl]
-    ld b, l
-    ld d, [hl]
-    rst $38
-    inc h
-    jr nz, jr_000_1a0b
-
-    ld [de], a
-    dec d
-    inc [hl]
-    rst $38
-    ld sp, $1623
-    rst $38
-    ld b, l
-    ld a, [de]
-    ld b, d
-    inc e
-    ld [de], a
-    rst $38
-    ld b, [hl]
-    ld c, b
-    ld e, [hl]
-    ld l, h
-    rst $38
-    ld a, [hl+]
-    ld de, $1118
-    inc d
-    ld b, d
-    rst $38
-    add hl, de
-    ld [de], a
-    dec d
-    inc d
-    ld b, d
-    rst $38
-    nop
-    ld a, [hl+]
-    ld de, $11ff
-    ld de, rNR13
-    nop
-    nop
-    nop
-    dec h
-    dec de
-    rst $38
-    nop
-    ld sp, $1a1a
-    ld b, l
-    dec hl
-    rst $38
-    nop
-    ld b, l
-    add hl, de
-    ld d, $45
-    inc l
-    dec [hl]
-
-jr_000_1a0b::
-    rst $38
-    nop
-    ld h, $3f
-    inc h
-    dec [hl]
-    rst $38
-    ld b, [hl]
-    ld d, d
-    ld d, [hl]
-    ld [hl], h
-    ld a, h
-    cp $ff
+DebugTextStage::
+    db $57, $5e, $7e, $45, $56, $ff
+DebugTextFlagA::
+    db $24, $20, $3c, $12, $15, $34, $ff
+DebugTextFlagB::
+    db $31, $23, $16, $ff
+DebugTextLives::
+    db $45, $1a, $42, $1c, $12, $ff
+DebugTextForm::
+    db $46, $48, $5e, $6c, $ff
+DebugTextMusic::
+    db $2a, $11, $18, $11, $14, $42, $ff
+DebugTextSound::
+    db $19, $12, $15, $14, $42, $ff
+DebugTextOff::
+    db $00, $2a, $11, $ff
+DebugTextOn::
+    db $11, $11, $13, $ff
+DebugTextFormNormal::
+    db $00, $00, $00, $25, $1b, $ff
+DebugTextFormFlyingSquirrel::
+    db $00, $31, $1a, $1a, $45, $2b, $ff
+DebugTextFormCockroach::
+    db $00, $45, $19, $16, $45, $2c, $35, $ff
+DebugTextFormChicken::
+    db $00, $26, $3f, $24, $35, $ff
+DebugTextFormActionKamen::
+    db $46, $52, $56, $74, $7c, $fe, $ff
 
     db $23, $1a, $4f, $1a, $83, $1a, $bf, $1a, $f3, $1a, $2b, $2a, $44, $2a
 
