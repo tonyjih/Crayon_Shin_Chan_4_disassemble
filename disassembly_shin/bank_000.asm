@@ -4907,23 +4907,23 @@ Call_000_1736::
 
 Call_000_1741::
     ld hl, $98ad
-    ld de, $19ef
+    ld de, DebugTextOff
     ld a, [$c0a8]
     or a
     jp nz, Jump_000_068e
 
-    ld de, $19f3
+    ld de, DebugTextOn
     jp Jump_000_068e
 
 
 Call_000_1754::
     ld hl, $98ed
-    ld de, $19ef
+    ld de, DebugTextOff
     ldh a, [hPlayerFlags]
     or a
     jp nz, Jump_000_068e
 
-    ld de, $19f3
+    ld de, DebugTextOn
     jp Jump_000_068e
 
 
@@ -4937,7 +4937,7 @@ Call_000_176e::
     ld bc, $994b
     ld de, $0005
     call QueueVramFill
-    ld hl, $1785
+    ld hl, DebugPlayerFormNameTable
     ldh a, [hPlayerForm]
     rst $20
     ld d, h
@@ -5048,46 +5048,43 @@ jr_000_17ed::
     ret
 
 
-jr_000_1818::
+DebugMenuLeftActionDispatch::
+jr_000_1818:: ; Compatibility alias.
     ld a, [$c0d8]
     rst $00
-    ld a, [hl+]
-    jr @+$36
 
-    jr @+$3f
+DebugMenuLeftActionTable::
+    dw DebugMenuActionDecStageIndex ; 00: stage index
+    dw DebugMenuActionToggleStageFlag ; 01: $c0a8 toggle
+    dw DebugMenuActionTogglePlayerFlags ; 02: hPlayerFlags toggle
+    dw DebugMenuActionDecLives ; 03: player lives
+    dw DebugMenuActionDecPlayerForm ; 04: player form
+    dw DebugMenuActionDecMusic ; 05: music id
+    dw DebugMenuActionDecSound ; 06: sound effect id
 
-    jr jr_000_1867
-
-    jr @+$52
-
-jr_000_1825::
-    jr jr_000_1883
-
-    jr @+$7c
-
-    jr jr_000_1825
-
-    rst $10
-    ret nz
-
+DebugMenuActionDecStageIndex::
+    ld a, [$c0d7]
     dec a
     and $07
     ld [$c0d7], a
     ret
 
 
+DebugMenuActionToggleStageFlag::
     ld a, [$c0a8]
     xor $ff
     ld [$c0a8], a
     ret
 
 
+DebugMenuActionTogglePlayerFlags::
     ldh a, [hPlayerFlags]
     xor $ff
     ldh [hPlayerFlags], a
     ret
 
 
+DebugMenuActionDecLives::
     ldh a, [hPlayerLives]
     sub $01
     ldh [hPlayerLives], a
@@ -5098,6 +5095,7 @@ jr_000_1825::
     ret
 
 
+DebugMenuActionDecPlayerForm::
     ldh a, [hPlayerForm]
     sub $01
     ldh [hPlayerForm], a
@@ -5108,9 +5106,10 @@ jr_000_1825::
     ret
 
 
+DebugMenuActionDecMusic::
     call InitSound
     call Call_000_186b
-    ld hl, jr_000_18d5
+    ld hl, DebugMenuMusicIdTable
     rst $38
     ld a, [hl]
 
@@ -5130,6 +5129,7 @@ Call_000_186b::
     ret
 
 
+DebugMenuActionDecSound::
     call Call_000_1880
     jp Jump_000_1907
 
@@ -5147,32 +5147,29 @@ jr_000_1883::
     ret
 
 
-Jump_000_188f::
+DebugMenuRightActionDispatch::
+Jump_000_188f:: ; Compatibility alias.
     ld a, [$c0d8]
     rst $00
-    and c
-    jr @+$36
 
-    jr jr_000_18d5
+DebugMenuRightActionTable::
+    dw DebugMenuActionIncStageIndex ; 00: stage index
+    dw DebugMenuActionToggleStageFlag ; 01: $c0a8 toggle
+    dw DebugMenuActionTogglePlayerFlags ; 02: hPlayerFlags toggle
+    dw DebugMenuActionIncLives ; 03: player lives
+    dw DebugMenuActionIncPlayerForm ; 04: player form
+    dw DebugMenuActionIncMusic ; 05: music id
+    dw DebugMenuActionIncSound ; 06: sound effect id
 
-    jr @-$53
-
-    jr @-$47
-
-    jr @-$3b
-
-    jr jr_000_18a4
-
-    add hl, de
+DebugMenuActionIncStageIndex::
     ld a, [$c0d7]
-
-jr_000_18a4::
     inc a
     and $07
     ld [$c0d7], a
     ret
 
 
+DebugMenuActionIncLives::
     ldh a, [hPlayerLives]
     inc a
     ldh [hPlayerLives], a
@@ -5184,6 +5181,7 @@ jr_000_18a4::
     ret
 
 
+DebugMenuActionIncPlayerForm::
     ldh a, [hPlayerForm]
     inc a
     ldh [hPlayerForm], a
@@ -5195,10 +5193,11 @@ jr_000_18a4::
     ret
 
 
+DebugMenuActionIncMusic::
     call InitSound
     call PlaySound_Queue3
-    call $18f5
-    ld hl, jr_000_18d5
+    call DebugMenuActionResetMusicId
+    ld hl, DebugMenuMusicIdTable
     rst $38
     ld a, [hl]
     call PlaySound_Queue3
@@ -5211,6 +5210,7 @@ jr_000_18d5:: ; Compatibility alias.
     db $24, $28, $2c, $30, $34, $38, $3c, $60
     db $64, $18, $18, $18, $18, $18, $18, $18
     db $18, $18, $18, $18, $18, $18, $18, $18
+
 DebugMenuActionResetMusicId::
     ld a, [$c0d9]
     inc a
@@ -5225,11 +5225,12 @@ jr_000_1900::
     ret
 
 
-jr_000_1904::
+DebugMenuActionIncSound::
+jr_000_1904:: ; Compatibility alias.
     call Call_000_1956
 
 Jump_000_1907::
-    ld hl, $191e
+    ld hl, DebugMenuSoundDispatchTable
 
 jr_000_190a::
     ld a, [$c0da]
@@ -5282,25 +5283,25 @@ ENDC
     call LoadMaskedGfx
     call Call_000_02f8
     ld hl, $9864
-    ld de, $19c6
+    ld de, DebugTextStage
     call jr_000_0673
     ld hl, $98a4
-    ld de, $19cc
+    ld de, DebugTextFlagA
     call jr_000_0673
     ld hl, $98e4
-    ld de, $19d3
+    ld de, DebugTextFlagB
     call jr_000_0673
     ld hl, $9924
-    ld de, $19d7
+    ld de, DebugTextLives
     call jr_000_0673
     ld hl, $9964
-    ld de, $19dd
+    ld de, DebugTextForm
     call jr_000_0673
     ld hl, $99a4
-    ld de, $19e2
+    ld de, DebugTextMusic
     call jr_000_0673
     ld hl, $99e4
-    ld de, $19e9
+    ld de, DebugTextSound
     call jr_000_0673
     ld hl, wPaletteBGP
     ld [hl], $e4
