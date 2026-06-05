@@ -9840,7 +9840,9 @@ jr_006_62c0::
     db $00
 
     cp l
-    jp Jump_000_00ff
+    db $c3
+    db $ff
+    db $00
 
 
     rst $38

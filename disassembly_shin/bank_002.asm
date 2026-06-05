@@ -931,7 +931,6 @@ jr_002_45c5::
 
 
 PasswordInput_SelectCell:: ; Handle A press on the password grid and store selected kana/control.
-Call_002_45c6:: ; Compatibility alias.
     ld a, $40
     call PlaySound
     ld hl, $c879
@@ -1012,8 +1011,7 @@ jr_002_4611::
 
 
 SubmitPasswordCode:: ; Compare password input against PasswordCodeTable and dispatch on success.
-PasswordCheckAndDispatch:: ; Compatibility alias.
-Call_002_4635:: ; Compatibility alias.
+
     xor a
     ld [wPasswordMatchIndex], a
     ld hl, PasswordCodeTable
@@ -1070,7 +1068,6 @@ jr_002_4676::
 
 
 PasswordInput_DismissErrorMessage:: ; Clear the password error message when A is pressed.
-Call_002_468e:: ; Compatibility alias.
     ldh a, [hJoyPressed]
     bit 0, a
     ret z
@@ -7852,7 +7849,9 @@ jr_002_70b9::
     db $f4
     nop
     sbc c
-    jp Jump_000_0043
+    db $c3
+    db $43
+    nop
 
 
     sbc c

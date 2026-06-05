@@ -10013,8 +10013,9 @@ Call_001_7cfa::
     add [hl]
     xor c
     cp [hl]
-    jp z, Jump_000_00ff
-
+    db $ca
+    db $ff
+    db $00
     ld c, h
     db $10
     ld [$1e11], sp

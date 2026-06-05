@@ -8,6 +8,8 @@ SECTION "ROM Bank $000", ROM0[$0]
 DEF wScreenPaletteId EQU $d933
 DEF wFadeTransitionTimer EQU $d95c
 DEF wMsgSubstitutionId     EQU $d971
+
+DEF wCgbEnabled EQU $dff7
 DEF wSgbEnabled EQU $dff8
 ; Hardware / memory aliases identified during cleanup pass 1.
 ; Keep these conservative: names below are based on direct register usage in bank 0.
@@ -212,52 +214,47 @@ DEF SPECIAL_ACTOR_ACTION_KAMEN_PROJECTILE    EQU $03
 RST_00:: ; Jump table dispatch. A indexes word table after rst call, then jumps to target.
     jr jr_000_0061
 
-    rst $38
-
     db $ff
-
-    rst $38
-    rst $38
-    rst $38
-    rst $38
+    db $ff
+    db $ff
+    db $ff
+    db $ff
+    db $ff
 
 RST_08::
     ret
 
-
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-
-Call_000_000e::
-    rst $38
-    rst $38
+    db $ff
+    db $ff
+    db $ff
+    db $ff
+    db $ff
+    db $ff
+    db $ff
 
 RST_10::
     ret
 
 
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
+    db $ff
+    db $ff
+    db $ff
+    db $ff
+    db $ff
+    db $ff
+    db $ff
 
 RST_18::
     ret
 
 
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
+    db $ff
+    db $ff
+    db $ff
+    db $ff
+    db $ff
+    db $ff
+    db $ff
 
 RST_20:: ; Pointer table helper. HL points to word table, A selects entry, returns pointer in HL.
     jr jr_000_006b
@@ -269,9 +266,7 @@ jr_000_0022::
 
     ret
 
-
-Jump_000_0027::
-    rst $38
+    db $ff
 
 RST_28:: ; abs(A).
     bit 7, a
@@ -282,8 +277,8 @@ RST_28:: ; abs(A).
     ret
 
 
-    rst $38
-    rst $38
+    db $ff
+    db $ff
 
 RST_30:: ; Add A to DE.
     add e
@@ -294,7 +289,7 @@ RST_30:: ; Add A to DE.
     ret
 
 
-    rst $38
+    db $ff
 
 RST_38:: ; Add A to HL.
     add l
@@ -304,65 +299,55 @@ RST_38:: ; Add A to HL.
     ld h, a
     ret
 
-
-Call_000_003f::
-    rst $38
+    db $ff
 
 VBlankInterrupt::
     call VBlankHandler
-
-Jump_000_0043::
     reti
 
 
-    rst $38
-    rst $38
-    rst $38
-    rst $38
+    db $ff
+    db $ff
+    db $ff
+    db $ff
 
 LCDCInterrupt::
     call Call_000_024a
     reti
 
-
-    rst $38
-    rst $38
-    rst $38
-    rst $38
+    db $ff
+    db $ff
+    db $ff
+    db $ff
 
 TimerOverflowInterrupt::
     reti
 
-
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-
-Jump_000_0055::
-    rst $38
-    rst $38
-    rst $38
+    db $ff
+    db $ff
+    db $ff
+    db $ff
+    db $ff
+    db $ff
+    db $ff
 
 SerialTransferCompleteInterrupt::
     reti
 
 
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-
-Call_000_005d::
-    rst $38
-    rst $38
-    rst $38
+    db $ff
+    db $ff
+    db $ff
+    db $ff
+    db $ff
+    db $ff
+    db $ff
 
 JoypadTransitionInterrupt::
     reti
 
 
-jr_000_0061::
+jr_000_0061::	;from rst $00
     add a
     pop hl
     ld e, a
@@ -374,7 +359,7 @@ jr_000_0061::
     jp hl
 
 
-jr_000_006b::
+jr_000_006b::	;from rst $20
     ld e, a
     ld d, $00
     add hl, de
@@ -397,13 +382,10 @@ Call_000_0075::
 
     ret
 
-
-    rst $38
-    rst $38
-
-Jump_000_007e::
-    rst $38
-    rst $38
+    db $ff
+    db $ff
+    db $ff
+    db $ff
 
 CompareU16AtHLToDE::
     ld a, [hl+]
@@ -444,21 +426,26 @@ Call_000_00a3::
 
 
 CopyDmaStubToHram::
-    ld c, $80
-    ld b, $0a
-    ld hl, $00b2
+    ld c, $80      ; HRAM destination = FF80
+    ld b, $0a      ; copy 10 bytes
+    ld hl, $00b2   ; source = 00B2
 
-jr_000_00ab::
+.copy
     ld a, [hl+]
     ldh [c], a
     inc c
     dec b
-    jr nz, jr_000_00ab
-
+    jr nz, .copy
     ret
 
-
-    db $3e, $c0, $e0, $46, $3e, $28, $3d, $20, $fd, $c9
+OamDmaStub::
+    ld a, HIGH(wOamBuffer) ; $c0
+    ldh [rDMA], a
+    ld a, $28
+.wait
+    dec a
+    jr nz, .wait
+    ret
 
 ReadJoypad:: ; Updates hJoyHeld, hJoyPressed, and hJoyLast from rP1.
     ld a, $20
@@ -503,11 +490,10 @@ ApplyLCDC::
     ret
 
 
-    rst $38
-    rst $38
+    db $ff
+    db $ff
+    db $ff
 
-Jump_000_00ff::
-    rst $38
 
 Boot::
     nop
@@ -519,9 +505,16 @@ HeaderLogo::
     db $00, $08, $11, $1f, $88, $89, $00, $0e, $dc, $cc, $6e, $e6, $dd, $dd, $d9, $99
     db $bb, $bb, $67, $63, $6e, $0e, $ec, $cc, $dd, $dc, $99, $9f, $bb, $b9, $33, $3e
 
+IF DEF(DX)
+HeaderTitle::
+    db "KUREYON SHIN4DX"
+HeaderCGBFlag::
+    db $80 ; Supports CGB functions, but still works on DMG/SGB.
+ELSE
 HeaderTitle::
     db "GB KUREYON SHIN4"
 
+ENDC
 HeaderNewLicenseeCode::
     db $42, $32
 
@@ -7494,133 +7487,5 @@ Call_000_3f6a::
     ld a, $04
     ld [wScreenPaletteId], a
     ret
-ELSE
-	db $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
 ENDC
-
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
-    rst $38
+    ds $4000 - @, $FF
