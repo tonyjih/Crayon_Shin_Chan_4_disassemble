@@ -48,10 +48,10 @@ SECTION "ROM Bank $002", ROMX[$4000], BANK[$2]
     call LoadMaskedGfx
     ld a, $06
     ld hl, $501e
-    ld de, $c800
+    ld de, wStageLayoutMap
     ld bc, $0168
     call BankedMemcpy_RLEFF
-    ld de, $c800
+    ld de, wStageLayoutMap
     ld hl, $9800
     ld bc, $1412
     call jr_000_05f7
@@ -66,7 +66,7 @@ Call_002_4079::
     ld a, $d0
     ld [wPaletteOBP0], a
     ld a, $01
-    ld [$d933], a
+    ld [wScreenPaletteId], a
     ld hl, $78a1
     ld a, l
     ld [$d800], a
@@ -81,8 +81,8 @@ Call_002_4079::
     ld [$d802], a
     ld [$d805], a
     ld [$d96d], a
-    ldh [$ffb9], a
-    ldh [$ff9f], a
+    ldh [hPlayerHealth], a
+    ldh [hStageIndex], a
     ld a, [$d934]
     or a
     jr nz, jr_002_40bd
@@ -266,7 +266,6 @@ jr_002_41af::
 
 
 UpdateMenuCursor:: ; Move menu cursor using hJoyPressed, wrapping through options.
-Call_002_41e9:: ; Compatibility alias.
     ld a, $03
     ldh [hTileStreamWritePos], a
     ld hl, $99a5
@@ -341,7 +340,6 @@ jr_002_423d::
 
 
 UpdateMenuMessageVramClear:: ; Clear/update queued title/menu message rows when $d96d is active.
-Call_002_4256:: ; Compatibility alias.
     ld a, [$d96d]
     or a
     ret z
@@ -371,7 +369,6 @@ Call_002_4256:: ; Compatibility alias.
 
 
 StartMenuMessage:: ; Start a bank3 text/message sequence for the selected title-menu item.
-Call_002_4283:: ; Compatibility alias.
     ld a, $00
     ld [$d970], a
     ld a, [$d934]
@@ -446,7 +443,6 @@ jr_002_42bb::
 
 
 RequestStateChange_Menu:: ; Menu/screen transition helper. Sets hNeedsReset and dispatches next hGameState/substate.
-jr_002_42d6:: ; Compatibility alias.
     ld a, e
     ld [$d95e], a
     ld a, d
@@ -506,7 +502,7 @@ Jump_002_4301::
     ld [$d93d], a
     ldh [hGameState], a
     ld a, $3f
-    ld [$d95c], a
+    ld [wFadeTransitionTimer], a
     ret
 
 
@@ -576,10 +572,10 @@ Jump_002_43a1::
     call BankedMemcpy
     ld a, $01
     ld hl, $7e7c
-    ld de, $c800
+    ld de, wStageLayoutMap
     ld bc, $0168
     call BankedMemcpy_RLEFF
-    ld de, $c800
+    ld de, wStageLayoutMap
     ld hl, $9800
     ld bc, $1412
     call jr_000_05f7
@@ -612,7 +608,7 @@ Jump_002_43a1::
     ld a, $d0
     ld [wPaletteOBP0], a
     ld a, $02
-    ld [$d933], a
+    ld [wScreenPaletteId], a
     xor a
     ld b, $14
     ld hl, $d940
@@ -620,14 +616,14 @@ Jump_002_43a1::
     ret
 
 
-    ld a, [$d95c]
+    ld a, [wFadeTransitionTimer]
     or a
     jr z, jr_002_4468
 
     and $0f
     jr nz, jr_002_4452
 
-    ld a, [$d95c]
+    ld a, [wFadeTransitionTimer]
     bit 4, a
     jr nz, jr_002_443e
 
@@ -656,7 +652,7 @@ jr_002_4452::
     ld b, $28
     ld d, $00
     call Call_000_0791
-    call Call_000_07f8
+    call UpdateTransitionFade
     ret
 
 
@@ -717,8 +713,8 @@ jr_002_44a2::
     ld b, $28
     ld de, $d800
     call Call_000_0720
-    call Call_000_07f8
-    ld a, [$d95c]
+    call UpdateTransitionFade
+    ld a, [wFadeTransitionTimer]
     or a
     jp z, Jump_002_4301
 
@@ -891,7 +887,7 @@ jr_002_45a3::
     ld a, $03
     ld [$d93d], a
     ld a, $48
-    ld [$d95c], a
+    ld [wFadeTransitionTimer], a
     ret
 
 
@@ -1038,7 +1034,7 @@ jr_002_4676::
     ld a, $02
     ld [$d93d], a
     ld a, $c0
-    ld [$d95c], a
+    ld [wFadeTransitionTimer], a
     ret
 
 
@@ -1356,7 +1352,7 @@ jr_002_4809::
     ld [$d93c], a
     ld [wVramQueue], a
     ld a, $04
-    ld [$d933], a
+    ld [wScreenPaletteId], a
     xor a
     ld b, $04
     ld hl, $d940
@@ -1473,7 +1469,7 @@ jr_002_4893::
 
     ld a, [$d943]
     inc a
-    ldh [$ffb9], a
+    ldh [hPlayerHealth], a
     ld bc, $0100
     ld de, $0400
     jp RequestStateChange_Menu
@@ -1669,7 +1665,7 @@ jr_002_49f2::
 
 
 Call_002_49f5::
-    ld a, [$dff8]
+    ld a, [wSgbEnabled]
     or a
     ret z
 
@@ -1797,7 +1793,7 @@ jr_002_4a8f::
     ld [hl], a
     ld a, [$d95f]
     ld [$d960], a
-    call Call_000_0dc0
+    call InitGameplayHudAndWindow
     ld a, $06
     ld hl, $5334
     ld de, $8130
@@ -1822,16 +1818,16 @@ jr_002_4a8f::
     ld a, $e3
     ld [wLCDCShadow], a
     ld hl, $5787
-    ld de, $c800
+    ld de, wStageLayoutMap
     ld bc, $0168
     ld a, $06
     call BankedMemcpy_RLEFF
     ld hl, $9800
     ld bc, $1412
-    ld de, $c800
+    ld de, wStageLayoutMap
     call jr_000_05f7
     ld a, $03
-    ld [$d933], a
+    ld [wScreenPaletteId], a
     call InitSound
     ld a, $00
     call PlaySound_Queue3
@@ -1848,21 +1844,21 @@ jr_002_4b08::
     ld hl, $9823
     ld bc, $0c0d
     call Call_000_08b7
-    ld a, [$dff8]
+    ld a, [wSgbEnabled]
     or a
     jr z, jr_002_4b3b
 
-    ld hl, $c800
+    ld hl, wStageLayoutMap
     ld bc, $0010
     call bzero
     ld hl, $99a0
     ld bc, $0303
-    ld de, $c800
+    ld de, wStageLayoutMap
     call jr_000_05f7
 
 jr_002_4b3b::
     ld a, $14
-    ld [$d933], a
+    ld [wScreenPaletteId], a
 
 jr_002_4b40::
     ld hl, $78e0
@@ -1922,7 +1918,7 @@ jr_002_4ba2::
     ret z
 
 Jump_002_4bab::
-    ldh a, [$ffb9]
+    ldh a, [hPlayerHealth]
     or a
     ret nz
 
@@ -1956,7 +1952,7 @@ Jump_002_4bab::
     call Call_002_4d91
     ld a, [$d967]
     ld b, a
-    ldh a, [$ffb9]
+    ldh a, [hPlayerHealth]
     or a
     jr nz, jr_002_4c04
 
@@ -1997,7 +1993,7 @@ jr_002_4c24::
     cp $04
     jr z, jr_002_4c47
 
-    ldh a, [$ffb9]
+    ldh a, [hPlayerHealth]
     or a
     ret z
 
@@ -2017,15 +2013,15 @@ jr_002_4c24::
 
 jr_002_4c47::
     ld a, $3f
-    ld [$d95c], a
+    ld [wFadeTransitionTimer], a
     ld a, $04
     ld [$d93d], a
     ret
 
 
     call Call_002_4d91
-    call Call_000_07f8
-    ld a, [$d95c]
+    call UpdateTransitionFade
+    ld a, [wFadeTransitionTimer]
     or a
     ret nz
 
@@ -2075,17 +2071,17 @@ jr_002_4c47::
     ld [$d802], a
     ld [$d96d], a
     ld a, $40
-    ld [$d95c], a
+    ld [wFadeTransitionTimer], a
     ld a, $02
     ld [$d93d], a
-    ldh a, [$ffb9]
+    ldh a, [hPlayerHealth]
     cp $04
     ret nc
 
-    ldh a, [$ffb9]
+    ldh a, [hPlayerHealth]
     dec a
-    ldh [$ffb9], a
-    call Jump_000_0e6e
+    ldh [hPlayerHealth], a
+    call QueueHealthHudAfterDamage
     ret
 
 
@@ -2134,8 +2130,8 @@ jr_002_4d03::
     or a
     ret z
 
-    call Call_000_07f8
-    ld a, [$d95c]
+    call UpdateTransitionFade
+    ld a, [wFadeTransitionTimer]
     or a
     ret nz
 
@@ -2264,8 +2260,8 @@ jr_002_4dc1::
     ld b, $7f
     ld de, $d800
     call Call_000_0720
-    call Call_000_07cf
-    ld a, [$d95c]
+    call UpdateTransitionFadeWithLateSgbPalSet
+    ld a, [wFadeTransitionTimer]
     or a
     ret nz
 
@@ -2296,7 +2292,7 @@ jr_002_4e0c::
     ret z
 
     ld a, $3f
-    ld [$d95c], a
+    ld [wFadeTransitionTimer], a
     ld a, $05
     ld [$d93d], a
     xor a
@@ -2324,8 +2320,8 @@ jr_002_4e23::
     ld b, $7f
     ld de, $d800
     call Call_000_0720
-    call Call_000_07f8
-    ld a, [$d95c]
+    call UpdateTransitionFade
+    ld a, [wFadeTransitionTimer]
     or a
     ret nz
 
@@ -2501,8 +2497,8 @@ jr_002_4f58::
 
     ld a, [$d971]
     sub $0a
-    ldh [$ffbb], a
-    call Jump_000_0e02
+    ldh [hPlayerForm], a
+    call QueuePlayerFormHudIcon
     jr jr_002_4f6f
 
 jr_002_4f67::
@@ -2619,7 +2615,7 @@ jr_002_4fe5::
     ld [$d824], a
     ld [$d956], a
     ld a, $0c
-    ld [$d933], a
+    ld [wScreenPaletteId], a
     ld a, [$d81c]
     or a
     jr nz, jr_002_5065
@@ -2630,7 +2626,7 @@ jr_002_4fe5::
     call LoadMaskedGfx
     ld a, $04
     ld hl, $79da
-    ld de, $c800
+    ld de, wStageLayoutMap
     ld bc, $1000
     call BankedMemcpy_RLEFF
     xor a
@@ -2645,7 +2641,7 @@ jr_002_5065::
     ld b, $20
 
 jr_002_506f::
-    ld hl, $c800
+    ld hl, wStageLayoutMap
     ld de, $9800
 
 jr_002_5075::
@@ -3230,7 +3226,7 @@ jr_002_5456::
     ld a, [hl+]
     ld h, [hl]
     ld l, a
-    ld bc, $ffb0
+    ld bc, hPlayerXSubpixel
     add hl, bc
     bit 7, h
     jr z, jr_002_5467
@@ -3262,7 +3258,7 @@ jr_002_546f::
     ld a, [hl+]
     ld h, [hl]
     ld l, a
-    ld bc, $ffb8
+    ld bc, hBonusCounter
     add hl, bc
     ld a, h
     or a
@@ -3636,7 +3632,7 @@ jr_002_5663::
     inc de
     ld a, b
     and $7f
-    ld hl, $c800
+    ld hl, wStageLayoutMap
     rst $38
     ld b, $20
 
@@ -3963,10 +3959,10 @@ jr_002_5803::
     call LoadMaskedGfx
     ld a, $06
     ld hl, $6fe5
-    ld de, $c800
+    ld de, wStageLayoutMap
     ld bc, $0168
     call BankedMemcpy_RLEFF
-    ld de, $c800
+    ld de, wStageLayoutMap
     ld hl, $9800
     ld bc, $1412
     call jr_000_05f7
@@ -3977,7 +3973,7 @@ jr_002_5803::
     ld [$d93d], a
     ld [$d84b], a
     ld a, $0d
-    ld [$d933], a
+    ld [wScreenPaletteId], a
     ret
 
 
@@ -4000,7 +3996,7 @@ jr_002_589d::
     ld [wPaletteOBP0], a
     ld a, $e0
     ld [wPaletteOBP1], a
-    ld a, [$dff8]
+    ld a, [wSgbEnabled]
     or a
     jr z, jr_002_58bd
 
@@ -5074,10 +5070,10 @@ jr_002_5e70::
     call LoadMaskedGfx
     ld a, $06
     ld hl, $60db
-    ld de, $c800
+    ld de, wStageLayoutMap
     ld bc, $0168
     call BankedMemcpy_RLEFF
-    ld de, $c800
+    ld de, wStageLayoutMap
     ld hl, $9800
     ld bc, $1412
     call jr_000_05f7
@@ -5088,7 +5084,7 @@ jr_002_5e70::
     ld [$d93d], a
     ld [$d955], a
     ld a, $0e
-    ld [$d933], a
+    ld [wScreenPaletteId], a
     ret
 
 
@@ -6557,13 +6553,13 @@ jr_002_66e9::
     call InitSound
     ld a, $14
     call PlaySound_Queue3
-    ld a, [$dff8]
+    ld a, [wSgbEnabled]
     or a
     jr z, jr_002_68ae
 
     call DelayFramesOrCycles
     ld hl, $6947
-    call Call_000_03c8
+    call SendSgbPacket
     call DelayFramesOrCycles
     call Call_000_0709
     xor a
@@ -6621,8 +6617,8 @@ jr_002_68ae::
     add $15
     call Call_000_0710
     ld a, $05
-    ld [$d933], a
-    ld a, [$dff8]
+    ld [wScreenPaletteId], a
+    ld a, [wSgbEnabled]
     or a
     ret z
 
@@ -6630,7 +6626,7 @@ jr_002_68ae::
     call DelayFramesOrCycles
     call DisableLCD
     ld hl, $6957
-    call Call_000_03c8
+    call SendSgbPacket
     call DelayFramesOrCycles
     ret
 
@@ -6668,10 +6664,10 @@ jr_002_68ae::
 
     ld a, $06
     ld hl, $762c
-    ld de, $c800
+    ld de, wStageLayoutMap
     ld bc, $0168
     call BankedMemcpy_RLEFF
-    ld de, $c800
+    ld de, wStageLayoutMap
     ld hl, $9800
     ld bc, $1412
     call jr_000_05f7
@@ -6686,7 +6682,7 @@ jr_002_68ae::
     ld a, $08
     ld [$d981], a
     ld a, $06
-    ld [$d933], a
+    ld [wScreenPaletteId], a
     ret
 
 
@@ -6778,7 +6774,7 @@ jr_002_6a04::
     ld a, $d0
     ld [wPaletteOBP0], a
     ld a, $07
-    ld [$d933], a
+    ld [wScreenPaletteId], a
     ld a, $06
     ld hl, $641e
     ld de, $8000
@@ -6793,10 +6789,10 @@ jr_002_6a04::
     call LoadMaskedGfx
     ld a, $06
     ld hl, $6801
-    ld de, $c800
+    ld de, wStageLayoutMap
     ld bc, $0168
     call BankedMemcpy_RLEFF
-    ld de, $c800
+    ld de, wStageLayoutMap
     ld hl, $9800
     ld bc, $1412
     call jr_000_05f7
@@ -6847,7 +6843,7 @@ jr_002_6a90::
     and $0f
     jr nz, jr_002_6b07
 
-    ld a, [$dff8]
+    ld a, [wSgbEnabled]
     or a
     jr z, jr_002_6b07
 
@@ -6878,7 +6874,7 @@ jr_002_6ade::
     ld a, [hl+]
     ld [$d98b], a
     ld hl, $d985
-    call Call_000_03c8
+    call SendSgbPacket
 
 jr_002_6b07::
     ld a, [$d93a]
@@ -7107,7 +7103,7 @@ Call_002_6c5e::
     call PlaySound
 
 jr_002_6c7b::
-    ld bc, $ff20
+    ld bc, rNR41
     ld a, [$d97c]
     add c
     ld [$d97c], a
@@ -7139,7 +7135,7 @@ jr_002_6c7b::
 jr_002_6cb4::
     jp nc, Jump_002_6be7
 
-    ld bc, $ff20
+    ld bc, rNR41
     call Call_002_6c5e
     ld a, [$d93a]
     cp $b0
@@ -7157,7 +7153,7 @@ jr_002_6cb4::
 
 jr_002_6ccf::
     ld a, [de]
-    ldh a, [$ff30]
+    ldh a, [_AUD3WAVERAM]
     nop
     ld a, [hl+]
     db $10
@@ -7237,7 +7233,7 @@ jr_002_6d1b::
     call Call_000_08b7
     ld a, [$d979]
     ld c, $0e
-    call Call_000_05b4
+    call MultiplyBCByA8bit
     ld bc, $729c
     add hl, bc
     ld d, h
@@ -7271,7 +7267,7 @@ jr_002_6d1b::
 
 jr_002_6dae::
     add $08
-    ld [$d933], a
+    ld [wScreenPaletteId], a
     ret
 
 
@@ -7455,7 +7451,7 @@ jr_002_6e97::
 
 
 Call_002_6ead::
-    ld a, [$dff8]
+    ld a, [wSgbEnabled]
     or a
     ret z
 
@@ -7472,7 +7468,7 @@ Call_002_6ead::
     jr z, jr_002_6ee5
 
     ld hl, $727c
-    call Call_000_03c8
+    call SendSgbPacket
     ld hl, $724f
     call Call_000_04eb
     ld b, $0d
@@ -7511,7 +7507,7 @@ jr_002_6ee5::
     push af
     ld hl, $721d
     rst $20
-    call Call_000_03c8
+    call SendSgbPacket
     pop af
     ld hl, $7217
     rst $20
@@ -7684,7 +7680,7 @@ jr_002_6fef::
     ld [$d80c], a
     ld a, h
     ld [$d80d], a
-    ld a, [$dff8]
+    ld a, [wSgbEnabled]
     or a
     jr z, jr_002_7026
 
@@ -7712,7 +7708,7 @@ jr_002_7005::
     ld a, [hl+]
     ld [$d98e], a
     ld hl, $d985
-    call Call_000_03c8
+    call SendSgbPacket
 
 jr_002_7026::
     ld b, $03
@@ -7778,7 +7774,7 @@ Jump_002_7066::
     jr nz, jr_002_709c
 
     srl a
-    ldh [$ff9f], a
+    ldh [hStageIndex], a
     ld a, $02
     ldh [hGameState], a
     ldh [hNeedsReset], a
@@ -8161,14 +8157,14 @@ jr_002_70b9::
     call LoadMaskedGfx
     ld a, $06
     ld hl, $75fe
-    ld de, $c800
+    ld de, wStageLayoutMap
     ld bc, $00a0
     call BankedMemcpy_RLEFF
-    ld de, $c800
+    ld de, wStageLayoutMap
     ld hl, $9800
     ld bc, $100a
     call Call_000_0651
-    ld de, $c800
+    ld de, wStageLayoutMap
     ld hl, $9810
     ld bc, $100a
     call Call_000_0651
@@ -8178,7 +8174,7 @@ jr_002_70b9::
     ld bc, $1206
     call Call_000_08b7
     ld a, $19
-    ld [$d933], a
+    ld [wScreenPaletteId], a
     ld a, $4d
     ld [$d939], a
     ld de, $d8f4
@@ -8212,7 +8208,7 @@ jr_002_73db::
     jr nz, jr_002_73db
 
     ld a, $ff
-    ld [$d95c], a
+    ld [wFadeTransitionTimer], a
     ret
 
 
@@ -8225,7 +8221,7 @@ jr_002_73db::
     ld [wPaletteOBP0], a
     ld [wPaletteOBP1], a
     ld a, $0f
-    ld [$d933], a
+    ld [wScreenPaletteId], a
     xor a
     ld [$d955], a
     ld [$d956], a
@@ -8319,7 +8315,7 @@ jr_002_745d::
     xor a
     ld [$d805], a
     ld a, $40
-    ld [$d95c], a
+    ld [wFadeTransitionTimer], a
     ret
 
 
@@ -8555,7 +8551,7 @@ Call_002_75d7::
 
     ld a, [$d8fc]
     ld c, $18
-    call Call_000_05b4
+    call MultiplyBCByA8bit
     ld de, $7801
     add hl, de
     ld de, $d8fd
@@ -8611,8 +8607,8 @@ jr_002_763b::
     cp $59
     jr nz, jr_002_7653
 
-    call Call_000_07f8
-    ld a, [$d95c]
+    call UpdateTransitionFade
+    ld a, [wFadeTransitionTimer]
     or a
     ret nz
 
@@ -8892,8 +8888,8 @@ jr_002_77c7::
 
 
 Call_002_77d7::
-    call Call_000_07f8
-    ld a, [$d95c]
+    call UpdateTransitionFade
+    ld a, [wFadeTransitionTimer]
     or a
     ret nz
 

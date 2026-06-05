@@ -146,7 +146,7 @@ jr_003_4210::
     push hl
     call QueueTilemapByte
     pop hl
-    ld de, $c800
+    ld de, wStageLayoutMap
     ld a, [$d97f]
     add e
     ld e, a
@@ -196,7 +196,7 @@ jr_003_4278::
     ld b, $00
 
 jr_003_4286::
-    call Call_003_4359
+    call ReadMessageTileWithControlCodes
     cp $ff
     jr z, jr_003_42c2
 
@@ -291,7 +291,7 @@ jr_003_42f4::
     ld d, a
 
 jr_003_42fc::
-    call Call_003_4359
+    call ReadMessageTileWithControlCodes
     inc de
     cp $ff
     jr z, jr_003_4318
@@ -359,13 +359,13 @@ jr_003_4350::
     ret
 
 
-Call_003_4359::
+ReadMessageTileWithControlCodes::
     ld a, [de]
     cp $ff
-    jr z, jr_003_4379
+    jr z, ReadMessageByte_HandleTerminatorOrResume
 
     cp $fc
-    call z, Call_003_438a
+    call z, HandleMessageControlFC
     cp $fd
     ret nz
 
@@ -375,7 +375,7 @@ Call_003_4359::
     ldh [$ffcc], a
     push hl
     ld a, [$d971]
-    ld hl, $60db
+    ld hl, MessageDynamicCharTable_60db
     rst $20
     ld d, h
     ld e, l
@@ -384,7 +384,7 @@ Call_003_4359::
     ret
 
 
-jr_003_4379::
+ReadMessageByte_HandleTerminatorOrResume::
     ldh a, [$ffcc]
     or a
     ld a, [de]
@@ -400,8 +400,7 @@ jr_003_4379::
     ld a, [de]
     ret
 
-
-Call_003_438a::
+HandleMessageControlFC::
     push hl
     ld hl, $d972
     ld a, [hl+]
@@ -414,15 +413,15 @@ Call_003_438a::
     ld a, [de]
     ret
 
-
+DrawBank3MetaspriteById::
     ld a, d
-    ld hl, $4e19
+    ld hl, Bank3MetaspritePtrTable_4e19
     rst $20
     call jr_000_026c
     ret
 
 
-    ld a, [$dff8]
+    ld a, [wSgbEnabled]
     or a
     ret z
 
@@ -434,12 +433,12 @@ Call_003_438a::
     ld a, $51
     ld [de], a
     inc de
-    ld a, [$d933]
+    ld a, [wScreenPaletteId]
     add a
     ld b, a
     add a
     add b
-    ld hl, $4d5f
+    ld hl, SgbScreenPaletteTable_4d5f
     rst $38
     ld b, $04
 
@@ -479,9 +478,9 @@ jr_003_43e3::
 
     call DelayFramesOrCycles
     ld hl, $d985
-    call Call_000_03c8
+    call SendSgbPacket
     call DelayFramesOrCycles
-    ld a, [$d933]
+    ld a, [wScreenPaletteId]
     cp $18
     jr z, jr_003_43fe
 
@@ -519,7 +518,7 @@ jr_003_441b::
     ld [$dffc], a
 
 Call_003_4424::
-    ld de, $c800
+    ld de, wStageLayoutMap
     ld b, $03
     ld c, $01
 
@@ -596,7 +595,7 @@ jr_003_447b::
     cp $d0
     jr nz, jr_003_442b
 
-    ld hl, $d000
+    ld hl, _RAMBANK
     ld bc, $0080
     call bzero
     ld a, [$dffc]
@@ -678,7 +677,7 @@ jr_003_44cf::
     ld a, $d0
     ld [$cdf5], a
     ld de, $45f5
-    ld hl, $c800
+    ld hl, wStageLayoutMap
     ld bc, $0880
     call Call_000_0490
     ret
@@ -740,7 +739,7 @@ jr_003_44cf::
     ld bc, $01ff
     rlca
     ld [$0a09], sp
-    ld bc, $ff01
+    ld bc, rSB
     dec bc
     inc c
     dec c
@@ -758,7 +757,7 @@ jr_003_44cf::
 
     ld a, [de]
     dec de
-    ld bc, $ff01
+    ld bc, rSB
     ld bc, $0101
     ld bc, $0101
     ld bc, $1fff
@@ -878,7 +877,7 @@ jr_003_45d7::
     ldh [rOBP0], a
     ldh [rOBP1], a
     ld hl, $4744
-    call Call_000_03c8
+    call SendSgbPacket
     call DelayFramesOrCycles
     ld hl, $4774
     ld b, $08
@@ -886,7 +885,7 @@ jr_003_45d7::
 jr_003_461b::
     push hl
     push bc
-    call Call_000_03c8
+    call SendSgbPacket
     call DelayFramesOrCycles
     pop bc
     pop hl
@@ -895,7 +894,7 @@ jr_003_461b::
     dec b
     jr nz, jr_003_461b
 
-    ld hl, $c800
+    ld hl, wStageLayoutMap
     ld de, $3ca2
     ld b, $59
 
@@ -923,28 +922,28 @@ jr_003_4642::
     dec b
     jr nz, jr_003_4634
 
-    ld hl, $c800
+    ld hl, wStageLayoutMap
     ld bc, $0020
     call bzero
     ld de, $4714
-    ld hl, $c800
+    ld hl, wStageLayoutMap
     ld bc, $0b20
     call Call_000_0490
     call Call_003_4424
     ld hl, $4b5f
-    ld de, $c800
+    ld de, wStageLayoutMap
     ld bc, $0400
     call memcpy
     ld de, $4724
-    ld hl, $c800
+    ld hl, wStageLayoutMap
     ld bc, $1000
     call Call_000_0490
     ld a, $03
     ld hl, $47f4
-    ld de, $c800
+    ld de, wStageLayoutMap
     call LoadMaskedGfx
     ld de, $4734
-    ld hl, $c800
+    ld hl, wStageLayoutMap
     ld bc, $05fa
     call Call_000_0490
     xor a
@@ -954,7 +953,7 @@ jr_003_4642::
     ld a, $81
     ldh [rLCDC], a
     ld hl, $4754
-    call Call_000_03c8
+    call SendSgbPacket
     call DelayFramesOrCycles
     ret
 
@@ -1041,7 +1040,7 @@ Call_003_46f9::
     xor $1f
     ld c, a
     ldh a, [hTileStreamWritePos]
-    call Call_000_05b4
+    call MultiplyBCByA8bit
     ld c, $ff
 
 jr_003_4704::
@@ -1840,157 +1839,42 @@ jr_003_4bd6::
     nop
     nop
     nop
-    ld bc, $0101
-    ld bc, $0000
-    inc b
-    dec b
-    ld b, $07
-    ld bc, $2801
-    add hl, hl
-    ld a, [hl+]
-    dec hl
-    ld [bc], a
-    inc bc
-    ld [$0a09], sp
-    dec bc
-    inc bc
-    ld [$0000], sp
-    nop
-    nop
-    nop
-    nop
-    db $10
-    ld de, $1312
-    dec b
-    inc bc
-    inc d
-    dec d
-    ld d, $17
-    ld b, $03
-    inc l
-    dec l
-    ld l, $00
-    inc b
-    inc bc
-    jr jr_003_4daa
+SgbScreenPaletteTable_4d5f::
+    ; 6-byte records indexed by wScreenPaletteId.	
+    ; id  pal0 pal1 pal2 pal3 ctl  extra
+    db $01, $01, $01, $01, $00, $00 ; $00
+    db $04, $05, $06, $07, $01, $01 ; $01
+    db $28, $29, $2a, $2b, $02, $03 ; $02
+    db $08, $09, $0a, $0b, $03, $08 ; $03
+    db $00, $00, $00, $00, $00, $00 ; $04
+    db $10, $11, $12, $13, $05, $03 ; $05
+    db $14, $15, $16, $17, $06, $03 ; $06
+    db $2c, $2d, $2e, $00, $04, $03 ; $07
+    db $18, $19, $1a, $1b, $07, $03 ; $08
+    db $1c, $1d, $1e, $1f, $08, $03 ; $09
+    db $20, $21, $22, $23, $0a, $03 ; $0a
+    db $24, $25, $26, $27, $0c, $03 ; $0b
+    db $34, $34, $34, $34, $00, $08 ; $0c
+    db $0c, $0d, $0e, $0f, $0e, $08 ; $0d
+    db $35, $35, $35, $35, $00, $08 ; $0e
+    db $00, $00, $00, $00, $00, $05 ; $0f
+    db $18, $19, $1a, $1b, $07, $03 ; $10
+    db $1c, $1d, $1e, $1f, $09, $03 ; $11
+    db $20, $21, $22, $02, $0b, $03 ; $12
+    db $24, $25, $26, $27, $0d, $03 ; $13
+    db $03, $03, $03, $03, $0f, $08 ; $14
+    db $03, $03, $03, $03, $00, $00 ; $15
+    db $01, $01, $01, $01, $0f, $00 ; $16
+    db $3c, $3d, $3e, $3f, $0e, $00 ; $17
+    db $03, $03, $03, $03, $00, $07 ; $18
+    db $3c, $3d, $3e, $3f, $10, $04 ; $19
+    db $38, $38, $38, $38, $00, $09 ; $1a
+    db $39, $39, $39, $39, $00, $07 ; $1b
+    db $3a, $3a, $3a, $3a, $00, $06 ; $1c
+    db $3b, $3b, $3b, $3b, $00, $0a ; $1d
+    db $00, $00, $00, $00, $00, $02 ; $1e
 
-    ld a, [de]
-    dec de
-    rlca
-    inc bc
-    inc e
-    dec e
-    ld e, $1f
-    ld [$2003], sp
-    ld hl, $2322
-    ld a, [bc]
-    inc bc
-    inc h
-    dec h
-    ld h, $27
-    inc c
-    inc bc
-    inc [hl]
-    inc [hl]
-    inc [hl]
-
-jr_003_4daa::
-    inc [hl]
-    nop
-    ld [$0d0c], sp
-    ld c, $0f
-    ld c, $08
-    dec [hl]
-    dec [hl]
-    dec [hl]
-    dec [hl]
-    nop
-    ld [$0000], sp
-    nop
-    nop
-    nop
-    dec b
-    jr jr_003_4dda
-
-    ld a, [de]
-    dec de
-    rlca
-    inc bc
-    inc e
-    dec e
-    ld e, $1f
-    add hl, bc
-    inc bc
-    jr nz, @+$23
-
-    ld [hl+], a
-    ld [bc], a
-    dec bc
-    inc bc
-    inc h
-    dec h
-    ld h, $27
-    dec c
-    inc bc
-    inc bc
-    inc bc
-    inc bc
-
-jr_003_4dda::
-    inc bc
-    rrca
-    ld [$0303], sp
-    inc bc
-    inc bc
-    nop
-    nop
-    ld bc, $0101
-    ld bc, $000f
-    inc a
-    dec a
-    ld a, $3f
-    ld c, $00
-    inc bc
-    inc bc
-    inc bc
-    inc bc
-    nop
-    rlca
-    inc a
-    dec a
-    ld a, $3f
-    db $10
-    inc b
-    jr c, @+$3a
-
-    jr c, @+$3a
-
-    nop
-    add hl, bc
-    add hl, sp
-    add hl, sp
-    add hl, sp
-    add hl, sp
-    nop
-    rlca
-    ld a, [hl-]
-    ld a, [hl-]
-    ld a, [hl-]
-    ld a, [hl-]
-    nop
-    ld b, $3b
-    dec sp
-    dec sp
-    dec sp
-    nop
-    ld a, [bc]
-    nop
-    nop
-    nop
-    nop
-    nop
-    ld [bc], a
-
+Bank3MetaspritePtrTable_4e19::
     db $9f, $70, $d4, $70, $09, $71, $3e, $71, $77, $71, $b4, $71, $e1, $71, $1e, $72
     db $5b, $72, $8c, $72, $c1, $72, $f6, $72, $27, $73, $48, $73, $53, $6f, $74, $6f
     db $95, $6f, $b6, $6f, $d3, $6f, $f0, $6f, $09, $70, $22, $70, $3b, $70, $54, $70
@@ -3675,6 +3559,7 @@ jr_003_5ec7::
     sbc c
     rst $30
     ld e, [hl]
+MessageDynamicCharTable_60db::	
     rlca
     ld e, a
 

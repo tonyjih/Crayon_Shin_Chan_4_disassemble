@@ -5,7 +5,10 @@
 
 SECTION "ROM Bank $000", ROM0[$0]
 
-
+DEF wScreenPaletteId EQU $d933
+DEF wFadeTransitionTimer EQU $d95c
+DEF wMsgSubstitutionId     EQU $d971
+DEF wSgbEnabled EQU $dff8
 ; Hardware / memory aliases identified during cleanup pass 1.
 ; Keep these conservative: names below are based on direct register usage in bank 0.
 DEF hJoyHeld       EQU $ff8a
@@ -402,7 +405,7 @@ Jump_000_007e::
     rst $38
     rst $38
 
-Call_000_0080::
+CompareU16AtHLToDE::
     ld a, [hl+]
     ld h, [hl]
     ld l, a
@@ -416,7 +419,6 @@ Call_000_0080::
 
 
 FarCallFromBankTable:: ; Banked table call. H=bank, L=entry-ish index; calls pointer read from bank:$4000+L+1.
-Jump_000_0089:: ; Compatibility alias for older notes/diffs.
     ld a, [$4000]
     push af
     ld a, h
@@ -561,12 +563,12 @@ Jump_000_0150::
     ld [$dffd], a
     ld [$dffc], a
     xor a
-    ld [$dff8], a
+    ld [wSgbEnabled], a
     call DetectSgbOrInitSgb
     jr nc, jr_000_017c
 
     ld a, $ff
-    ld [$dff8], a
+    ld [wSgbEnabled], a
     ld hl, $030a
     call FarCallFromBankTable
 
@@ -575,7 +577,7 @@ jr_000_017c::
     xor a
     ldh [rIE], a
     ld sp, $dff0
-    ld hl, $ff80
+    ld hl, _HRAM
     ld bc, $007f
     call bzero
     call DisableLCD
@@ -587,13 +589,12 @@ jr_000_017c::
     call InitSound
 
 ReinitCurrentState:: ; Rebuild current state with LCD off. Repeats if init sets hNeedsReset.
-jr_000_01a1:: ; Compatibility alias.
     di
     call DisableLCD
     xor a
-    ld [$d933], a
+    ld [wScreenPaletteId], a
     call Call_000_079b
-    ld hl, $fe00
+    ld hl, _OAMRAM
     ld bc, $00a0
     call bzero
     ld hl, wOamBuffer
@@ -613,7 +614,6 @@ jr_000_01a1:: ; Compatibility alias.
     ei
 
 MainWaitForStateReset:: ; Main thread idles here; VBlank update sets hNeedsReset to request a state rebuild.
-jr_000_01d6:: ; Compatibility alias.
     ldh a, [hNeedsReset]
     or a
     jr z, MainWaitForStateReset
@@ -631,7 +631,7 @@ VBlankHandler:: ; Main VBlank handler: DMA/OAM, VRAM queue, palettes, joypad, so
 
     inc a
     ldh [hVBlankBusy], a
-    call $ff80
+    call _HRAM
     ld de, wVramQueue
     call jr_000_0347
     call ApplyScrollRegs
@@ -833,7 +833,7 @@ jr_000_02d3::
 
 
 DisableLCD::
-    ld hl, $ff40
+    ld hl, rLCDC
     bit 7, [hl]
     ret z
 
@@ -1077,7 +1077,7 @@ jr_000_03c1::
     ret
 
 
-Call_000_03c8::
+SendSgbPacket::
     ld a, [hl]
     and $07
     ret z
@@ -1128,7 +1128,7 @@ jr_000_03e4::
     jr jr_000_03cf
 
 SgbDelayIfEnabled::
-    ld a, [$dff8]
+    ld a, [wSgbEnabled]
     or a
     ret z
 
@@ -1148,9 +1148,8 @@ jr_000_0406::
 
 
 DetectSgbOrInitSgb:: ; SGB detection/init handshake. Carry set means SGB path was detected.
-Call_000_040f:: ; Compatibility alias.
-    ld hl, $0480
-    call Call_000_03c8
+    ld hl, SgbPacket_MltReq2P_0480
+    call SendSgbPacket
     call DelayFramesOrCycles
     ldh a, [rP1]
     and $03
@@ -1185,22 +1184,23 @@ Call_000_040f:: ; Compatibility alias.
     cp $03
     jr nz, jr_000_0465
 
-    ld hl, $0470
-    call Call_000_03c8
+    ld hl, SgbPacket_MltReq1P_0470
+    call SendSgbPacket
     call DelayFramesOrCycles
     sub a
     ret
 
 
 jr_000_0465::
-    ld hl, $0470
-    call Call_000_03c8
+    ld hl, SgbPacket_MltReq1P_0470
+    call SendSgbPacket
     call DelayFramesOrCycles
     scf
     ret
 
-
+SgbPacket_MltReq1P_0470::
     db $89, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+SgbPacket_MltReq2P_0480::
     db $89, $01, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 
 Call_000_0490::
@@ -1236,7 +1236,7 @@ jr_000_04ac::
     ldh [rLCDC], a
     call DelayFramesOrCycles
     pop hl
-    call Call_000_03c8
+    call SendSgbPacket
     call DelayFramesOrCycles
 
 Jump_000_04c3::
@@ -1322,7 +1322,6 @@ QueueTilemapByte:: ; Queue one tile byte A at tilemap address HL.
 
 
 QueueBankedVramTile8000:: ; Queue one 16-byte tile to VRAM $8000 + E*16. D=bank, HL=source base, C=source tile index.
-Jump_000_0522:: ; Compatibility alias.
     ld a, [$4000]
     push af
     ld a, d
@@ -1334,7 +1333,6 @@ Jump_000_0522:: ; Compatibility alias.
 
 
 QueueBankedVramTile9000:: ; Queue one 16-byte BG tile to VRAM $9000 + E*16. D=bank, HL=source base, C=source tile index.
-Jump_000_0532:: ; Compatibility alias.
     ld a, [$4000]
     push af
     ld a, d
@@ -1442,7 +1440,6 @@ jr_000_059d::
 
 
 SplitDecimalTensOnes:: ; Convert A to decimal tens/ones in $ffca/hTileStreamWritePos for HUD drawing.
-Call_000_05a2:: ; Compatibility alias.
     ld de, $0000
 
 jr_000_05a5::
@@ -1462,7 +1459,6 @@ jr_000_05ad::
 
 
 MultiplyBCByA8bit:: ; HL = BC * A, 8-bit shift/add multiply helper.
-Call_000_05b4:: ; Compatibility alias.
     push de
     ld hl, $0000
     ld b, l
@@ -1940,8 +1936,8 @@ jr_000_07bf::
     ret
 
 
-Call_000_07cf::
-    ld a, [$d95c]
+UpdateTransitionFadeWithLateSgbPalSet::
+    ld a, [wFadeTransitionTimer]
     or a
     ret z
 
@@ -1949,51 +1945,51 @@ Call_000_07cf::
     ld a, $40
     sub b
     ld b, a
-    ld a, [$d95c]
+    ld a, [wFadeTransitionTimer]
     cp $03
     jr nz, jr_000_0803
 
-    ld hl, $087d
-    ld a, [$d933]
+    ld hl, SgbPacket_PalSetState14_087d
+    ld a, [wScreenPaletteId]
     cp $14
     jr z, jr_000_07f1
 
     cp $18
     jr nz, jr_000_0803
 
-    ld hl, $088d
+    ld hl, SgbPacket_PalSetState18_088d
 
 jr_000_07f1::
     push bc
-    call Call_000_03c8
+    call SendSgbPacket
     pop bc
     jr jr_000_0803
 
-Call_000_07f8::
-    ld a, [$d95c]
+UpdateTransitionFade::
+    ld a, [wFadeTransitionTimer]
     or a
     ret z
 
     cp $3e
-    call z, Call_000_0864
+    call z, SendSgbTransitionPalSet
     ld b, a
 
 jr_000_0803::
-    ld a, [$d95c]
+    ld a, [wFadeTransitionTimer]
     dec a
-    ld [$d95c], a
+    ld [wFadeTransitionTimer], a
     ld a, b
     cp $40
     ret nc
 
-    ld a, [$dff8]
+    ld a, [wSgbEnabled]
     or a
     jr nz, jr_000_0839
 
     ld a, b
     swap a
     and $0f
-    ld hl, $089d
+    ld hl, DmgFadePaletteTable_089d
     rst $38
     ld a, b
     and $0f
@@ -2017,7 +2013,7 @@ jr_000_0829::
 
 
 jr_000_0839::
-    ld hl, $08a7
+    ld hl, SgbFadePaletteTable_08a7
     ld a, b
     srl a
     srl a
@@ -2027,11 +2023,11 @@ jr_000_0839::
     ld [wPaletteBGP], a
     ld [wPaletteOBP0], a
     ld [wPaletteOBP1], a
-    ld a, [$d933]
+    ld a, [wScreenPaletteId]
     cp $18
     ret nz
 
-    ld hl, $08af
+    ld hl, SgbFadePaletteObp0State18_08af
     ld a, b
 
 Call_000_0858::
@@ -2044,36 +2040,34 @@ Call_000_0858::
     ret
 
 
-Call_000_0864::
+SendSgbTransitionPalSet::
     push af
-    ld hl, $086d
-    call Call_000_03c8
+    ld hl, SgbPacket_PalSetDefault_086d
+    call SendSgbPacket
     pop af
     ret
 
+SgbPacket_PalSetDefault_086d::
+    db $51, $03, $00, $03, $00, $03, $00, $03
+	db $00, $00, $00, $00, $00, $00, $00, $00
 
-    db $51, $03, $00, $03, $00, $03, $00, $03, $00, $00, $00, $00, $00, $00, $00, $00
-    db $51, $30, $00, $31, $00, $32, $00, $33, $00, $00, $00, $00, $00, $00, $00, $00
-    db $51, $39, $00, $39, $00, $39, $00, $39, $00, $00, $00, $00, $00, $00, $00, $00
-    db $00, $00, $40, $90, $e4, $00, $00, $40, $90, $d0
+SgbPacket_PalSetState14_087d::
+    db $51, $30, $00, $31, $00, $32, $00, $33 
+	db $00, $00, $00, $00, $00, $00, $00, $00
 
-    nop
-    nop
-    ld b, b
-    ld d, b
-    sub h
-    sub h
-    db $e4
-    db $e4
-    nop
-    nop
-    ld b, b
-    ld b, b
-    sub b
-    sub b
-    ret nc
+SgbPacket_PalSetState18_088d::
+    db $51, $39, $00, $39, $00, $39, $00, $39 
+	db $00, $00, $00, $00, $00, $00, $00, $00
+	
+DmgFadePaletteTable_089d::
+    db $00, $00, $40, $90, $e4 
+	db $00, $00, $40, $90, $d0
 
-    ret nc
+SgbFadePaletteTable_08a7::
+    db $00, $00, $40, $50, $94, $94, $e4, $e4
+
+SgbFadePaletteObp0State18_08af::
+    db $00, $00, $40, $40, $90, $90, $d0, $d0
 
 Call_000_08b7::
     push bc
@@ -2151,7 +2145,6 @@ UpdateCurrentGameState:: ; Per-frame state dispatcher, called from VBlank after 
 ;   4 -> bank 2 screen/update path
 ;   5 -> bank 2 screen/update path
 ;   6 -> pause-ish handler: wait for START, then return to gameplay
-Call_000_090b:: ; Compatibility alias.
     ldh a, [hGameState]
     rst $00
 
@@ -2210,12 +2203,12 @@ Call_000_090b:: ; Compatibility alias.
 
 Call_000_0963::
     call InitSound
-    ldh a, [$ffbb]
+    ldh a, [hPlayerForm]
     cp $04
     ld a, $0c
     jp z, PlaySound_Queue3
 
-    ldh a, [$ff9f]
+    ldh a, [hStageIndex]
     cp $03
     ld a, $04
     jp c, PlaySound_Queue3
@@ -2240,8 +2233,7 @@ InitCurrentGameState:: ; State init dispatcher, called with LCD off from ReinitC
 ;   4 -> bank 2 screen init
 ;   5 -> bank 2 screen init
 ;   6 -> no init
-;   7 -> bank 1 gameplay init variant, then set $d933=$18
-Call_000_0986:: ; Compatibility alias.
+;   7 -> bank 1 gameplay init variant, then set wScreenPaletteId=$18
     ldh a, [hGameState]
     rst $00
 
@@ -2285,7 +2277,7 @@ Call_000_0986:: ; Compatibility alias.
     ld hl, $0102
     call FarCallFromBankTable
     ld a, $18
-    ld [$d933], a
+    ld [wScreenPaletteId], a
     ret
 
 
@@ -2294,8 +2286,8 @@ Jump_000_09c9::
     or a
     jr z, jr_000_09e0
 
-    call Call_000_07cf
-    ld a, [$d95c]
+    call UpdateTransitionFadeWithLateSgbPalSet
+    ld a, [wFadeTransitionTimer]
     or a
     ret nz
 
@@ -2307,13 +2299,13 @@ Jump_000_09c9::
 
 
 jr_000_09e0::
-    call Call_000_07f8
-    ld a, [$d95c]
+    call UpdateTransitionFade
+    ld a, [wFadeTransitionTimer]
     or a
     ret nz
 
     ld a, $40
-    ld [$d95c], a
+    ld [wFadeTransitionTimer], a
     ld a, $01
     ld [$c0bd], a
     ldh [hNeedsReset], a
@@ -2321,7 +2313,7 @@ jr_000_09e0::
 
 
     ld a, $04
-    ldh [$ff9f], a
+    ldh [hStageIndex], a
     ld hl, $0102
     call FarCallFromBankTable
     ld hl, $0106
@@ -2333,17 +2325,16 @@ jr_000_0a05::
     ld b, a
     ldh a, [hSCY]
     ld c, a
-    ldh a, [$ffb1]
+    ldh a, [hPlayerX]
     sub b
     ldh [hPlayerScreenX], a
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     sub c
     ldh [hPlayerScreenY], a
     ret
 
 
 UpdateCameraAndStreamMap:: ; Gameplay camera/scroll update and BG map streaming.
-Call_000_0a16:: ; Compatibility alias.
     ldh a, [hCollisionFlag]
     cp $ff
     jr z, jr_000_0a05
@@ -2358,11 +2349,11 @@ Call_000_0a16:: ; Compatibility alias.
     ldh a, [hSCYHigh]
     adc $00
     ld b, a
-    ld hl, $ffae
+    ld hl, hPlayerY
     ld a, [hl+]
     ld h, [hl]
     ld l, a
-    call Call_000_0b5b
+    call UpdateCameraScrollY
     ldh a, [hPlayerScreenX]
     ld c, a
     ldh a, [hSCX]
@@ -2371,11 +2362,11 @@ Call_000_0a16:: ; Compatibility alias.
     ldh a, [hSCXHigh]
     adc $00
     ld b, a
-    ld hl, $ffb1
+    ld hl, hPlayerX
     ld a, [hl+]
     ld h, [hl]
     ld l, a
-    call Call_000_0a80
+    call UpdateCameraScrollX
     ldh a, [hCollisionFlag]
     rlca
     ret nc
@@ -2386,10 +2377,10 @@ Call_000_0a16:: ; Compatibility alias.
     ld [$2100], a
     ldh a, [hCollisionFlag]
     bit 6, a
-    call nz, Call_000_0ca1
+    call nz, StreamBgColumnIfNeeded
     ldh a, [hCollisionFlag]
     bit 5, a
-    call nz, Call_000_0c00
+    call nz, StreamBgRowIfNeeded
     pop af
     ld [$2100], a
     ret
@@ -2404,29 +2395,28 @@ Jump_000_0a69::
     ld e, a
     ldh a, [hSCYHigh]
     ld d, a
-    call Call_000_0c10
+    call QueueBgRowForWorldY
     pop af
     ld [$2100], a
     ret
 
 
 UpdateCameraScrollX:: ; Adjust SCX toward player X, clamp to min/max, and request column streaming.
-Call_000_0a80:: ; Compatibility alias.
     ld a, l
     sub c
     ld l, a
     ld a, h
     sbc b
     ld h, a
-    jp c, Jump_000_0b0f
+    jp c, UpdateCameraScrollX_Left
 
     ld a, l
     or a
     ret z
 
-    ld a, [$c409]
+    ld a, [wCameraScreenRightThreshold]
     ld b, a
-    ld a, [$c40c]
+    ld a, [wCameraScrollStepX]
     ld c, a
     ldh a, [hPlayerScreenX]
     add l
@@ -2448,7 +2438,7 @@ Call_000_0a80:: ; Compatibility alias.
 
 jr_000_0aa9::
     ld b, a
-    ld hl, $c418
+    ld hl, wCameraScrollXMaxLo
     ld a, [hl+]
     ld d, [hl]
     ld e, a
@@ -2460,36 +2450,36 @@ jr_000_0aa9::
     adc $00
     ld [hl], a
     dec hl
-    call Call_000_0080
+    call CompareU16AtHLToDE
     jr nc, jr_000_0ac6
 
-    ld a, [$c409]
+    ld a, [wCameraScreenRightThreshold]
     ldh [hPlayerScreenX], a
     ret
 
 
 jr_000_0ac6::
-    ld hl, $c418
+    ld hl, wCameraScrollXMaxLo
     ld a, [hl+]
     ldh [hSCX], a
     ld a, [hl-]
     ldh [hSCXHigh], a
-    ldh a, [$ffb1]
+    ldh a, [hPlayerX]
     sub [hl]
     ldh [hPlayerScreenX], a
-    ldh a, [$ff9f]
+    ldh a, [hStageIndex]
     cp $02
     jr z, jr_000_0b07
 
     cp $01
     jr nz, jr_000_0ae4
 
-    ld a, [$c0b4]
+    ld a, [wStage1CameraProfileIndex]
     cp $02
     ret nz
 
 jr_000_0ae4::
-    ldh a, [$ffaa]
+    ldh a, [hPlayerState]
     or a
     ret nz
 
@@ -2501,8 +2491,8 @@ jr_000_0ae8::
     ld a, $ff
     ldh [hCollisionFlag], a
     ld a, $ff
-    ld [$c0b5], a
-    ld hl, $c410
+    ld [wStageBossCountdown], a
+    ld hl, wPlayerXMinLo
     ldh a, [hSCX]
     ld [hl+], a
     ldh a, [hSCXHigh]
@@ -2513,7 +2503,7 @@ jr_000_0ae8::
 
 
 jr_000_0b07::
-    ld a, [$c0b3]
+    ld a, [wStage2TransitionStep]
     cp $06
     jr z, jr_000_0ae8
 
@@ -2521,16 +2511,15 @@ jr_000_0b07::
 
 
 UpdateCameraScrollX_Left:: ; Camera/player moved left of deadzone; scroll toward wCameraScrollXMin.
-Jump_000_0b0f:: ; Compatibility alias.
     ld a, l
     cpl
     inc a
     ld l, a
     ret z
 
-    ld a, [$c408]
+    ld a, [wCameraScreenLeftThreshold]
     ld b, a
-    ld a, [$c40c]
+    ld a, [wCameraScrollStepX]
     ld c, a
     ldh a, [hPlayerScreenX]
     sub l
@@ -2550,7 +2539,7 @@ Jump_000_0b0f:: ; Compatibility alias.
 
 jr_000_0b30::
     ld b, a
-    ld hl, $c40e
+    ld hl, wCameraScrollXMinLo
     ld a, [hl+]
     ld d, [hl]
     ld e, a
@@ -2564,10 +2553,10 @@ jr_000_0b30::
     jr c, jr_000_0b4f
 
     dec hl
-    call Call_000_0080
+    call CompareU16AtHLToDE
     jr c, jr_000_0b4f
 
-    ld a, [$c408]
+    ld a, [wCameraScreenLeftThreshold]
     ldh [hPlayerScreenX], a
     ret
 
@@ -2577,14 +2566,13 @@ jr_000_0b4f::
     ldh [hSCX], a
     ld a, d
     ldh [hSCXHigh], a
-    ldh a, [$ffb1]
+    ldh a, [hPlayerX]
     sub e
     ldh [hPlayerScreenX], a
     ret
 
 
 UpdateCameraScrollY:: ; Adjust SCY toward player Y, clamp to 0/Y max, and request row streaming.
-Call_000_0b5b:: ; Compatibility alias.
     ld a, l
     sub c
     ret z
@@ -2593,11 +2581,11 @@ Call_000_0b5b:: ; Compatibility alias.
     ld a, h
     sbc b
     ld h, a
-    jp c, Jump_000_0bb3
+    jp c, UpdateCameraScrollY_Up
 
-    ld a, [$c40b]
+    ld a, [wCameraScreenBottomThreshold]
     ld b, a
-    ld a, [$c40d]
+    ld a, [wCameraScrollStepY]
     ld c, a
     ldh a, [hPlayerScreenY]
     add l
@@ -2607,7 +2595,7 @@ Call_000_0b5b:: ; Compatibility alias.
 
     ret z
 
-    ldh a, [$ff9f]
+    ldh a, [hStageIndex]
     cp $02
     ret z
 
@@ -2623,7 +2611,7 @@ Call_000_0b5b:: ; Compatibility alias.
 
 jr_000_0b87::
     ld b, a
-    ld hl, $c41a
+    ld hl, wCameraScrollYMaxLo
     ld a, [hl+]
     ld d, [hl]
     ld e, a
@@ -2635,31 +2623,30 @@ jr_000_0b87::
     adc $00
     ld [hl], a
     dec hl
-    call Call_000_0080
+    call CompareU16AtHLToDE
     jr nc, jr_000_0ba4
 
-    ld a, [$c40b]
+    ld a, [wCameraScreenBottomThreshold]
     ldh [hPlayerScreenY], a
     ret
 
 
 jr_000_0ba4::
-    ld hl, $c41a
+    ld hl, wCameraScrollYMaxLo
     ld a, [hl+]
     ldh [hSCY], a
     ld a, [hl-]
     ldh [hSCYHigh], a
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     sub [hl]
     ldh [hPlayerScreenY], a
     ret
 
 
 UpdateCameraScrollY_Up:: ; Camera/player moved above deadzone; scroll upward unless stage 2 overrides Y scrolling.
-Jump_000_0bb3:: ; Compatibility alias.
-    ld a, [$c40a]
+    ld a, [wCameraScreenTopThreshold]
     ld b, a
-    ld a, [$c40d]
+    ld a, [wCameraScrollStepY]
     ld c, a
     ld a, l
     cpl
@@ -2671,7 +2658,7 @@ Jump_000_0bb3:: ; Compatibility alias.
     cp b
     ret nc
 
-    ldh a, [$ff9f]
+    ldh a, [hStageIndex]
     cp $02
     ret z
 
@@ -2696,7 +2683,7 @@ jr_000_0bd8::
     ld [hl], a
     jr c, jr_000_0beb
 
-    ld a, [$c40a]
+    ld a, [wCameraScreenTopThreshold]
     ldh [hPlayerScreenY], a
     ret
 
@@ -2705,7 +2692,7 @@ jr_000_0beb::
     xor a
     ldh [hSCY], a
     ldh [hSCYHigh], a
-    ldh a, [$ffae]
+    ldh a, [hPlayerY]
     ldh [hPlayerScreenY], a
     ret
 
@@ -2721,8 +2708,7 @@ jr_000_0bf5::
 
 
 StreamBgRowIfNeeded:: ; If vertical scroll crossed an 8px boundary, queue one BG row update.
-Call_000_0c00:: ; Compatibility alias.
-    call Call_000_0d73
+    call GetStreamRowWorldY
     ldh a, [hStreamedRowY]
     and $f8
     ld b, a
@@ -2734,7 +2720,6 @@ Call_000_0c00:: ; Compatibility alias.
     ldh [hStreamedRowY], a
 
 QueueBgRowForWorldY:: ; Queue one 32-tile BG row for world Y in DE using current SCX.
-Call_000_0c10:: ; Compatibility alias.
     ld a, e
     and $f8
     ld l, a
@@ -2779,7 +2764,7 @@ Call_000_0c10:: ; Compatibility alias.
 
 jr_000_0c51::
     push de
-    call Jump_000_0d36
+    call GetStageLayoutTileAtWorldPixel
     pop de
 
 jr_000_0c56::
@@ -2848,8 +2833,7 @@ jr_000_0c96::
 
 
 StreamBgColumnIfNeeded:: ; If horizontal scroll crossed an 8px boundary, queue one BG column update.
-Call_000_0ca1:: ; Compatibility alias.
-    call Call_000_0d5b
+    call GetStreamColumnWorldX
     ldh a, [hStreamedColumnX]
     and $f8
     ld d, a
@@ -2861,7 +2845,6 @@ Call_000_0ca1:: ; Compatibility alias.
     ldh [hStreamedColumnX], a
 
 QueueBgColumnForWorldX:: ; Queue one 32-tile BG column for world X in BC using current SCY.
-Call_000_0cb1:: ; Compatibility alias.
     call GetVramQueueTail
     ld a, $98
     ld [hl+], a
@@ -2900,7 +2883,7 @@ Call_000_0cb1:: ; Compatibility alias.
 
 jr_000_0cea::
     push de
-    call Jump_000_0d36
+    call GetStageLayoutTileAtWorldPixel
     pop de
 
 jr_000_0cef::
@@ -2965,7 +2948,6 @@ jr_000_0d21::
 
 GetStageLayoutTileAtWorldPixel:: ; Return layout metatile id for world pixel coords BC=X, DE=Y.
                               ; Uses virtual page map at wStageLayoutPageHighTable: row*14+col -> physical page id.
-Jump_000_0d36:: ; Compatibility alias.
     ld a, d
     or a
     jr z, jr_000_0d40
@@ -3001,7 +2983,6 @@ jr_000_0d40::
 
 
 GetStreamColumnWorldX:: ; Return world X in BC for the column to stream, based on hCollisionFlag direction.
-Call_000_0d5b:: ; Compatibility alias.
     ldh a, [hCollisionFlag]
     bit 0, a
     jr nz, jr_000_0d6c
@@ -3024,7 +3005,6 @@ jr_000_0d6c::
 
 
 GetStreamRowWorldY:: ; Return world Y in DE for the row to stream, based on hCollisionFlag direction.
-Call_000_0d73:: ; Compatibility alias.
     ldh a, [hCollisionFlag]
     bit 1, a
     jr z, jr_000_0d84
@@ -3047,7 +3027,6 @@ jr_000_0d84::
 
 
 RedrawVisibleBgMapColumns:: ; Rebuild visible BG map columns from current SCX/SCY, used after scroll/init.
-Jump_000_0d8b:: ; Compatibility alias.
     ld a, [$4000]
     push af
     ld a, $04
@@ -3066,7 +3045,7 @@ jr_000_0d9b::
     ld a, $00
     adc b
     ld b, a
-    call Call_000_0cb1
+    call QueueBgColumnForWorldX
     ld de, wVramQueue
     call jr_000_0347
     xor a
@@ -3084,7 +3063,6 @@ jr_000_0d9b::
 
 
 InitGameplayHudAndWindow:: ; Initialize gameplay window/HUD; WY=$80 means bottom 16px is status area.
-Call_000_0dc0:: ; Compatibility alias.
     call Call_000_0307
     ld a, $07
     ldh [hWX], a
@@ -3092,18 +3070,18 @@ Call_000_0dc0:: ; Compatibility alias.
     ld a, $80
     ldh [hWY], a
     ldh [rWY], a
-    call Call_000_0e27
+    call QueueInitialHealthHud
     ld a, $df
     ld [$9c0b], a
     ld a, $e0
     ld [$9c2b], a
-    ld de, $0dfe
+    ld de, HucIconLife
     ld hl, $9c0f
     ld bc, $0202
     call jr_000_05f7
-    call Jump_000_0e02
-    call Jump_000_0e85
-    call Jump_000_0e8c
+    call QueuePlayerFormHudIcon
+    call QueueBonusCounterHudDigits
+    call QueueLivesHudDigits
     ld de, wVramQueue
     call jr_000_0347
     xor a
@@ -3111,33 +3089,34 @@ Call_000_0dc0:: ; Compatibility alias.
     ldh [hVramQueuePos], a
     ret
 
-
+HucIconLife:
     db $e5, $e6, $e7, $e8
 
 QueuePlayerFormHudIcon:: ; Queue 2x2 HUD icon for current player form.
-Jump_000_0e02:: ; Compatibility alias.
-    ldh a, [$ffbb]
+    ldh a, [hPlayerForm]
     add a
     add a
-    ld de, $0e13
+    ld de, HudIconTileID
     rst $30
     ld hl, $9c08
     ld bc, $0202
     jp QueueTilemapRect
 
-
-    db $fa, $fb, $fc, $fd, $d0, $d1, $d2, $d3, $dc, $dd, $d2, $de, $d8, $d9, $da, $db
-    db $d4, $d5, $d6, $d7
+HudIconTileID:
+    db $fa, $fb, $fc, $fd ;Empty
+	db $d0, $d1, $d2, $d3 ;Flying squirrel
+	db $dc, $dd, $d2, $de ;Cockroach
+	db $d8, $d9, $da, $db ;Chicken
+    db $d4, $d5, $d6, $d7 ;Action Kamen
 
 QueueInitialHealthHud:: ; Draw initial health hearts during HUD init.
-Call_000_0e27:: ; Compatibility alias.
     ldh a, [hPlayerHealth]
     ldh [hTileStreamWritePos], a
     or a
     ret z
 
 jr_000_0e2d::
-    call Call_000_0e38
+    call QueueOneHealthHeartHudTile
     ldh a, [hTileStreamWritePos]
     dec a
     ldh [hTileStreamWritePos], a
@@ -3147,56 +3126,54 @@ jr_000_0e2d::
 
 
 QueueOneHealthHeartHudTile:: ; Queue one 2x2 heart tile group at the HUD position for health index.
-Call_000_0e38:: ; Compatibility alias.
     ldh a, [hTileStreamWritePos]
     dec a
-    ld hl, $0e60
+    ld hl, HudHealthIconPos
     rst $20
-    ld de, $0e66
+    ld de, HealthIconTileID
     ld bc, $0202
     jp jr_000_05f7
 
 
 QueueHealthHudAfterGain:: ; Clear pending health-gain flag and redraw gained heart.
-Jump_000_0e48:: ; Compatibility alias.
     ld a, [wPendingVramUpdates]
     res 0, a
     ld [wPendingVramUpdates], a
     ldh a, [hPlayerHealth]
     dec a
-    ld hl, $0e60
+    ld hl, HudHealthIconPos
     rst $20
-    ld de, $0e66
+    ld de, HudIconHealth
     ld bc, $0202
     jp QueueTilemapRect
 
-
-    db $01, $9c, $03, $9c, $05, $9c, $e1, $e2, $e3, $e4, $00, $00, $00, $00
+HudHealthIconPos::
+    dw $9c01, $9c03, $9c05
+HudIconHealth::	
+	db $e1, $e2, $e3, $e4
+HudIconHealthEmpty::	
+	db $00, $00, $00, $00
 
 QueueHealthHudAfterDamage:: ; Clear pending health-loss flag and redraw current health heart state.
-Jump_000_0e6e:: ; Compatibility alias.
     ld a, [wPendingVramUpdates]
     res 1, a
     ld [wPendingVramUpdates], a
 
 QueueCurrentHealthHudTile:: ; Queue current health heart tile group.
-Call_000_0e76:: ; Compatibility alias.
     ldh a, [hPlayerHealth]
-    ld hl, $0e60
+    ld hl, HudHealthIconPos
     rst $20
-    ld de, $0e6a
+    ld de, HudIconHealthEmpty
     ld bc, $0202
     jp QueueTilemapRect
 
 
 QueueBonusCounterHudDigits:: ; Queue two-digit bonus counter at HUD $9c2c.
-Jump_000_0e85:: ; Compatibility alias.
     ld bc, $9c2c
     ldh a, [hBonusCounter]
     jr jr_000_0e91
 
 QueueLivesHudDigits:: ; Queue two-digit lives counter at HUD $9c31.
-Jump_000_0e8c:: ; Compatibility alias.
     ld bc, $9c31
     ldh a, [hPlayerLives]
 
@@ -3211,13 +3188,13 @@ jr_000_0e91::
     ld [hl+], a
     ld a, d
     push hl
-    call Call_000_05a2
+    call SplitDecimalTensOnes
     pop hl
     ldh a, [$ffca]
-    call Call_000_0eb7
+    call HudDigitToTileId
     ld [hl+], a
     ldh a, [hTileStreamWritePos]
-    call Call_000_0eb7
+    call HudDigitToTileId
     ld [hl+], a
     ld [hl], $00
     ldh a, [hVramQueuePos]
@@ -3227,13 +3204,11 @@ jr_000_0e91::
 
 
 HudDigitToTileId:: ; Convert decimal digit 0-9 to HUD tile id $f0-$f9.
-Call_000_0eb7:: ; Compatibility alias.
     add $f0
     ret
 
 
 AddBonusCounter:: ; Add A to hBonusCounter; 30 bonus points awards an extra life.
-Jump_000_0eba:: ; Compatibility alias.
     ld hl, hBonusCounter
     add [hl]
     cp $1e
@@ -3241,7 +3216,7 @@ Jump_000_0eba:: ; Compatibility alias.
 
 jr_000_0ec2::
     ldh [hBonusCounter], a
-    jp Jump_000_0e85
+    jp QueueBonusCounterHudDigits
 
 
 jr_000_0ec7::
@@ -3258,7 +3233,6 @@ jr_000_0ec7::
     jr jr_000_0ec2
 
 AddPlayerHealth:: ; Add A to hPlayerHealth, capped at 3.
-Jump_000_0ed7:: ; Compatibility alias.
     ld a, [wPendingVramUpdates]
     set 0, a
     ld [wPendingVramUpdates], a
@@ -3275,7 +3249,6 @@ jr_000_0ee8::
 
 
 SubtractPlayerHealthAndMarkHudDirty:: ; Decrement health and request health HUD redraw.
-Call_000_0eeb:: ; Compatibility alias.
     ld a, [wPendingVramUpdates]
     set 1, a
     ld [wPendingVramUpdates], a
@@ -3286,7 +3259,6 @@ Call_000_0eeb:: ; Compatibility alias.
 
 
 AddExtraLife:: ; Award one extra life and update the HUD.
-jr_000_0ef9:: ; Compatibility alias.
     ld a, $46
     call PlaySound_Queue1
 
@@ -3295,10 +3267,10 @@ Call_000_0efe::
     inc [hl]
     ld a, [hl]
     cp $64
-    jp c, Jump_000_0e8c
+    jp c, QueueLivesHudDigits
 
     dec [hl]
-    jp Jump_000_0e8c
+    jp QueueLivesHudDigits
 
 
     ret
@@ -3622,7 +3594,7 @@ jr_000_10bf::
     jr nz, jr_000_10bf
 
 jr_000_10c3::
-    ld de, $ff30
+    ld de, _AUD3WAVERAM
     ld b, $10
 
 jr_000_10c8::
@@ -4881,7 +4853,7 @@ jr_000_1689::
     ld [bc], a
     ld a, [$dffe]
     and $04
-    ld hl, $ff9f
+    ld hl, hStageIndex
     add [hl]
     ld [$c0d7], a
     ld a, $01
@@ -4929,7 +4901,7 @@ Call_000_1741::
 Call_000_1754::
     ld hl, $98ed
     ld de, $19ef
-    ldh a, [$ffbe]
+    ldh a, [hPlayerFlags]
     or a
     jp nz, Jump_000_068e
 
@@ -4948,7 +4920,7 @@ Call_000_176e::
     ld de, $0005
     call QueueVramFill
     ld hl, $1785
-    ldh a, [$ffbb]
+    ldh a, [hPlayerForm]
     rst $20
     ld d, h
     ld e, l
@@ -4985,7 +4957,7 @@ Call_000_17a1::
     call QueueVramFill_SetHighBit
     ld a, [$c0d8]
     ld c, $40
-    call Call_000_05b4
+    call MultiplyBCByA8bit
     ld bc, $9863
     add hl, bc
     ld a, $0e
@@ -5045,15 +5017,15 @@ jr_000_17ed::
     ldh [hNeedsReset], a
     ld hl, $0800
     ld a, l
-    ld [$c0a6], a
+    ld [wFormTimerLo], a
     ld a, h
-    ld [$c0a7], a
+    ld [wFormTimerHi], a
     xor a
     ld [$dffe], a
     ld a, [$c0d7]
     ld b, a
     and $03
-    ldh [$ff9f], a
+    ldh [hStageIndex], a
     bit 2, b
     ret z
 
@@ -5096,9 +5068,9 @@ jr_000_1825::
     ret
 
 
-    ldh a, [$ffbe]
+    ldh a, [hPlayerFlags]
     xor $ff
-    ldh [$ffbe], a
+    ldh [hPlayerFlags], a
     ret
 
 
@@ -5112,13 +5084,13 @@ jr_000_1825::
     ret
 
 
-    ldh a, [$ffbb]
+    ldh a, [hPlayerForm]
     sub $01
-    ldh [$ffbb], a
+    ldh [hPlayerForm], a
     ret nc
 
     ld a, $04
-    ldh [$ffbb], a
+    ldh [hPlayerForm], a
     ret
 
 
@@ -5198,14 +5170,14 @@ jr_000_18a4::
     ret
 
 
-    ldh a, [$ffbb]
+    ldh a, [hPlayerForm]
     inc a
-    ldh [$ffbb], a
+    ldh [hPlayerForm], a
     cp $05
     ret c
 
     xor a
-    ldh [$ffbb], a
+    ldh [hPlayerForm], a
     ret
 
 
@@ -5339,7 +5311,7 @@ LoadDebugMenu::
     call Call_000_3f6a
     xor a
     ldh [hSCY], a
-    ldh [$ffbe], a
+    ldh [hPlayerFlags], a
     ld a, $06
     ld hl, $4bc0
     ld de, $9000
@@ -5413,7 +5385,7 @@ LoadDebugMenu::
     nop
     ld a, [hl+]
     ld de, $11ff
-    ld de, $ff13
+    ld de, rNR13
     nop
     nop
     nop
@@ -7030,7 +7002,7 @@ jr_000_3d51::
 
     ld bc, $0202
     ld bc, $0d00
-    ldh a, [$ff80]
+    ldh a, [_HRAM]
     add b
     ld c, a
     ld [hl], b
@@ -7507,7 +7479,7 @@ Call_000_3f6a::
     ld a, $05
     call BankedMemcpy
     ld a, $04
-    ld [$d933], a
+    ld [wScreenPaletteId], a
     ret
 
 

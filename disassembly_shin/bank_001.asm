@@ -19,8 +19,28 @@ DEF wStageInteractionSubstate EQU $c0b1
 DEF wStageInteractionCounter  EQU $c0b2
 DEF wStage2TransitionStep     EQU $c0b3
 DEF wStage1CameraProfileIndex EQU $c0b4
+DEF wStageBossCountdown      EQU $c0b5
+DEF wStageBossStateFlag      EQU $c0b6
+DEF STAGE_BOSS_NORMAL        EQU $00
+DEF STAGE_BOSS_ACTIVE        EQU $01 ; countdown/tile-event phase, disables fall death boundary
+DEF STAGE_BOSS_CLEAR         EQU $ff ; event/boss defeated, disables right clamp and some body collisions
 DEF wStage1ResumeProfileFlag  EQU $c0bc
 
+DEF PlayerState_NormalGround          EQU $00
+DEF PlayerState_Duck                  EQU $01
+DEF PlayerState_JumpFall              EQU $02
+DEF PlayerState_GroundedSnap          EQU $03
+DEF PlayerState_GroundedActionCheck   EQU $04; grounded/action check state
+DEF PlayerState_ClimbOrVerticalMove   EQU $05; climb/vertical move state
+DEF PlayerState_HurtKnockback         EQU $06
+DEF PlayerState_FlyingSquirrelAction  EQU $07
+DEF PlayerState_ChickenAction         EQU $08
+DEF PlayerState_ActionKamenAction     EQU $09
+DEF PlayerState_DamageBounce          EQU $0a; damage bounce state
+DEF PlayerState_DeathFall             EQU $0b
+DEF PlayerState_StageTransition0C     EQU $0c; scripted stage transition state
+DEF PlayerState_StageInteraction0D    EQU $0d; special/stage interaction state
+	
     db $01, $bf, $44, $09, $40
 
     db $ed
@@ -28,9 +48,9 @@ DEF wStage1ResumeProfileFlag  EQU $c0bc
     adc e
     ld a, e
 
-    ldh a, [$ff9f]
+    ldh a, [hStageIndex]
     add $1a
-    ld [$d933], a
+    ld [wScreenPaletteId], a
     xor a
     ldh [hNeedsReset], a
     call Call_000_0963
@@ -54,35 +74,35 @@ InitGameplaySubstateFreshStart::
 InitGameplaySubstateResetStageFlags::
     xor a
     ld [$c0a8], a
-    ld [$c0b4], a
+    ld [wStage1CameraProfileIndex], a
 
 InitGameplaySubstateCommon::
     call Call_001_41a9
     call Call_001_417f
     call InitObjectSpawnList
-    call Call_001_43c8
+    call InitStageStartAndCheckpointState
     xor a
     ld [wPendingVramUpdates], a
-    jp Jump_000_0d8b
+    jp RedrawVisibleBgMapColumns
 
 
 Call_001_4047::
     call Call_001_425e
     call Call_001_420f
     ld hl, StageCollisionAttrPtrs
-    ldh a, [$ff9f]
+    ldh a, [hStageIndex]
     rst $20
-    ld de, $c700
+    ld de, wStageTileAttrTable
     ld bc, $0100
     ld a, $04
     call BankedMemcpy
     ld hl, StageMetatileQuadPtrs
-    ldh a, [$ff9f]
+    ldh a, [hStageIndex]
     rst $20
     ld a, l
-    ldh [$ffa2], a
+    ldh [hStageMetatileTableLo], a
     ld a, h
-    ldh [$ffa3], a
+    ldh [hStageMetatileTableHi], a
     ld a, $48
     ld [wCameraDeadzoneLeft], a
     ld a, $58
@@ -107,9 +127,9 @@ Call_001_4047::
     ld [wCameraScrollXMinLo], a
     ld [wCameraScrollXMinHi], a
     ld hl, StageInitBlockPtrs
-    ldh a, [$ff9f]
+    ldh a, [hStageIndex]
     rst $20
-    ld de, $c414
+    ld de, wPlayerXMaxLo
     ld b, $4e
     jp jr_000_0362
 
@@ -190,7 +210,7 @@ Call_001_417f::
     ldh [hPlayerState], a
     ldh [hPlayerDirection], a
     ldh [hPlayerActionLock], a
-    call Call_000_0dc0
+    call InitGameplayHudAndWindow
     call Call_001_4047
     ld a, $8c
     ldh [hOamMaxY], a
@@ -252,7 +272,7 @@ jr_001_41c7::
     ldh [hCollisionFlag], a
     ldh [hStreamedColumnX], a
     ldh [hStreamedRowY], a
-    ld hl, $c0b1
+    ld hl, wStageInteractionSubstate
     ld [hl+], a
     ld [hl+], a
     ld [hl+], a
@@ -274,23 +294,23 @@ Call_001_420f::
     jr z, jr_001_4225
 
     ld hl, StageResumeLayoutPatchOffsets
-    ldh a, [$ff9f]
+    ldh a, [hStageIndex]
     rst $20
-    ld bc, $c800
+    ld bc, wStageLayoutMap
     add hl, bc
     ld [hl], $05
     ret
 
 
 jr_001_4225::
-    ldh a, [$ff9f]
+    ldh a, [hStageIndex]
     cp $03
     jr z, jr_001_4250
 
     ld hl, StageLayoutRlePtrs
-    ldh a, [$ff9f]
+    ldh a, [hStageIndex]
     rst $20
-    ld de, $c800
+    ld de, wStageLayoutMap
     ld bc, $0e00
     ld a, $04
     jp BankedMemcpy_RLEFF
@@ -312,7 +332,7 @@ StageResumeLayoutPatchOffsets:: ; Offsets into $c800 patched to metatile $05 whe
 
 jr_001_4250::
     ld hl, Stage3LayoutRle_Bank4
-    ld de, $c800
+    ld de, wStageLayoutMap
     ld bc, $1100
     ld a, $04
     jp BankedMemcpy_RLEFF
@@ -331,7 +351,7 @@ Call_001_425e::
     call BankedMemcpy
     call Call_001_42fd
     ld hl, $4286
-    ldh a, [$ff9f]
+    ldh a, [hStageIndex]
     rst $20
     jp jr_000_06ea
 
@@ -477,7 +497,7 @@ jr_001_4387::
 
 jr_001_43a9::
     ld hl, $4395
-    ldh a, [$ff9f]
+    ldh a, [hStageIndex]
     rst $20
 
 jr_001_43af::
@@ -501,15 +521,14 @@ jr_001_43af::
 
 
 InitStageStartAndCheckpointState:: ; Select player start/camera profile and replay stage-specific checkpoint graphics.
-Call_001_43c8:: ; Compatibility alias.
-    ldh a, [$ff9f]
+    ldh a, [hStageIndex]
     cp $01
     jr z, InitStage1CameraProfile
 
     cp $02
     call z, Stage2ApplyCheckpointGraphics
     ld hl, $439f
-    ldh a, [$ff9f]
+    ldh a, [hStageIndex]
     rst $20
     ld a, [$c0a8]
     or a
@@ -518,7 +537,6 @@ Call_001_43c8:: ; Compatibility alias.
     jr jr_001_43af
 
 Stage2ApplyCheckpointGraphics:: ; If resuming Stage 2, replay checkpoint graphics and set transition step to 3.
-Call_001_43e1:: ; Compatibility alias.
     ld a, [$c0a8]
     or a
     ret z
@@ -539,7 +557,6 @@ Call_001_43e1:: ; Compatibility alias.
 
 
 InitStage1CameraProfile::
-jr_001_4408:: ; Compatibility alias.
     ld a, [wStage1ResumeProfileFlag]
     or a
     jr nz, Stage1LoadSelectedCameraProfile
@@ -552,7 +569,6 @@ jr_001_4408:: ; Compatibility alias.
     ld [wStage1CameraProfileIndex], a
 
 Stage1LoadSelectedCameraProfile::
-jr_001_4418:: ; Compatibility alias.
     xor a
     ld [wStage1ResumeProfileFlag], a
     ld hl, Stage1CameraProfile0
@@ -572,7 +588,6 @@ jr_001_4418:: ; Compatibility alias.
     ld hl, Stage1CameraProfileAfterCheckpoint2
 
 Stage1ApplyCameraProfile:: ; Copy a 16-byte Stage 1 camera/start profile into runtime camera/player registers.
-jr_001_443c:: ; Compatibility alias.
     ld a, [hl+]
     ld [wCameraScrollXMinLo], a
     ld a, [hl+]
@@ -609,7 +624,6 @@ jr_001_443c:: ; Compatibility alias.
 
 
 Stage1UseResumeCameraProfile::
-jr_001_4475:: ; Compatibility alias.
     ld a, $01
     ld [wStage1CameraProfileIndex], a
     ld hl, Stage1CameraProfileResume
@@ -685,10 +699,10 @@ UpdateGameplayState:: ; Main gameplay frame update for hGameState=2.
     jp nz, Jump_001_44fe
 
     bit 1, a
-    jp nz, Jump_000_0e6e
+    jp nz, QueueHealthHudAfterDamage
 
     bit 0, a
-    jp nz, Jump_000_0e48
+    jp nz, QueueHealthHudAfterGain
 
     ret
 
@@ -743,7 +757,6 @@ jr_001_4544::
 
 
 DrawPlayerSprite:: ; Draw player metasprite using hPlayerForm/hPlayerAnimId and screen position.
-Call_001_454b:: ; Compatibility alias.
     ld hl, $c0ab
     ld a, [hl]
     or a
@@ -759,10 +772,10 @@ jr_001_4558::
     ldh a, [hPlayerDirection]
     and $01
     ld b, a
-    ldh a, [$ffa9]
+    ldh a, [hPlayerObjectFlags]
     and $fe
     or b
-    ldh [$ffa9], a
+    ldh [hPlayerObjectFlags], a
     ldh [hSpriteFlags], a
     ld hl, $1a19
     ldh a, [hPlayerForm]
@@ -777,7 +790,6 @@ jr_001_4558::
 
 
 UpdateSpecialActors:: ; Update short-lived gameplay actor slots/effects.
-Call_001_4578:: ; Compatibility alias.
     ld bc, wPlayerSpecialActor0
     call UpdatePlayerSpecialActor0
     ld bc, wPlayerSpecialActor1
@@ -815,20 +827,19 @@ jr_001_45a6::
     ret z
 
     bit 4, b
-    jp z, Jump_000_0e02
+    jp z, QueuePlayerFormHudIcon
 
     ldh a, [hPlayerForm]
     push af
     xor a
     ldh [hPlayerForm], a
-    call Jump_000_0e02
+    call QueuePlayerFormHudIcon
     pop af
     ldh [hPlayerForm], a
     ret
 
 
 UpdatePlayerSpecialActor0:: ; Dispatch/update wPlayerSpecialActor0 by projectile type.
-Call_001_45bf:: ; Compatibility alias.
     ld a, [bc]
     or a
     ret z
@@ -842,7 +853,6 @@ Call_001_45bf:: ; Compatibility alias.
     dw UpdateActionKamenProjectile ; 03: Action Kamen projectile
 
 UpdatePlayerSpecialActor1:: ; Update wPlayerSpecialActor1, used by paired flying-squirrel projectiles.
-Call_001_45cb:: ; Compatibility alias.
     ld a, [bc]
     or a
     ret z
@@ -877,7 +887,6 @@ jr_001_45f1::
 
 
 AdvanceSpecialActorTimer:: ; Advance special actor Y/timer field before movement.
-Call_001_45f9:: ; Compatibility alias.
     ld hl, $0006
     add hl, bc
     ld a, [hl]
@@ -888,11 +897,9 @@ Call_001_45f9:: ; Compatibility alias.
     ld [hl], a
 
 MoveSpecialActorX_0180:: ; Move a projectile horizontally at speed $0180.
-Jump_001_4605:: ; Compatibility alias.
     ld de, $0180
 
 MoveSpecialActorX:: ; Move a projectile horizontally by DE, honoring direction bit.
-Jump_001_4608:: ; Compatibility alias.
     ld h, b
     ld l, c
     inc hl
@@ -904,7 +911,6 @@ Jump_001_4608:: ; Compatibility alias.
 
 
 CheckSpecialActorTileCollision:: ; Check projectile tile collision against the stage collision map.
-Call_001_4614:: ; Compatibility alias.
     push bc
     ld hl, $0006
     add hl, bc
@@ -917,10 +923,10 @@ Call_001_4614:: ; Compatibility alias.
     ld b, [hl]
     ld c, a
     push de
-    call Jump_000_0d36
+    call GetStageLayoutTileAtWorldPixel
     ld e, a
     ld d, $00
-    ld hl, $c700
+    ld hl, wStageTileAttrTable
     add hl, de
     ld a, [hl]
     pop de
@@ -945,7 +951,6 @@ jr_001_463f::
 
 
 SetSpecialActorHitbox4x4:: ; Store a 4x4 special actor hitbox at current projected screen position.
-Call_001_4641:: ; Compatibility alias.
     ld a, $04
     ldh [hActionHitboxHalfWidth], a
     ld a, $04
@@ -988,7 +993,6 @@ jr_001_4677::
 
 
 SetChickenProjectileHitbox:: ; Set chicken projectile hitbox using common 4x4 screen position storage.
-Call_001_467f:: ; Compatibility alias.
     jp SetProjectileHitbox4x4AtScreenPos
 
 
@@ -1023,7 +1027,6 @@ jr_001_46a5::
 
 
 UpdateChickenProjectileMotion:: ; Update chicken projectile motion; after startup it checks upcoming tiles.
-Call_001_46ad:: ; Compatibility alias.
     ld hl, $c0c9
     ld a, [hl]
     cp $20
@@ -1040,7 +1043,6 @@ jr_001_46b9::
 
 
 AdvanceChickenProjectileY:: ; Advance chicken projectile Y position by one pixel/substep.
-Call_001_46c2:: ; Compatibility alias.
     ld hl, $0006
     add hl, bc
     ld a, [hl]
@@ -1053,7 +1055,6 @@ Call_001_46c2:: ; Compatibility alias.
 
 
 CheckChickenProjectileNextTile:: ; Check passability ahead of the chicken projectile.
-Call_001_46cf:: ; Compatibility alias.
     push bc
     ld hl, $0006
     add hl, bc
@@ -1070,10 +1071,10 @@ Call_001_46cf:: ; Compatibility alias.
     ld a, [hl+]
     ld b, [hl]
     ld c, a
-    call Jump_000_0d36
+    call GetStageLayoutTileAtWorldPixel
     ld e, a
     ld d, $00
-    ld hl, $c700
+    ld hl, wStageTileAttrTable
     add hl, de
     ld a, [hl]
     pop de
@@ -1085,7 +1086,6 @@ Call_001_46cf:: ; Compatibility alias.
 
 
 CheckProjectileTilePassability:: ; Dispatch tile-specific projectile passability logic.
-Call_001_46f6:: ; Compatibility alias.
     and $3f
     rst $00
 
@@ -1187,14 +1187,12 @@ label_001_47b4::
     jr jr_001_47a2
 
 SetProjectileHitbox4x4AtScreenPos:: ; Use $ffd3/$ffd4 as a 4x4 projectile hitbox position.
-Jump_001_47ba:: ; Compatibility alias.
     ld a, $04
     ldh [hActionHitboxHalfWidth], a
     ld a, $04
     ldh [hActionHitboxHalfHeight], a
 
 StoreProjectileHitboxAtScreenPos:: ; Store projected projectile hitbox position from $ffd3/$ffd4.
-Jump_001_47c2:: ; Compatibility alias.
     ldh a, [$ffd3]
     ld [wPlayerActionHitbox0X], a
     ldh a, [$ffd4]
@@ -1239,7 +1237,6 @@ jr_001_47f9::
 
 
 SetActionKamenProjectileHitbox8x8:: ; Use $ffd3/$ffd4 as an 8x8 Action Kamen projectile hitbox.
-Call_001_4801:: ; Compatibility alias.
     ld a, $08
     ldh [hActionHitboxHalfWidth], a
     ld a, $08
@@ -1248,13 +1245,11 @@ Call_001_4801:: ; Compatibility alias.
 
 
 MoveActionKamenProjectile:: ; Move Action Kamen projectile horizontally at speed $0300.
-Call_001_480c:: ; Compatibility alias.
     ld de, $0300
     jp MoveSpecialActorX
 
 
 UpdateObjectSlotByType:: ; Dispatch an object slot behavior by type.
-Call_001_4812:: ; Compatibility alias.
     ld b, h
     ld c, l
     and OBJECT_TYPE_MASK
@@ -1314,8 +1309,7 @@ UpdateObjNone00:: ; Object type $00 / fallback: no-op object behavior.
 ;   $1a-$1e/$22: platform/stage-interaction objects; $21 is stage-specific event/controller.
 ;   $00-$04/$23-$24: stage-specific event/enemy/boss-like objects (exact names pending).
 UpdateObjectsAndSpawnQueue:: ; Update active object slots and spawn queued objects near camera.
-Call_001_4868:: ; Compatibility alias.
-    ld a, [$c0b5]
+    ld a, [wStageBossCountdown]
     or a
     jr z, jr_001_4871
 
@@ -1350,14 +1344,12 @@ jr_001_488a::
     jr TrySpawnNextObject
 
 ResetSpawnCursor::
-jr_001_4895:: ; Compatibility alias.
     xor a
     ld [wSpawnCursor], a
     ret
 
 
 TrySpawnNextObject:: ; Try to spawn the next eligible stage object near the camera.
-jr_001_489a:: ; Compatibility alias.
     ld hl, wSpawnCursor
     ld a, [hl]
     ld c, a
@@ -1373,7 +1365,7 @@ jr_001_489a:: ; Compatibility alias.
     ret nz
 
     ld hl, StageSpawnListPtrs
-    ldh a, [$ff9f]
+    ldh a, [hStageIndex]
     rst $20
     add hl, bc
     add hl, bc
@@ -1446,7 +1438,6 @@ jr_001_48fe::
     ld [hl], SPAWN_STATE_BLOCKED
 
 FindFreeObjectSlot:: ; Find an empty object slot, extending the list if needed.
-Jump_001_4904:: ; Compatibility alias.
     ld hl, wObjectSlots
 
 jr_001_4907::
@@ -1496,7 +1487,6 @@ jr_001_492e::
 
 
 SpawnObjectIntoSlot:: ; Copy a 5-byte spawn record into the selected object slot.
-jr_001_4939:: ; Compatibility alias.
     ld d, h
     ld e, l
     ld a, c
@@ -1608,7 +1598,6 @@ InitSpawnedObjectNoInit:: ; Default spawned-object init: no extra setup.
 
 
 SetObjectFacingPlayerOnSpawn:: ; Set initial object facing flag based on player/object X position.
-Call_001_49d9:: ; Compatibility alias.
     ld hl, $0003
     add hl, bc
     ldh a, [hPlayerX]
@@ -1840,7 +1829,6 @@ InitSpawnedObjectParamBlockD:: ; Initialize params from block D and clear event 
     db $08
 
 InitObjectSpawnList:: ; Initialize object slots and per-stage spawn list state.
-Call_001_4af5:: ; Compatibility alias.
     xor a
     ld [wSpawnCursor], a
     call InitSpawnStateList
@@ -1852,9 +1840,8 @@ Call_001_4af5:: ; Compatibility alias.
 
 
 InitSpawnStateList:: ; Initialize one-byte state entries for stage spawn records.
-Call_001_4b09:: ; Compatibility alias.
     ld hl, StageSpawnListPtrs
-    ldh a, [$ff9f]
+    ldh a, [hStageIndex]
     rst $20
     ld d, h
     ld e, l
@@ -1884,7 +1871,6 @@ StageSpawnListPtrs::
     dw Stage4SpawnList
 
 ProjectObjectToScreenAndCull:: ; Convert object world position to screen position and set offscreen flag.
-Call_001_4b2e:: ; Compatibility alias.
     xor a
     ldh [$ffd5], a
     ldh a, [hSCXHigh]
@@ -1963,7 +1949,6 @@ jr_001_4b7f::
 
 
 CullObjectAndReleaseSpawn:: ; Despawn object when far offscreen and mark its spawn record ready again.
-Call_001_4b84:: ; Compatibility alias.
     call ProjectObjectToScreenAndCull
     ldh a, [hTileStreamWritePos]
     ld d, a
@@ -1995,7 +1980,7 @@ jr_001_4ba1::
     bit 7, d
     jr nz, jr_001_4bbb
 
-    ld hl, $ff00
+    ld hl, rP1
     add hl, de
     bit 7, h
     jr z, jr_001_4bbd
@@ -2026,7 +2011,6 @@ jr_001_4bbd::
 
 
 MoveObjectXBySpeed:: ; Load object speed from +8/+9, then apply signed X movement.
-Jump_001_4bd4:: ; Compatibility alias.
     ld hl, $0008
     add hl, bc
     ld a, [hl+]
@@ -2036,7 +2020,6 @@ Jump_001_4bd4:: ; Compatibility alias.
     add hl, bc
 
 ApplyObjectXVelocity:: ; Apply DE as signed fixed-point X velocity based on object facing flag.
-Call_001_4bdf:: ; Compatibility alias.
     ld a, [bc]
     rlca
     jr c, jr_001_4bee
@@ -2068,7 +2051,6 @@ jr_001_4bee::
 
 
 AdvanceObjectAnimCounter:: ; Advance a two-byte animation/timer counter with D/E limits.
-Call_001_4bf9:: ; Compatibility alias.
     inc [hl]
     ld a, [hl]
     cp d
@@ -2087,7 +2069,7 @@ Call_001_4bf9:: ; Compatibility alias.
 
 Jump_001_4c06::
     ld hl, $1b25
-    ldh a, [$ff9f]
+    ldh a, [hStageIndex]
     rst $20
     ldh a, [$ffd6]
     rst $20
@@ -2260,7 +2242,7 @@ jr_001_4d02::
 
 
 jr_001_4d04::
-    ldh a, [$ff9f]
+    ldh a, [hStageIndex]
     cp $03
     jr z, jr_001_4d14
 
@@ -2292,7 +2274,7 @@ jr_001_4d21::
 
 Call_001_4d25::
     dec a
-    ld [$c0b5], a
+    ld [wStageBossCountdown], a
     jr z, jr_001_4d51
 
     ld b, a
@@ -2303,23 +2285,23 @@ Call_001_4d25::
     jr nc, jr_001_4d04
 
     ld a, $01
-    ld [$c0b6], a
+    ld [wStageBossStateFlag], a
     ld hl, $4d49
-    ldh a, [$ff9f]
+    ldh a, [hStageIndex]
     rst $20
     ld c, b
     ld a, $70
     add b
     ld e, a
     ld d, $05
-    jp Jump_000_0522
+    jp QueueBankedVramTile8000
 
 
     db $61, $65, $21, $68, $f1, $6a, $81, $6e
 
 jr_001_4d51::
     ld hl, $4d60
-    ldh a, [$ff9f]
+    ldh a, [hStageIndex]
     rst $20
     ld a, l
     ldh [$ffc5], a
@@ -2350,7 +2332,7 @@ Call_001_4d7c::
     ld [wSavedPlayerState], a
     ld a, $0a
     ldh [hPlayerState], a
-    ld hl, $ffbe
+    ld hl, hPlayerFlags
     set 3, [hl]
     ld a, $1e
     ldh [hPlayerAnimTimer], a
@@ -2382,13 +2364,12 @@ Call_001_4dbb::
 
 
 EnterPlayerHurtState:: ; Enter hurt/knockback-style player state; clears action actors and starts recovery timer.
-Jump_001_4dc7:: ; Compatibility alias.
     ld a, $06
     ldh [hPlayerState], a
     xor a
     ldh [$ffc1], a
-    ldh [$ffa7], a
-    ldh [$ffa8], a
+    ldh [hPlayerAnimCounter], a
+    ldh [hPlayerAnimFrame], a
     ldh [hPlayerActionLock], a
     ld [wPlayerSpecialActor0], a
     ld [wPlayerSpecialActor1], a
@@ -2413,7 +2394,7 @@ Jump_001_4dc7:: ; Compatibility alias.
     ldh [hPlayerSpeedX], a
     ld a, h
     ldh [hPlayerSpeedXHigh], a
-    ld hl, $ffbe
+    ld hl, hPlayerFlags
     res 2, [hl]
     ret
 
@@ -2476,12 +2457,11 @@ Call_001_4e30::
 
 
 ApplyPlayerXVelocity:: ; Apply signed player horizontal step to world X with bounds checks.
-Jump_001_4e48:: ; Compatibility alias.
     ldh a, [hPlayerDirection]
     or a
     jr nz, jr_001_4e79
 
-    ld hl, $ffb0
+    ld hl, hPlayerXSubpixel
     ldh a, [hPlayerSpeedX]
     add [hl]
     ld [hl+], a
@@ -2495,10 +2475,10 @@ Jump_001_4e48:: ; Compatibility alias.
     ld e, a
     ld a, [wPlayerXMaxHi]
     ld d, a
-    call Call_000_0080
+    call CompareU16AtHLToDE
     ret c
 
-    ld a, [$c0b6]
+    ld a, [wStageBossStateFlag]
     cp $ff
     ret z
 
@@ -2510,7 +2490,7 @@ Jump_001_4e48:: ; Compatibility alias.
 
 
 jr_001_4e79::
-    ld hl, $ffb0
+    ld hl, hPlayerXSubpixel
     ldh a, [hPlayerSpeedX]
     ld d, a
     ld a, [hl]
@@ -2528,7 +2508,7 @@ jr_001_4e79::
     ld e, a
     ld a, [wPlayerXMinHi]
     ld d, a
-    call Call_000_0080
+    call CompareU16AtHLToDE
     ret nc
 
     ld a, [wPlayerXMinHi]
@@ -2539,12 +2519,11 @@ jr_001_4e79::
 
 
 ApplyPlayerYVelocity:: ; Apply player vertical velocity to world Y.
-Call_001_4ea3:: ; Compatibility alias.
     ldh a, [hPlayerVelYHigh]
     bit 7, a
-    jr nz, jr_001_4ef0
+    jr nz, ApplyPlayerYVelocityUpward
 
-    ld hl, $ffad
+    ld hl, hPlayerYSubpixel
     ldh a, [hPlayerVelY]
     add [hl]
     ld [hl+], a
@@ -2554,23 +2533,22 @@ Call_001_4ea3:: ; Compatibility alias.
     ld a, $00
     adc [hl]
     ld [hl-], a
-    ld a, [$c0b6]
+    ld a, [wStageBossStateFlag]
     or a
     ret nz
 
-    ld a, [$c416]
+    ld a, [wPlayerYFallThresholdLo]
     ld e, a
-    ld a, [$c417]
+    ld a, [wPlayerYFallThresholdHi]
     ld d, a
-    call Call_000_0080
+    call CompareU16AtHLToDE
     ret c
 
     ldh a, [hPlayerState]
-    cp $0b
+    cp PlayerState_DeathFall
     ret z
 
 EnterPlayerDeathFallState:: ; Enter fall-out/death bounce state and reset form/audio.
-Jump_001_4ece:: ; Compatibility alias.
     xor a
     ldh [hPlayerForm], a
     call InitSound
@@ -2578,7 +2556,7 @@ Jump_001_4ece:: ; Compatibility alias.
     call PlaySound_Queue3
     ld a, $0b
     ldh [hPlayerState], a
-    ld hl, $ffbe
+    ld hl, hPlayerFlags
     set 3, [hl]
     ld hl, $fc00
     ld a, l
@@ -2590,8 +2568,8 @@ Jump_001_4ece:: ; Compatibility alias.
     ret
 
 
-jr_001_4ef0::
-    ld hl, $ffad
+ApplyPlayerYVelocityUpward::
+    ld hl, hPlayerYSubpixel
     ldh a, [hPlayerVelY]
     add [hl]
     ld [hl+], a
@@ -2611,8 +2589,7 @@ jr_001_4ef0::
 
 
 UpdateStageAnimatedTiles:: ; Update stage animated tiles when VRAM queue has room.
-Call_001_4f08:: ; Compatibility alias.
-    ldh a, [$ff9f]
+    ldh a, [hStageIndex]
     rst $00
 
     ; Stage animated-tile dispatcher table.
@@ -2626,12 +2603,12 @@ UpdateStageAnimatedTiles_Set0::
     and $60
     ret nz
 
-    ld a, [$c0b1]
+    ld a, [wStageInteractionSubstate]
     ld hl, $4f2e
     rst $38
     ld a, [hl]
     call Call_001_4f46
-    ld hl, $c0b1
+    ld hl, wStageInteractionSubstate
     inc [hl]
     ld a, [hl]
     cp $18
@@ -2704,7 +2681,7 @@ StageAnimSub4F46_04::
 jr_001_4f9c::
     ld d, $07
     ld hl, $4001
-    jp Jump_000_0532
+    jp QueueBankedVramTile9000
 
 
 StageAnimSub4F46_05::
@@ -2736,16 +2713,16 @@ UpdateStageAnimatedTiles_Set1::
     and $60
     ret nz
 
-    ld a, [$c0b4]
+    ld a, [wStage1CameraProfileIndex]
     or a
     ret nz
 
-    ld a, [$c0b1]
+    ld a, [wStageInteractionSubstate]
     ld hl, $4feb
     rst $38
     ld a, [hl]
     call Call_001_500b
-    ld hl, $c0b1
+    ld hl, wStageInteractionSubstate
     inc [hl]
     ld a, [hl]
     cp $20
@@ -2789,7 +2766,7 @@ StageAnimSub500B_02::
 Jump_001_502a::
     ld d, $07
     ld hl, $46e1
-    jp Jump_000_0532
+    jp QueueBankedVramTile9000
 
 
 UpdateStageAnimatedTiles_NoneA::
@@ -2801,16 +2778,16 @@ UpdateStageAnimatedTiles_Set2::
     and $60
     ret nz
 
-    ld a, [$c0b4]
+    ld a, [wStage1CameraProfileIndex]
     or a
     ret nz
 
-    ld a, [$c0b1]
+    ld a, [wStageInteractionSubstate]
     ld hl, $5053
     rst $38
     ld a, [hl]
     call Call_001_5073
-    ld hl, $c0b1
+    ld hl, wStageInteractionSubstate
     inc [hl]
     ld a, [hl]
     cp $20
@@ -2854,19 +2831,18 @@ StageAnimSub5073_02::
 Jump_001_5092::
     ld d, $07
     ld hl, $5af1
-    jp Jump_000_0532
+    jp QueueBankedVramTile9000
 
 
 Call_001_509a::
     bit 7, d
-    jp z, Jump_000_0d36
+    jp z, GetStageLayoutTileAtWorldPixel
 
     xor a
     ret
 
 
 CheckPlayerHeadCollision:: ; Player upward/head collision check.
-Jump_001_50a1:: ; Compatibility alias.
     xor a
     ldh [$ffcd], a
     ldh a, [hPlayerX]
@@ -2880,7 +2856,7 @@ Jump_001_50a1:: ; Compatibility alias.
     call Call_001_509a
     ld e, a
     ld d, $00
-    ld hl, $c700
+    ld hl, wStageTileAttrTable
     add hl, de
     ld a, [hl]
     call Call_001_50f4
@@ -2996,17 +2972,17 @@ jr_001_5132::
 
 jr_001_513f::
     ld a, $01
-    ld [$c0b4], a
+    ld [wStage1CameraProfileIndex], a
 
 jr_001_5144::
     ld a, $40
-    ld [$d95c], a
+    ld [wFadeTransitionTimer], a
     ld a, $07
     ldh [hGameState], a
     ld a, $02
     ld [$c0a9], a
     ld a, $ff
-    ld [$c0bc], a
+    ld [wStage1ResumeProfileFlag], a
     ret
 
 
@@ -3023,13 +2999,13 @@ jr_001_5158::
 
 jr_001_5165::
     ld a, $02
-    ld [$c0b4], a
+    ld [wStage1CameraProfileIndex], a
     jr jr_001_5144
 
 Call_001_516c::
     xor a
     ldh [$ffc0], a
-    ld hl, $ffb1
+    ld hl, hPlayerX
     ld a, [hl+]
     add $07
     ld c, a
@@ -3047,7 +3023,7 @@ Jump_001_517a::
     call Call_001_509a
     ld e, a
     ld d, $00
-    ld hl, $c700
+    ld hl, wStageTileAttrTable
     add hl, de
     ld a, [hl]
     pop de
@@ -3060,7 +3036,7 @@ Jump_001_517a::
     ld e, PLAYER_COLLISION_HEIGHT_COCKROACH
 
 jr_001_519b::
-    ld hl, $ffae
+    ld hl, hPlayerY
     ld a, [hl+]
     sub e
     ld e, a
@@ -3071,7 +3047,7 @@ jr_001_519b::
     call Call_001_509a
     ld e, a
     ld d, $00
-    ld hl, $c700
+    ld hl, wStageTileAttrTable
     add hl, de
     ld a, [hl]
     pop de
@@ -3204,7 +3180,7 @@ jr_001_5223::
 Call_001_523a::
     xor a
     ldh [$ffc0], a
-    ld hl, $ffb1
+    ld hl, hPlayerX
     ld a, [hl+]
     sub $08
     ld c, a
@@ -3222,7 +3198,6 @@ Call_001_524b::
     jr jr_001_526c
 
 CheckPlayerGroundCollision:: ; Player downward/ground collision check.
-Jump_001_5254:: ; Compatibility alias.
     ldh a, [hPlayerY]
     sub $20
     ldh a, [hPlayerYHigh]
@@ -3240,7 +3215,7 @@ Jump_001_5254:: ; Compatibility alias.
     ld e, PLAYER_COLLISION_HEIGHT_COCKROACH
 
 jr_001_526c::
-    ld hl, $ffae
+    ld hl, hPlayerY
     ld a, [hl+]
     sub e
     ld e, a
@@ -3259,7 +3234,7 @@ jr_001_526c::
     call Call_001_509a
     ld e, a
     ld d, $00
-    ld hl, $c700
+    ld hl, wStageTileAttrTable
     add hl, de
     ld a, [hl]
     call Call_001_52cc
@@ -3273,7 +3248,7 @@ jr_001_526c::
     call Call_001_509a
     ld e, a
     ld d, $00
-    ld hl, $c700
+    ld hl, wStageTileAttrTable
     add hl, de
     ld a, [hl]
     call Call_001_52cc
@@ -3289,7 +3264,7 @@ jr_001_526c::
     ldh [hPlayerState], a
     xor a
     ldh [$ffc1], a
-    ldh [$ffa8], a
+    ldh [hPlayerAnimFrame], a
     ldh a, [hPlayerForm]
     cp $02
     jr nz, jr_001_52c3
@@ -3368,7 +3343,7 @@ GroundTileEnterStageInteraction03::
     ld a, $0c
     ldh [hPlayerState], a
     ld a, $03
-    ld [$c0b1], a
+    ld [wStageInteractionSubstate], a
     ret
 
 GroundTileEnterStageInteraction01::
@@ -3379,9 +3354,9 @@ GroundTileEnterStageInteraction01::
     ld a, $0c
     ldh [hPlayerState], a
     xor a
-    ld [$c0b2], a
+    ld [wStageInteractionCounter], a
     inc a
-    ld [$c0b1], a
+    ld [wStageInteractionSubstate], a
     ret
 
 GroundTileCollisionNone::
@@ -3433,7 +3408,7 @@ Call_001_5381::
     xor a
     ldh [$ffcd], a
     ld [$c0aa], a
-    ldh [$ffa9], a
+    ldh [hPlayerObjectFlags], a
     ldh a, [hPlayerX]
     ld c, a
     ldh a, [hPlayerXHigh]
@@ -3447,7 +3422,7 @@ Call_001_5381::
     call Call_001_509a
     ld e, a
     ld d, $00
-    ld hl, $c700
+    ld hl, wStageTileAttrTable
     add hl, de
     ld a, [hl]
     call Call_001_53be
@@ -3464,7 +3439,7 @@ Call_001_5381::
     call Call_001_509a
     ld e, a
     ld d, $00
-    ld hl, $c700
+    ld hl, wStageTileAttrTable
     add hl, de
     ld a, [hl]
 
@@ -3679,7 +3654,7 @@ PlayerTileSetEdgeFlagLeft::
     bit 3, c
     jr z, PlayerTileContactSolid
 
-    ld hl, $ffa9
+    ld hl, hPlayerObjectFlags
     set 1, [hl]
     jr PlayerTileContactSolid
 
@@ -3687,7 +3662,7 @@ PlayerTileSetEdgeFlagRight::
     bit 3, c
     jr nz, PlayerTileContactSolid
 
-    ld hl, $ffa9
+    ld hl, hPlayerObjectFlags
     set 1, [hl]
     jr PlayerTileContactSolid
 
@@ -3696,7 +3671,7 @@ PlayerTileSnapAndSetEdgeFlagRight::
     bit 3, c
     ret nz
 
-    ld hl, $ffa9
+    ld hl, hPlayerObjectFlags
     set 1, [hl]
     ret
 
@@ -3706,22 +3681,22 @@ PlayerTileSnapAndSetEdgeFlagLeft::
     ret z
 
 
-    ld hl, $ffa9
+    ld hl, hPlayerObjectFlags
     set 1, [hl]
     ret
 
 PlayerTileSetEdgeFlagSolid::
-    ld hl, $ffa9
+    ld hl, hPlayerObjectFlags
     set 1, [hl]
     jp PlayerTileContactSolid
 
 PlayerTileSnapAndSetEdgeFlag::
-    ld hl, $ffa9
+    ld hl, hPlayerObjectFlags
     set 1, [hl]
     jp PlayerTileSnapToTileTopClearEffect
 
 PlayerTileEffect1AndEdgeFlag::
-    ld hl, $ffa9
+    ld hl, hPlayerObjectFlags
     set 1, [hl]
     jp PlayerTileSetEffect1IfNearTop
 
@@ -3730,7 +3705,7 @@ PlayerTileEffect1EdgeRight::
     bit 3, c
     ret nz
 
-    ld hl, $ffa9
+    ld hl, hPlayerObjectFlags
     set 1, [hl]
     ret
 
@@ -3739,7 +3714,7 @@ PlayerTileEffect1EdgeLeft::
     bit 3, c
     ret z
 
-    ld hl, $ffa9
+    ld hl, hPlayerObjectFlags
     set 1, [hl]
     ret
 
@@ -3774,7 +3749,7 @@ jr_001_5575::
 
 jr_001_557b::
     push hl
-    ldh a, [$ff9f]
+    ldh a, [hStageIndex]
     cp $01
     ld a, $1c
     jr nz, jr_001_5586
@@ -3815,17 +3790,17 @@ jr_001_5586::
     ld [hl+], a
     pop bc
     push hl
-    ldh a, [$ff9f]
+    ldh a, [hStageIndex]
     cp $01
     jr z, jr_001_55bb
 
-    call Call_001_7004
+    call UpdateObjDropPlatformA
     pop hl
     ret
 
 
 jr_001_55bb::
-    call Call_001_7081
+    call UpdateObjDropPlatformB
     pop hl
     ret
 
@@ -3838,7 +3813,7 @@ Call_001_55c0::
     call Call_001_509a
     ld [hl], $00
     call Call_001_55fa
-    ldh a, [$ff9f]
+    ldh a, [hStageIndex]
     cp $01
     jr z, jr_001_55dc
 
@@ -3889,35 +3864,33 @@ Jump_001_55fc::
 
 
 UpdatePlayerState:: ; Dispatch current player state machine.
-Call_001_560e:: ; Compatibility alias.
     ldh a, [hPlayerState]
     ldh [hPrevPlayerState], a
     rst $00
 
     ; hPlayerState dispatch table. rst $00 consumes these words as data.
-    dw PlayerState_NormalGround          ; 00
-    dw PlayerState_Duck                  ; 01
-    dw PlayerState_JumpFall              ; 02
-    dw PlayerState_GroundedSnap          ; 03
-    dw PlayerState_GroundedActionCheck   ; 04: grounded/action check state
-    dw PlayerState_ClimbOrVerticalMove   ; 05: climb/vertical move state
-    dw PlayerState_HurtKnockback         ; 06
-    dw PlayerState_FlyingSquirrelAction  ; 07
-    dw PlayerState_ChickenAction         ; 08
-    dw PlayerState_ActionKamenAction     ; 09
-    dw PlayerState_DamageBounce          ; 0a: damage bounce state
-    dw PlayerState_DeathFall             ; 0b
-    dw PlayerState_StageTransition0C     ; 0c: scripted stage transition state
-    dw PlayerState_StageInteraction0D    ; 0d: special/stage interaction state
+    dw PlayerState_UpdateNormalGround          ; 00
+    dw PlayerState_UpdateDuck                  ; 01
+    dw PlayerState_UpdateJumpFall              ; 02
+    dw PlayerState_UpdateGroundedSnap          ; 03
+    dw PlayerState_UpdateGroundedActionCheck   ; 04: grounded/action check state
+    dw PlayerState_UpdateClimbOrVerticalMove   ; 05: climb/vertical move state
+    dw PlayerState_UpdateHurtKnockback         ; 06
+    dw PlayerState_UpdateFlyingSquirrelAction  ; 07
+    dw PlayerState_UpdateChickenAction         ; 08
+    dw PlayerState_UpdateActionKamenAction     ; 09
+    dw PlayerState_UpdateDamageBounce          ; 0a: damage bounce state
+    dw PlayerState_UpdateDeathFall             ; 0b
+    dw PlayerState_UpdateStageTransition0C     ; 0c: scripted stage transition state
+    dw PlayerState_UpdateStageInteraction0D    ; 0d: special/stage interaction state
 
-PlayerState_StageTransition0C:: ; Scripted stage transition handler; Stage 2 uses it for layered vertical-room transitions.
-PlayerState_StageInteraction0C:: ; Compatibility alias.
-    ld hl, $fe00
+PlayerState_UpdateStageTransition0C:: ; Scripted stage transition handler; Stage 2 uses it for layered vertical-room transitions.
+    ld hl, _OAMRAM
     ld a, l
     ldh [hPlayerVelY], a
     ld a, h
     ldh [hPlayerVelYHigh], a
-    call Call_001_5c78
+    call UpdateAirbornePlayerAnimByForm
     ld a, [wStageInteractionSubstate]
     rst $00
 
@@ -3928,7 +3901,6 @@ PlayerState_StageInteraction0C:: ; Compatibility alias.
 	dw Stage2TransitionFinalize             ; 03: reset substate; at step 5 switch Stage 2 metatile/collision
 
 Stage2TransitionFinalize::
-label_001_5647:: ; Compatibility alias.
     xor a
     ld [wStageInteractionSubstate], a
     ld [wStageInteractionCounter], a
@@ -3948,17 +3920,16 @@ label_001_5647:: ; Compatibility alias.
     ld [wCameraScrollXMaxHi], a
     ld hl, Stage2MetatileQuadsAfterSwitch_Bank4
     ld a, l
-    ldh [$ffa2], a
+    ldh [hStageMetatileTableLo], a
     ld a, h
-    ldh [$ffa3], a
+    ldh [hStageMetatileTableHi], a
     ld hl, Stage2CollisionPatch_Bank4
-    ld de, $c700
+    ld de, wStageTileAttrTable
     ld bc, $0030
     ld a, $04
     jp BankedMemcpy
 
 Stage2TransitionCopyExtraTiles::
-label_001_5681:: ; Compatibility alias.
     call Stage2QueueTransitionExtraTile
     ld a, [wStageInteractionCounter]
     inc a
@@ -3975,17 +3946,15 @@ label_001_5681:: ; Compatibility alias.
 
 
 Stage2QueueTransitionExtraTile:: ; Queue one tile from bank5:$6411 into the Stage 2 transition overlay area.
-Call_001_569a:: ; Compatibility alias.
     ld hl, $6411
     ld a, [wStageInteractionCounter]
     ld c, a
     add $c0
     ld e, a
     ld d, $05
-    jp Jump_000_0522
+    jp QueueBankedVramTile8000
 
 Stage2TransitionCopyBgTiles::
-label_001_56a9:: ; Compatibility alias.
     call Stage2QueueTransitionBgTile
     ld a, [wStageInteractionCounter]
     inc a
@@ -4002,7 +3971,6 @@ label_001_56a9:: ; Compatibility alias.
 
 
 Stage2QueueTransitionBgTile:: ; Queue one 8x8 tile update for Stage 2 tile ids $45-$7f.
-Call_001_56c2:: ; Compatibility alias.
     ld hl, $3572
     ld a, [wStage2TransitionStep]
     cp $02
@@ -4016,10 +3984,9 @@ jr_001_56cf::
     add $45
     ld e, a
     ld d, $00
-    jp Jump_000_0532
+    jp QueueBankedVramTile9000
 
 StageTransitionScrollViewportUp::
-label_001_56db:: ; Compatibility alias.
     call StageTransitionMovePlayerAnchorUp
     ld hl, hSCY
     ld a, [hl]
@@ -4046,12 +4013,11 @@ label_001_56db:: ; Compatibility alias.
 
 
 StageTransitionMovePlayerAnchorUp:: ; During the first $20 frames, keep the player/screen anchor moving with the camera scroll.
-Call_001_5707:: ; Compatibility alias.
     ld a, [wStageInteractionCounter]
     cp $20
     ret nc
 
-    ld hl, $ffae
+    ld hl, hPlayerY
     ld a, [hl]
     sub $01
     ld [hl+], a
@@ -4061,7 +4027,7 @@ Call_001_5707:: ; Compatibility alias.
     ret
 
 
-PlayerState_DamageBounce::
+PlayerState_UpdateDamageBounce::
     call Call_001_5381
     ld a, $15
     ldh [hPlayerAnimId], a
@@ -4076,15 +4042,15 @@ PlayerState_DamageBounce::
 
     ld a, $80
     ld [$c0ab], a
-    ld hl, $ffbe
+    ld hl, hPlayerFlags
     res 3, [hl]
     set 1, [hl]
     jp Jump_001_5e0b
 
 
 jr_001_573a::
-    call Call_000_0eeb
-    ld hl, $ffb0
+    call SubtractPlayerHealthAndMarkHudDirty
+    ld hl, hPlayerXSubpixel
     ld de, $0200
     ldh a, [hPlayerDirection]
     or a
@@ -4094,8 +4060,8 @@ jr_001_573a::
 
 
 
-PlayerState_DeathFall:: ; State 0b: fall-out/death bounce, life decrement, and reset/game-over transition.
-    ld hl, $ffb3
+PlayerState_UpdateDeathFall:: ; State 0b: fall-out/death bounce, life decrement, and reset/game-over transition.
+    ld hl, hPlayerVelYLo
     ld a, [hl]
     add $14
     ld [hl+], a
@@ -4123,7 +4089,7 @@ jr_001_576e::
     ldh [hPlayerAnimId], a
     ld a, $ff
     ldh [hCollisionFlag], a
-    ld hl, $ffae
+    ld hl, hPlayerY
     ld a, [hl+]
     ld h, [hl]
     ld l, a
@@ -4158,7 +4124,7 @@ jr_001_576e::
     jr z, @+$21
 
     dec [hl]
-    call Jump_000_0e8c
+    call QueueLivesHudDigits
     ld a, $02
     ldh [hGameState], a
     ldh [hNeedsReset], a
@@ -4188,7 +4154,7 @@ jr_001_576e::
     ret
 
 
-PlayerState_StageInteraction0D::
+PlayerState_UpdateStageInteraction0D::
     call HandlePlayerGroundInput
     ldh a, [$ffc4]
     or a
@@ -4208,7 +4174,7 @@ jr_001_57e2::
     ldh [hPlayerState], a
     xor a
     ldh [$ffc1], a
-    ldh [$ffa8], a
+    ldh [hPlayerAnimFrame], a
     ldh a, [hPlayerForm]
     cp $02
     ret z
@@ -4218,7 +4184,7 @@ jr_001_57e2::
     ret
 
 
-PlayerState_GroundedActionCheck::
+PlayerState_UpdateGroundedActionCheck::
     call Call_001_5812
 
 jr_001_57f7::
@@ -4231,7 +4197,7 @@ jr_001_57f7::
     ld e, $00
     call Call_001_5b7f
     ld hl, $580e
-    ldh a, [$ffa8]
+    ldh a, [hPlayerAnimFrame]
     rst $38
     ld a, [hl]
     ldh [hPlayerAnimId], a
@@ -4247,10 +4213,9 @@ Call_001_5812::
     jp nz, EnterPlayerFallState
 
 HandlePlayerGroundInput:: ; Handle normal ground input and transition to jump/crouch/move.
-Call_001_581c:: ; Compatibility alias.
     ldh a, [hJoyPressed]
     rrca
-    jp c, Jump_001_5e78
+    jp c, StartPlayerJump
 
     ldh a, [hJoyHeld]
     or a
@@ -4289,15 +4254,15 @@ jr_001_5846::
     jp ApplyPlayerXVelocity
 
 
-PlayerState_ClimbOrVerticalMove::
-    ld hl, $ffbe
+PlayerState_UpdateClimbOrVerticalMove::
+    ld hl, hPlayerFlags
     set 0, [hl]
     ld h, $08
     ld l, $09
     ld e, $00
     call Call_001_5b7f
     ld hl, $586d
-    ldh a, [$ffa8]
+    ldh a, [hPlayerAnimFrame]
     cp $08
     jr nc, @+$10
 
@@ -4318,7 +4283,7 @@ PlayerState_ClimbOrVerticalMove::
 
 
 
-PlayerState_Duck:: ; State 01: down/duck pose and related transitions.
+PlayerState_UpdateDuck:: ; State 01: down/duck pose and related transitions.
     call Jump_001_5afe
     ldh a, [hJoyHeld]
     cp $80
@@ -4408,7 +4373,7 @@ Call_001_58f5::
     ld hl, $0100
     call Call_001_4e30
     call CheckPlayerHeadCollision
-    ld hl, $ff00
+    ld hl, rP1
     call Call_001_4e30
     ldh a, [hPlayerState]
     cp $03
@@ -4421,7 +4386,7 @@ Call_001_58f5::
 
 
 
-PlayerState_GroundedSnap:: ; State 03: grounded snap/settle state after specific collision contact.
+PlayerState_UpdateGroundedSnap:: ; State 03: grounded snap/settle state after specific collision contact.
     call Call_001_5935
     ldh a, [$ffc1]
     rst $00
@@ -4440,7 +4405,7 @@ label_001_5920::
     ld e, $00
     call Call_001_5b7f
     ld hl, $5933
-    ldh a, [$ffa8]
+    ldh a, [hPlayerAnimFrame]
     rst $38
     ld a, [hl]
     ldh [hPlayerAnimId], a
@@ -4469,7 +4434,7 @@ Call_001_5935::
 jr_001_594c::
     ld a, $01
     ldh [$ffc1], a
-    ld hl, $ff00
+    ld hl, rP1
     ld a, l
     ldh [hPlayerVelY], a
     ld a, h
@@ -4494,7 +4459,6 @@ jr_001_5965::
 
 
 UsePlayerFormAction:: ; Dispatch B-button ability for current hPlayerForm.
-Jump_001_5978:: ; Compatibility alias.
     ldh a, [hPlayerActionLock]
     or a
     ret nz
@@ -4520,19 +4484,18 @@ Jump_001_5978:: ; Compatibility alias.
     ld [hl+], a
     ld [hl], a
     ld [wPlayerSpecialActor0], a
-    ldh [$ffa8], a
-    ldh [$ffa7], a
+    ldh [hPlayerAnimFrame], a
+    ldh [hPlayerAnimCounter], a
     inc a
     ldh [hPlayerActionLock], a
     ret
 
 
 StartChickenAction:: ; Begin mother-hen form action; enters player state 08.
-Jump_001_59a5:: ; Compatibility alias.
     ld de, $0a08
     jr StartTimedPlayerFormAction
 
-PlayerState_ChickenAction:: ; State 08: mother-hen form action.
+PlayerState_UpdateChickenAction:: ; State 08: mother-hen form action.
     call Call_001_5381
     ld e, $05
     call UpdatePlayerFormActionAnim
@@ -4572,11 +4535,9 @@ jr_001_59d0::
 
 
 StartFlyingSquirrelAction:: ; Begin flying-squirrel form action; enters player state 07.
-Jump_001_59e7:: ; Compatibility alias.
     ld de, $0e07
 
 StartTimedPlayerFormAction:: ; Save current state, set action timer/state, and clear form action work vars.
-jr_001_59ea:: ; Compatibility alias.
     ldh a, [hPlayerState]
     ld [wSavedPlayerState], a
     ld a, d
@@ -4591,11 +4552,9 @@ jr_001_59ea:: ; Compatibility alias.
 
 
 UpdateFlyingSquirrelActionAnim::
-Call_001_59fc:: ; Compatibility alias.
     ld e, $07
 
 UpdatePlayerFormActionAnim:: ; Advance form-action animation once timer passes threshold E.
-Call_001_59fe:: ; Compatibility alias.
     ld hl, wFormActionStep
     ld a, [hl]
     or a
@@ -4630,7 +4589,7 @@ jr_001_5a14::
     ret
 
 
-PlayerState_FlyingSquirrelAction:: ; State 07: flying-squirrel form action.
+PlayerState_UpdateFlyingSquirrelAction:: ; State 07: flying-squirrel form action.
     call Call_001_5381
     call UpdateFlyingSquirrelActionAnim
     ld hl, hPlayerAnimTimer
@@ -4648,7 +4607,6 @@ PlayerState_FlyingSquirrelAction:: ; State 07: flying-squirrel form action.
     ld hl, wPlayerSpecialActor1
 
 InitPlayerSpecialActorAtHL:: ; Initialize a flying-squirrel projectile actor at HL.
-Call_001_5a45:: ; Compatibility alias.
     ld a, SPECIAL_ACTOR_FLYING_SQUIRREL_PROJECTILE
     ld [hl+], a
     ldh a, [hPlayerDirection]
@@ -4669,7 +4627,6 @@ Call_001_5a45:: ; Compatibility alias.
 
 
 CalcSpecialActorX:: ; BC = player X +/- A based on hPlayerDirection.
-Call_001_5a63:: ; Compatibility alias.
     ld c, a
     ldh a, [hPlayerDirection]
     or a
@@ -4695,7 +4652,6 @@ jr_001_5a73::
 
 
 CalcSpecialActorY:: ; BC = player Y - A.
-Call_001_5a7d:: ; Compatibility alias.
     ld c, a
     ldh a, [hPlayerY]
     sub c
@@ -4707,7 +4663,6 @@ Call_001_5a7d:: ; Compatibility alias.
 
 
 StartActionKamenAction:: ; Begin Action Kamen form action; only allowed from normal ground state.
-Jump_001_5a88:: ; Compatibility alias.
     ldh a, [hPlayerState]
     or a
     ret nz
@@ -4717,13 +4672,12 @@ Jump_001_5a88:: ; Compatibility alias.
 
 
 UpdateActionKamenActionAnim:: ; Select Action Kamen action animation by hPlayerAnimTimer.
-Call_001_5a92:: ; Compatibility alias.
     ldh a, [hPlayerAnimTimer]
     cp $0a
     jr c, jr_001_5aa3
 
     cp $14
-    jr z, jr_001_5ac1
+    jr z, SpawnActionKamenProjectile
 
     jr nc, jr_001_5aa8
 
@@ -4744,7 +4698,7 @@ jr_001_5aa8::
     ret
 
 
-PlayerState_ActionKamenAction:: ; State 09: Action Kamen projectile/action sequence.
+PlayerState_UpdateActionKamenAction:: ; State 09: Action Kamen projectile/action sequence.
     call Call_001_5381
     call UpdateActionKamenActionAnim
     ldh a, [hPlayerAnimTimer]
@@ -4759,7 +4713,6 @@ PlayerState_ActionKamenAction:: ; State 09: Action Kamen projectile/action seque
 
 
 SpawnActionKamenProjectile:: ; Spawn the Action Kamen projectile on animation frame $14.
-jr_001_5ac1:: ; Compatibility alias.
     ld a, $50
     call PlaySound
     ld a, SPECIAL_ACTOR_ACTION_KAMEN_PROJECTILE
@@ -4822,7 +4775,7 @@ EnterPlayerFallState:: ; Switch to airborne/falling state when no ground is supp
 
 
 
-PlayerState_NormalGround:: ; State 00: normal grounded player control.
+PlayerState_UpdateNormalGround:: ; State 00: normal grounded player control.
     call Call_001_4e05
     call HandleGroundInput
     ldh a, [hPlayerState]
@@ -4855,7 +4808,7 @@ jr_001_5b3a::
     ldh [$ffc5], a
     ld a, h
     ldh [$ffc6], a
-    jp Jump_001_5cd3
+    jp UpdateCockroachActionHitbox
 
 
     db $15, $16, $16, $16, $15, $15
@@ -4866,7 +4819,7 @@ jr_001_5b51::
     ldh [$ffc5], a
     ld a, h
     ldh [$ffc6], a
-    jp Jump_001_5cd3
+    jp UpdateCockroachActionHitbox
 
 
     db $15, $16, $16, $17, $15, $1b
@@ -4882,7 +4835,7 @@ label_001_5b68::
     ld e, $00
     call Call_001_5b7f
     ld hl, $5b7b
-    ldh a, [$ffa8]
+    ldh a, [hPlayerAnimFrame]
     rst $38
     ld a, [hl]
     ldh [hPlayerAnimId], a
@@ -4892,17 +4845,17 @@ label_001_5b68::
     db $04, $05, $04, $06
 
 Call_001_5b7f::
-    ldh a, [$ffa7]
+    ldh a, [hPlayerAnimCounter]
     inc a
-    ldh [$ffa7], a
+    ldh [hPlayerAnimCounter], a
     cp h
     jr c, jr_001_5b98
 
     xor a
-    ldh [$ffa7], a
-    ldh a, [$ffa8]
+    ldh [hPlayerAnimCounter], a
+    ldh a, [hPlayerAnimFrame]
     inc a
-    ldh [$ffa8], a
+    ldh [hPlayerAnimFrame], a
 
 jr_001_5b8f::
     cp e
@@ -4913,12 +4866,12 @@ jr_001_5b8f::
 
 jr_001_5b94::
     ld a, e
-    ldh [$ffa8], a
+    ldh [hPlayerAnimFrame], a
     ret
 
 
 jr_001_5b98::
-    ldh a, [$ffa8]
+    ldh a, [hPlayerAnimFrame]
     jr jr_001_5b8f
 
 label_001_5b9c::
@@ -4927,7 +4880,7 @@ label_001_5b9c::
     ld e, $00
     call Call_001_5b7f
     ld hl, $5bbb
-    ldh a, [$ffa8]
+    ldh a, [hPlayerAnimFrame]
     cp $04
     jr nc, jr_001_5bb3
 
@@ -4940,7 +4893,7 @@ label_001_5b9c::
 jr_001_5bb3::
     xor a
     ldh [$ffc1], a
-    ldh [$ffa8], a
+    ldh [hPlayerAnimFrame], a
     ldh [hPlayerAnimTimer], a
     ret
 
@@ -4951,7 +4904,6 @@ jr_001_5bb3::
     inc b
 
 HandleGroundInput:: ; Ground input router: duck, jump, form action, horizontal movement, idle timer.
-Call_001_5bc0:: ; Compatibility alias.
     ldh a, [hJoyHeld]
     bit 7, a
     jr nz, jr_001_5c1a
@@ -4999,7 +4951,7 @@ jr_001_5be0::
 
 
 jr_001_5bfb::
-    ld hl, $ff00
+    ld hl, rP1
     call Call_001_4e30
     call CheckPlayerHeadCollision
     ld hl, $0100
@@ -5008,7 +4960,7 @@ jr_001_5bfb::
     cp $03
     jr nz, jr_001_5be0
 
-    ld hl, $ff00
+    ld hl, rP1
     call Call_001_4e30
     ret
 
@@ -5045,7 +4997,7 @@ jr_001_5c35::
     ldh [$ffc1], a
     xor a
     ldh [hPlayerDirection], a
-    ld a, [$c0b6]
+    ld a, [wStageBossStateFlag]
     cp $ff
     jr nz, jr_001_5c4d
 
@@ -5076,14 +5028,13 @@ jr_001_5c59::
 
 
 
-PlayerState_JumpFall:: ; State 02: airborne control, gravity, and landing checks.
+PlayerState_UpdateJumpFall:: ; State 02: airborne control, gravity, and landing checks.
     call UpdateAirbornePlayerInput
     ldh a, [hPlayerState]
     cp $02
     ret nz
 
 UpdateAirbornePlayerAnimByForm:: ; Select airborne player animation and form-specific air behavior.
-Call_001_5c78:: ; Compatibility alias.
     ldh a, [hPlayerForm]
     rst $00
 
@@ -5133,7 +5084,7 @@ label_001_5cb0::
     ld e, $00
     call Call_001_5b7f
     ld hl, $5cc3
-    ldh a, [$ffa8]
+    ldh a, [hPlayerAnimFrame]
     rst $38
     ld a, [hl]
     ldh [hPlayerAnimId], a
@@ -5154,7 +5105,6 @@ label_001_5cc5::
     ldh [$ffc6], a
 
 UpdateCockroachActionHitbox:: ; Update cockroach action hitbox position while hPlayerActionLock is active.
-Jump_001_5cd3:: ; Compatibility alias.
     call UpdatePlayerActionAnimStep
     ldh a, [hPlayerScreenY]
     sub $0c
@@ -5189,7 +5139,6 @@ jr_001_5cfd::
 
 
 UpdatePlayerActionAnimStep:: ; Advance multi-step player form action animation.
-Call_001_5d04:: ; Compatibility alias.
     ld a, [wFormActionStep]
     rst $00
 
@@ -5206,7 +5155,7 @@ label_001_5d0e::
     ld a, [hl+]
     ld h, [hl]
     ld l, a
-    ldh a, [$ffa8]
+    ldh a, [hPlayerAnimFrame]
     rst $38
     ld a, [hl]
     ldh [hPlayerAnimId], a
@@ -5231,7 +5180,7 @@ label_001_5d2f::
     ld a, [hl+]
     ld h, [hl]
     ld l, a
-    ldh a, [$ffa8]
+    ldh a, [hPlayerAnimFrame]
     rst $38
     ld a, [hl]
     ldh [hPlayerAnimId], a
@@ -5256,7 +5205,7 @@ label_001_5d50::
     ld a, [hl+]
     ld h, [hl]
     ld l, a
-    ldh a, [$ffa8]
+    ldh a, [hPlayerAnimFrame]
     rst $38
     ld a, [hl]
     ldh [hPlayerAnimId], a
@@ -5274,14 +5223,13 @@ label_001_5d50::
     db $18, $19, $19, $1a, $18, $1c
 
 UpdateAirbornePlayerInput:: ; Handle airborne B action, horizontal control, gravity, and landing checks.
-Call_001_5d77:: ; Compatibility alias.
     ldh a, [hJoyPressed]
     bit 1, a
     jp nz, UsePlayerFormAction
 
     ldh a, [hJoyHeld]
     rrca
-    call nc, Call_001_5d96
+    call nc, LimitUpwardVelocityOnARelease
     ldh a, [hJoyHeld]
     bit 6, a
     jr nz, jr_001_5db6
@@ -5297,7 +5245,6 @@ jr_001_5d8a::
     jr jr_001_5ddf
 
 LimitUpwardVelocityOnARelease:: ; When A is released during upward motion, clamp upward velocity.
-Call_001_5d96:: ; Compatibility alias.
     ld a, [$c0b0]
     or a
     ret nz
@@ -5306,7 +5253,7 @@ Call_001_5d96:: ; Compatibility alias.
     rlca
     ret nc
 
-    ld hl, $ffb3
+    ld hl, hPlayerVelYLo
     ld a, [hl+]
     ld h, [hl]
     ld l, a
@@ -5315,7 +5262,7 @@ Call_001_5d96:: ; Compatibility alias.
     bit 7, h
     ret z
 
-    ld hl, $ff00
+    ld hl, rP1
     ld a, l
     ldh [hPlayerVelY], a
     ld a, h
@@ -5356,7 +5303,7 @@ jr_001_5dd0::
 jr_001_5ddf::
     ldh a, [hPlayerGravity]
     ld b, a
-    ld hl, $ffb3
+    ld hl, hPlayerVelYLo
     ld a, [hl]
     add b
     ld [hl+], a
@@ -5376,7 +5323,7 @@ jr_001_5ddf::
 jr_001_5dfa::
     call ApplyPlayerYVelocity
     call Call_001_5381
-    ld hl, $ffaa
+    ld hl, hPlayerState
     ld a, [hl+]
     cp [hl]
     ret nz
@@ -5389,19 +5336,17 @@ Jump_001_5e0b::
     call Call_001_4e05
 
 ResetPlayerToNormalState:: ; Clear motion/action state and return to normal ground state.
-Jump_001_5e0e:: ; Compatibility alias.
     xor a
     ldh [hPlayerState], a
     ldh [hPlayerVelY], a
     ldh [hPlayerVelYHigh], a
     ldh [hPlayerAnimTimer], a
     ldh [$ffc1], a
-    ldh [$ffa8], a
+    ldh [hPlayerAnimFrame], a
     ld [wPlayerActionMeter], a
     ld [$c0b0], a
 
 UpdatePlayerJumpProfile:: ; Select jump profile. Chicken Shin-chan uses a stronger jump profile.
-Call_001_5e21:: ; Compatibility alias.
     ld a, PLAYER_JUMP_PROFILE_NORMAL
     ldh [hPlayerJumpProfile], a
     ldh a, [hPlayerForm]
@@ -5414,7 +5359,6 @@ Call_001_5e21:: ; Compatibility alias.
 
 
 UpdateFlyingSquirrelGlide:: ; Flying squirrel: repeated A presses build glide meter and briefly cancel gravity/Y velocity.
-Call_001_5e2f:: ; Compatibility alias.
     ldh a, [hJoyPressed]
     rrca
     jr nc, jr_001_5e5e
@@ -5479,7 +5423,6 @@ Jump_001_5e72::
 
 
 StartPlayerJump:: ; Enter jump state and initialize upward velocity/sound.
-Jump_001_5e78:: ; Compatibility alias.
     ld a, $02
     ldh [hPlayerState], a
     ld a, $42
@@ -5496,7 +5439,6 @@ Jump_001_5e78:: ; Compatibility alias.
 
 
 SetPlayerJumpVelocity:: ; Jump velocity table targets write initial signed Y velocity.
-Call_001_5e9a:: ; Compatibility alias.
     ld hl, $0000
 
 jr_001_5e9d::
@@ -5508,11 +5450,11 @@ jr_001_5e9d::
 
 
 label_001_5ea4::
-    ld hl, $ff00
+    ld hl, rP1
     jr jr_001_5e9d
 
 label_001_5ea9::
-    ld hl, $fe00
+    ld hl, _OAMRAM
     jr jr_001_5e9d
 
 Jump_001_5eae::
@@ -5536,7 +5478,7 @@ label_001_5ec2::
     jr jr_001_5e9d
 
 
-PlayerState_HurtKnockback:: ; State 06: recovery/knockback-style animation state.
+PlayerState_UpdateHurtKnockback:: ; State 06: recovery/knockback-style animation state.
     ldh a, [$ffc1]
     or a
     jr z, jr_001_5f1f
@@ -5546,7 +5488,7 @@ PlayerState_HurtKnockback:: ; State 06: recovery/knockback-style animation state
     ld e, $00
     call Call_001_5b7f
     ld hl, $5ef1
-    ldh a, [$ffa8]
+    ldh a, [hPlayerAnimFrame]
     cp $02
     jr z, jr_001_5ef4
 
@@ -5573,10 +5515,10 @@ PlayerState_HurtKnockback:: ; State 06: recovery/knockback-style animation state
 jr_001_5ef4::
     ld a, $04
     ldh [hPlayerAnimId], a
-    call Jump_000_0e02
+    call QueuePlayerFormHudIcon
     ld a, $80
     ld [$c0ab], a
-    ld hl, $ffbe
+    ld hl, hPlayerFlags
     set 1, [hl]
     res 4, [hl]
     call Jump_001_5e0b
@@ -5598,7 +5540,7 @@ jr_001_5ef4::
 
 jr_001_5f1f::
     call Call_001_5f40
-    ldh a, [$ffa7]
+    ldh a, [hPlayerAnimCounter]
     cp $01
     ld a, $48
     call z, PlaySound
@@ -5607,7 +5549,7 @@ jr_001_5f1f::
     ld e, $00
     call Call_001_5b7f
     ld hl, $5f3e
-    ldh a, [$ffa8]
+    ldh a, [hPlayerAnimFrame]
     rst $38
     ld a, [hl]
     ldh [hPlayerAnimId], a
@@ -5640,7 +5582,7 @@ Call_001_5f4d::
     add $13
     ld e, a
     ld d, $05
-    call Jump_000_0522
+    call QueueBankedVramTile8000
 
 jr_001_5f62::
     ldh a, [hPlayerAnimTimer]
@@ -5671,10 +5613,9 @@ jr_001_5f7f::
 
 
 CheckPlayerPickupBonusCounter::
-Call_001_5f8b:: ; Compatibility alias.
     ld e, $0a
     ld d, $11
-    call Call_001_5f9e
+    call CheckPlayerPickupOverlap
     ret nc
 
     ld a, $45
@@ -5686,7 +5627,6 @@ Call_001_5f8b:: ; Compatibility alias.
 
 
 CheckPlayerPickupOverlap::
-Call_001_5f9e:: ; Compatibility alias.
     ldh a, [$ffc3]
     cp $ff
     ret z
@@ -5726,7 +5666,7 @@ UpdateObjPickupBonusCounterAnim:: ; Object type $11: animated bonus-counter pick
 
     ld e, $0a
     ld d, $11
-    call Call_001_5f9e
+    call CheckPlayerPickupOverlap
     ret nc
 
     ld a, $44
@@ -5739,7 +5679,7 @@ UpdateObjPickupBonusCounterAnim:: ; Object type $11: animated bonus-counter pick
 
 
 jr_001_5fda::
-    call Call_001_5fe6
+    call FinishAnimatedBonusCounterPickup
     call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
@@ -5748,7 +5688,6 @@ jr_001_5fda::
     jr jr_001_5f7f
 
 FinishAnimatedBonusCounterPickup::
-Call_001_5fe6:: ; Compatibility alias.
     call UpdateAnimatedPickupMotion
     ret c
 
@@ -5759,7 +5698,6 @@ Call_001_5fe6:: ; Compatibility alias.
 
 
 UpdateAnimatedPickupMotion::
-Call_001_5ff0:: ; Compatibility alias.
     ld hl, $0005
     add hl, bc
     ld de, $0100
@@ -5824,10 +5762,9 @@ jr_001_604f::
 
 
 CheckPlayerPickupExtraLife::
-Call_001_605b:: ; Compatibility alias.
     ld e, $0e
     ld d, $12
-    call Call_001_5f9e
+    call CheckPlayerPickupOverlap
     ret nc
 
     xor a
@@ -5852,7 +5789,7 @@ UpdateObjPickupExtraLifeAnim:: ; Object type $13: animated extra-life pickup.
 
     ld e, $0e
     ld d, $12
-    call Call_001_5f9e
+    call CheckPlayerPickupOverlap
     ret nc
 
     ld a, $44
@@ -5865,7 +5802,7 @@ UpdateObjPickupExtraLifeAnim:: ; Object type $13: animated extra-life pickup.
 
 
 jr_001_608b::
-    call Call_001_6097
+    call FinishAnimatedExtraLifePickup
     call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
@@ -5874,7 +5811,6 @@ jr_001_608b::
     jr jr_001_604f
 
 FinishAnimatedExtraLifePickup::
-Call_001_6097:: ; Compatibility alias.
     call UpdateAnimatedPickupMotion
     ret c
 
@@ -5903,10 +5839,9 @@ jr_001_60ab::
 
 
 CheckPlayerPickupHealth::
-Call_001_60b7:: ; Compatibility alias.
     ld e, $0e
     ld d, $12
-    call Call_001_5f9e
+    call CheckPlayerPickupOverlap
     ret nc
 
     ld a, $45
@@ -5934,7 +5869,7 @@ UpdateObjPickupHealthAnim:: ; Object type $15: animated health pickup.
 
     ld e, $0e
     ld d, $12
-    call Call_001_5f9e
+    call CheckPlayerPickupOverlap
     ret nc
 
     ld a, $44
@@ -5947,7 +5882,7 @@ UpdateObjPickupHealthAnim:: ; Object type $15: animated health pickup.
 
 
 jr_001_60ed::
-    call Call_001_60f9
+    call FinishAnimatedHealthPickup
     call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
@@ -5956,7 +5891,6 @@ jr_001_60ed::
     jr jr_001_60ab
 
 FinishAnimatedHealthPickup::
-Call_001_60f9:: ; Compatibility alias.
     call UpdateAnimatedPickupMotion
     ret c
 
@@ -5984,17 +5918,16 @@ UpdateObjFormFlyingSquirrel:: ; Object type $16: Flying Squirrel form pickup.
 
 
 CheckPlayerPickupFormFlyingSquirrel::
-Call_001_611a:: ; Compatibility alias.
     ld e, $0e
     ld d, $12
-    call Call_001_5f9e
+    call CheckPlayerPickupOverlap
     ret nc
 
     ld a, $45
     call PlaySound
     ldh a, [hPlayerForm]
     ld [wStoredPlayerForm], a
-    ld hl, $ffbe
+    ld hl, hPlayerFlags
     res 2, [hl]
     ld a, PLAYER_FORM_FLYING_SQUIRREL
     ldh [hPlayerForm], a
@@ -6023,17 +5956,16 @@ UpdateObjFormCockroach:: ; Object type $17: Cockroach form pickup.
 
 
 CheckPlayerPickupFormCockroach::
-Call_001_6151:: ; Compatibility alias.
     ld e, $0e
     ld d, $12
-    call Call_001_5f9e
+    call CheckPlayerPickupOverlap
     ret nc
 
     ld a, $45
     call PlaySound
     ldh a, [hPlayerForm]
     ld [wStoredPlayerForm], a
-    ld hl, $ffbe
+    ld hl, hPlayerFlags
     res 2, [hl]
     ld a, PLAYER_FORM_COCKROACH
     ldh [hPlayerForm], a
@@ -6057,17 +5989,16 @@ UpdateObjFormChicken:: ; Object type $18: Chicken form pickup.
 
 
 CheckPlayerPickupFormChicken::
-Call_001_6185:: ; Compatibility alias.
     ld e, $0e
     ld d, $12
-    call Call_001_5f9e
+    call CheckPlayerPickupOverlap
     ret nc
 
     ld a, $45
     call PlaySound
     ldh a, [hPlayerForm]
     ld [wStoredPlayerForm], a
-    ld hl, $ffbe
+    ld hl, hPlayerFlags
     res 2, [hl]
     ld a, PLAYER_FORM_CHICKEN
     ldh [hPlayerForm], a
@@ -6092,15 +6023,14 @@ UpdateObjFormActionKamen:: ; Object type $19: timed Action Kamen form pickup.
 
 
 CheckPlayerPickupFormActionKamen::
-Call_001_61ba:: ; Compatibility alias.
     ld e, $0e
     ld d, $12
-    call Call_001_5f9e
+    call CheckPlayerPickupOverlap
     ret nc
 
     ldh a, [hPlayerForm]
     ld [wStoredPlayerForm], a
-    ld hl, $ffbe
+    ld hl, hPlayerFlags
     set 2, [hl]
     ld a, PLAYER_FORM_ACTION_KAMEN
     ldh [hPlayerForm], a
@@ -6123,14 +6053,13 @@ UpdateObjStageEventChildA:: ; Object type $06: stage/event child actor with enem
     ld a, [bc]
     or $80
     ld [bc], a
-    call Call_001_61f6
-    call Call_001_6273
-    call Call_001_6279
+    call UpdateStageEventChildAState
+    call CheckStageEventChildAActionHitbox
+    call CheckStageEventChildABodyCollision
     jp Jump_001_4c06
 
 
 UpdateStageEventChildAState::
-Call_001_61f6:: ; Compatibility alias.
     xor a
     ldh [hSpriteFlags], a
     ld h, b
@@ -6165,7 +6094,7 @@ label_001_6206::
     ld [hl+], a
     ld [hl], d
     ldh a, [$ffd3]
-    ld hl, $ffa5
+    ld hl, hPlayerScreenX
     sub [hl]
     rst $28
     cp $40
@@ -6196,7 +6125,7 @@ label_001_6242::
     xor a
     ld [hl+], a
     ld [hl], $01
-    jp Jump_001_6311
+    jp UpdateObjectThrownStateB
 
 
 label_001_6252::
@@ -6204,7 +6133,7 @@ label_001_6252::
     ldh [$ffd6], a
     call MoveObjectXBySpeed
     ld hl, $000a
-    call Call_001_6323
+    call AccelerateObjectYAtHL
     ld hl, $000a
     add hl, bc
     ld a, [hl+]
@@ -6224,20 +6153,17 @@ label_001_6252::
 
 
 CheckStageEventChildAActionHitbox::
-Call_001_6273:: ; Compatibility alias.
     ld de, $0408
     jp CheckPlayerActionHitboxCollision
 
 
 CheckStageEventChildABodyCollision::
-Call_001_6279:: ; Compatibility alias.
     ld d, $05
     jp CheckPlayerBodyCollision
 
 
 UpdateObjEnemyWalkingKid:: ; Object type $0a: walking kid enemy.
-UpdateObjEnemyWalkerA:: ; Compatibility alias from pass 11.
-    call Call_001_6292
+    call UpdateEnemyWalkerAState
     call CullObjectAndReleaseSpawn
     ret nz
 
@@ -6251,8 +6177,7 @@ UpdateObjEnemyWalkerA:: ; Compatibility alias from pass 11.
 
 
 UpdateEnemyWalkerAState::
-Call_001_6292:: ; Compatibility alias.
-    call Call_001_629e
+    call GetObjectStateAndDirectionFlags
     rst $00
 
     ; rst $00 jump table (4 entries)
@@ -6260,7 +6185,6 @@ Call_001_6292:: ; Compatibility alias.
 
 
 GetObjectStateAndDirectionFlags::
-Call_001_629e:: ; Compatibility alias.
     xor a
     ldh [hSpriteFlags], a
     ld h, b
@@ -6280,7 +6204,7 @@ jr_001_62ab::
 
 label_001_62af::
     ld hl, $62e2
-    call Jump_001_62cb
+    call AnimateObjectFromTableFast
     call MoveObjectXBySpeed
 
 Jump_001_62b8::
@@ -6302,7 +6226,6 @@ Jump_001_62b8::
 
 
 AnimateObjectFromTableFast::
-Jump_001_62cb:: ; Compatibility alias.
     ld d, $08
 
 Call_001_62cd::
@@ -6329,8 +6252,7 @@ label_001_62e6::
     ldh [$ffd6], a
 
 UpdateObjectThrownStateA::
-Jump_001_62eb:: ; Compatibility alias.
-    call Call_001_62f8
+    call UpdateObjectThrownStateATimer
     call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
@@ -6340,7 +6262,6 @@ Jump_001_62eb:: ; Compatibility alias.
 
 
 UpdateObjectThrownStateATimer::
-Call_001_62f8:: ; Compatibility alias.
     ld hl, $0002
     add hl, bc
     dec [hl]
@@ -6364,8 +6285,7 @@ label_001_630c::
     ldh [$ffd6], a
 
 UpdateObjectThrownStateB::
-Jump_001_6311:: ; Compatibility alias.
-    call Call_001_6320
+    call AccelerateObjectY
     call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
@@ -6377,11 +6297,9 @@ Jump_001_6311:: ; Compatibility alias.
 
 
 AccelerateObjectY::
-Call_001_6320:: ; Compatibility alias.
     ld hl, $0008
 
 AccelerateObjectYAtHL::
-Call_001_6323:: ; Compatibility alias.
     add hl, bc
     ld a, [hl]
     add $20
@@ -6393,7 +6311,6 @@ Call_001_6323:: ; Compatibility alias.
     ld [hl], a
 
 ApplyObjectYVelocity::
-Call_001_632e:: ; Compatibility alias.
     ld hl, $0005
     add hl, bc
     bit 7, d
@@ -6412,11 +6329,9 @@ Call_001_632e:: ; Compatibility alias.
 
 
 CheckPlayerActionHitboxCollision_Default::
-Call_001_6342:: ; Compatibility alias.
     ld de, $040c
 
 CheckPlayerActionHitboxCollision:: ; Check active player form/projectile hitboxes against current object.
-Jump_001_6345:: ; Compatibility alias.
     ldh a, [hPlayerActionLock]
     or a
     ret z
@@ -6434,7 +6349,6 @@ Jump_001_6345:: ; Compatibility alias.
 
 
 CheckActionHitbox0Collision:: ; Check primary action/projectile hitbox at wPlayerActionHitbox0*.
-Call_001_6355:: ; Compatibility alias.
     ld hl, wPlayerActionHitbox0X
     ldh a, [hActionHitboxHalfWidth]
     add d
@@ -6471,7 +6385,6 @@ jr_001_6376::
     jr ApplyObjectHitFromPlayerAction
 
 CheckActionHitbox1Collision:: ; Check secondary action/projectile hitbox at wPlayerActionHitbox1*.
-jr_001_6389:: ; Compatibility alias.
     ld hl, wPlayerActionHitbox1X
     ldh a, [hActionHitboxHalfWidth]
     add d
@@ -6495,13 +6408,11 @@ Call_001_63a8::
     ld d, $00
 
 CheckPlayerBodyCollision::
-Jump_001_63aa:: ; Compatibility alias.
     call Call_001_4c18
     call Call_001_4c9e
     ret nc
 
 ApplyObjectHitFromPlayerAction:: ; Apply normal player form/projectile hit handling to current object.
-jr_001_63b1:: ; Compatibility alias.
     ld a, $52
     call PlaySound
     ld hl, $000e
@@ -6516,7 +6427,6 @@ jr_001_63b1:: ; Compatibility alias.
     jr nz, SetObjectActionHitStun
 
 LaunchObjectFromActionKamenHit:: ; Strong Action Kamen projectile hit: launch/stagger the current object.
-jr_001_63c5:: ; Compatibility alias.
     ld h, b
     ld l, c
     inc hl
@@ -6531,7 +6441,6 @@ jr_001_63c5:: ; Compatibility alias.
 
 
 SetObjectActionHitStun:: ; Put object into short hit-stun after a non-launching form action hit.
-jr_001_63d5:: ; Compatibility alias.
     ld hl, $0002
     add hl, bc
     ld [hl], $5a
@@ -6543,10 +6452,9 @@ jr_001_63d5:: ; Compatibility alias.
 
 
 UpdateObjEnemyPartyHornKid:: ; Object type $0b: party-horn kid that reacts when the player approaches.
-UpdateObjEnemyReactiveA:: ; Compatibility alias from pass 11.
     xor a
     ldh [$ffce], a
-    call Call_001_63fe
+    call UpdateEnemyReactiveAState
     call CullObjectAndReleaseSpawn
     ret nz
 
@@ -6554,16 +6462,15 @@ UpdateObjEnemyReactiveA:: ; Compatibility alias from pass 11.
     or a
     ret nz
 
-    call Call_001_6486
-    call Call_001_645b
+    call CheckEnemyReactivePlayerProximity
+    call CheckEnemyReactiveSpecialBodyCollision
     call CheckPlayerActionHitboxCollision_Default
     call Call_001_63a8
     jp Jump_001_4c06
 
 
 UpdateEnemyReactiveAState::
-Call_001_63fe:: ; Compatibility alias.
-    call Call_001_629e
+    call GetObjectStateAndDirectionFlags
     rst $00
 
     ; rst $00 jump table (4 entries)
@@ -6572,7 +6479,7 @@ Call_001_63fe:: ; Compatibility alias.
 
 label_001_640a::
     ld hl, $6416
-    call Jump_001_62cb
+    call AnimateObjectFromTableFast
     call MoveObjectXBySpeed
     jp Jump_001_62b8
 
@@ -6583,14 +6490,14 @@ label_001_641a::
     pop af
     ld a, $0b
     ldh [$ffd6], a
-    jp Jump_001_62eb
+    jp UpdateObjectThrownStateA
 
 
 label_001_6422::
     pop af
     ld a, $0b
     ldh [$ffd6], a
-    jp Jump_001_6311
+    jp UpdateObjectThrownStateB
 
 
 label_001_642a::
@@ -6633,7 +6540,6 @@ Jump_001_6444::
 
 
 CheckEnemyReactiveSpecialBodyCollision::
-Call_001_645b:: ; Compatibility alias.
     ldh a, [$ffd4]
     ld e, a
     ldh a, [hPlayerScreenY]
@@ -6679,11 +6585,9 @@ jr_001_6484::
 
 
 CheckEnemyReactivePlayerProximity::
-Call_001_6486:: ; Compatibility alias.
     ld e, $24
 
 CheckEnemyPlayerProximityWithRange::
-Jump_001_6488:: ; Compatibility alias.
     ld h, b
     ld l, c
     inc hl
@@ -6747,8 +6651,7 @@ jr_001_64be::
 
 
 UpdateObjEnemyUmbrellaKid:: ; Object type $0c: umbrella kid; player bounces when landing on top.
-UpdateObjEnemyWalkerB:: ; Compatibility alias from pass 11.
-    call Call_001_64e3
+    call UpdateEnemyWalkerBState
     call CullObjectAndReleaseSpawn
     ret nz
 
@@ -6756,14 +6659,13 @@ UpdateObjEnemyWalkerB:: ; Compatibility alias from pass 11.
     or a
     ret nz
 
-    call Call_001_650f
-    call Call_001_6515
+    call CheckEnemyWalkerBActionHitbox
+    call CheckEnemyWalkerBSpecialBodyCollision
     jp Jump_001_4c06
 
 
 UpdateEnemyWalkerBState::
-Call_001_64e3:: ; Compatibility alias.
-    call Call_001_629e
+    call GetObjectStateAndDirectionFlags
     rst $00
 
     ; rst $00 jump table (4 entries)
@@ -6772,7 +6674,7 @@ Call_001_64e3:: ; Compatibility alias.
 
 label_001_64ef::
     ld hl, $64fb
-    call Jump_001_62cb
+    call AnimateObjectFromTableFast
     call MoveObjectXBySpeed
     jp Jump_001_62b8
 
@@ -6783,24 +6685,22 @@ label_001_64ff::
     pop af
     ld a, $0f
     ldh [$ffd6], a
-    jp Jump_001_62eb
+    jp UpdateObjectThrownStateA
 
 
 label_001_6507::
     pop af
     ld a, $0f
     ldh [$ffd6], a
-    jp Jump_001_6311
+    jp UpdateObjectThrownStateB
 
 
 CheckEnemyWalkerBActionHitbox::
-Call_001_650f:: ; Compatibility alias.
     ld de, $0410
     jp CheckPlayerActionHitboxCollision
 
 
 CheckEnemyWalkerBSpecialBodyCollision::
-Call_001_6515:: ; Compatibility alias.
     ld d, $01
     call Call_001_4c18
     call Call_001_4c9e
@@ -6812,8 +6712,7 @@ Call_001_6515:: ; Compatibility alias.
 
 
 UpdateObjEnemyPaperAirplaneKid:: ; Object type $0d: paper-airplane kid that spawns paper airplane projectiles.
-UpdateObjEnemySpawnerA:: ; Compatibility alias from pass 11.
-    call Call_001_653b
+    call UpdateEnemySpawnerAState
     call CullObjectAndReleaseSpawn
     ret nz
 
@@ -6821,15 +6720,14 @@ UpdateObjEnemySpawnerA:: ; Compatibility alias from pass 11.
     or a
     ret nz
 
-    call Call_001_65f3
+    call CheckPaperAirplaneKidPlayerProximity
     call CheckPlayerActionHitboxCollision_Default
     call Call_001_63a8
     jp Jump_001_4c06
 
 
 UpdateEnemySpawnerAState::
-Call_001_653b:: ; Compatibility alias.
-    call Call_001_629e
+    call GetObjectStateAndDirectionFlags
     rst $00
 
     ; rst $00 jump table (4 entries)
@@ -6838,7 +6736,7 @@ Call_001_653b:: ; Compatibility alias.
 
 label_001_6547::
     ld hl, $6553
-    call Jump_001_62cb
+    call AnimateObjectFromTableFast
     call MoveObjectXBySpeed
     jp Jump_001_62b8
 
@@ -6849,14 +6747,14 @@ label_001_6557::
     pop af
     ld a, $05
     ldh [$ffd6], a
-    jp Jump_001_62eb
+    jp UpdateObjectThrownStateA
 
 
 label_001_655f::
     pop af
     ld a, $05
     ldh [$ffd6], a
-    jp Jump_001_6311
+    jp UpdateObjectThrownStateB
 
 
 label_001_6567::
@@ -6867,7 +6765,7 @@ label_001_6567::
     ld a, [hl]
     inc [hl]
     and $7f
-    jr z, jr_001_657b
+    jr z, SpawnEnemyProjectileB
 
     cp $78
     ret c
@@ -6876,7 +6774,6 @@ label_001_6567::
 
 
 SpawnEnemyProjectileB::
-jr_001_657b:: ; Compatibility alias.
     ld hl, wObjectSlots
 
 jr_001_657e::
@@ -6904,12 +6801,11 @@ jr_001_6592::
     ld [hl+], a
 
 InitSpawnedEnemyProjectileB::
-Jump_001_6598:: ; Compatibility alias.
     xor a
     ld [hl+], a
-    call Call_001_65c5
-    call Call_001_65dd
-    call Call_001_65ae
+    call CopyParentProjectileXOffset
+    call CopyParentProjectileYOffset
+    call CopyParentProjectileSpeedPlus40
     xor a
     ld [hl+], a
     ld [hl+], a
@@ -6923,7 +6819,6 @@ Jump_001_6598:: ; Compatibility alias.
 
 
 CopyParentProjectileSpeedPlus40::
-Call_001_65ae:: ; Compatibility alias.
     push hl
     ld hl, $0008
     add hl, bc
@@ -6945,7 +6840,6 @@ Call_001_65ae:: ; Compatibility alias.
 
 
 CopyParentProjectileXOffset::
-Call_001_65c5:: ; Compatibility alias.
     push hl
     ld hl, $0003
     add hl, bc
@@ -6967,7 +6861,6 @@ Call_001_65c5:: ; Compatibility alias.
 
 
 CopyParentProjectileYOffset::
-Call_001_65dd:: ; Compatibility alias.
     push hl
     ld hl, $0006
     add hl, bc
@@ -6989,15 +6882,12 @@ Call_001_65dd:: ; Compatibility alias.
 
 
 CheckPaperAirplaneKidPlayerProximity::
-CheckEnemySpawnerAPlayerProximity:: ; Compatibility alias.
-Call_001_65f3:: ; Compatibility alias.
     ld e, $50
-    jp Jump_001_6488
+    jp CheckEnemyPlayerProximityWithRange
 
 
 UpdateObjEnemyPaperAirplane:: ; Object type $0e: paper airplane projectile spawned by paper-airplane kid.
-UpdateObjEnemyProjectileA:: ; Compatibility alias from pass 11.
-    call Call_001_661b
+    call UpdateEnemyProjectileAState
     call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
@@ -7010,8 +6900,8 @@ UpdateObjEnemyProjectileA:: ; Compatibility alias from pass 11.
     and $02
     jr nz, jr_001_6611
 
-    call Call_001_6645
-    call Call_001_664b
+    call CheckEnemyProjectileAActionHitbox
+    call CheckEnemyProjectileABodyCollision
 
 jr_001_6611::
     ld a, $04
@@ -7026,8 +6916,7 @@ jr_001_6618::
 
 
 UpdateEnemyProjectileAState::
-Call_001_661b:: ; Compatibility alias.
-    call Call_001_629e
+    call GetObjectStateAndDirectionFlags
     rst $00
 
     ; rst $00 jump table (4 entries)
@@ -7060,13 +6949,11 @@ label_001_663b::
 
 
 CheckEnemyProjectileAActionHitbox::
-Call_001_6645:: ; Compatibility alias.
     ld de, $0404
     jp CheckPlayerActionHitboxCollision
 
 
 CheckEnemyProjectileABodyCollision::
-Call_001_664b:: ; Compatibility alias.
     ld d, $03
     jp CheckPlayerBodyCollision
 
@@ -7089,7 +6976,7 @@ jr_001_6661::
 
 
 Call_001_6664::
-    call Call_001_629e
+    call GetObjectStateAndDirectionFlags
     rst $00
 
     ; rst $00 jump table (2 entries)
@@ -7147,7 +7034,7 @@ label_001_66a4::
     jr jr_001_6678
 
 Call_001_66b3::
-    ld a, [$c0b6]
+    ld a, [wStageBossStateFlag]
     cp $ff
     ret z
 
@@ -7156,7 +7043,7 @@ Call_001_66b3::
 
 
 UpdateObjEnemyProjectileB:: ; Object type $0f: enemy projectile / child object, exact source pending.
-    call Call_001_66d2
+    call UpdateEnemyProjectileBState
     call CullObjectAndReleaseSpawn
     ret nz
 
@@ -7164,14 +7051,13 @@ UpdateObjEnemyProjectileB:: ; Object type $0f: enemy projectile / child object, 
     or a
     ret nz
 
-    call Call_001_6724
-    call Call_001_672a
+    call CheckEnemyProjectileBActionHitbox
+    call CheckEnemyProjectileBBodyCollision
     jp Jump_001_4c06
 
 
 UpdateEnemyProjectileBState::
-Call_001_66d2:: ; Compatibility alias.
-    call Call_001_629e
+    call GetObjectStateAndDirectionFlags
     rst $00
 
     ; rst $00 jump table (4 entries)
@@ -7223,18 +7109,16 @@ Call_001_670a::
 label_001_671a::
     pop af
     ld hl, $66f0
-    call Jump_001_62cb
-    jp Jump_001_6311
+    call AnimateObjectFromTableFast
+    jp UpdateObjectThrownStateB
 
 
 CheckEnemyProjectileBActionHitbox::
-Call_001_6724:: ; Compatibility alias.
     ld de, $0410
     jp CheckPlayerActionHitboxCollision
 
 
 CheckEnemyProjectileBBodyCollision::
-Call_001_672a:: ; Compatibility alias.
     ld d, $02
     jp CheckPlayerBodyCollision
 
@@ -7264,7 +7148,7 @@ jr_001_674e::
 
 
 Call_001_6751::
-    call Call_001_629e
+    call GetObjectStateAndDirectionFlags
     ld a, [hl]
     rst $00
 
@@ -7324,7 +7208,7 @@ jr_001_6795::
     and $80
     or $05
     ld [hl+], a
-    jp Jump_001_6598
+    jp InitSpawnedEnemyProjectileB
 
 
 label_001_679e::
@@ -7342,18 +7226,18 @@ label_001_679e::
     ld a, $04
     ldh [hGameState], a
     ldh [hNeedsReset], a
-    ldh a, [$ff9f]
+    ldh a, [hStageIndex]
     add a
     inc a
     ld [$d979], a
-    ldh a, [$ff9f]
+    ldh a, [hStageIndex]
     inc a
-    ldh [$ff9f], a
+    ldh [hStageIndex], a
     cp $04
     ret c
 
     dec a
-    ldh [$ff9f], a
+    ldh [hStageIndex], a
     xor a
     ld [$c0a9], a
     ret
@@ -7362,10 +7246,10 @@ label_001_679e::
 label_001_67d0::
     pop af
     ld a, $ff
-    ld [$c0b6], a
+    ld [wStageBossStateFlag], a
     ld hl, $67fc
-    call Jump_001_62cb
-    call Call_001_6320
+    call AnimateObjectFromTableFast
+    call AccelerateObjectY
     call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
@@ -7392,7 +7276,7 @@ label_001_67f0::
 label_001_6800::
     call Call_001_6810
     ld hl, $680c
-    call Jump_001_62cb
+    call AnimateObjectFromTableFast
     jp MoveObjectXBySpeed
 
 
@@ -7489,7 +7373,7 @@ jr_001_6875::
 
 
 Call_001_6878::
-    call Call_001_629e
+    call GetObjectStateAndDirectionFlags
     ld a, [hl]
     rst $00
 
@@ -7511,10 +7395,10 @@ label_001_6887::
 label_001_6897::
     pop af
     ld a, $ff
-    ld [$c0b6], a
+    ld [wStageBossStateFlag], a
     ld hl, $6893
-    call Jump_001_62cb
-    call Call_001_6320
+    call AnimateObjectFromTableFast
+    call AccelerateObjectY
     call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
@@ -7568,7 +7452,7 @@ jr_001_68db::
 Jump_001_68e4::
     call Call_001_68c7
     ld hl, $68f0
-    call Jump_001_62cb
+    call AnimateObjectFromTableFast
     jp MoveObjectXBySpeed
 
 
@@ -7583,7 +7467,7 @@ label_001_68f4::
     cp $30
     ret c
 
-    ld hl, $fe00
+    ld hl, _OAMRAM
     ld a, l
     ld [$c0b9], a
     ld a, h
@@ -7645,7 +7529,7 @@ jr_001_6952::
     ld [$c0ba], a
     ld d, h
     ld e, l
-    call Call_001_632e
+    call ApplyObjectYVelocity
     ldh a, [$ffd4]
     cp $41
     ret c
@@ -7723,10 +7607,10 @@ label_001_69b3::
 label_001_69c3::
     pop af
     ld a, $ff
-    ld [$c0b6], a
+    ld [wStageBossStateFlag], a
     ld hl, $69bf
-    call Jump_001_62cb
-    call Call_001_6320
+    call AnimateObjectFromTableFast
+    call AccelerateObjectY
     call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
@@ -7741,7 +7625,6 @@ label_001_69c3::
 
 
 UpdateObjStageEvent03ScriptController:: ; Stage event 03 script/controller routine at $69e3.
-UpdateObjStageEvent20:: ; Compatibility alias from pass 10.
     call Call_001_6a09
     call MoveObjectXBySpeed
     call Call_001_6a6e
@@ -7820,7 +7703,7 @@ Call_001_6a3b::
     ld [$c0ba], a
     ld d, h
     ld e, l
-    call Call_001_632e
+    call ApplyObjectYVelocity
     ld hl, $fc00
     add hl, de
     ld a, h
@@ -7883,7 +7766,7 @@ jr_001_6a7e::
 jr_001_6a98::
     ld a, [hl]
     or a
-    jr z, jr_001_6aac
+    jr z, SpawnStageEvent21Child
 
     cp $ff
     jr z, jr_001_6aa6
@@ -7893,20 +7776,19 @@ jr_001_6a98::
     jr jr_001_6a98
 
 jr_001_6aa6::
-    call jr_001_6aac
+    call SpawnStageEvent21Child
     ld [hl], $ff
     ret
 
 
 SpawnStageEvent21Child::
-jr_001_6aac:: ; Compatibility alias.
     ld a, $80 | OBJ_STAGE_EVENT_TYPE_21
     ld [hl+], a
     xor a
     ld [hl+], a
     call Call_001_6ac5
     call Call_001_6add
-    call Call_001_65ae
+    call CopyParentProjectileSpeedPlus40
     xor a
     ld [hl+], a
     ld [hl+], a
@@ -7981,7 +7863,7 @@ jr_001_6b04::
 Call_001_6b07::
     ld a, $1b
     ldh [$ffd6], a
-    call Call_001_629e
+    call GetObjectStateAndDirectionFlags
     and $01
     rst $00
 
@@ -8019,7 +7901,7 @@ label_001_6b2f::
 
 
 Call_001_6b3c::
-    ld a, [$c0b6]
+    ld a, [wStageBossStateFlag]
     cp $ff
     ret z
 
@@ -8131,7 +8013,7 @@ jr_001_6bce::
 
 
 Call_001_6bd6::
-    call Call_001_629e
+    call GetObjectStateAndDirectionFlags
     ld a, [hl]
     rst $00
 
@@ -8153,10 +8035,10 @@ label_001_6be5::
 label_001_6bf5::
     pop af
     ld a, $ff
-    ld [$c0b6], a
+    ld [wStageBossStateFlag], a
     ld hl, $6bf1
-    call Jump_001_62cb
-    call Call_001_6320
+    call AnimateObjectFromTableFast
+    call AccelerateObjectY
     call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
@@ -8194,7 +8076,7 @@ label_001_6c35::
 
 Call_001_6c45::
     ld hl, $6c4b
-    jp Jump_001_62cb
+    jp AnimateObjectFromTableFast
 
 
     db $15, $16, $15, $17
@@ -8207,7 +8089,7 @@ label_001_6c4f::
     ld de, $0100
     call Call_001_6c6b
     ld hl, $6c61
-    jp Jump_001_62cb
+    jp AnimateObjectFromTableFast
 
 
     db $1d, $1e, $1d, $1e
@@ -8268,7 +8150,7 @@ label_001_6c92::
     ret nc
 
     cp $1f
-    jr z, jr_001_6cb8
+    jr z, SpawnStageEventChild24
 
     ld a, $1c
     ldh [$ffd6], a
@@ -8276,7 +8158,6 @@ label_001_6c92::
 
 
 SpawnStageEventChild24::
-jr_001_6cb8:: ; Compatibility alias.
     ld a, $1c
     ldh [$ffd6], a
     ld hl, wObjectSlots
@@ -8306,7 +8187,7 @@ jr_001_6cd3::
     ld [hl+], a
     call Call_001_6cec
     call Call_001_6d04
-    call Call_001_65ae
+    call CopyParentProjectileSpeedPlus40
     xor a
     ld [hl+], a
     ld [hl+], a
@@ -8546,7 +8427,7 @@ Call_001_6e0c::
 
 
 Call_001_6e1f::
-    ld a, [$c0b6]
+    ld a, [wStageBossStateFlag]
     cp $ff
     ret z
 
@@ -8582,13 +8463,12 @@ jr_001_6e42::
 
 
 UpdateBouncePadPlayerContact::
-Call_001_6e4b:: ; Compatibility alias.
     ld h, b
     ld l, c
     inc hl
     ld a, [hl]
     or a
-    jr nz, jr_001_6e93
+    jr nz, ApplyBouncePadJump
 
     ldh a, [hPlayerVelYHigh]
     rlca
@@ -8632,7 +8512,6 @@ Call_001_6e4b:: ; Compatibility alias.
     call SetPlayerJumpVelocity
 
 AttachPlayerToObjectTop16:: ; Align player Y to object top - $10.
-Call_001_6e81:: ; Compatibility alias.
     ld hl, $0006
     add hl, bc
     ld a, [hl+]
@@ -8648,8 +8527,7 @@ Call_001_6e81:: ; Compatibility alias.
 
 
 ApplyBouncePadJump::
-jr_001_6e93:: ; Compatibility alias.
-    ld hl, $ffad
+    ld hl, hPlayerYSubpixel
     ld de, $0100
     call Jump_001_4be3
     ld hl, $000d
@@ -8675,7 +8553,7 @@ jr_001_6e93:: ; Compatibility alias.
     ld a, $02
     ldh [hPlayerState], a
     ld [$c0b0], a
-    call Call_001_6e81
+    call AttachPlayerToObjectTop16
     ld hl, $000a
     add hl, bc
     ld a, [hl]
@@ -8710,7 +8588,7 @@ UpdateObjMovingPlatformVerticalA:: ; Object type $1a: vertical moving platform v
     or a
     ret nz
 
-    call Jump_001_6f0a
+    call CheckPlayerStandingOnPlatform
 
 Jump_001_6eef::
     ld hl, $70de
@@ -8722,7 +8600,6 @@ Jump_001_6eef::
 
 
 UpdateMovingPlatformVerticalA::
-Call_001_6efb:: ; Compatibility alias.
     ld h, b
     ld l, c
     inc hl
@@ -8735,7 +8612,6 @@ Call_001_6efb:: ; Compatibility alias.
 
 
 CheckPlayerStandingOnPlatform::
-Jump_001_6f0a:: ; Compatibility alias.
     ldh a, [hPlayerState]
     cp $06
     ret z
@@ -8745,14 +8621,13 @@ Jump_001_6f0a:: ; Compatibility alias.
     ret nz
 
     ld e, $12
-    call Call_001_6f28
+    call CheckPlayerPlatformTopOverlap
     ret nc
 
 AttachPlayerToPlatformTop::
-Jump_001_6f19:: ; Compatibility alias.
     ld a, $ff
     ldh [$ffc4], a
-    call Call_001_6e81
+    call AttachPlayerToObjectTop16
     ldh a, [hPlayerState]
     cp $02
     ret nz
@@ -8761,7 +8636,6 @@ Jump_001_6f19:: ; Compatibility alias.
 
 
 CheckPlayerPlatformTopOverlap::
-Call_001_6f28:: ; Compatibility alias.
     ldh a, [hPlayerVelYHigh]
     rlca
     ccf
@@ -8854,7 +8728,6 @@ UpdateObjMovingPlatformVerticalB:: ; Object type $1b: vertical moving platform v
 
 
 UpdateMovingPlatformVerticalB::
-Call_001_6f91:: ; Compatibility alias.
     ld h, b
     ld l, c
     inc hl
@@ -8889,18 +8762,18 @@ jr_001_6fad::
     ret nz
 
     ld e, $12
-    call Call_001_6f28
+    call CheckPlayerPlatformTopOverlap
     ret nc
 
-    ld hl, $ffb0
+    ld hl, hPlayerXSubpixel
     ld de, $00c0
     call jr_001_4bee
-    jp Jump_001_6f19
+    jp AttachPlayerToPlatformTop
 
 
 label_001_6fd1::
     call Jump_001_6f62
-    jp Jump_001_6f0a
+    jp CheckPlayerStandingOnPlatform
 
 
 label_001_6fd7::
@@ -8922,24 +8795,23 @@ jr_001_6fe4::
     ret z
 
     ld e, $12
-    call Call_001_6f28
+    call CheckPlayerPlatformTopOverlap
     ret nc
 
-    ld hl, $ffb0
+    ld hl, hPlayerXSubpixel
     ld de, $00c0
     call Jump_001_4be3
-    jp Jump_001_6f19
+    jp AttachPlayerToPlatformTop
 
 
 UpdateObjDropPlatformA:: ; Object type $09/$1c: drop/moving platform variant A.
-Call_001_7004:: ; Compatibility alias.
     call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
     jr nz, jr_001_701e
 
-    call Call_001_706f
-    call Call_001_7021
+    call UpdateDropPlatformMotionA
+    call CheckPlayerStandingOnDropPlatform
     ld hl, $70bb
     ldh a, [$ffd3]
     ld c, a
@@ -8955,7 +8827,6 @@ jr_001_701e::
 
 
 CheckPlayerStandingOnDropPlatform::
-Call_001_7021:: ; Compatibility alias.
     ldh a, [hPlayerState]
     cp $06
     ret z
@@ -9018,7 +8889,6 @@ Call_001_7021:: ; Compatibility alias.
 
 
 UpdateDropPlatformMotionA::
-Call_001_706f:: ; Compatibility alias.
     ld h, b
     ld l, c
     inc hl
@@ -9027,7 +8897,6 @@ Call_001_706f:: ; Compatibility alias.
     jp z, Jump_001_6f62
 
 MoveDropPlatformDown::
-Jump_001_7077:: ; Compatibility alias.
     ld hl, $0005
     add hl, bc
     ld de, $0200
@@ -9035,14 +8904,13 @@ Jump_001_7077:: ; Compatibility alias.
 
 
 UpdateObjDropPlatformB:: ; Object type $1e: drop/moving platform variant B.
-Call_001_7081:: ; Compatibility alias.
     call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
     jr nz, jr_001_701e
 
-    call Call_001_7095
-    call Call_001_7021
+    call UpdateDropPlatformMotionB
+    call CheckPlayerStandingOnDropPlatform
     jp Jump_001_4c06
 
 
@@ -9052,7 +8920,6 @@ Call_001_7081:: ; Compatibility alias.
 
 
 UpdateDropPlatformMotionB::
-Call_001_7095:: ; Compatibility alias.
     ld a, $02
     ldh [hSpriteFlags], a
     ld a, $10
@@ -9067,7 +8934,7 @@ Call_001_7095:: ; Compatibility alias.
     dec a
     jr z, jr_001_70ab
 
-    jp Jump_001_7077
+    jp MoveDropPlatformDown
 
 
 jr_001_70ab::
@@ -9119,8 +8986,8 @@ jr_001_711e::
     ld [hl], a
 
 jr_001_7126::
-    call Call_001_714e
-    call Call_001_71fd
+    call MovePlatformAndCarryPlayer
+    call StopPlatformAtEndpoint
     ld a, [bc]
     sla a
     ld a, $00
@@ -9147,7 +9014,6 @@ jr_001_7145::
 
 
 MovePlatformAndCarryPlayer::
-Call_001_714e:: ; Compatibility alias.
     ld hl, $0008
     add hl, bc
     ld e, [hl]
@@ -9225,7 +9091,7 @@ jr_001_71ac::
     ld hl, $0008
     add hl, bc
     ld [hl], $c0
-    call Call_001_71fd
+    call StopPlatformAtEndpoint
     ld hl, $0006
     add hl, bc
     ld a, [hl]
@@ -9252,7 +9118,7 @@ jr_001_71d0::
     add hl, bc
     ld e, [hl]
     ld d, $00
-    ld hl, $ffb0
+    ld hl, hPlayerXSubpixel
     call ApplyObjectXVelocity
 
 jr_001_71e3::
@@ -9276,7 +9142,6 @@ jr_001_71f1::
 
 
 StopPlatformAtEndpoint::
-Call_001_71fd:: ; Compatibility alias.
     ld de, $0350
     ld a, [bc]
     sla a
@@ -9614,7 +9479,7 @@ jr_001_7394::
     ret z
 
     ld de, $0100
-    ld hl, $ffb0
+    ld hl, hPlayerXSubpixel
     call ApplyObjectXVelocity
     ret
 
@@ -9900,7 +9765,7 @@ jr_001_7c08::
     xor a
     ld [wPlayerSpecialActor0], a
     ld [wPlayerSpecialActor1], a
-    ldh [$ff9f], a
+    ldh [hStageIndex], a
     ld a, $02
     ldh [hGameState], a
     ldh [hNeedsReset], a
