@@ -5,6 +5,22 @@
 
 SECTION "ROM Bank $002", ROMX[$4000], BANK[$2]
 
+; Bank 2 password/menu work variables identified during password cleanup.
+; Keep these guarded so the names can later move to the global WRAM alias block.
+IF !DEF(wPasswordInputTopRow)
+DEF wPasswordInputTopRow    EQU $d940 ; 10 bytes: modifiers/diacritics for password entry.
+DEF wPasswordInputBottomRow EQU $d94a ; 10 bytes: base kana tile IDs for password entry.
+DEF wPasswordCursorCol      EQU $d93a
+DEF wPasswordInputIndex     EQU $d93b
+DEF wPasswordCursorRow      EQU $d93c
+DEF wPasswordErrorFlag      EQU $d958
+DEF wPasswordMatchIndex     EQU $d959
+DEF wPasswordRepeatHeld     EQU $d95a
+DEF wPasswordRepeatTimer    EQU $d95b
+DEF wStateChangeParamLo     EQU $d95e
+DEF wStateChangeParamHi     EQU $d95f
+ENDC
+
     db $02, $15, $40, $06, $41, $d7, $48, $f9, $48
 
     push af
@@ -456,19 +472,17 @@ RequestStateChange_Menu:: ; Menu/screen transition helper. Sets hNeedsReset and 
     ld a, b
     rst $00
 
-    db $0b, $43, $16, $43, $23, $43, $38, $43
-
-    ld b, [hl]
-    ld b, e
-    ld d, b
-    ld b, e
-
-    db $56, $43
-
-    ld h, e
-    ld b, e
-
-    db $6d, $43, $7d, $43
+    ; RequestStateChange_Menu dispatch table. B selects one of these handlers.
+    dw RequestState_ReturnToTitleMenu        ; 00
+    dw RequestState_GotoScreenState3         ; 01
+    dw RequestState_GotoScreenState3Submode  ; 02
+    dw RequestState_GotoScreenState3WithD81C ; 03
+    dw RequestState_TitleSubstate4           ; 04
+    dw RequestState_TitleSubstate1           ; 05
+    dw RequestState_PasswordResultMenu       ; 06: password-derived destination.
+    dw RequestState_GotoGameState4           ; 07
+    dw RequestState_GotoGameState4Submode    ; 08
+    dw RequestState_GotoGameState5           ; 09
 
 Jump_002_4301::
     ld a, [$d95e]
@@ -477,6 +491,7 @@ Jump_002_4301::
     ld b, a
     jr RequestStateChange_Menu
 
+RequestState_ReturnToTitleMenu::
     xor a
     ldh [hGameState], a
     ld [$d93d], a
@@ -485,6 +500,7 @@ Jump_002_4301::
     ret
 
 
+RequestState_GotoScreenState3::
     xor a
     ld [$d93e], a
     ld a, c
@@ -494,6 +510,7 @@ Jump_002_4301::
     ret
 
 
+RequestState_GotoScreenState3Submode::
     xor a
     ld [$d93e], a
     ld a, c
@@ -506,6 +523,7 @@ Jump_002_4301::
     ret
 
 
+RequestState_GotoScreenState3WithD81C::
     ld a, c
     inc a
     ld [$d93e], a
@@ -516,6 +534,7 @@ Jump_002_4301::
     ret
 
 
+RequestState_TitleSubstate4::
     ld a, $00
     ldh [hGameState], a
     ld a, $04
@@ -523,10 +542,13 @@ Jump_002_4301::
     ret
 
 
+RequestState_TitleSubstate1::
     ld a, $01
     ld [$d93d], a
     ret
 
+
+RequestState_PasswordResultMenu::
 IF DEF(DEBUG)
     ld a, $01
 ELSE
@@ -540,6 +562,7 @@ ENDC
     ret
 
 
+RequestState_GotoGameState4::
     ld a, $04
     ldh [hGameState], a
     ld a, $01
@@ -547,6 +570,7 @@ ENDC
     ret
 
 
+RequestState_GotoGameState4Submode::
     ld a, $04
     ldh [hGameState], a
     ld a, c
@@ -557,6 +581,7 @@ ENDC
     ret
 
 
+RequestState_GotoGameState5::
     ld a, $05
     ldh [hGameState], a
     ld a, c
@@ -599,12 +624,12 @@ Jump_002_43a1::
     ld [$d802], a
     ld [$d805], a
     ld [wVramQueue], a
-    ld [$d93a], a
-    ld [$d93b], a
-    ld [$d93c], a
-    ld [$d958], a
-    ld [$d95a], a
-    ld [$d95b], a
+    ld [wPasswordCursorCol], a
+    ld [wPasswordInputIndex], a
+    ld [wPasswordCursorRow], a
+    ld [wPasswordErrorFlag], a
+    ld [wPasswordRepeatHeld], a
+    ld [wPasswordRepeatTimer], a
     ld a, $e4
     ld [wPaletteBGP], a
     ld [wPaletteOBP1], a
@@ -614,7 +639,7 @@ Jump_002_43a1::
     ld [wScreenPaletteId], a
     xor a
     ld b, $14
-    ld hl, $d940
+    ld hl, wPasswordInputTopRow
     call jr_000_0022
     ret
 
@@ -630,7 +655,7 @@ Jump_002_43a1::
     bit 4, a
     jr nz, jr_002_443e
 
-    ld de, $d940
+    ld de, wPasswordInputTopRow
     ld hl, $9844
     ld bc, $0a02
     call QueueTilemapRect
@@ -660,7 +685,7 @@ jr_002_4452::
 
 
 jr_002_4468::
-    ld a, [$d959]
+    ld a, [wPasswordMatchIndex]
     cp $0b
     jr nz, jr_002_4478
 
@@ -684,7 +709,7 @@ jr_002_4478::
 jr_002_448a::
     xor a
     ld [$dffd], a
-    ld a, [$d959]
+    ld a, [wPasswordMatchIndex]
     inc a
     bit 2, a
     ld a, $04
@@ -694,7 +719,7 @@ jr_002_448a::
 
 jr_002_4499::
     ld [$dffe], a
-    ld a, [$d959]
+    ld a, [wPasswordMatchIndex]
     inc a
     and $03
 
@@ -732,27 +757,27 @@ jr_002_44a2::
     ld b, $28
     ld de, $d800
     call Call_000_0720
-    ld a, [$d958]
+    ld a, [wPasswordErrorFlag]
     or a
     jr z, jr_002_44eb
 
-    call Call_002_468e
+    call PasswordInput_DismissErrorMessage
     ret
 
 
 jr_002_44eb::
     ld hl, $46b3
-    ld a, [$d93a]
+    ld a, [wPasswordCursorCol]
     swap a
     rrca
     ld c, a
-    ld a, [$d93c]
+    ld a, [wPasswordCursorRow]
     swap a
     rrca
     ld b, a
     call Jump_000_0269
     ld hl, $46b8
-    ld a, [$d93b]
+    ld a, [wPasswordInputIndex]
     swap a
     rrca
     ld c, a
@@ -761,19 +786,19 @@ jr_002_44eb::
     ldh a, [hJoyHeld]
     and $f0
     ld b, a
-    ld a, [$d95a]
+    ld a, [wPasswordRepeatHeld]
     and $f0
     cp b
     jr nz, jr_002_4532
 
-    ld a, [$d95b]
+    ld a, [wPasswordRepeatTimer]
     inc a
     jr nz, jr_002_4523
 
     ld a, $30
 
 jr_002_4523::
-    ld [$d95b], a
+    ld [wPasswordRepeatTimer], a
     cp $30
     jr c, jr_002_452e
 
@@ -786,11 +811,11 @@ jr_002_452e::
 
 jr_002_4532::
     xor a
-    ld [$d95b], a
+    ld [wPasswordRepeatTimer], a
 
 jr_002_4536::
     ldh a, [hJoyHeld]
-    ld [$d95a], a
+    ld [wPasswordRepeatHeld], a
     ld a, b
     ld b, $00
     ld c, $00
@@ -826,7 +851,7 @@ jr_002_4558::
     call PlaySound
 
 jr_002_4561::
-    ld a, [$d93a]
+    ld a, [wPasswordCursorCol]
     add b
     bit 7, a
     jr z, jr_002_456b
@@ -852,8 +877,8 @@ jr_002_4575::
     add b
 
 jr_002_457a::
-    ld [$d93a], a
-    ld a, [$d93c]
+    ld [wPasswordCursorCol], a
+    ld a, [wPasswordCursorRow]
     add c
     bit 7, a
     jr z, jr_002_4587
@@ -867,23 +892,23 @@ jr_002_4587::
     xor a
 
 jr_002_458c::
-    ld [$d93c], a
+    ld [wPasswordCursorRow], a
     ldh a, [hJoyPressed]
     bit 0, a
-    call nz, Call_002_45c6
+    call nz, PasswordInput_SelectCell
     ldh a, [hJoyPressed]
     bit 1, a
     jr z, jr_002_45a3
 
-    ld a, [$d93b]
+    ld a, [wPasswordInputIndex]
     dec a
-    ld [$d93b], a
+    ld [wPasswordInputIndex], a
 
 jr_002_45a3::
     ldh a, [hJoyPressed]
     bit 3, a
-    call nz, PasswordCheckAndDispatch
-    ld a, [$d93b]
+    call nz, SubmitPasswordCode
+    ld a, [wPasswordInputIndex]
     bit 7, a
     jr z, jr_002_45bc
 
@@ -899,17 +924,18 @@ jr_002_45bc::
     jr c, jr_002_45c5
 
     ld a, $09
-    ld [$d93b], a
+    ld [wPasswordInputIndex], a
 
 jr_002_45c5::
     ret
 
 
-Call_002_45c6::
+PasswordInput_SelectCell:: ; Handle A press on the password grid and store selected kana/control.
+Call_002_45c6:: ; Compatibility alias.
     ld a, $40
     call PlaySound
     ld hl, $c879
-    ld a, [$d93c]
+    ld a, [wPasswordCursorRow]
     inc a
     ld bc, $0014
 
@@ -918,15 +944,15 @@ jr_002_45d5::
     dec a
     jr nz, jr_002_45d5
 
-    ld a, [$d93a]
+    ld a, [wPasswordCursorCol]
     rst $38
     ld a, [hl]
     cp $b3
     jr nz, jr_002_45ea
 
-    ld a, [$d93b]
+    ld a, [wPasswordInputIndex]
     dec a
-    ld [$d93b], a
+    ld [wPasswordInputIndex], a
     ret
 
 
@@ -934,9 +960,9 @@ jr_002_45ea::
     cp $b4
     jr nz, jr_002_45f6
 
-    ld a, [$d93b]
+    ld a, [wPasswordInputIndex]
     inc a
-    ld [$d93b], a
+    ld [wPasswordInputIndex], a
     ret
 
 
@@ -944,7 +970,7 @@ jr_002_45f6::
     cp $b5
     jr nz, jr_002_45fe
 
-    call PasswordCheckAndDispatch
+    call SubmitPasswordCode
     ret
 
 
@@ -966,32 +992,34 @@ jr_002_460b::
     ld e, $00
 
 jr_002_4611::
-    ld a, [$d93b]
+    ld a, [wPasswordInputIndex]
     ld c, a
     ld b, $00
-    ld hl, $d940
+    ld hl, wPasswordInputTopRow
     add hl, bc
     ld [hl], e
-    ld hl, $d94a
+    ld hl, wPasswordInputBottomRow
     add hl, bc
     ld [hl], d
-    ld a, [$d93b]
+    ld a, [wPasswordInputIndex]
     inc a
-    ld [$d93b], a
-    ld de, $d940
+    ld [wPasswordInputIndex], a
+    ld de, wPasswordInputTopRow
     ld hl, $9844
     ld bc, $0a02
     call QueueTilemapRect
     ret
 
 
-PasswordCheckAndDispatch::
+SubmitPasswordCode:: ; Compare password input against PasswordCodeTable and dispatch on success.
+PasswordCheckAndDispatch:: ; Compatibility alias.
+Call_002_4635:: ; Compatibility alias.
     xor a
-    ld [$d959], a
-    ld hl, $4705
+    ld [wPasswordMatchIndex], a
+    ld hl, PasswordCodeTable
 
 jr_002_463c::
-    ld de, $d940
+    ld de, wPasswordInputTopRow
     ld c, $00
     push hl
 
@@ -1011,9 +1039,9 @@ jr_002_4642::
     pop hl
     ld bc, $0014
     add hl, bc
-    ld a, [$d959]
+    ld a, [wPasswordMatchIndex]
     inc a
-    ld [$d959], a
+    ld [wPasswordMatchIndex], a
     cp $0c
     jr nz, jr_002_463c
 
@@ -1022,7 +1050,7 @@ jr_002_4642::
     ld bc, $0a02
     call QueueTilemapRect
     ld a, $01
-    ld [$d958], a
+    ld [wPasswordErrorFlag], a
     ld a, $53
     call PlaySound
     ret
@@ -1041,7 +1069,8 @@ jr_002_4676::
     ret
 
 
-Call_002_468e::
+PasswordInput_DismissErrorMessage:: ; Clear the password error message when A is pressed.
+Call_002_468e:: ; Compatibility alias.
     ldh a, [hJoyPressed]
     bit 0, a
     ret z
@@ -1051,7 +1080,7 @@ Call_002_468e::
     ld bc, $0a02
     call QueueTilemapRect
     xor a
-    ld [$d958], a
+    ld [wPasswordErrorFlag], a
     ret
 
 
@@ -1146,187 +1175,54 @@ jr_002_46da::
     ld [$0907], sp
     dec b
 
-    db $00, $45, $00, $00, $45, $00, $00, $00, $00, $00, $3f, $15, $2f, $2f, $1f, $25
-    db $10, $00, $00, $00, $00, $00, $00, $45, $00, $45, $00, $00, $00, $00, $1f, $2f
-    db $28, $16, $1f, $2d, $37, $36, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-    db $00, $00, $3f, $2a, $2a, $2a, $2a, $3f, $2a, $2a, $2a, $2a
+PasswordCodeTable:: ; 12 entries * $14 bytes. First 10 bytes are modifiers, next 10 are base kana tiles.
+PasswordCode_WagamamaDanaa:: ; 00: わがままだなあ
+    db $00, $45, $00, $00, $45, $00, $00, $00, $00, $00
+    db $3f, $15, $2f, $2f, $1f, $25, $10, $00, $00, $00
 
-    nop
-    ld b, l
-    nop
-    nop
-    ld b, l
-    nop
-    nop
-    nop
-    nop
-    nop
-    inc d
-    dec l
-    ld b, d
-    ld d, $23
-    jr z, jr_002_4752
+PasswordCode_TamanegiTabereru:: ; 01: たまねぎたべれる
+    db $00, $00, $00, $45, $00, $45, $00, $00, $00, $00
+    db $1f, $2f, $28, $16, $1f, $2d, $37, $36, $00, $00
 
-jr_002_4752::
-    nop
-    nop
-    nop
-    nop
-    nop
-    ld b, l
-    nop
-    nop
-    nop
-    ld b, l
-    nop
-    nop
-    nop
-    jr jr_002_4782
+PasswordCode_Wahahahaha:: ; 02: わははははわはははは
+    db $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+    db $3f, $2a, $2a, $2a, $2a, $3f, $2a, $2a, $2a, $2a
 
-    rra
-    jr jr_002_4781
+PasswordCode_Obenkidene:: ; 03: おべんきでね
+    db $00, $45, $00, $00, $45, $00, $00, $00, $00, $00
+    db $14, $2d, $42, $16, $23, $28, $00, $00, $00, $00
 
-    ld de, $421b
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    ld b, l
-    nop
-    nop
-    nop
-    nop
-    db $10
-    rla
-    dec de
-    ld a, $42
-    dec hl
-    ld de, $0031
-    nop
-    ld b, l
-    nop
-    nop
-    nop
+PasswordCode_KetsudakeSeijin:: ; 04: けつだけせいじん
+    db $00, $00, $45, $00, $00, $00, $45, $00, $00, $00
+    db $18, $21, $1f, $18, $1d, $11, $1b, $42, $00, $00
 
-jr_002_4781::
-    ld b, l
+PasswordCode_ActionBeam:: ; 05: あくしょんびいむ
+    db $00, $00, $00, $00, $00, $45, $00, $00, $00, $00
+    db $10, $17, $1b, $3e, $42, $2b, $11, $31, $00, $00
 
-jr_002_4782::
-    nop
-    nop
-    nop
-    nop
-    nop
-    ld e, $14
-    ld a, [de]
-    ld b, d
-    ld e, $14
-    ld a, [de]
-    ld b, d
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    ld b, l
-    nop
-    nop
-    dec de
-    ld b, d
-    jr nz, jr_002_47d9
+PasswordCode_ZousanZousan:: ; 06: ぞおさんぞおさん
+    db $45, $00, $00, $00, $45, $00, $00, $00, $00, $00
+    db $1e, $14, $1a, $42, $1e, $14, $1a, $42, $00, $00
 
-    ld b, d
-    rra
-    db $10
-    ld l, $00
-    nop
-    ld b, l
-    nop
-    ld b, l
-    nop
-    ld b, l
-    nop
-    nop
-    nop
-    nop
-    nop
-    inc l
-    dec [hl]
-    inc l
-    dec [hl]
-    ld a, [de]
-    inc de
-    inc sp
-    ld b, d
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    dec h
-    inc e
-    add hl, hl
-    inc d
-    dec de
-    ld b, d
-    add hl, de
-    nop
-    nop
-    nop
-    nop
-    nop
-    ld b, l
-    nop
-    ld b, l
-    ld b, l
-    nop
-    nop
-    nop
-    nop
-    db $10
-    dec [hl]
+PasswordCode_ShinchanTurbo:: ; 07: しんちゃんたあぼ
+    db $00, $00, $00, $00, $00, $00, $00, $45, $00, $00
+    db $1b, $42, $20, $3a, $42, $1f, $10, $2e, $00, $00
 
-jr_002_47d9::
-    dec d
-    inc h
-    add hl, de
-    ld a, [de]
-    cpl
-    inc e
-    ld [de], a
-    nop
-    nop
-    nop
-    nop
-    ld b, l
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    dec d
-    jr nc, jr_002_4809
+PasswordCode_BuriburiZaemon:: ; 08: ぶりぶりざえもん
+    db $45, $00, $45, $00, $45, $00, $00, $00, $00, $00
+    db $2c, $35, $2c, $35, $1a, $13, $33, $42, $00, $00
 
-    ld a, [hl+]
-    ld de, $0000
-    nop
-    nop
-    nop
+PasswordCode_NasuNoOshinko:: ; 09: なすのおしんこ
+    db $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+    db $25, $1c, $29, $14, $1b, $42, $19, $00, $00, $00
+
+PasswordCode_ArigatoGozamasu:: ; 0a: ありがとござますう
+    db $00, $00, $45, $00, $45, $45, $00, $00, $00, $00
+    db $10, $35, $15, $24, $19, $1a, $2f, $1c, $12, $00
+
+PasswordCode_Kamishibai:: ; 0b: かみしばい; unlocks the debug-mode option in the normal build.
+    db $00, $00, $00, $45, $00, $00, $00, $00, $00, $00
+    db $15, $30, $1b, $2a, $11, $00, $00, $00, $00, $00
 
 Jump_002_47f5::
     xor a
