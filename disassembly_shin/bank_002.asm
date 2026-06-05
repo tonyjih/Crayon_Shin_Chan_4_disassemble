@@ -527,8 +527,11 @@ Jump_002_4301::
     ld [$d93d], a
     ret
 
-
+IF DEF(DEBUG)
     ld a, $01
+ELSE
+    ld a, $04
+ENDC
     ldh [hGameState], a
     ld a, c
     ld [$d979], a
@@ -879,7 +882,7 @@ jr_002_458c::
 jr_002_45a3::
     ldh a, [hJoyPressed]
     bit 3, a
-    call nz, Call_002_4635
+    call nz, PasswordCheckAndDispatch
     ld a, [$d93b]
     bit 7, a
     jr z, jr_002_45bc
@@ -941,7 +944,7 @@ jr_002_45f6::
     cp $b5
     jr nz, jr_002_45fe
 
-    call Call_002_4635
+    call PasswordCheckAndDispatch
     ret
 
 
@@ -982,7 +985,7 @@ jr_002_4611::
     ret
 
 
-Call_002_4635::
+PasswordCheckAndDispatch::
     xor a
     ld [$d959], a
     ld hl, $4705

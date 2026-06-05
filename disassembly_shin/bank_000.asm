@@ -2157,31 +2157,38 @@ UpdateCurrentGameState:: ; Per-frame state dispatcher, called from VBlank after 
     dw $093b ; 05: bank 2 screen/update path
     dw $0941 ; 06: pause-ish handler
     dw $097d ; 07: unused/variant update path
-    dw $0980 ; 08: unused/variant update path
+    dw $0980 ; 08: tutorial mode
 
+	; hGameState == 00
     ld hl, $0202
     jp FarCallFromBankTable
 
 
+	; hGameState == 01
     jp Jump_000_1716
 
 
+	; hGameState == 02
     ld hl, $0100
     jp FarCallFromBankTable
 
 
+	; hGameState == 03
     ld hl, $0206
     jp FarCallFromBankTable
 
 
+	; hGameState == 04
     ld hl, $020e
     jp FarCallFromBankTable
 
 
+	; hGameState == 05
     ld hl, $0212
     jp FarCallFromBankTable
 
 
+	; hGameState == 06
     ld a, $93
     ld [wPaletteBGP], a
     ldh a, [hPrevOamPos]
@@ -2190,6 +2197,7 @@ UpdateCurrentGameState:: ; Per-frame state dispatcher, called from VBlank after 
     bit 3, a
     ret z
 
+	; hGameState == 07
     ld a, $e4
     ld [wPaletteBGP], a
     ld a, $02
@@ -2219,7 +2227,7 @@ Call_000_0963::
 
     jp Jump_000_09c9
 
-
+	; hGameState == 08
     ld hl, HeaderLogo
     jp FarCallFromBankTable
 
@@ -5308,8 +5316,13 @@ Call_000_1956::
 
 LoadDebugMenu::
     xor a
+IF DEF(DEBUG)	
     call Call_000_3f6a
     xor a
+ELSE
+    ldh [hNeedsReset], a
+    ldh [hSCX], a
+ENDC
     ldh [hSCY], a
     ldh [hPlayerFlags], a
     ld a, $06
@@ -7469,7 +7482,7 @@ jr_000_3f4e::
     nop
     nop
     nop
-
+IF DEF(DEBUG)
 Call_000_3f6a::
     ldh [hNeedsReset], a
     ldh [hSCX], a
@@ -7481,7 +7494,9 @@ Call_000_3f6a::
     ld a, $04
     ld [wScreenPaletteId], a
     ret
-
+ELSE
+	db $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF, $FF
+ENDC
 
     rst $38
     rst $38

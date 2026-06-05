@@ -44,11 +44,11 @@ DEF PlayerState_StageInteraction0D    EQU $0d; special/stage interaction state
     db $01
 
 	dw UpdateGameplayState 
-	dw label_001_4009
+	dw Gameplay_InitEntry
 	dw label_001_7bed
     dw label_001_7b8b
 
-label_001_4009::
+Gameplay_InitEntry::
     ldh a, [hStageIndex]
     add $1a
     ld [wScreenPaletteId], a
