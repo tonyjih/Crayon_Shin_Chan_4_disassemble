@@ -2256,7 +2256,7 @@ InitCurrentGameState:: ; State init dispatcher, called with LCD off from ReinitC
     dw InitGameState_Bank2Screen2 ; 05: bank 2 screen init
     dw InitGameState_NoInit ; 06: no init
     dw InitGameState_GameplayStage18Variant ; 07: bank 1 gameplay init variant
-    dw label_09f5 ; 08: unused/variant init path
+    dw InitGameState_UnusedStage4ThenBank1Init ; 08: unused/variant init path
 
 InitGameState_TitleMenu::
     ld hl, $0200
@@ -2329,7 +2329,7 @@ jr_000_09e0::
     ldh [hNeedsReset], a
     ret
 
-label_09f5::
+InitGameState_UnusedStage4ThenBank1Init::
     ld a, $04
     ldh [hStageIndex], a
     ld hl, $0102
@@ -5205,44 +5205,14 @@ jr_000_18a4::
     ret
 
 
-jr_000_18d5::
-    nop
-    inc b
-    ld [$100c], sp
-    inc d
-    inc e
-    jr nz, @+$26
-
-    jr z, @+$2e
-
-    jr nc, @+$36
-
-    jr c, @+$3e
-
-    ld h, b
-    ld h, h
-    jr jr_000_1900
-
-    jr @+$1a
-
-    jr jr_000_1904
-
-    jr @+$1a
-
-    jr @+$1a
-
-jr_000_18f0::
-    jr jr_000_190a
-
-    jr @+$1a
-
-    jr jr_000_18f0
-
-    reti
-
-
-    ret nz
-
+DebugMenuMusicIdTable::
+jr_000_18d5:: ; Compatibility alias.
+    db $00, $04, $08, $0c, $10, $14, $1c, $20
+    db $24, $28, $2c, $30, $34, $38, $3c, $60
+    db $64, $18, $18, $18, $18, $18, $18, $18
+    db $18, $18, $18, $18, $18, $18, $18, $18
+DebugMenuActionResetMusicId::
+    ld a, [$c0d9]
     inc a
     ld [$c0d9], a
     cp $15
@@ -5277,36 +5247,11 @@ jr_000_190a::
     jp PlaySound_Queue3
 
 
-    ld b, b
-    ld bc, $0141
-    ld b, d
-    ld bc, $0143
-    ld b, h
-    ld bc, $0145
-    ld b, [hl]
-    ld [bc], a
-    ld c, b
-    ld bc, $0249
-    ld c, e
-    ld bc, HeaderMaskROMVersion
-    ld c, l
-    ld bc, HeaderGlobalChecksum
-    ld c, a
-    ld bc, Jump_000_0150
-    ld d, c
-    ld bc, $0152
-    ld d, e
-    ld bc, $0154
-    ld d, l
-    inc b
-    ld e, c
-    ld bc, $015a
-    ld e, e
-    ld bc, $015c
-    ld e, l
-    ld bc, $025e
-    ld b, b
-    ld bc, $0140
+DebugMenuSoundDispatchTable:: ; high byte selects PlaySound/queue helper; low byte is sound id.
+    dw $0140, $0141, $0142, $0143, $0144, $0145, $0246, $0148
+    dw $0249, $014b, $014c, $014d, $014e, $014f, $0150, $0151
+    dw $0152, $0153, $0154, $0455, $0159, $015a, $015b, $015c
+    dw $015d, $025e, $0140, $0140
 
 Call_000_1956::
     ld a, [$c0da]
