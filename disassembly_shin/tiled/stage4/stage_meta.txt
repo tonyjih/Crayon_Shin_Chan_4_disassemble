@@ -1,0 +1,7 @@
+stage=4
+shared_tmx=stage4.tmx
+page_rows=1
+page_cols=1
+width_metatiles=16
+height_metatiles=16
+spawn_count=3

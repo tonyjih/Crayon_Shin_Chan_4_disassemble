@@ -39,7 +39,7 @@ SECTION "ROM Bank $006", ROMX[$4000], BANK[$6]
 
     add b
     ldh [rSVBK], a
-    ldh a, [$ffb8]
+    ldh a, [hBonusCounter]
     db $f8
 
     db $80
@@ -364,7 +364,7 @@ jr_006_4102::
 
     add b
     ldh [rSVBK], a
-    ldh a, [$ffb8]
+    ldh a, [hBonusCounter]
     db $f8
 
     db $80
@@ -462,7 +462,7 @@ jr_006_4181::
     ldh [rIE], a
     db $10
     rra
-    ld [Call_000_040f], sp
+    ld [DetectSgbOrInitSgb], sp
     rlca
 
     db $03
@@ -1022,7 +1022,7 @@ jr_006_435c::
 
     db $10
     rra
-    ld [Call_000_040f], sp
+    ld [DetectSgbOrInitSgb], sp
     rlca
     inc bc
 
@@ -1162,7 +1162,7 @@ jr_006_43d6::
     ld e, $17
     jr jr_006_441f
 
-    ld [Call_000_040f], sp
+    ld [DetectSgbOrInitSgb], sp
     rlca
 
     db $c0
@@ -1584,7 +1584,7 @@ jr_006_4505::
 
     db $57
 
-    ldh a, [$ff80]
+    ldh a, [_HRAM]
     nop
 
     db $ff, $57
@@ -1868,7 +1868,7 @@ jr_006_45fa::
     db $37
 
     db $10
-    ldh a, [$ff80]
+    ldh a, [_HRAM]
 
     db $75
 
@@ -1981,7 +1981,7 @@ jr_006_469f::
 
     ld a, [$ec06]
     inc e
-    ldh a, [$ff80]
+    ldh a, [_HRAM]
 
     db $00
 
@@ -2131,7 +2131,7 @@ jr_006_46ce::
 
     db $50
 
-    ldh a, [$ff80]
+    ldh a, [_HRAM]
     ret nz
 
     ld b, b
@@ -2451,7 +2451,7 @@ jr_006_47a3::
     ret nz
 
     ld h, b
-    ldh [$ff30], a
+    ldh [_AUD3WAVERAM], a
     ldh a, [rSVBK]
     db $f0
 
@@ -2930,7 +2930,7 @@ jr_006_4973::
     db $e3
     sbc $dc
     push af
-    ldh [$ffaa], a
+    ldh [hPlayerState], a
     add b
 
     db $05
@@ -5866,7 +5866,7 @@ jr_006_5513::
     nop
     ret nz
 
-    ldh a, [$ff30]
+    ldh a, [_AUD3WAVERAM]
     ld hl, sp-$58
 
     db $00
@@ -6226,9 +6226,9 @@ jr_006_55e1::
     db $00
 
     cp $3e
-    ldh a, [$ff30]
-    ldh a, [$ff30]
-    ldh a, [$ff30]
+    ldh a, [_AUD3WAVERAM]
+    ldh a, [_AUD3WAVERAM]
+    ldh a, [_AUD3WAVERAM]
 
     db $15
 
@@ -7154,7 +7154,7 @@ jr_006_59e9::
 
     db $00
 
-    ld [Call_000_040f], sp
+    ld [DetectSgbOrInitSgb], sp
     rlca
     ld [bc], a
     inc bc
@@ -7438,7 +7438,7 @@ jr_006_5a9e::
     db $45
 
     ld hl, sp-$30
-    ldh a, [$ffb0]
+    ldh a, [hPlayerXSubpixel]
     add b
 
     db $ff, $4d
@@ -8178,7 +8178,7 @@ Jump_006_5d10::
     ret nz
 
     ld h, b
-    ldh [$ffb0], a
+    ldh [hPlayerXSubpixel], a
 
     db $65
 
@@ -8423,7 +8423,7 @@ Jump_006_5ddb::
 
     db $17
 
-    ldh a, [$ff30]
+    ldh a, [_AUD3WAVERAM]
     ldh [rP1], a
 
     db $00
@@ -8774,7 +8774,7 @@ jr_006_5ef5::
 
     db $54
 
-    ldh [$ff80], a
+    ldh [_HRAM], a
     sbc b
     ld a, $2e
 
@@ -9643,7 +9643,7 @@ jr_006_6087::
     db $00
 
     ccf
-    ldh [$ff9f], a
+    ldh [hStageIndex], a
     ldh a, [$ffcf]
     ld hl, sp-$35
     db $fc
@@ -9798,7 +9798,7 @@ jr_006_62c0::
 
     db $05
 
-    ld [Call_000_040f], sp
+    ld [DetectSgbOrInitSgb], sp
     rlca
     inc bc
     nop
@@ -10840,7 +10840,7 @@ jr_006_6940::
 
     ld de, $081f
     rrca
-    ld [Call_000_040f], sp
+    ld [DetectSgbOrInitSgb], sp
     rlca
 
     db $01
@@ -11096,7 +11096,7 @@ jr_006_6940::
 
     ld hl, $183f
     rra
-    ld [Call_000_040f], sp
+    ld [DetectSgbOrInitSgb], sp
     rlca
 
     db $00
@@ -11620,7 +11620,7 @@ jr_006_6adf::
     cp [hl]
     pop bc
     rst $18
-    ldh [$ffbf], a
+    ldh [hPlayerTileEffect], a
     rst $38
 
     db $01
@@ -11790,8 +11790,8 @@ jr_006_6d14::
     db $01
 
     ccf
-    ldh a, [$ffbf]
-    ldh a, [$ffb0]
+    ldh a, [hPlayerTileEffect]
+    ldh a, [hPlayerXSubpixel]
     rst $38
     ld a, a
 
@@ -11812,7 +11812,7 @@ jr_006_6d14::
 
     jr nc, @+$62
 
-    ldh [$ff80], a
+    ldh [_HRAM], a
 
     db $50
 
@@ -12744,7 +12744,7 @@ jr_006_6f25::
 
     db $07
 
-    ldh [$ffbf], a
+    ldh [hPlayerTileEffect], a
     ld hl, sp-$01
     rrca
 
@@ -12838,7 +12838,7 @@ jr_006_6f25::
     inc e
     ld h, a
     ld a, a
-    ldh [$ffbf], a
+    ldh [hPlayerTileEffect], a
 
     db $03
 
@@ -14029,7 +14029,7 @@ jr_006_74d8::
 
     db $07
 
-    ldh [$ffbf], a
+    ldh [hPlayerTileEffect], a
     ld hl, sp-$01
     rrca
 

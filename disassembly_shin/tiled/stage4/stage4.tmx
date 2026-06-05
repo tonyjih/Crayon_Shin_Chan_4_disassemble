@@ -1,0 +1,111 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="16" height="16" tilewidth="16" tileheight="16" infinite="0" nextlayerid="7" nextobjectid="7">
+  <properties>
+    <property name="game" value="Shin-chan 4" />
+    <property name="stage" value="4" />
+    <property name="profile" value="normal" />
+    <property name="vram_variant" value="0" />
+    <property name="metatile_variant" value="0" />
+    <property name="collision_variant" value="0" />
+    <property name="source_format" value="world_map.raw metatile ids; gid = metatile_id + 1; Spawns/Stage Events x/y are visual editor boxes; raw spawn offset comes from object_profiles.json" />
+    <property name="shin4.shared_profiles" value="1" />
+    <property name="shin4.current_profile" value="normal" />
+    <property name="shin4.profiles" value="normal" />
+    <property name="shin4.profile.normal.tsx" value="profiles/stage4_normal.tsx" />
+  </properties>
+  <tileset firstgid="1" source="profiles/stage4_normal.tsx" />
+  <tileset firstgid="257" source="stage4_object_icons.tsx" />
+  <layer id="1" name="Layout" width="16" height="16">
+    <data encoding="csv">
+1,1,1,1,1,19,1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,20,22,23,24,1,1,1,1,1,1,1,
+1,1,1,1,1,19,1,1,1,1,25,5,5,5,5,5,
+1,1,1,1,1,19,1,1,1,1,26,6,6,6,6,6,
+5,5,5,5,5,21,5,5,5,5,27,9,9,9,9,9,
+6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,
+7,7,7,7,7,8,6,6,6,6,6,6,6,6,6,6,
+9,9,9,10,6,11,6,6,6,6,6,6,6,6,6,6,
+6,6,6,11,6,11,6,6,6,6,6,6,6,6,6,6,
+7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
+6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,
+6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,
+6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,
+6,6,6,6,6,13,14,14,14,15,6,6,6,6,6,6,
+6,6,6,6,6,6,6,6,6,16,6,6,6,6,6,6,
+12,12,12,12,12,12,12,12,18,17,12,12,12,12,12,12
+</data>
+  </layer>
+  <objectgroup id="2" name="Spawns">
+    <object id="1" name="spawn_000_type_16" type="OBJ_FORM_FLYING_SQUIRREL" x="208" y="104" width="16" height="16" gid="279">
+      <properties>
+        <property name="index" type="int" value="0" />
+        <property name="type" type="int" value="22" />
+        <property name="flags" type="int" value="0" />
+        <property name="param" type="int" value="0" />
+        <property name="active" type="int" value="1" />
+      </properties>
+    </object>
+    <object id="2" name="spawn_001_type_18" type="OBJ_FORM_CHICKEN" x="72" y="120" width="16" height="16" gid="281">
+      <properties>
+        <property name="index" type="int" value="1" />
+        <property name="type" type="int" value="24" />
+        <property name="flags" type="int" value="0" />
+        <property name="param" type="int" value="0" />
+        <property name="active" type="int" value="1" />
+      </properties>
+    </object>
+    <object id="3" name="spawn_002_type_17" type="OBJ_FORM_COCKROACH" x="40" y="208" width="16" height="16" gid="280">
+      <properties>
+        <property name="index" type="int" value="2" />
+        <property name="type" type="int" value="23" />
+        <property name="flags" type="int" value="0" />
+        <property name="param" type="int" value="0" />
+        <property name="active" type="int" value="1" />
+      </properties>
+    </object>
+  </objectgroup>
+  <objectgroup id="3" name="Stage Events" />
+  <objectgroup id="4" name="World Bounds" visible="0">
+    <object id="4" name="world_layout_bounds" type="WORLD_BOUNDS_READONLY" x="0" y="0" width="256" height="256">
+      <properties>
+        <property name="editable" type="bool" value="false" />
+        <property name="width_metatiles" type="int" value="16" />
+        <property name="height_metatiles" type="int" value="16" />
+        <property name="note" value="actual TMX/world_map layout extent; reference only; not imported to ROM" />
+      </properties>
+    </object>
+  </objectgroup>
+  <objectgroup id="5" name="Camera Scroll Range" visible="0">
+    <object id="5" name="camera_scroll_tutorial_special_scene" type="CAMERA_SCROLL_RANGE" x="0" y="0" width="256" height="256">
+      <properties>
+        <property name="editable" type="bool" value="false" />
+        <property name="stage" type="int" value="4" />
+        <property name="source_label" value="" />
+        <property name="source_writable" type="bool" value="false" />
+        <property name="profile_kind" value="tutorial_special" />
+        <property name="camera_x_min" type="int" value="0" />
+        <property name="camera_x_max" type="int" value="96" />
+        <property name="camera_y_max" type="int" value="128" />
+        <property name="visible_width" type="int" value="160" />
+        <property name="visible_height" type="int" value="128" />
+        <property name="hud_start_screen_y" type="int" value="128" />
+        <property name="note" value="stage4 uses a tutorial/special scene path, not the normal scrolling stage path; height uses gameplay viewport $80 because bottom $10 px is HUD/window" />
+      </properties>
+    </object>
+  </objectgroup>
+  <objectgroup id="6" name="Camera Debug Values" visible="0">
+    <object id="6" name="camera_debug_values_tutorial_special_scene" type="CAMERA_DEBUG_VALUES_READONLY" x="0" y="0" width="16" height="16">
+      <properties>
+        <property name="editable" type="bool" value="false" />
+        <property name="stage" type="int" value="4" />
+        <property name="profile_kind" value="tutorial_special" />
+        <property name="camera_x_min" type="int" value="0" />
+        <property name="camera_x_max" type="int" value="96" />
+        <property name="camera_y_max" type="int" value="128" />
+        <property name="player_x_min" type="int" value="0" />
+        <property name="player_x_max" type="int" value="256" />
+        <property name="note" value="stage4 uses a tutorial/special scene path, not the normal scrolling stage path" />
+      </properties>
+    </object>
+  </objectgroup>
+</map>

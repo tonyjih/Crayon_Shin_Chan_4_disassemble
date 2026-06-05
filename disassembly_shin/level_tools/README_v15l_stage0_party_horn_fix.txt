@@ -1,0 +1,1 @@
+v15l: Try known-good preview VRAM stages before the current stage for object types with OBJECT_PREVIEW_STAGE_PRIORITY. This fixes stage0 party-horn kid ($0b) using a non-empty but wrong local icon before falling back to the stage3-known-good context.

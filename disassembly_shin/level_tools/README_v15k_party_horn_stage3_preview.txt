@@ -1,0 +1,1 @@
+v15k: Party-horn kid ($0b) editor preview now prioritizes the stage3-known-good idle animation sequence (06/07/08) before alternate horn frames (09/0a/0b). This affects Tiled icons only; spawn import/export data is unchanged.

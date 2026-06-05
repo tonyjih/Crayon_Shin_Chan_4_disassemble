@@ -1,0 +1,170 @@
+{
+  "0x08": {
+    "name": "OBJ_STAGE3_FLOATING_BEACH_BALL",
+    "display_offset_x": -8,
+    "display_offset_y": -16,
+    "width": 16,
+    "height": 16
+  },
+  "0x0a": {
+    "name": "OBJ_ENEMY_WALKING_KID",
+    "display_offset_x": -8,
+    "display_offset_y": -24,
+    "width": 24,
+    "height": 24
+  },
+  "0x0b": {
+    "name": "OBJ_ENEMY_PARTY_HORN_KID",
+    "display_offset_x": -9,
+    "display_offset_y": -21,
+    "width": 25,
+    "height": 24
+  },
+  "0x0c": {
+    "name": "OBJ_ENEMY_UMBRELLA_KID",
+    "display_offset_x": -8,
+    "display_offset_y": -32,
+    "width": 32,
+    "height": 32
+  },
+  "0x0d": {
+    "name": "OBJ_ENEMY_PAPER_AIRPLANE_KID",
+    "display_offset_x": -8,
+    "display_offset_y": -24,
+    "width": 24,
+    "height": 24
+  },
+  "0x0e": {
+    "name": "OBJ_ENEMY_PAPER_AIRPLANE",
+    "display_offset_x": -12,
+    "display_offset_y": -8,
+    "width": 16,
+    "height": 8
+  },
+  "0x0f": {
+    "name": "OBJ_ENEMY_PROJECTILE_B",
+    "display_offset_x": -8,
+    "display_offset_y": -24,
+    "width": 16,
+    "height": 24
+  },
+  "0x10": {
+    "name": "OBJ_PICKUP_BONUS_COUNTER",
+    "display_offset_x": -8,
+    "display_offset_y": -8,
+    "width": 16,
+    "height": 16
+  },
+  "0x11": {
+    "name": "OBJ_PICKUP_BONUS_COUNTER_ANIM",
+    "display_offset_x": -8,
+    "display_offset_y": -8,
+    "width": 16,
+    "height": 16
+  },
+  "0x12": {
+    "name": "OBJ_PICKUP_EXTRA_LIFE",
+    "display_offset_x": -8,
+    "display_offset_y": -8,
+    "width": 16,
+    "height": 16
+  },
+  "0x13": {
+    "name": "OBJ_PICKUP_EXTRA_LIFE_ANIM",
+    "display_offset_x": -8,
+    "display_offset_y": -8,
+    "width": 16,
+    "height": 16
+  },
+  "0x14": {
+    "name": "OBJ_PICKUP_HEALTH",
+    "display_offset_x": -8,
+    "display_offset_y": -8,
+    "width": 16,
+    "height": 16
+  },
+  "0x15": {
+    "name": "OBJ_PICKUP_HEALTH_ANIM",
+    "display_offset_x": -8,
+    "display_offset_y": -8,
+    "width": 16,
+    "height": 16
+  },
+  "0x16": {
+    "name": "OBJ_FORM_FLYING_SQUIRREL",
+    "display_offset_x": -8,
+    "display_offset_y": -8,
+    "width": 16,
+    "height": 16
+  },
+  "0x17": {
+    "name": "OBJ_FORM_COCKROACH",
+    "display_offset_x": -8,
+    "display_offset_y": -8,
+    "width": 16,
+    "height": 16
+  },
+  "0x18": {
+    "name": "OBJ_FORM_CHICKEN",
+    "display_offset_x": -8,
+    "display_offset_y": -8,
+    "width": 16,
+    "height": 16
+  },
+  "0x19": {
+    "name": "OBJ_FORM_ACTION_KAMEN",
+    "display_offset_x": -8,
+    "display_offset_y": -8,
+    "width": 16,
+    "height": 16
+  },
+  "0x1a": {
+    "name": "OBJ_PLATFORM_MOVING_VERTICAL_A",
+    "display_offset_x": -16,
+    "display_offset_y": -16,
+    "width": 32,
+    "height": 16
+  },
+  "0x1b": {
+    "name": "OBJ_PLATFORM_MOVING_VERTICAL_B",
+    "display_offset_x": -16,
+    "display_offset_y": -16,
+    "width": 32,
+    "height": 16
+  },
+  "0x1c": {
+    "name": "OBJ_PLATFORM_DROP_A",
+    "display_offset_x": -8,
+    "display_offset_y": -8,
+    "width": 16,
+    "height": 8
+  },
+  "0x1d": {
+    "name": "OBJ_PLATFORM_BOUNCE_PAD",
+    "display_offset_x": -8,
+    "display_offset_y": -16,
+    "width": 16,
+    "height": 16
+  },
+  "0x1e": {
+    "name": "OBJ_PLATFORM_DROP_B",
+    "display_offset_x": -8,
+    "display_offset_y": -8,
+    "width": 16,
+    "height": 8
+  },
+  "0x22": {
+    "name": "OBJ_PLATFORM_MOVING_HORIZONTAL",
+    "display_offset_x": -20,
+    "display_offset_y": -40,
+    "width": 32,
+    "height": 40
+  },
+  "0x23": {
+    "name": "OBJ_STAGE3_FALLING_COCONUT",
+    "display_offset_x": -8,
+    "display_offset_y": -16,
+    "width": 16,
+    "height": 16
+  }
+}

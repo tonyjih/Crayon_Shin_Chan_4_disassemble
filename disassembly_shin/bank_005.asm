@@ -1020,12 +1020,12 @@ jr_005_7501:
     db $fc
     ldh a, [$ff50]
     ld h, b
-    ldh [$ff80], a
+    ldh [_HRAM], a
 
     db $d6
 
     db $10
-    ldh a, [$ff30]
+    ldh a, [_AUD3WAVERAM]
 
     db $40
 
@@ -1728,7 +1728,7 @@ jr_005_77c2:
 
     db $41
 
-    ldh a, [$ffb0]
+    ldh a, [hPlayerXSubpixel]
     ldh a, [$ffe0]
     and b
     db $f0
@@ -2121,7 +2121,7 @@ jr_005_78f1:
     ld d, b
     ret nc
 
-    ldh a, [$ffb0]
+    ldh a, [hPlayerXSubpixel]
     ld [hl], b
 
     db $00
@@ -2268,7 +2268,7 @@ jr_005_799d:
 
     ld a, [$ec06]
     inc e
-    ldh a, [$ff80]
+    ldh a, [_HRAM]
 
     db $00
 
@@ -2411,7 +2411,7 @@ jr_005_7a36:
 
     db $ec
     inc e
-    ldh a, [$ff80]
+    ldh a, [_HRAM]
 
     db $00
 
@@ -4070,7 +4070,7 @@ jr_005_7f37:
     ld a, [hl]
     adc d
     cp $1e
-    ldh a, [$ffb0]
+    ldh a, [hPlayerXSubpixel]
     db $f0
 
     db $03
