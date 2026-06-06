@@ -9242,7 +9242,7 @@ jr_001_722f::
     inc a
 
 jr_001_7246::
-    ld hl, $7253
+    ld hl, Obj1FFramePointerTable
     rst $20
     ldh a, [$ffd3]
     ld c, a
@@ -9251,11 +9251,13 @@ jr_001_7246::
     jp Jump_000_0269
 
 
-    db $30, $22
-
-    jr nc, jr_001_7279
-
-    db $30, $22, $3f, $22, $35, $22, $3a, $22
+Obj1FFramePointerTable::
+    dw SpriteFrameData_2230
+    dw SpriteFrameData_2230
+    dw SpriteFrameData_2230
+    dw SpriteFrameData_223f
+    dw SpriteFrameData_2235
+    dw SpriteFrameData_223a
 
 Call_001_725f::
     xor a

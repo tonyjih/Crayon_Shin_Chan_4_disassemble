@@ -5179,8 +5179,19 @@ SpriteFrameData_21ff:: ; Direct bank 1 xref into bank 0 sprite/graphics data.
     db $d9, $ec, $c0, $00, $e1, $ec, $c1, $00, $e1, $f4, $c2, $00, $e1, $fc
     db $c3, $00, $e1, $04, $c4, $00, $e9, $f4, $c5, $00, $e9, $fc, $c6, $00, $e9, $04
     db $c7, $00, $f1, $f4, $cd, $00, $f9, $f4, $cb, $00, $f9, $fc, $c9, $00, $f9, $04
-    db $cc, $00, $80, $f8, $fc, $c0, $10, $80, $f8, $fc, $c1, $10, $80, $f8, $fc, $c2
-    db $10, $80, $f8, $fb, $c0, $10, $80
+    db $cc, $00, $80
+
+SpriteFrameData_2230:: ; Object type $1f small frame, direct bank 1 xref.
+    db $f8, $fc, $c0, $10, $80
+
+SpriteFrameData_2235:: ; Object type $1f small frame, direct bank 1 xref.
+    db $f8, $fc, $c1, $10, $80
+
+SpriteFrameData_223a:: ; Object type $1f small frame, direct bank 1 xref.
+    db $f8, $fc, $c2, $10, $80
+
+SpriteFrameData_223f:: ; Object type $1f small frame, direct bank 1 xref.
+    db $f8, $fb, $c0, $10, $80
 
 SpriteFrameData_2244:: ; Direct bank 1 xref into bank 0 sprite/graphics data.
     db $f0, $f8, $c3, $00, $f0, $00, $c4, $00, $f8
