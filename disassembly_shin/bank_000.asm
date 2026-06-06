@@ -4929,7 +4929,10 @@ SpriteAnimPointerTable_1af3::
     dw SpriteFrameData_2a2b, SpriteFrameData_2a44, SpriteFrameData_2a5d, SpriteFrameData_2a72, SpriteFrameData_3121, SpriteFrameData_313a, SpriteFrameData_3153, SpriteFrameData_316c
     dw SpriteFrameData_316c, SpriteFrameData_3185, SpriteFrameData_31a6, SpriteFrameData_31c7, SpriteFrameData_31e4, SpriteFrameData_31e4, SpriteFrameData_31f5, SpriteFrameData_320a
     dw SpriteFrameData_3227, SpriteFrameData_3240, SpriteFrameData_3259, SpriteFrameData_326e, SpriteFrameData_3287, SpriteFrameData_32a0, SpriteFrameData_32fc, SpriteFrameData_32b9
-    dw SpriteFrameData_2c28, SpriteAnimPointerTable_1b2d, SpriteAnimPointerTable_1b61, SpriteAnimPointerTable_1b99, SpriteAnimPointerTable_1bd1
+    dw SpriteFrameData_2c28
+
+SpriteStageAnimPointerTable_1b25:: ; Stage-indexed table used by bank 1 object sprite drawing.
+    dw SpriteAnimPointerTable_1b2d, SpriteAnimPointerTable_1b61, SpriteAnimPointerTable_1b99, SpriteAnimPointerTable_1bd1
 
 SpriteAnimPointerTable_1b2d::
     dw SpriteFrameData_1c11, SpriteFrameData_1c2a, SpriteFrameData_1c43, SpriteFrameData_1c5c, SpriteFrameData_1c11, SpriteFrameData_1c11, SpriteFrameData_1c75, SpriteFrameData_1c92
@@ -5164,17 +5167,35 @@ SpriteFrameData_2190::
 SpriteFrameData_21ad::
     db $ed, $f8, $bd, $00, $ed, $00, $a8, $00, $f5, $f8, $a9, $00, $f5, $00, $aa, $00
     db $f5, $08, $ab, $00, $fd, $f8, $ac, $00, $fd, $00, $ad, $00, $fd, $08, $ae, $00
-    db $80, $d8, $ec, $c0, $00, $e0, $ec, $c1, $00, $e0, $f4, $c2, $00, $e0, $fc, $c3
+    db $80
+
+SpriteFrameData_21ce:: ; Direct bank 1 xref into bank 0 sprite/graphics data.
+    db $d8, $ec, $c0, $00, $e0, $ec, $c1, $00, $e0, $f4, $c2, $00, $e0, $fc, $c3
     db $00, $e0, $04, $c4, $00, $e8, $f4, $c5, $00, $e8, $fc, $c6, $00, $e8, $04, $c7
     db $00, $f0, $f4, $cd, $00, $f8, $f4, $c8, $00, $f8, $fc, $c9, $00, $f8, $04, $ca
-    db $00, $80, $d9, $ec, $c0, $00, $e1, $ec, $c1, $00, $e1, $f4, $c2, $00, $e1, $fc
+    db $00, $80
+
+SpriteFrameData_21ff:: ; Direct bank 1 xref into bank 0 sprite/graphics data.
+    db $d9, $ec, $c0, $00, $e1, $ec, $c1, $00, $e1, $f4, $c2, $00, $e1, $fc
     db $c3, $00, $e1, $04, $c4, $00, $e9, $f4, $c5, $00, $e9, $fc, $c6, $00, $e9, $04
     db $c7, $00, $f1, $f4, $cd, $00, $f9, $f4, $cb, $00, $f9, $fc, $c9, $00, $f9, $04
     db $cc, $00, $80, $f8, $fc, $c0, $10, $80, $f8, $fc, $c1, $10, $80, $f8, $fc, $c2
-    db $10, $80, $f8, $fb, $c0, $10, $80, $f0, $f8, $c3, $00, $f0, $00, $c4, $00, $f8
-    db $f8, $c5, $00, $f8, $00, $c6, $00, $80, $f0, $f8, $c4, $20, $f0, $00, $c3, $20
-    db $f8, $f8, $c6, $20, $f8, $00, $c5, $20, $80, $f2, $f8, $c5, $40, $f2, $00, $c6
-    db $40, $fa, $f8, $c3, $40, $fa, $00, $c4, $40, $80, $e8, $f4, $c7, $00, $e8, $fc
+    db $10, $80, $f8, $fb, $c0, $10, $80
+
+SpriteFrameData_2244:: ; Direct bank 1 xref into bank 0 sprite/graphics data.
+    db $f0, $f8, $c3, $00, $f0, $00, $c4, $00, $f8
+    db $f8, $c5, $00, $f8, $00, $c6, $00, $80
+
+SpriteFrameData_2255:: ; Direct bank 1 xref into bank 0 sprite/graphics data.
+    db $f0, $f8, $c4, $20, $f0, $00, $c3, $20
+    db $f8, $f8, $c6, $20, $f8, $00, $c5, $20, $80
+
+SpriteFrameData_2266:: ; Direct bank 1 xref into bank 0 sprite/graphics data.
+    db $f2, $f8, $c5, $40, $f2, $00, $c6
+    db $40, $fa, $f8, $c3, $40, $fa, $00, $c4, $40, $80
+
+SpriteFrameData_2277:: ; Direct bank 1 xref into bank 0 sprite/graphics data.
+    db $e8, $f4, $c7, $00, $e8, $fc
     db $c8, $00, $e8, $04, $c7, $20, $f0, $f4, $c9, $00, $f0, $fc, $ca, $00, $f0, $04
     db $c9, $20, $f8, $f8, $cb, $00, $f8, $00, $cc, $00, $80
 
@@ -5248,8 +5269,14 @@ SpriteFrameData_2437::
 SpriteFrameData_2454::
     db $ed, $f8, $c1, $00, $ed, $00, $ac, $00, $f5, $f8, $ad, $00, $f5, $00, $ae, $00
     db $f5, $08, $af, $00, $fd, $f8, $b0, $00, $fd, $00, $b1, $00, $fd, $08, $b2, $00
-    db $80, $f0, $f8, $c4, $00, $f0, $00, $c5, $00, $f8, $f8, $c6, $10, $f8, $00, $c7
-    db $10, $80, $f0, $f8, $c8, $00, $f0, $00, $c9, $00, $f8, $f8, $ca, $00, $f8, $00
+    db $80
+
+SpriteFrameData_2475:: ; Direct bank 1 xref into bank 0 sprite/graphics data.
+    db $f0, $f8, $c4, $00, $f0, $00, $c5, $00, $f8, $f8, $c6, $10, $f8, $00, $c7
+    db $10, $80
+
+SpriteFrameData_2486:: ; Direct bank 1 xref into bank 0 sprite/graphics data.
+    db $f0, $f8, $c8, $00, $f0, $00, $c9, $00, $f8, $f8, $ca, $00, $f8, $00
     db $cb, $00, $80
 
 SpriteFrameData_2497::
@@ -5523,13 +5550,34 @@ SpriteFrameData_2c0f::
 
 SpriteFrameData_2c28::
     db $eb, $f8, $eb, $01, $eb, $00, $ec, $01, $f3, $f8, $ed, $01, $f3, $00, $ee, $01
-    db $fb, $f9, $ef, $21, $fb, $00, $ef, $01, $80, $f8, $f8, $d0, $10, $f8, $00, $d1
-    db $10, $00, $f8, $d2, $10, $00, $00, $d3, $10, $80, $f8, $f8, $d4, $10, $f8, $00
-    db $d5, $10, $00, $f8, $d6, $10, $00, $00, $d7, $10, $80, $f8, $f8, $d8, $10, $f8
-    db $00, $d9, $10, $00, $f8, $da, $10, $00, $00, $db, $10, $80, $f8, $f8, $dc, $10
-    db $f8, $00, $dd, $10, $00, $f8, $d2, $10, $00, $00, $de, $10, $80, $f8, $fc, $df
-    db $10, $00, $fc, $e0, $10, $80, $f8, $f8, $e1, $10, $f8, $00, $e2, $10, $00, $f8
-    db $e3, $10, $00, $00, $e4, $10, $80, $f8, $f8, $e5, $10, $f8, $00, $e6, $10, $00
+    db $fb, $f9, $ef, $21, $fb, $00, $ef, $01, $80
+
+SpriteFrameData_2c41:: ; Direct bank 1 xref into bank 0 sprite/graphics data.
+    db $f8, $f8, $d0, $10, $f8, $00, $d1
+    db $10, $00, $f8, $d2, $10, $00, $00, $d3, $10, $80
+
+SpriteFrameData_2c52:: ; Direct bank 1 xref into bank 0 sprite/graphics data.
+    db $f8, $f8, $d4, $10, $f8, $00
+    db $d5, $10, $00, $f8, $d6, $10, $00, $00, $d7, $10, $80
+
+SpriteFrameData_2c63:: ; Direct bank 1 xref into bank 0 sprite/graphics data.
+    db $f8, $f8, $d8, $10, $f8
+    db $00, $d9, $10, $00, $f8, $da, $10, $00, $00, $db, $10, $80
+
+SpriteFrameData_2c74:: ; Direct bank 1 xref into bank 0 sprite/graphics data.
+    db $f8, $f8, $dc, $10
+    db $f8, $00, $dd, $10, $00, $f8, $d2, $10, $00, $00, $de, $10, $80
+
+SpriteFrameData_2c85:: ; Direct bank 1 xref into bank 0 sprite/graphics data.
+    db $f8, $fc, $df
+    db $10, $00, $fc, $e0, $10, $80
+
+SpriteFrameData_2c8e:: ; Direct bank 1 xref into bank 0 sprite/graphics data.
+    db $f8, $f8, $e1, $10, $f8, $00, $e2, $10, $00, $f8
+    db $e3, $10, $00, $00, $e4, $10, $80
+
+SpriteFrameData_2c9f:: ; Direct bank 1 xref into bank 0 sprite/graphics data.
+    db $f8, $f8, $e5, $10, $f8, $00, $e6, $10, $00
     db $f8, $e7, $10, $00, $00, $e8, $10, $80, $f0, $fc, $e9, $10, $f8, $fc, $ea, $10
     db $80
 
@@ -5602,8 +5650,14 @@ SpriteFrameData_2e60::
 
 SpriteFrameData_2e79::
     db $e8, $f8, $58, $01, $e8, $00, $59, $01, $f0, $f1, $5d, $01, $f0, $f9, $5e, $01
-    db $f0, $01, $5f, $01, $f8, $f2, $60, $01, $f8, $fa, $61, $01, $80, $fc, $fc, $62
-    db $00, $80, $fc, $fc, $63, $00, $80
+    db $f0, $01, $5f, $01, $f8, $f2, $60, $01, $f8, $fa, $61, $01, $80
+
+SpriteFrameData_2e96:: ; Direct bank 1 xref into bank 0 sprite/graphics data.
+    db $fc, $fc, $62
+    db $00, $80
+
+SpriteFrameData_2e9b:: ; Direct bank 1 xref into bank 0 sprite/graphics data.
+    db $fc, $fc, $63, $00, $80
 
 SpriteFrameData_2ea0::
     db $ec, $f9, $13, $01, $ec, $01, $14, $01, $f4, $f2, $64, $01, $f4, $fa, $36, $01
@@ -5683,7 +5737,10 @@ SpriteFrameData_30a8::
 
 SpriteFrameData_30c5::
     db $ec, $f9, $52, $01, $ec, $01, $53, $01, $f4, $f2, $54, $01, $f4, $fa, $55, $01
-    db $f4, $02, $56, $01, $fc, $f8, $57, $01, $fc, $00, $1e, $01, $80, $fc, $fc, $58
+    db $f4, $02, $56, $01, $fc, $f8, $57, $01, $fc, $00, $1e, $01, $80
+
+SpriteFrameData_30e2:: ; Direct bank 1 xref into bank 0 sprite/graphics data.
+    db $fc, $fc, $58
     db $01, $80
 
 SpriteFrameData_30e7::
@@ -5762,8 +5819,14 @@ SpriteFrameData_32a0::
 
 SpriteFrameData_32b9::
     db $ec, $f8, $13, $01, $ec, $00, $14, $01, $f4, $f8, $54, $01, $f4, $00, $55, $01
-    db $fc, $f9, $56, $21, $fc, $00, $56, $01, $80, $f8, $f8, $57, $01, $f8, $00, $58
-    db $01, $fb, $08, $59, $01, $00, $f8, $57, $41, $00, $00, $58, $41, $80, $f7, $f8
+    db $fc, $f9, $56, $21, $fc, $00, $56, $01, $80
+
+SpriteFrameData_32d2:: ; Direct bank 1 xref into bank 0 sprite/graphics data.
+    db $f8, $f8, $57, $01, $f8, $00, $58
+    db $01, $fb, $08, $59, $01, $00, $f8, $57, $41, $00, $00, $58, $41, $80
+
+SpriteFrameData_32e7:: ; Direct bank 1 xref into bank 0 sprite/graphics data.
+    db $f7, $f8
     db $57, $01, $f7, $00, $58, $01, $fa, $08, $59, $01, $ff, $f8, $57, $41, $ff, $00
     db $58, $41, $80
 
@@ -5862,7 +5925,10 @@ SpriteFrameData_3530::
 SpriteFrameData_3551::
     db $F0, $10, $48, $01, $F0, $08, $47, $01, $F0, $04, $46, $01, $F8, $04, $18, $01
     db $F0, $FC, $26, $01, $F8, $FC, $17, $01, $F0, $F4, $28, $01, $F8, $F4, $29, $01
-    db $80, $00, $FF, $7E, $81, $7E, $81, $7E, $81, $7E, $81, $7E, $81, $7E, $81, $00
+    db $80
+
+Bank0TrailingGraphicsData_3572:: ; tile/graphics data after the final sprite frame terminator.
+    db $00, $FF, $7E, $81, $7E, $81, $7E, $81, $7E, $81, $7E, $81, $7E, $81, $00
     db $FF, $00, $00, $00, $00, $00, $00, $00, $00, $00, $FF, $FE, $01, $FE, $01, $FE
     db $01, $AA, $01, $D6, $01, $AA, $01, $D6, $01, $AA, $01, $D6, $01, $AA, $01, $D6
     db $01, $00, $00, $00, $00, $00, $00, $00, $00, $FF, $00, $80, $00, $FF, $00, $80
@@ -5919,7 +5985,10 @@ SpriteFrameData_3551::
     db $FF, $00, $80, $00, $80, $7F, $80, $FF, $FF, $00, $00, $00, $00, $00, $00, $00
     db $00, $00, $00, $00, $00, $FF, $00, $FF, $FF, $00, $00, $00, $00, $00, $00, $00
     db $00, $00, $01, $00, $01, $FE, $01, $FF, $FF, $00, $00, $00, $00, $00, $00, $00
-    db $00, $F7, $00, $0F, $00, $FF, $00, $E3, $00, $DD, $00, $36, $00, $3E, $00, $1C
+    db $00
+
+Bank0TrailingGraphicsData_3902:: ; Direct bank 1 xref into bank 0 sprite/graphics data.
+    db $f7, $00, $0f, $00, $ff, $00, $e3, $00, $dd, $00, $36, $00, $3e, $00, $1c
     db $00, $00, $00, $01, $00, $7F, $00, $07, $00, $1F, $00, $3F, $00, $3F, $00, $1F
     db $00, $00, $00, $C0, $00, $F0, $00, $F0, $00, $FC, $00, $FE, $00, $FE, $00, $FC
     db $00, $FF, $00, $80, $00, $9B, $00, $80, $00, $FF, $00, $80, $00, $BC, $00, $BC
@@ -6016,8 +6085,9 @@ SpriteFrameData_3551::
     db $8E, $64, $D8, $E1, $5E, $40, $20, $20, $20, $12, $13, $12, $0C, $09, $0E, $08
     db $08, $00, $00, $80, $80, $00, $00, $00, $00, $18, $20, $40, $40, $80, $80, 
 
-Jump_000_3f00::	
-	db $80
+Bank0TrailingGraphicsData_3f00::
+Jump_000_3f00:: ; Compatibility alias: this is data, not executable code.
+    db $80
     db $87, $08, $60, $90, $91, $60, $03, $04, $04, $1F, $03, $E3, $13, $08, $04, $84
     db $84, $48, $44, $44, $65, $FF, $FF, $E9, $31, $9C, $B8, $F0, $E0, $80, $00, $00
     db $00, $47, $48, $50, $50, $60, $00, $00, $00, $08, $90, $50, $50, $60, $00, $00

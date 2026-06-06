@@ -583,7 +583,7 @@ Stage2ApplyCheckpointGraphics:: ; If resuming Stage 2, replay checkpoint graphic
     or a
     ret z
 
-    ld hl, $3572
+    ld hl, $3572 ; bank 4 graphics source, not Bank0TrailingGraphicsData_3572.
     ld de, $9450
     ld bc, $0390
     ld a, $04
@@ -820,7 +820,7 @@ jr_001_4558::
     or b
     ldh [hPlayerObjectFlags], a
     ldh [hSpriteFlags], a
-    ld hl, $1a19
+    ld hl, SpriteAnimPointerTable_1a19
     ldh a, [hPlayerForm]
     rst $20
     ldh a, [hPlayerAnimId]
@@ -913,7 +913,7 @@ UpdatePlayerSpecialActor1:: ; Update wPlayerSpecialActor1, used by paired flying
     inc bc
     ld a, [bc]
     ldh [hSpriteFlags], a
-    ld hl, $2e9b
+    ld hl, SpriteFrameData_2e9b
     ldh a, [$ffd3]
     ld c, a
     ldh a, [$ffd4]
@@ -1019,7 +1019,7 @@ UpdateFlyingSquirrelProjectile:: ; Special actor type 1: flying-squirrel project
     inc bc
     ld a, [bc]
     ldh [hSpriteFlags], a
-    ld hl, $2e96
+    ld hl, SpriteFrameData_2e96
     ldh a, [$ffd3]
     ld c, a
     ldh a, [$ffd4]
@@ -1053,7 +1053,7 @@ UpdateChickenProjectile:: ; Special actor type 2: chicken projectile.
     inc bc
     ld a, [bc]
     ldh [hSpriteFlags], a
-    ld hl, $30e2
+    ld hl, SpriteFrameData_30e2
     ldh a, [$ffd3]
     ld c, a
     ldh a, [$ffd4]
@@ -1254,14 +1254,14 @@ UpdateActionKamenProjectile:: ; Special actor type 3: Action Kamen projectile.
     inc bc
     ld a, [bc]
     ldh [hSpriteFlags], a
-    ld hl, $32d2
+    ld hl, SpriteFrameData_32d2
     ld a, [$c0c9]
     inc a
     ld [$c0c9], a
     bit 4, a
     jr nz, jr_001_47f0
 
-    ld hl, $32e7
+    ld hl, SpriteFrameData_32e7
 
 jr_001_47f0::
     ldh a, [$ffd3]
@@ -2111,7 +2111,7 @@ AdvanceObjectAnimCounter:: ; Advance a two-byte animation/timer counter with D/E
 
 
 Jump_001_4c06::
-    ld hl, $1b25
+    ld hl, SpriteStageAnimPointerTable_1b25
     ldh a, [hStageIndex]
     rst $20
     ldh a, [$ffd6]
@@ -4014,12 +4014,12 @@ Stage2TransitionCopyBgTiles::
 
 
 Stage2QueueTransitionBgTile:: ; Queue one 8x8 tile update for Stage 2 tile ids $45-$7f.
-    ld hl, $3572
+    ld hl, Bank0TrailingGraphicsData_3572
     ld a, [wStage2TransitionStep]
     cp $02
     jr z, jr_001_56cf
 
-    ld hl, $3902
+    ld hl, Bank0TrailingGraphicsData_3902
 
 jr_001_56cf::
     ld a, [wStageInteractionCounter]
@@ -5647,7 +5647,7 @@ UpdateObjPickupBonusCounter:: ; Object type $10: add hBonusCounter by 1; 30 awar
     call CheckPlayerPickupBonusCounter
 
 jr_001_5f7f::
-    ld hl, $2c85
+    ld hl, SpriteFrameData_2c85
     ldh a, [$ffd3]
     ld c, a
     ldh a, [$ffd4]
@@ -5796,7 +5796,7 @@ UpdateObjPickupExtraLife:: ; Object type $12: immediate extra-life pickup.
     call CheckPlayerPickupExtraLife
 
 jr_001_604f::
-    ld hl, $2c9f
+    ld hl, SpriteFrameData_2c9f
     ldh a, [$ffd3]
     ld c, a
     ldh a, [$ffd4]
@@ -5873,7 +5873,7 @@ UpdateObjPickupHealth:: ; Object type $14: add hPlayerHealth by 1, max 3.
     call CheckPlayerPickupHealth
 
 jr_001_60ab::
-    ld hl, $2c8e
+    ld hl, SpriteFrameData_2c8e
     ldh a, [$ffd3]
     ld c, a
     ldh a, [$ffd4]
@@ -5952,7 +5952,7 @@ UpdateObjFormFlyingSquirrel:: ; Object type $16: Flying Squirrel form pickup.
     ret nz
 
     call CheckPlayerPickupFormFlyingSquirrel
-    ld hl, $2c41
+    ld hl, SpriteFrameData_2c41
     ldh a, [$ffd3]
     ld c, a
     ldh a, [$ffd4]
@@ -5990,7 +5990,7 @@ UpdateObjFormCockroach:: ; Object type $17: Cockroach form pickup.
     ret nz
 
     call CheckPlayerPickupFormCockroach
-    ld hl, $2c74
+    ld hl, SpriteFrameData_2c74
     ldh a, [$ffd3]
     ld c, a
     ldh a, [$ffd4]
@@ -6023,7 +6023,7 @@ UpdateObjFormChicken:: ; Object type $18: Chicken form pickup.
     ret nz
 
     call CheckPlayerPickupFormChicken
-    ld hl, $2c63
+    ld hl, SpriteFrameData_2c63
     ldh a, [$ffd3]
     ld c, a
     ldh a, [$ffd4]
@@ -6057,7 +6057,7 @@ UpdateObjFormActionKamen:: ; Object type $19: timed Action Kamen form pickup.
     ret nz
 
     call CheckPlayerPickupFormActionKamen
-    ld hl, $2c52
+    ld hl, SpriteFrameData_2c52
     ldh a, [$ffd3]
     ld c, a
     ldh a, [$ffd4]
@@ -9042,11 +9042,11 @@ jr_001_7126::
     inc hl
     inc hl
     ld a, [hl]
-    ld hl, $21ce
+    ld hl, SpriteFrameData_21ce
     and $04
     jr z, jr_001_7145
 
-    ld hl, $21ff
+    ld hl, SpriteFrameData_21ff
 
 jr_001_7145::
     ldh a, [$ffd3]
@@ -9342,18 +9342,18 @@ jr_001_72b0::
     ld a, [de]
     inc a
     ld [de], a
-    ld hl, $2244
+    ld hl, SpriteFrameData_2244
     and $78
     cp $08
     jr nz, jr_001_72d1
 
-    ld hl, $2255
+    ld hl, SpriteFrameData_2255
 
 jr_001_72d1::
     cp $10
     jr nz, jr_001_72d8
 
-    ld hl, $2266
+    ld hl, SpriteFrameData_2266
 
 jr_001_72d8::
     cp $18
@@ -9426,7 +9426,7 @@ UpdateObjStageEvent07:: ; Object type $07: stage-specific object, exact role pen
     or a
     ret nz
 
-    ld hl, $2277
+    ld hl, SpriteFrameData_2277
     ldh a, [$ffd3]
     ld c, a
     ldh a, [$ffd4]
@@ -9585,7 +9585,7 @@ jr_001_73f9::
     ldh a, [$ffd4]
     add e
     ld b, a
-    ld hl, $2486
+    ld hl, SpriteFrameData_2486
     jp Jump_000_025d
 
 
@@ -9686,7 +9686,7 @@ jr_001_7468::
     inc c
 
 jr_001_7483::
-    ld hl, $2475
+    ld hl, SpriteFrameData_2475
     jp Jump_000_0269
 
 
