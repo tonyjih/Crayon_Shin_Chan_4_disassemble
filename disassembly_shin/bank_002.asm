@@ -599,7 +599,7 @@ Jump_002_43a1::
     ld bc, $0260
     call BankedMemcpy
     ld a, $01
-    ld hl, $7e7c
+    ld hl, PasswordScreenLayoutRle_Bank1
     ld de, wStageLayoutMap
     ld bc, $0168
     call BankedMemcpy_RLEFF

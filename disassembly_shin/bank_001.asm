@@ -41,13 +41,20 @@ DEF PlayerState_DeathFall             EQU $0b
 DEF PlayerState_StageTransition0C     EQU $0c; scripted stage transition state
 DEF PlayerState_StageInteraction0D    EQU $0d; special/stage interaction state
 	
+; Fixed bank id and FarCallFromBankTable entry table.
+; ROMX:$4000 must remain the bank id byte; ROMX:$4001 is indexed by bank 0
+; FARCALL_BANK1_* constants. Insertions for Bank 1 shift tests should be after
+; this table unless the far-call mechanism is also updated.
+RomBankId_Bank1::
     db $01
 
-	dw UpdateGameplayState 
-	dw Gameplay_InitEntry
-	dw label_001_7bed
-    dw label_001_7b8b
+Bank1FarCallTable::
+	dw UpdateGameplayState          ; FARCALL_BANK1_UPDATE_GAMEPLAY ($0100)
+	dw Gameplay_InitEntry           ; FARCALL_BANK1_INIT_GAMEPLAY ($0102)
+	dw UpdateEndingDemoSequence     ; FARCALL_BANK1_UPDATE_ENDING_DEMO ($0104)
+    dw InitEndingDemoSequence       ; FARCALL_BANK1_INIT_ENDING_DEMO ($0106)
 
+Bank1ShiftableStart::
 Gameplay_InitEntry::
     ldh a, [hStageIndex]
     add $1a
@@ -531,6 +538,7 @@ PlayerStartCameraInit_Pointers::
 	dw PlayerStartCameraInit_4365
 	dw PlayerStartCameraInit_4375
 	dw PlayerStartCameraInit_4385
+Bank1LocalData_439f_PlayerCheckpointStartCameraPointers::
 	dw PlayerStartCameraInit_435d
 	dw PlayerStartCameraInit_44b7	;Weird
 	dw PlayerStartCameraInit_436d
@@ -569,7 +577,7 @@ InitStageStartAndCheckpointState:: ; Select player start/camera profile and repl
 
     cp $02
     call z, Stage2ApplyCheckpointGraphics
-    ld hl, $439f
+    ld hl, Bank1LocalData_439f_PlayerCheckpointStartCameraPointers
     ldh a, [hStageIndex]
     rst $20
     ld a, [$c0a8]
@@ -758,7 +766,7 @@ Jump_001_44fe::
     ld a, [hl+]
     ld h, [hl]
     ld l, a
-    ld de, $452e
+    ld de, Bank1LocalData_452e_HudTilePatch
     ld bc, $0202
     call QueueTilemapRect
     ret
@@ -778,6 +786,7 @@ Jump_001_4516::
     ret
 
 
+Bank1LocalData_452e_HudTilePatch::
     db $08, $09, $0a, $0b
 
 jr_001_4532::
@@ -1676,7 +1685,7 @@ InitSpawnedObjectAnimParamFromTable:: ; Initialize object animation params from 
     ld [bc], a
     ldh a, [hTileStreamWritePos]
     and $07
-    ld hl, $4a11
+    ld hl, Bank1LocalData_4a11_SpawnAnimParamTable
     rst $38
     ld a, [hl]
     ld hl, $000a
@@ -1689,6 +1698,7 @@ InitSpawnedObjectAnimParamFromTable:: ; Initialize object animation params from 
     ret
 
 
+Bank1LocalData_4a11_SpawnAnimParamTable::
     db $30
 
     db $40, $48, $50
@@ -1712,7 +1722,7 @@ InitSpawnedObjectSpawnParamLowBits:: ; Store low 3 spawn parameter bits in objec
 InitSpawnedObjectPlatformParamFromTable:: ; Initialize platform param from low spawn bits.
     ldh a, [hTileStreamWritePos]
     and $07
-    ld hl, $4a37
+    ld hl, Bank1LocalData_4a37_PlatformSpawnParamTable
     rst $38
     ld a, [hl]
     ld hl, $000a
@@ -1724,6 +1734,7 @@ InitSpawnedObjectPlatformParamFromTable:: ; Initialize platform param from low s
     ret
 
 
+Bank1LocalData_4a37_PlatformSpawnParamTable::
     db $30, $3c, $48
 
     ld d, h
@@ -1732,9 +1743,10 @@ InitSpawnedObjectPlatformParamFromTable:: ; Initialize platform param from low s
     db $aa
 
 InitSpawnedObjectMotionBlockA:: ; Initialize motion params from block A.
-    ld de, $4a42
+    ld de, Bank1LocalData_4a42_SpawnMotionBlockA
     jr jr_001_4a71
 
+Bank1LocalData_4a42_SpawnMotionBlockA::
     db $80, $00, $01
 
     ld bc, $00c0
@@ -1742,9 +1754,10 @@ InitSpawnedObjectMotionBlockA:: ; Initialize motion params from block A.
     ld [bc], a
 
 InitSpawnedObjectMotionBlockB:: ; Initialize motion params from block B.
-    ld de, $4a4f
+    ld de, Bank1LocalData_4a4f_SpawnMotionBlockB
     jr jr_001_4a71
 
+Bank1LocalData_4a4f_SpawnMotionBlockB::
     db $c0, $00, $01
 
     ld bc, $0120
@@ -1752,9 +1765,10 @@ InitSpawnedObjectMotionBlockB:: ; Initialize motion params from block B.
     ld [bc], a
 
 InitSpawnedObjectMotionBlockC:: ; Initialize motion params from block C.
-    ld de, $4a5c
+    ld de, Bank1LocalData_4a5c_SpawnMotionBlockC
     jr jr_001_4a71
 
+Bank1LocalData_4a5c_SpawnMotionBlockC::
     db $80, $00, $01
 
     ld bc, $00c0
@@ -1762,9 +1776,10 @@ InitSpawnedObjectMotionBlockC:: ; Initialize motion params from block C.
     ld [bc], a
 
 InitSpawnedObjectMotionBlockD:: ; Initialize motion params from block D.
-    ld de, $4a69
+    ld de, Bank1LocalData_4a69_SpawnMotionBlockD
     jr jr_001_4a71
 
+Bank1LocalData_4a69_SpawnMotionBlockD::
     db $00, $01, $02
 
     ld [bc], a
@@ -1802,7 +1817,7 @@ jr_001_4a95::
     ldh a, [hTileStreamWritePos]
     and $07
     add l
-    ld hl, $4aac
+    ld hl, Bank1LocalData_4aac_SpawnAnimParamTableB
     rst $38
     ld a, [hl]
     ld hl, $000a
@@ -1815,6 +1830,7 @@ jr_001_4a95::
     ret
 
 
+Bank1LocalData_4aac_SpawnAnimParamTableB::
     db $18, $30, $50, $70, $80, $a0, $c0
 
     ldh a, [rNR10]
@@ -1827,9 +1843,10 @@ jr_001_4a95::
     and b
 
 InitSpawnedObjectParamBlockA:: ; Initialize params from block A.
-    ld de, $4ac1
+    ld de, Bank1LocalData_4ac1_SpawnParamBlockA
     jr jr_001_4a71
 
+Bank1LocalData_4ac1_SpawnParamBlockA::
     db $00, $01, $03
 
     inc bc
@@ -1837,9 +1854,10 @@ InitSpawnedObjectParamBlockA:: ; Initialize params from block A.
     ld bc, $0606
 
 InitSpawnedObjectParamBlockB:: ; Initialize params from block B.
-    ld de, $4ace
+    ld de, Bank1LocalData_4ace_SpawnParamBlockB
     jr jr_001_4a71
 
+Bank1LocalData_4ace_SpawnParamBlockB::
     db $00, $01, $04
 
     inc b
@@ -1847,9 +1865,10 @@ InitSpawnedObjectParamBlockB:: ; Initialize params from block B.
     ld bc, $0808
 
 InitSpawnedObjectParamBlockC:: ; Initialize params from block C.
-    ld de, $4adb
+    ld de, Bank1LocalData_4adb_SpawnParamBlockC
     jr jr_001_4a71
 
+Bank1LocalData_4adb_SpawnParamBlockC::
     db $c0, $00, $03
 
     inc bc
@@ -1859,10 +1878,11 @@ InitSpawnedObjectParamBlockC:: ; Initialize params from block C.
 InitSpawnedObjectParamBlockD:: ; Initialize params from block D and clear event substate.
     xor a
     ld [$c0ba], a
-    ld de, $4aed
+    ld de, Bank1LocalData_4aed_SpawnParamBlockD
     jp jr_001_4a71
 
 
+Bank1LocalData_4aed_SpawnParamBlockD::
     db $80, $01, $05
 
     dec b
@@ -2135,11 +2155,11 @@ Call_001_4c18::
     jr jr_001_4c2b
 
 jr_001_4c26::
-    ld hl, $4c71
+    ld hl, Bank1LocalData_4c71_PlayerCollisionProbeTableDuckOrCockroach
     jr jr_001_4c2e
 
 jr_001_4c2b::
-    ld hl, $4c44
+    ld hl, Bank1LocalData_4c44_PlayerCollisionProbeTableNormal
 
 jr_001_4c2e::
     ld a, d
@@ -2162,9 +2182,12 @@ jr_001_4c2e::
     ret
 
 
+Bank1LocalData_4c44_PlayerCollisionProbeTableNormal::
     db $0e, $14, $0e, $0e, $15, $12, $14, $18, $18, $1d, $0e, $14, $16, $16, $1b, $0a
     db $14, $05, $04, $08, $0e, $14, $04, $fc, $ff, $0e, $14, $10, $08, $10, $12, $14
-    db $16, $16, $1b, $0a, $14, $05, $fc, $ff, $14, $14, $1c, $1c, $22, $0e, $0e, $0e
+    db $16, $16, $1b, $0a, $14, $05, $fc, $ff, $14, $14, $1c, $1c, $22
+Bank1LocalData_4c71_PlayerCollisionProbeTableDuckOrCockroach::
+    db $0e, $0e, $0e
     db $0e, $15, $12, $0e, $18, $18, $1d, $0e, $0e, $16, $16, $1b, $0a, $0e, $05, $04
     db $08, $0e, $0e, $04, $fc, $ff, $0e, $0e, $10, $08, $10
 
@@ -2669,7 +2692,7 @@ UpdateStageAnimatedTiles_Set0::
     ret nz
 
     ld a, [wStageInteractionSubstate]
-    ld hl, $4f2e
+    ld hl, Bank1LocalData_4f2e_StageAnimatedTileSequence0
     rst $38
     ld a, [hl]
     call Call_001_4f46
@@ -2683,6 +2706,7 @@ UpdateStageAnimatedTiles_Set0::
     ret
 
 
+Bank1LocalData_4f2e_StageAnimatedTileSequence0::
     db $01, $04, $00, $06, $01, $00, $00, $05, $02, $00, $00, $00, $02, $04, $00, $00
     db $03, $00, $00, $05, $03, $07, $00, $00
 
@@ -2783,7 +2807,7 @@ UpdateStageAnimatedTiles_Set1::
     ret nz
 
     ld a, [wStageInteractionSubstate]
-    ld hl, $4feb
+    ld hl, Bank1LocalData_4feb_StageAnimatedTileSequence1
     rst $38
     ld a, [hl]
     call Call_001_500b
@@ -2797,6 +2821,7 @@ UpdateStageAnimatedTiles_Set1::
     ret
 
 
+Bank1LocalData_4feb_StageAnimatedTileSequence1::
     db $01, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
     db $02, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 
@@ -2848,7 +2873,7 @@ UpdateStageAnimatedTiles_Set2::
     ret nz
 
     ld a, [wStageInteractionSubstate]
-    ld hl, $5053
+    ld hl, Bank1LocalData_5053_StageAnimatedTileSequence2
     rst $38
     ld a, [hl]
     call Call_001_5073
@@ -2862,6 +2887,7 @@ UpdateStageAnimatedTiles_Set2::
     ret
 
 
+Bank1LocalData_5053_StageAnimatedTileSequence2::
     db $01, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
     db $02, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 
@@ -3120,7 +3146,7 @@ jr_001_519b::
 Call_001_51b2::
     and $3f
     add a
-    ld hl, $51c2
+    ld hl, PlayerSideCollisionHandlerTable
     add l
     ld l, a
     ld a, $00
@@ -3131,110 +3157,81 @@ Call_001_51b2::
     ld l, a
     jp hl
 
+PlayerSideCollisionHandlerTable:: ; 48-entry tile attribute dispatch table used by Call_001_51b2.
+; Tile attributes are masked with $3f before indexing, but entries $30-$3f are unused by known maps.
+; Original ROM overlaps the unused tail with handler code starting at PlayerSideCollisionNoHit.
+    dw PlayerSideCollisionNoHit ; $00
+    dw PlayerSideCollisionSolid ; $01
+    dw PlayerSideCollisionNoHit ; $02
+    dw PlayerSideCollisionNoHit ; $03
+    dw PlayerSideCollisionNoHit ; $04
+    dw PlayerSideCollisionNoHit ; $05
+    dw PlayerSideCollisionNoHit ; $06
+    dw PlayerSideCollisionNoHit ; $07
+    dw PlayerSideCollisionNoHit ; $08
+    dw PlayerSideCollisionNoHit ; $09
+    dw PlayerSideCollisionNoHit ; $0a
+    dw PlayerSideCollisionNoHit ; $0b
+    dw PlayerSideCollisionNoHit ; $0c
+    dw PlayerSideCollisionNoHit ; $0d
+    dw PlayerSideCollisionNoHit ; $0e
+    dw PlayerSideCollisionNoHit ; $0f
+    dw PlayerSideCollisionNoHit ; $10
+    dw PlayerSideCollisionSolid ; $11
+    dw PlayerSideCollisionSolid ; $12
+    dw PlayerSideCollisionNoHit ; $13
+    dw PlayerSideCollisionSolid ; $14
+    dw PlayerSideCollisionNoHit ; $15
+    dw PlayerSideCollisionNoHit ; $16
+    dw PlayerSideCollisionNoHit ; $17
+    dw PlayerSideCollisionNoHit ; $18
+    dw PlayerSideCollisionNoHit ; $19
+    dw PlayerSideCollisionNoHit ; $1a
+    dw PlayerSideCollisionSolidIfYLowBit3Clear ; $1b
+    dw PlayerSideCollisionNoHit ; $1c
+    dw PlayerSideCollisionNoHit ; $1d
+    dw PlayerSideCollisionSolidIfYLowBit3Set ; $1e
+    dw PlayerSideCollisionSpecialStageFlag ; $1f
+    dw PlayerSideCollisionNoHit ; $20
+    dw PlayerSideCollisionNoHit ; $21
+    dw PlayerSideCollisionNoHit ; $22
+    dw PlayerSideCollisionNoHit ; $23
+    dw PlayerSideCollisionNoHit ; $24
+    dw PlayerSideCollisionNoHit ; $25
+    dw PlayerSideCollisionNoHit ; $26
+    dw PlayerSideCollisionNoHit ; $27
+    dw PlayerSideCollisionNoHit ; $28
+    dw PlayerSideCollisionNoHit ; $29
+    dw PlayerSideCollisionNoHit ; $2a
+    dw PlayerSideCollisionNoHit ; $2b
+    dw PlayerSideCollisionNoHit ; $2c
+    dw PlayerSideCollisionNoHit ; $2d
+    dw PlayerSideCollisionNoHit ; $2e
+    dw PlayerSideCollisionNoHit ; $2f
 
-    db $22, $52, $23, $52, $22, $52, $22, $52, $22, $52, $22, $52, $22, $52, $22, $52
-
-    ld [hl+], a
-    ld d, d
-
-    db $22, $52
-
-    ld [hl+], a
-    ld d, d
-
-    db $22, $52
-
-    ld [hl+], a
-    ld d, d
-    ld [hl+], a
-    ld d, d
-    ld [hl+], a
-    ld d, d
-    ld [hl+], a
-    ld d, d
-    ld [hl+], a
-    ld d, d
-    inc hl
-    ld d, d
-    inc hl
-    ld d, d
-
-    db $22, $52, $23, $52
-
-    ld [hl+], a
-    ld d, d
-
-    db $22, $52
-
-    ld [hl+], a
-    ld d, d
-    ld [hl+], a
-    ld d, d
-    ld [hl+], a
-    ld d, d
-    ld [hl+], a
-    ld d, d
-
-    db $2d, $52
-
-    ld [hl+], a
-    ld d, d
-    ld [hl+], a
-    ld d, d
-
-    db $28, $52, $32, $52
-
-    ld [hl+], a
-    ld d, d
-    ld [hl+], a
-    ld d, d
-
-    db $22, $52, $22, $52
-
-    ld [hl+], a
-    ld d, d
-    ld [hl+], a
-    ld d, d
-    ld [hl+], a
-    ld d, d
-    ld [hl+], a
-    ld d, d
-    ld [hl+], a
-    ld d, d
-    ld [hl+], a
-    ld d, d
-    ld [hl+], a
-    ld d, d
-    ld [hl+], a
-    ld d, d
-    ld [hl+], a
-    ld d, d
-    ld [hl+], a
-    ld d, d
-    ld [hl+], a
-    ld d, d
-    ld [hl+], a
-    ld d, d
-
+PlayerSideCollisionNoHit::
     ret
 
-
+PlayerSideCollisionSolid::
 jr_001_5223::
     ld a, $ff
     ldh [$ffc0], a
     ret
 
 
+PlayerSideCollisionSolidIfYLowBit3Set::
     bit 3, e
     ret z
 
     jr jr_001_5223
 
+PlayerSideCollisionSolidIfYLowBit3Clear::
     bit 3, e
     ret nz
 
     jr jr_001_5223
 
+PlayerSideCollisionSpecialStageFlag::
     ld a, [$c0a8]
     or a
     ret nz
@@ -4145,7 +4142,7 @@ PlayerState_UpdateDeathFall:: ; State 0b: fall-out/death bounce, life decrement,
 
 jr_001_5764::
     call ApplyPlayerYVelocity
-    ld hl, $57b9
+    ld hl, Bank1LocalData_57b9_PlayerDeathAnimByForm
     ldh a, [hPlayerForm]
     rst $38
     ld a, [hl]
@@ -4204,6 +4201,7 @@ jr_001_576e::
     ret
 
 
+Bank1LocalData_57b9_PlayerDeathAnimByForm::
     dec d
     add hl, de
     dec e
@@ -4261,7 +4259,7 @@ jr_001_57f7::
     ld l, $04
     ld e, $00
     call Call_001_5b7f
-    ld hl, $580e
+    ld hl, Bank1LocalData_580e_PlayerGroundedActionAnimIds
     ldh a, [hPlayerAnimFrame]
     rst $38
     ld a, [hl]
@@ -4269,6 +4267,7 @@ jr_001_57f7::
     ret
 
 
+Bank1LocalData_580e_PlayerGroundedActionAnimIds::
     db $12, $13, $12, $14
 
 Call_001_5812::
@@ -4326,7 +4325,7 @@ PlayerState_UpdateClimbOrVerticalMove::
     ld l, $09
     ld e, $00
     call Call_001_5b7f
-    ld hl, $586d
+    ld hl, Bank1LocalData_586d_PlayerClimbAnimIds
     ldh a, [hPlayerAnimFrame]
     cp $08
     jr nc, @+$10
@@ -4337,6 +4336,7 @@ PlayerState_UpdateClimbOrVerticalMove::
     ret
 
 
+Bank1LocalData_586d_PlayerClimbAnimIds::
     ld [$0a09], sp
     dec bc
     ld [$0a09], sp
@@ -4469,7 +4469,7 @@ label_001_5920::
     ld l, $02
     ld e, $00
     call Call_001_5b7f
-    ld hl, $5933
+    ld hl, Bank1LocalData_5933_PlayerDuckAnimIds
     ldh a, [hPlayerAnimFrame]
     rst $38
     ld a, [hl]
@@ -4477,6 +4477,7 @@ label_001_5920::
     ret
 
 
+Bank1LocalData_5933_PlayerDuckAnimIds::
     db $10, $11
 
 Call_001_5935::
@@ -4868,7 +4869,7 @@ jr_001_5b3a::
     or a
     jr nz, jr_001_5b51
 
-    ld hl, $5b4b
+    ld hl, Bank1LocalData_5b4b_CockroachHitboxTableA
     ld a, l
     ldh [$ffc5], a
     ld a, h
@@ -4876,10 +4877,11 @@ jr_001_5b3a::
     jp UpdateCockroachActionHitbox
 
 
+Bank1LocalData_5b4b_CockroachHitboxTableA::
     db $15, $16, $16, $16, $15, $15
 
 jr_001_5b51::
-    ld hl, $5b5d
+    ld hl, Bank1LocalData_5b5d_CockroachHitboxTableB
     ld a, l
     ldh [$ffc5], a
     ld a, h
@@ -4887,6 +4889,7 @@ jr_001_5b51::
     jp UpdateCockroachActionHitbox
 
 
+Bank1LocalData_5b5d_CockroachHitboxTableB::
     db $15, $16, $16, $17, $15, $1b
 
 label_001_5b63::
@@ -4899,7 +4902,7 @@ label_001_5b68::
     ld l, $04
     ld e, $00
     call Call_001_5b7f
-    ld hl, $5b7b
+    ld hl, Bank1LocalData_5b7b_CockroachAnimIdsA
     ldh a, [hPlayerAnimFrame]
     rst $38
     ld a, [hl]
@@ -4907,6 +4910,7 @@ label_001_5b68::
     ret
 
 
+Bank1LocalData_5b7b_CockroachAnimIdsA::
     db $04, $05, $04, $06
 
 Call_001_5b7f::
@@ -4944,7 +4948,7 @@ label_001_5b9c::
     ld l, $05
     ld e, $00
     call Call_001_5b7f
-    ld hl, $5bbb
+    ld hl, Bank1LocalData_5bbb_CockroachAnimIdsB
     ldh a, [hPlayerAnimFrame]
     cp $04
     jr nc, jr_001_5bb3
@@ -4963,6 +4967,7 @@ jr_001_5bb3::
     ret
 
 
+Bank1LocalData_5bbb_CockroachAnimIdsB::
     db $04, $07, $04
 
     rlca
@@ -5148,7 +5153,7 @@ label_001_5cb0::
     ld l, $02
     ld e, $00
     call Call_001_5b7f
-    ld hl, $5cc3
+    ld hl, Bank1LocalData_5cc3_ActionKamenAnimIds
     ldh a, [hPlayerAnimFrame]
     rst $38
     ld a, [hl]
@@ -5156,6 +5161,7 @@ label_001_5cb0::
     ret
 
 
+Bank1LocalData_5cc3_ActionKamenAnimIds::
     db $0e, $0f
 
 label_001_5cc5::
@@ -5163,7 +5169,7 @@ label_001_5cc5::
     or a
     jr z, label_001_5cb0
 
-    ld hl, $5d71
+    ld hl, Bank1LocalData_5d71_ActionHitboxTable
     ld a, l
     ldh [$ffc5], a
     ld a, h
@@ -5285,6 +5291,7 @@ label_001_5d50::
     ret
 
 
+Bank1LocalData_5d71_ActionHitboxTable::
     db $18, $19, $19, $1a, $18, $1c
 
 UpdateAirbornePlayerInput:: ; Handle airborne B action, horizontal control, gravity, and landing checks.
@@ -5552,7 +5559,7 @@ PlayerState_UpdateHurtKnockback:: ; State 06: recovery/knockback-style animation
     ld l, $03
     ld e, $00
     call Call_001_5b7f
-    ld hl, $5ef1
+    ld hl, Bank1LocalData_5ef1_PlayerRecoveryAnimIdsA
     ldh a, [hPlayerAnimFrame]
     cp $02
     jr z, jr_001_5ef4
@@ -5571,6 +5578,7 @@ PlayerState_UpdateHurtKnockback:: ; State 06: recovery/knockback-style animation
     ret
 
 
+Bank1LocalData_5ef1_PlayerRecoveryAnimIdsA::
     ld [bc], a
 
     db $03
@@ -5613,7 +5621,7 @@ jr_001_5f1f::
     ld l, $02
     ld e, $00
     call Call_001_5b7f
-    ld hl, $5f3e
+    ld hl, Bank1LocalData_5f3e_PlayerRecoveryAnimIdsB
     ldh a, [hPlayerAnimFrame]
     rst $38
     ld a, [hl]
@@ -5621,6 +5629,7 @@ jr_001_5f1f::
     ret
 
 
+Bank1LocalData_5f3e_PlayerRecoveryAnimIdsB::
     db $00, $01
 
 Call_001_5f40::
@@ -5636,7 +5645,7 @@ Call_001_5f40::
 
 
 Call_001_5f4d::
-    ld hl, $5f68
+    ld hl, Bank1LocalData_5f68_PlayerFormGfxTileBaseTable
     ldh a, [hPlayerForm]
     rst $20
     ldh a, [hPlayerAnimTimer]
@@ -5656,6 +5665,7 @@ jr_001_5f62::
     ret
 
 
+Bank1LocalData_5f68_PlayerFormGfxTileBaseTable::
     db $31, $41, $a1, $45, $a1, $53, $41, $4f, $d1, $4a
 
 UpdateObjPickupChocobi:: ; Object type $10: Chocobi pickup; 30 awards an extra life.
@@ -5777,7 +5787,7 @@ UpdateAnimatedPickupMotion::
     ld a, [hl]
     inc [hl]
     push af
-    ld hl, $6022
+    ld hl, Bank1LocalData_6022_PickupAnimOrSpriteTable
     rst $38
     ld a, [hl]
     or a
@@ -5805,6 +5815,7 @@ jr_001_601e::
     ret
 
 
+Bank1LocalData_6022_PickupAnimOrSpriteTable::
     db $01, $01, $01, $00, $00, $00, $00, $00, $ff, $00, $00, $00, $01, $00, $00, $00
     db $ff, $00, $00, $00, $01, $00, $00, $00, $ff, $00, $00, $00, $01, $00, $00, $00
 UpdateObjPickupExtraLife:: ; Object type $12: immediate extra-life pickup.
@@ -6268,7 +6279,7 @@ jr_001_62ab::
 
 
 label_001_62af::
-    ld hl, $62e2
+    ld hl, Bank1LocalData_62e2_ObjectAnimIds_62e2
     call AnimateObjectFromTableFast
     call MoveObjectXBySpeed
 
@@ -6309,6 +6320,7 @@ Call_001_62cd::
     ret
 
 
+Bank1LocalData_62e2_ObjectAnimIds_62e2::
     db $00, $01, $00, $02
 
 label_001_62e6::
@@ -6543,12 +6555,13 @@ UpdateEnemyReactiveAState::
 
 
 label_001_640a::
-    ld hl, $6416
+    ld hl, Bank1LocalData_6416_EnemyWalkerAnimIdsA
     call AnimateObjectFromTableFast
     call MoveObjectXBySpeed
     jp Jump_001_62b8
 
 
+Bank1LocalData_6416_EnemyWalkerAnimIdsA::
     db $06, $07, $06, $08
 
 label_001_641a::
@@ -6738,12 +6751,13 @@ UpdateEnemyWalkerBState::
 
 
 label_001_64ef::
-    ld hl, $64fb
+    ld hl, Bank1LocalData_64fb_EnemyWalkerAnimIdsB
     call AnimateObjectFromTableFast
     call MoveObjectXBySpeed
     jp Jump_001_62b8
 
 
+Bank1LocalData_64fb_EnemyWalkerAnimIdsB::
     db $0c, $0d, $0c, $0e
 
 label_001_64ff::
@@ -6800,12 +6814,13 @@ UpdateEnemySpawnerAState::
 
 
 label_001_6547::
-    ld hl, $6553
+    ld hl, Bank1LocalData_6553_EnemySpawnerAnimIds
     call AnimateObjectFromTableFast
     call MoveObjectXBySpeed
     jp Jump_001_62b8
 
 
+Bank1LocalData_6553_EnemySpawnerAnimIds::
     db $00, $01, $00, $02
 
 label_001_6557::
@@ -7065,13 +7080,14 @@ jr_001_6678::
     ld hl, $000b
     add hl, bc
     ld a, [hl]
-    ld hl, $6690
+    ld hl, Bank1LocalData_6690_Stage0BossProjectileAnimIds
     rst $38
     ld a, [hl]
     ldh [$ffd6], a
     ret
 
 
+Bank1LocalData_6690_Stage0BossProjectileAnimIds::
     db $12, $13, $14
 
 Call_001_6693::
@@ -7130,18 +7146,21 @@ UpdateEnemyToughKidState::
 
 
 label_001_66de::
-    ld hl, $66ec
+    ld hl, Bank1LocalData_66ec_EnemyToughKidAnimIdsA
     ld d, $0f
     call Call_001_62cd
     call MoveObjectXBySpeed
     jp Jump_001_62b8
 
 
-    db $10, $11, $10, $12, $13, $14, $13, $14
+Bank1LocalData_66ec_EnemyToughKidAnimIdsA::
+    db $10, $11, $10, $12
+Bank1LocalData_66f0_EnemyToughKidAnimIdsB::
+    db $13, $14, $13, $14
 
 label_001_66f4::
     pop af
-    ld hl, $66f0
+    ld hl, Bank1LocalData_66f0_EnemyToughKidAnimIdsB
 
 Jump_001_66f8::
     ld d, $0f
@@ -7173,7 +7192,7 @@ Call_001_670a::
 
 label_001_671a::
     pop af
-    ld hl, $66f0
+    ld hl, Bank1LocalData_66f0_EnemyToughKidAnimIdsB
     call AnimateObjectFromTableFast
     jp UpdateObjectThrownStateB
 
@@ -7312,7 +7331,7 @@ label_001_67d0::
     pop af
     ld a, STAGE_BOSS_STATE_CLEAR
     ld [wStageBossStateFlag], a
-    ld hl, $67fc
+    ld hl, Bank1LocalData_67fc_Stage0BossAnimIdsA
     call AnimateObjectFromTableFast
     call AccelerateObjectY
     call ProjectObjectToScreenAndCull
@@ -7332,19 +7351,21 @@ label_001_67f0::
     pop af
     ld a, $84
     ld [$d931], a
-    ld hl, $67fc
+    ld hl, Bank1LocalData_67fc_Stage0BossAnimIdsA
     jp Jump_001_66f8
 
 
+Bank1LocalData_67fc_Stage0BossAnimIdsA::
     db $15, $16, $15, $16
 
 label_001_6800::
     call Call_001_6810
-    ld hl, $680c
+    ld hl, Bank1LocalData_680c_Stage0BossAnimIdsB
     call AnimateObjectFromTableFast
     jp MoveObjectXBySpeed
 
 
+Bank1LocalData_680c_Stage0BossAnimIdsB::
     db $17, $18, $17, $19
 
 Call_001_6810::
@@ -7451,17 +7472,18 @@ label_001_6887::
     pop af
     ld a, $84
     ld [$d931], a
-    ld hl, $6893
+    ld hl, Bank1LocalData_6893_Stage1BossAnimIdsA
     jp Jump_001_66f8
 
 
+Bank1LocalData_6893_Stage1BossAnimIdsA::
     db $17, $18, $17, $18
 
 label_001_6897::
     pop af
     ld a, STAGE_BOSS_STATE_CLEAR
     ld [wStageBossStateFlag], a
-    ld hl, $6893
+    ld hl, Bank1LocalData_6893_Stage1BossAnimIdsA
     call AnimateObjectFromTableFast
     call AccelerateObjectY
     call ProjectObjectToScreenAndCull
@@ -7516,11 +7538,12 @@ jr_001_68db::
 
 Jump_001_68e4::
     call Call_001_68c7
-    ld hl, $68f0
+    ld hl, Bank1LocalData_68f0_Stage1BossAnimIdsB
     call AnimateObjectFromTableFast
     jp MoveObjectXBySpeed
 
 
+Bank1LocalData_68f0_Stage1BossAnimIdsB::
     db $14, $15, $14, $16
 
 label_001_68f4::
@@ -7663,17 +7686,18 @@ label_001_69b3::
     pop af
     ld a, $84
     ld [$d931], a
-    ld hl, $69bf
+    ld hl, Bank1LocalData_69bf_Stage2BossAnimIds
     jp Jump_001_66f8
 
 
+Bank1LocalData_69bf_Stage2BossAnimIds::
     db $19, $1a, $19, $1a
 
 label_001_69c3::
     pop af
     ld a, STAGE_BOSS_STATE_CLEAR
     ld [wStageBossStateFlag], a
-    ld hl, $69bf
+    ld hl, Bank1LocalData_69bf_Stage2BossAnimIds
     call AnimateObjectFromTableFast
     call AccelerateObjectY
     call ProjectObjectToScreenAndCull
@@ -8091,17 +8115,18 @@ label_001_6be5::
     pop af
     ld a, $84
     ld [$d931], a
-    ld hl, $6bf1
+    ld hl, Bank1LocalData_6bf1_Stage3BossAnimIdsA
     jp Jump_001_66f8
 
 
+Bank1LocalData_6bf1_Stage3BossAnimIdsA::
     db $18, $19, $18, $19
 
 label_001_6bf5::
     pop af
     ld a, STAGE_BOSS_STATE_CLEAR
     ld [wStageBossStateFlag], a
-    ld hl, $6bf1
+    ld hl, Bank1LocalData_6bf1_Stage3BossAnimIdsA
     call AnimateObjectFromTableFast
     call AccelerateObjectY
     call ProjectObjectToScreenAndCull
@@ -8140,10 +8165,11 @@ label_001_6c35::
 
 
 Call_001_6c45::
-    ld hl, $6c4b
+    ld hl, Bank1LocalData_6c4b_Stage3BossAnimIdsB
     jp AnimateObjectFromTableFast
 
 
+Bank1LocalData_6c4b_Stage3BossAnimIdsB::
     db $15, $16, $15, $17
 
 label_001_6c4f::
@@ -8153,10 +8179,11 @@ label_001_6c4f::
 
     ld de, $0100
     call Call_001_6c6b
-    ld hl, $6c61
+    ld hl, Bank1LocalData_6c61_Stage3BossAnimIdsC
     jp AnimateObjectFromTableFast
 
 
+Bank1LocalData_6c61_Stage3BossAnimIdsC::
     db $1d, $1e, $1d, $1e
 
 jr_001_6c65::
@@ -8513,11 +8540,11 @@ UpdateObjPlatformBouncePad:: ; Object type $1d: bounce pad / trampoline-style pl
     ld l, c
     inc hl
     ld a, [hl]
-    ld hl, $70c4
+    ld hl, Bank1LocalData_70c4_BouncePadSpriteIdle
     or a
     jr z, jr_001_6e42
 
-    ld hl, $70d5
+    ld hl, Bank1LocalData_70d5_BouncePadSpritePressed
 
 jr_001_6e42::
     ldh a, [$ffd3]
@@ -8656,7 +8683,7 @@ UpdateObjMovingPlatformVerticalA:: ; Object type $1a: vertical moving platform v
     call CheckPlayerStandingOnPlatform
 
 Jump_001_6eef::
-    ld hl, $70de
+    ld hl, Bank1LocalData_70de_MovingPlatformVerticalSprite
     ldh a, [$ffd3]
     ld c, a
     ldh a, [$ffd4]
@@ -8877,7 +8904,7 @@ UpdateObjDropPlatformA:: ; Object type $09/$1c: drop/moving platform variant A.
 
     call UpdateDropPlatformMotionA
     call CheckPlayerStandingOnDropPlatform
-    ld hl, $70bb
+    ld hl, Bank1LocalData_70bb_DropPlatformSpriteA
     ldh a, [$ffd3]
     ld c, a
     ldh a, [$ffd4]
@@ -9013,9 +9040,16 @@ jr_001_70ab::
     jp Jump_001_6f62
 
 
-    db $f8, $f8, $b0, $10, $f8, $00, $b0, $10, $80, $f0, $f8, $b1, $10, $f0, $00, $b2
-    db $10, $f8, $f8, $b3, $10, $f8, $00, $b4, $10, $80, $f8, $f8, $b5, $10, $f8, $00
-    db $b6, $10, $80, $f0, $f0, $b7, $00, $f0, $f8, $b8, $00, $f0, $00, $b8, $00, $f0
+Bank1LocalData_70bb_DropPlatformSpriteA::
+    db $f8, $f8, $b0, $10, $f8, $00, $b0, $10, $80
+Bank1LocalData_70c4_BouncePadSpriteIdle::
+    db $f0, $f8, $b1, $10, $f0, $00, $b2
+    db $10, $f8, $f8, $b3, $10, $f8, $00, $b4, $10, $80
+Bank1LocalData_70d5_BouncePadSpritePressed::
+    db $f8, $f8, $b5, $10, $f8, $00
+    db $b6, $10, $80
+Bank1LocalData_70de_MovingPlatformVerticalSprite::
+    db $f0, $f0, $b7, $00, $f0, $f8, $b8, $00, $f0, $00, $b8, $00, $f0
     db $08, $b9, $00, $f8, $f0, $ba, $00, $f8, $f8, $bb, $00, $f8, $00, $bb, $00, $f8
     db $08, $bc, $00, $80
 
@@ -9769,8 +9803,9 @@ Stage3SpawnList:: ; $79c7-$7b7a
 Stage4SpawnList:: ; $7b7b-$7b8a
     INCBIN "assets/levels/stage4/spawns.bin"
 
-label_001_7b8b::
-    ld hl, $7d32
+InitEndingDemoSequence::
+label_001_7b8b:: ; Compatibility alias.
+    ld hl, Bank1LocalData_7d32_EndingDemoInputScript
     ld a, l
     ld [$d92f], a
     ld a, h
@@ -9810,7 +9845,8 @@ label_001_7b8b::
     call PlaySound_Queue3
     ret
 
-label_001_7bed::
+UpdateEndingDemoSequence::
+label_001_7bed:: ; Compatibility alias.
     ld hl, $00e0
     ld a, l
     ldh [hPlayerSpeedX], a
@@ -9958,7 +9994,7 @@ jr_001_7c9b::
     jr nz, jr_001_7cd9
 
     ld a, [$d956]
-    ld hl, $7d27
+    ld hl, Bank1LocalData_7d27_EndingDemoStepLengths
     rst $38
     ld b, [hl]
     ld a, [$d954]
@@ -10030,455 +10066,45 @@ Call_001_7cfa::
     ret
 
 
-    ld bc, $2b18
-    ld c, c
-    ld e, h
-    ld [hl], h
-    add [hl]
-    xor c
-    cp [hl]
-    db $ca
-    db $ff
-    db $00
-    ld c, h
-    db $10
-    ld [$1e11], sp
-    db $10
-    ld e, $00
-    db $10
-    db $10
-    inc b
-    nop
-    inc bc
-    ld b, b
-    ld [hl-], a
-    nop
-    add hl, de
-    add b
-    ld [hl], $00
-    dec d
-    db $10
-    ld d, $00
-    inc c
-    ld bc, $0011
-    inc h
-    db $10
-    ld e, $00
-    ld e, $20
-    ld [hl+], a
-    nop
-    ld c, $10
-    inc b
-    nop
-    ld a, [bc]
-    ld bc, $001e
-    jr jr_001_7d71
+Bank1LocalData_7d27_EndingDemoStepLengths:: ; Ending demo step-length table; data, not code.
+    db $01, $18, $2b, $49, $5c, $74, $86, $a9, $be, $ca, $ff
 
-    ld hl, $1e11
-    db $10
-    add hl, de
-    nop
-    ld a, [de]
-    add b
-    jr @-$7d
+Bank1LocalData_7d32_EndingDemoInputScript:: ; Ending demo scripted input/data stream; data, not code.
+    db $00, $4c, $10, $08, $11, $1e, $10, $1e, $00, $10, $10, $04, $00, $03, $40, $32
+    db $00, $19, $80, $36, $00, $15, $10, $16, $00, $0c, $01, $11, $00, $24, $10, $1e
+    db $00, $1e, $20, $22, $00, $0e, $10, $04, $00, $0a, $01, $1e, $00, $18, $10, $21
+    db $11, $1e, $10, $19, $00, $1a, $80, $18, $81, $06, $80, $05, $00, $2c, $10, $3b
+    db $00, $05, $20, $03, $00, $13, $80, $1d, $81, $0a, $80, $09, $00, $2c, $20, $18
+    db $00, $2b, $01, $1d, $00, $9f, $01, $13, $00, $02, $01, $04, $00, $02, $01, $04
+    db $00, $02, $01, $04, $00, $02, $01, $04, $00, $01, $01, $05, $00, $01, $01, $04
+    db $00, $02, $01, $04, $00, $02, $01, $04, $00, $01, $01, $04, $00, $03, $01, $01
+    db $21, $02, $20, $02, $21, $04, $20, $02, $21, $02, $01, $02, $00, $00, $20, $00
+    db $00, $00, $01, $03, $00, $03, $01, $04, $00, $02, $20, $00, $21, $03, $20, $03
+    db $21, $04, $20, $02, $21, $04, $20, $03, $21, $03, $20, $03, $21, $04, $20, $03
+    db $01, $04, $00, $03, $01, $04, $00, $03, $01, $03, $21, $01, $20, $02, $21, $05
+    db $20, $01, $21, $05, $20, $03, $21, $05, $20, $02, $01, $04, $20, $03, $21, $05
+    db $20, $02, $21, $05, $20, $01, $00, $00, $01, $05, $00, $03, $01, $03, $00, $04
+    db $01, $04, $00, $04, $01, $07, $00, $02, $01, $05, $00, $01, $01, $06, $00, $08
+    db $02, $0c, $00, $4a, $20, $2a, $00, $30, $01, $19, $00, $80, $01, $20, $00, $2e
+    db $20, $48, $00, $0f, $10, $05, $00, $31, $80, $0e, $81, $07, $80, $02, $00, $40
+    db $02, $0b, $00, $8a, $80, $0a, $81, $0b, $80, $01, $00, $27, $80, $0e, $81, $10
+    db $80, $00, $00, $30, $10, $20, $00, $2d, $01, $13, $00, $94, $10, $64, $00, $24
+    db $20, $4e, $00, $0c, $10, $07, $00, $2b, $01, $14, $11, $0b, $10, $09, $00, $2e
+    db $02, $0b, $00, $2a, $10, $56, $00, $62, $10, $80
 
-    ld b, $80
-    dec b
-    nop
-    inc l
-    db $10
+PasswordScreenLayoutRle_Bank1:: ; Bank 1 RLEFF layout source used by bank 2 password/game-state-5 screen init; data, not code.
+    db $ff, $03, $00, $99, $9b, $ff, $03, $92, $9a, $ff, $03, $92, $9a, $92, $98, $ff
+    db $08, $00, $93, $2a, $1c, $3f, $7e, $24, $11, $37, $37, $2a, $7f, $94, $ff, $08
+    db $00, $93, $ff, $0a, $00, $9c, $9d, $ff, $07, $00, $93, $ff, $0a, $00, $94, $ff
+    db $08, $00, $97, $ff, $0a, $b0, $96, $ff, $19, $00, $99, $ff, $0c, $92, $ff, $05
+    db $9a, $92, $98, $93, $10, $11, $12, $13, $14, $00, $2a, $2b, $2c, $2d, $2e, $00
+    db $15, $16, $17, $18, $19, $00, $94, $93, $ff, $0c, $00, $ff, $05, $45, $00, $94
+    db $93, $15, $16, $17, $18, $19, $00, $2f, $30, $31, $32, $33, $00, $1a, $1b, $1c
+    db $1d, $1e, $00, $94, $93, $ff, $0c, $00, $ff, $05, $45, $00, $94, $93, $1a, $1b
+    db $1c, $1d, $1e, $00, $34, $35, $36, $37, $38, $00, $1f, $20, $21, $23, $24, $00
+    db $94, $93, $ff, $0c, $00, $ff, $05, $45, $00, $94, $93, $1f, $20, $21, $23, $24
+    db $00, $39, $3a, $3b, $3c, $3d, $00, $2a, $2b, $2c, $2d, $2e, $00, $94, $93, $ff
+    db $12, $00, $94, $93, $25, $26, $27, $28, $29, $00, $3e, $3f, $41, $42, $ff, $04
+    db $00, $b3, $b4, $b5, $00, $94, $93, $ff, $12, $00, $94, $97, $ff, $12, $95, $96
 
-jr_001_7d71::
-    dec sp
-    nop
-    dec b
-    jr nz, jr_001_7d79
-
-    nop
-    inc de
-    add b
-
-jr_001_7d79::
-    dec e
-    add c
-    ld a, [bc]
-    add b
-    add hl, bc
-    nop
-    inc l
-    jr nz, @+$1a
-
-    nop
-    dec hl
-    ld bc, $001d
-    sbc a
-    ld bc, $0013
-    ld [bc], a
-    ld bc, $0004
-    ld [bc], a
-    ld bc, $0004
-    ld [bc], a
-    ld bc, $0004
-    ld [bc], a
-    ld bc, $0004
-    ld bc, $0501 ; constant/data bytes, not a ROM0 QueueVramFill pointer
-    nop
-    ld bc, $0401
-    nop
-    ld [bc], a
-    ld bc, $0004
-    ld [bc], a
-    ld bc, $0004
-    ld bc, $0401
-    nop
-    inc bc
-    ld bc, $2101
-    ld [bc], a
-    jr nz, @+$04
-
-    ld hl, $2004
-    ld [bc], a
-    ld hl, $0102
-    ld [bc], a
-    nop
-    nop
-    jr nz, jr_001_7dc2
-
-jr_001_7dc2::
-    nop
-    nop
-    ld bc, $0003
-    inc bc
-    ld bc, $0004
-    ld [bc], a
-    jr nz, jr_001_7dce
-
-jr_001_7dce::
-    ld hl, $2003
-    inc bc
-    ld hl, $2004
-    ld [bc], a
-    ld hl, $2004
-    inc bc
-    ld hl, $2003
-    inc bc
-    ld hl, $2004
-    inc bc
-    ld bc, $0004
-    inc bc
-    ld bc, $0004
-    inc bc
-    ld bc, $2103
-    ld bc, $0220
-    ld hl, $2005
-    ld bc, $0521
-    jr nz, jr_001_7dfb
-
-    ld hl, $2005
-
-jr_001_7dfb::
-    ld [bc], a
-    ld bc, $2004
-    inc bc
-    ld hl, $2005
-    ld [bc], a
-    ld hl, $2005
-    ld bc, $0000
-    ld bc, $0005
-    inc bc
-    ld bc, $0003
-    inc b
-    ld bc, $0004
-    inc b
-    ld bc, $0007
-    ld [bc], a
-    ld bc, $0005
-    ld bc, $0601
-    nop
-    ld [$0c02], sp
-    nop
-    ld c, d
-    jr nz, jr_001_7e52
-
-    nop
-    jr nc, jr_001_7e2c
-
-    add hl, de
-
-jr_001_7e2c::
-    nop
-    add b
-    ld bc, $0020
-    ld l, $20
-    ld c, b
-    nop
-    rrca
-    db $10
-    dec b
-    nop
-    ld sp, $0e80
-    add c
-    rlca
-    add b
-    ld [bc], a
-    nop
-    ld b, b
-    ld [bc], a
-    dec bc
-    nop
-    adc d
-    add b
-    ld a, [bc]
-    add c
-    dec bc
-    add b
-    ld bc, $2700
-    add b
-    ld c, $81
-    db $10
-
-jr_001_7e52::
-    add b
-    nop
-    nop
-    jr nc, jr_001_7e67
-
-    jr nz, jr_001_7e59
-
-jr_001_7e59::
-    dec l
-    ld bc, $0013
-    sub h
-    db $10
-    ld h, h
-    nop
-    inc h
-    jr nz, jr_001_7eb2
-
-    nop
-    inc c
-    db $10
-
-jr_001_7e67::
-    rlca
-    nop
-    dec hl
-    ld bc, $1114
-    dec bc
-    db $10
-    add hl, bc
-    nop
-    ld l, $02
-    dec bc
-    nop
-    ld a, [hl+]
-    db $10
-    ld d, [hl]
-    nop
-    ld h, d
-    db $10
-    add b
-    rst $38
-    inc bc
-    nop
-    sbc c
-    sbc e
-    rst $38
-    inc bc
-    sub d
-    sbc d
-    rst $38
-    inc bc
-    sub d
-    sbc d
-    sub d
-    sbc b
-    rst $38
-    ld [$9300], sp
-    ld a, [hl+]
-    inc e
-    ccf
-    ld a, [hl]
-    inc h
-    ld de, $3737
-    ld a, [hl+]
-    ld a, a
-    sub h
-    rst $38
-    ld [$9300], sp
-    rst $38
-    ld a, [bc]
-    nop
-    sbc h
-    sbc l
-    rst $38
-    rlca
-    nop
-    sub e
-    rst $38
-    ld a, [bc]
-    nop
-    sub h
-    rst $38
-    ld [$9700], sp
-    rst $38
-    ld a, [bc]
-    or b
-
-jr_001_7eb2::
-    sub [hl]
-    rst $38
-    add hl, de
-    nop
-    sbc c
-    rst $38
-    inc c
-    sub d
-    rst $38
-    dec b
-    sbc d
-    sub d
-    sbc b
-    sub e
-    db $10
-    ld de, $1312
-    inc d
-    nop
-    ld a, [hl+]
-    dec hl
-    inc l
-    dec l
-    ld l, $00
-    dec d
-    ld d, $17
-    jr jr_001_7eea
-
-    nop
-    sub h
-    sub e
-    rst $38
-    inc c
-    nop
-    rst $38
-    dec b
-    ld b, l
-    nop
-    sub h
-    sub e
-    dec d
-    ld d, $17
-    jr jr_001_7efb
-
-    nop
-    cpl
-    jr nc, jr_001_7f17
-
-    ld [hl-], a
-    inc sp
-    nop
-    ld a, [de]
-
-jr_001_7eea::
-    dec de
-    inc e
-    dec e
-    ld e, $00
-    sub h
-    sub e
-    rst $38
-    inc c
-    nop
-    rst $38
-    dec b
-    ld b, l
-    nop
-    sub h
-    sub e
-    ld a, [de]
-
-jr_001_7efb::
-    dec de
-    inc e
-    dec e
-    ld e, $00
-    inc [hl]
-    dec [hl]
-    ld [hl], $37
-    jr c, jr_001_7f06
-
-jr_001_7f06::
-    rra
-    jr nz, jr_001_7f2a
-
-    inc hl
-    inc h
-    nop
-    sub h
-    sub e
-    rst $38
-    inc c
-    nop
-    rst $38
-    dec b
-    ld b, l
-    nop
-    sub h
-    sub e
-
-jr_001_7f17::
-    rra
-    jr nz, jr_001_7f3b
-
-    inc hl
-    inc h
-    nop
-    add hl, sp
-    ld a, [hl-]
-    dec sp
-    inc a
-    dec a
-    nop
-    ld a, [hl+]
-    dec hl
-    inc l
-    dec l
-    ld l, $00
-    sub h
-
-jr_001_7f2a::
-    sub e
-    rst $38
-    ld [de], a
-    nop
-    sub h
-    sub e
-    dec h
-    ld h, $27
-	db $28
-	db $29
-
-    nop
-    ld a, $3f
-    ld b, c
-    ld b, d
-    rst $38
-
-jr_001_7f3b::
-    inc b
-    nop
-    or e
-    or h
-    or l
-    nop
-    sub h
-    sub e
-    rst $38
-    ld [de], a
-    nop
-    sub h
-    sub a
-    rst $38
-    ld [de], a
-    sub l
-    sub [hl]
     ds $8000 - @, $FF

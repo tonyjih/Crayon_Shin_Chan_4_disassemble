@@ -2142,6 +2142,14 @@ jr_000_08f8::
 TilemapBoxMaskTable_0902::
     db $f9, $f2, $f8, $f3, $00, $f4, $f7, $f5, $f6
 
+; Bank 1 FarCallFromBankTable parameters.
+; FarCallFromBankTable uses H as the ROM bank and L as an offset into the fixed
+; per-bank table at ROMX:$4001. These are not ROM addresses.
+DEF FARCALL_BANK1_UPDATE_GAMEPLAY     EQU $0100
+DEF FARCALL_BANK1_INIT_GAMEPLAY       EQU $0102
+DEF FARCALL_BANK1_UPDATE_ENDING_DEMO  EQU $0104
+DEF FARCALL_BANK1_INIT_ENDING_DEMO    EQU $0106
+
 UpdateCurrentGameState:: ; Per-frame state dispatcher, called from VBlank after input/sound.
 ; hGameState update map, current understanding:
 ;   0 -> bank 2 title/menu update
@@ -2163,7 +2171,7 @@ UpdateCurrentGameState:: ; Per-frame state dispatcher, called from VBlank after 
     dw UpdateGameState_Bank2Screen2 ; 05: bank 2 screen/update path
     dw UpdateGameState_Pause ; 06: pause-ish handler
     dw UpdateGameState_FadeReturn ; 07: unused/variant update path
-    dw UpdateGameState_TutorialMode ; 08: tutorial mode
+    dw UpdateGameState_EndingDemo ; 08: ending demo / staff-roll style sequence
 
 UpdateGameState_TitleMenu::
 	; hGameState == 00
@@ -2178,7 +2186,7 @@ UpdateGameState_DebugMenu::
 
 UpdateGameState_Gameplay::
 	; hGameState == 02
-    ld hl, $0100
+    ld hl, FARCALL_BANK1_UPDATE_GAMEPLAY
     jp FarCallFromBankTable
 
 
@@ -2241,9 +2249,10 @@ Call_000_0963::
 UpdateGameState_FadeReturn::
     jp Jump_000_09c9
 
-UpdateGameState_TutorialMode::
+UpdateGameState_EndingDemo::
+UpdateGameState_TutorialMode:: ; Compatibility alias for older notes.
 	; hGameState == 08
-    ld hl, HeaderLogo
+    ld hl, FARCALL_BANK1_UPDATE_ENDING_DEMO
     jp FarCallFromBankTable
 
 
@@ -2269,7 +2278,7 @@ InitCurrentGameState:: ; State init dispatcher, called with LCD off from ReinitC
     dw InitGameState_Bank2Screen2 ; 05: bank 2 screen init
     dw InitGameState_NoInit ; 06: no init
     dw InitGameState_GameplayStage18Variant ; 07: bank 1 gameplay init variant
-    dw InitGameState_UnusedStage4ThenBank1Init ; 08: unused/variant init path
+    dw InitGameState_EndingDemo ; 08: init stage 4 ending demo sequence
 
 InitGameState_TitleMenu::
     ld hl, $0200
@@ -2281,7 +2290,7 @@ InitGameState_DebugMenu::
 
 
 InitGameState_Gameplay::
-    ld hl, $0102
+    ld hl, FARCALL_BANK1_INIT_GAMEPLAY
     jp FarCallFromBankTable
 
 
@@ -2305,7 +2314,7 @@ InitGameState_NoInit::
 
 
 InitGameState_GameplayStage18Variant::
-    ld hl, $0102
+    ld hl, FARCALL_BANK1_INIT_GAMEPLAY
     call FarCallFromBankTable
     ld a, $18
     ld [wScreenPaletteId], a
@@ -2342,12 +2351,13 @@ jr_000_09e0::
     ldh [hNeedsReset], a
     ret
 
-InitGameState_UnusedStage4ThenBank1Init::
+InitGameState_EndingDemo::
+InitGameState_UnusedStage4ThenBank1Init:: ; Compatibility alias for older notes.
     ld a, $04
     ldh [hStageIndex], a
-    ld hl, $0102
+    ld hl, FARCALL_BANK1_INIT_GAMEPLAY
     call FarCallFromBankTable
-    ld hl, $0106
+    ld hl, FARCALL_BANK1_INIT_ENDING_DEMO
     jp FarCallFromBankTable
 
 
