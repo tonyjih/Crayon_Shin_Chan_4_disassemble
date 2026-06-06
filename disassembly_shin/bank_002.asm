@@ -235,7 +235,7 @@ jr_002_416b::
     ld [$dffe], a
 
 jr_002_419a::
-    ld bc, jr_000_0600
+    ld bc, $0600 ; constant, not a ROM0 jr_000_0600 pointer
     ld de, $0800
     jp RequestStateChange_Menu
 
@@ -2258,7 +2258,7 @@ jr_002_4e23::
     jr nz, jr_002_4e9a
 
     ld hl, $98a7
-    ld bc, QueueVramFill
+    ld bc, $0501 ; width/height constant, not a ROM0 QueueVramFill pointer
     ld de, $5018
     call QueueTilemapRect
 
@@ -4917,7 +4917,7 @@ jr_002_5e70::
 
     nop
     dec b
-    ld bc, jr_000_0600
+    ld bc, $0600 ; constant, not a ROM0 jr_000_0600 pointer
     ld bc, $0700
     ld bc, $0800
     ld bc, $0900

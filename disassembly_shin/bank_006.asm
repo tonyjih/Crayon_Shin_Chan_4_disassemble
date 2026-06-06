@@ -162,7 +162,7 @@ jr_006_4094::
 
     db $00
 
-    ld [jr_000_08f8], sp
+    ld [$08f8], sp ; data bytes, not a ROM0 jr_000_08f8 pointer
     ld hl, sp+$08
     ld hl, sp+$08
     db $f8
@@ -282,7 +282,7 @@ jr_006_4102::
 
     db $00
 
-    ld [jr_000_08f8], sp
+    ld [$08f8], sp ; data bytes, not a ROM0 jr_000_08f8 pointer
     ld hl, sp+$08
     ld hl, sp+$08
     db $f8
@@ -462,7 +462,7 @@ jr_006_4181::
     ldh [rIE], a
     db $10
     rra
-    ld [DetectSgbOrInitSgb], sp
+    ld [$040f], sp ; data bytes, not a ROM0 DetectSgbOrInitSgb pointer
     rlca
 
     db $03
@@ -614,7 +614,7 @@ jr_006_421b::
 
     rst $38
     ld hl, sp-$41
-    call nz, Call_000_04c7
+    call nz, $04c7 ; data bytes, not a ROM0 Call_000_04c7 pointer
     rlca
 
     db $03
@@ -1024,13 +1024,15 @@ jr_006_435c::
 
     db $10
     rra
-    ld [DetectSgbOrInitSgb], sp
+    ld [$040f], sp ; data bytes, not a ROM0 DetectSgbOrInitSgb pointer
     rlca
     inc bc
 
     db $50
-
-    ld bc, DelayFramesOrCycles
+	
+    db $01
+    db $03
+    db $04
     rlca
     ld b, $07
 
@@ -1164,7 +1166,7 @@ jr_006_43d6::
     ld e, $17
     jr jr_006_441f
 
-    ld [DetectSgbOrInitSgb], sp
+    ld [$040f], sp ; data bytes, not a ROM0 DetectSgbOrInitSgb pointer
     rlca
 
     db $c0
@@ -1787,7 +1789,7 @@ jr_006_45fa::
 
     jr jr_006_45fa
 
-    ld [jr_000_08f8], sp
+    ld [$08f8], sp ; data bytes, not a ROM0 jr_000_08f8 pointer
 
     db $01
 
@@ -2587,7 +2589,7 @@ jr_006_4880::
 
     ldh [c], a
     db $e3
-    jp nz, Jump_000_04c3
+    jp nz, $04c3 ; data bytes, not a ROM0 Jump_000_04c3 pointer
 
     rlca
     inc b
@@ -6265,7 +6267,7 @@ jr_006_5661::
     ld a, h
     ld c, h
     db $fc
-    call z, Call_000_06fe
+    call z, $06fe ; data bytes, not a ROM0 Call_000_06fe pointer
 
     db $05
 
@@ -6988,7 +6990,7 @@ jr_006_595c::
     db $fc
     inc b
     inc a
-    call nz, Call_000_04fc
+    call nz, $04fc ; data bytes, not a ROM0 Call_000_04fc pointer
 
     db $05
 
@@ -7156,7 +7158,7 @@ jr_006_59e9::
 
     db $00
 
-    ld [DetectSgbOrInitSgb], sp
+    ld [$040f], sp ; data bytes, not a ROM0 DetectSgbOrInitSgb pointer
     rlca
     ld [bc], a
     inc bc
@@ -7510,7 +7512,7 @@ jr_006_5b26::
     ccf
     jr nz, jr_006_5b69
 
-    ld de, jr_000_111e
+    ld de, $111e ; data bytes, not a ROM0 jr_000_111e pointer
     db $1e
 
     db $01
@@ -9800,7 +9802,7 @@ jr_006_62c0::
 
     db $05
 
-    ld [DetectSgbOrInitSgb], sp
+    ld [$040f], sp ; data bytes, not a ROM0 DetectSgbOrInitSgb pointer
     rlca
     inc bc
     nop
@@ -10844,7 +10846,7 @@ jr_006_6940::
 
     ld de, $081f
     rrca
-    ld [DetectSgbOrInitSgb], sp
+    ld [$040f], sp ; data bytes, not a ROM0 DetectSgbOrInitSgb pointer
     rlca
 
     db $01
@@ -11100,7 +11102,7 @@ jr_006_6940::
 
     ld hl, $183f
     rra
-    ld [DetectSgbOrInitSgb], sp
+    ld [$040f], sp ; data bytes, not a ROM0 DetectSgbOrInitSgb pointer
     rlca
 
     db $00
@@ -13053,7 +13055,7 @@ jr_006_71b3::
 
     rlca
     rst $38
-    ld [jr_000_08f8], sp
+    ld [$08f8], sp ; data bytes, not a ROM0 jr_000_08f8 pointer
     db $f8
 
     db $76
@@ -13110,7 +13112,7 @@ jr_006_71b3::
 
     rlca
     rst $38
-    ld [jr_000_08f8], sp
+    ld [$08f8], sp ; data bytes, not a ROM0 jr_000_08f8 pointer
     db $f8
 
     db $04
@@ -13867,7 +13869,7 @@ jr_006_74a2::
 
     inc c
     db $fc
-    ld [jr_000_08f8], sp
+    ld [$08f8], sp ; data bytes, not a ROM0 jr_000_08f8 pointer
     db $f8
 
     db $70
@@ -13921,7 +13923,7 @@ jr_006_74a2::
 jr_006_74d3::
     inc c
     db $fc
-    ld [jr_000_08f8], sp
+    ld [$08f8], sp ; data bytes, not a ROM0 jr_000_08f8 pointer
 
 jr_006_74d8::
     db $f8
@@ -14716,7 +14718,7 @@ jr_006_785c::
     inc sp
     ld l, a
     db $e4
-    call z, Call_000_0858
+    call z, $0858 ; data bytes, not a ROM0 Call_000_0858 pointer
     db $f8
 
     db $54
@@ -14751,7 +14753,7 @@ jr_006_7872::
     db $00
 
     xor h
-    call c, Call_000_04fc
+    call c, $04fc ; data bytes, not a ROM0 Call_000_04fc pointer
     cp $de
     rst $38
     db $01
@@ -15136,7 +15138,7 @@ jr_006_79aa::
     ld d, h
     inc b
     xor b
-    ld [jr_000_1050], sp
+    ld [$1050], sp ; data bytes, not a ROM0 jr_000_1050 pointer
 
 jr_006_79c3::
     db $f0
@@ -15181,7 +15183,7 @@ jr_006_79db::
     ld c, b
     jr jr_006_7989
 
-    ld [Call_000_0858], sp
+    ld [$0858], sp ; data bytes, not a ROM0 Call_000_0858 pointer
     db $f8
 
     db $70
@@ -15557,7 +15559,7 @@ jr_006_7b08::
 jr_006_7b12::
     cp h
     ldh a, [c]
-    ld a, [Call_000_0256]
+    ld a, [$0256] ; data bytes, not a ROM0 Call_000_0256 pointer
     and d
     ld a, [bc]
 
@@ -16522,7 +16524,7 @@ jr_006_7e16::
     db $00
 
     db $fc
-    call c, Call_000_04fc
+    call c, $04fc ; data bytes, not a ROM0 Call_000_04fc pointer
     db $ec
     inc d
     db $fc

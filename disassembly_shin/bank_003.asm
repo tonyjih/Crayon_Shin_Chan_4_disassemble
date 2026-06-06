@@ -904,7 +904,7 @@ jr_003_461b::
     jr nz, jr_003_461b
 
     ld hl, wStageLayoutMap
-    ld de, $3ca2
+    ld de, Bank0TrailingGraphicsData_3ca2
     ld b, $59
 
 jr_003_4634::
@@ -3466,7 +3466,7 @@ jr_003_683b::
     nop
     ld a, [$6bf8]
     nop
-    ld a, [jr_000_0600]
+    ld a, [$0600] ; data bytes, not a ROM0 jr_000_0600 pointer
     nop
     add b
     ld [$67f8], a
@@ -3490,7 +3490,7 @@ jr_003_683b::
     nop
     ld a, [$6bf8]
     nop
-    ld a, [jr_000_0600]
+    ld a, [$0600] ; data bytes, not a ROM0 jr_000_0600 pointer
     nop
     add b
     db $e4
@@ -3521,7 +3521,7 @@ jr_003_683b::
     nop
     ld a, [$6bf8]
     nop
-    ld a, [jr_000_0600]
+    ld a, [$0600] ; data bytes, not a ROM0 jr_000_0600 pointer
     nop
     add b
 

@@ -2647,7 +2647,7 @@ jr_005_7aea:
     ldh a, [$ffd8]
     jr c, jr_005_7aea
 
-    call c, Call_000_0efe
+    call c, $0efe ; data bytes, not a ROM0 Call_000_0efe pointer
 
     db $00
 

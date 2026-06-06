@@ -6077,7 +6077,7 @@ CheckPlayerPickupFormActionKamen::
     set 2, [hl]
     ld a, PLAYER_FORM_ACTION_KAMEN
     ldh [hPlayerForm], a
-    ld hl, jr_000_0600
+    ld hl, $0600 ; form timer constant, not a ROM0 jr_000_0600 pointer
     ld a, l
     ld [wFormTimerLo], a
     ld a, h
@@ -9922,7 +9922,7 @@ jr_001_7c91::
     jr jr_001_7c82
 
 jr_001_7c9b::
-    ld bc, Jump_000_3f00
+    ld bc, $3f00 ; constant, not a ROM0 data pointer
     add hl, bc
     ld a, l
     ldh [hVramQueuePos], a
@@ -10097,7 +10097,7 @@ jr_001_7d79::
     ld bc, $0004
     ld [bc], a
     ld bc, $0004
-    ld bc, QueueVramFill
+    ld bc, $0501 ; constant/data bytes, not a ROM0 QueueVramFill pointer
     nop
     ld bc, $0401
     nop
