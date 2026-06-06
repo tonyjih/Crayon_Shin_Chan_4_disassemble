@@ -428,7 +428,7 @@ Call_000_00a3::
 CopyDmaStubToHram::
     ld c, $80      ; HRAM destination = FF80
     ld b, $0a      ; copy 10 bytes
-    ld hl, $00b2   ; source = 00B2
+    ld hl, OamDmaStub
 
 .copy
     ld a, [hl+]
@@ -2067,10 +2067,10 @@ Call_000_08b7::
     push hl
     ldh a, [hTileStreamWritePos]
     ld e, a
-    ld a, [$0902]
+    ld a, [TilemapBoxMaskTable_0902 + 0]
     and e
     ld [hl+], a
-    ld a, [$0903]
+    ld a, [TilemapBoxMaskTable_0902 + 1]
     and e
 
 jr_000_08c5::
@@ -2078,7 +2078,7 @@ jr_000_08c5::
     dec b
     jr nz, jr_000_08c5
 
-    ld a, [$0904]
+    ld a, [TilemapBoxMaskTable_0902 + 2]
     and e
     ld [hl+], a
     pop hl
@@ -2090,10 +2090,10 @@ jr_000_08c5::
 jr_000_08d4::
     ld b, d
     push hl
-    ld a, [$0905]
+    ld a, [TilemapBoxMaskTable_0902 + 3]
     and e
     ld [hl+], a
-    ld a, [$0906]
+    ld a, [TilemapBoxMaskTable_0902 + 4]
     and e
 
 jr_000_08df::
@@ -2101,7 +2101,7 @@ jr_000_08df::
     dec b
     jr nz, jr_000_08df
 
-    ld a, [$0907]
+    ld a, [TilemapBoxMaskTable_0902 + 5]
     and e
     ld [hl+], a
     pop hl
@@ -2110,10 +2110,10 @@ jr_000_08df::
     dec c
     jr nz, jr_000_08d4
 
-    ld a, [$0908]
+    ld a, [TilemapBoxMaskTable_0902 + 6]
     and e
     ld [hl+], a
-    ld a, [$0909]
+    ld a, [TilemapBoxMaskTable_0902 + 7]
     and e
 
 jr_000_08f8::
@@ -2121,12 +2121,13 @@ jr_000_08f8::
     dec d
     jr nz, jr_000_08f8
 
-    ld a, [$090a]
+    ld a, [TilemapBoxMaskTable_0902 + 8]
     and e
     ld [hl+], a
     ret
 
 
+TilemapBoxMaskTable_0902::
     db $f9, $f2, $f8, $f3, $00, $f4, $f7, $f5, $f6
 
 UpdateCurrentGameState:: ; Per-frame state dispatcher, called from VBlank after input/sound.
@@ -3600,7 +3601,7 @@ jr_000_10b1::
     xor a
     ldh [rNR30], a
     ld a, [hl]
-    ld hl, $10d0
+    ld hl, SoundWavePatterns_10d0
     and $03
     jr z, jr_000_10c3
 
@@ -3624,34 +3625,11 @@ jr_000_10c8::
 
     jr jr_000_1097
 
+SoundWavePatterns_10d0:: ; 4 wave RAM patterns, 16 bytes each.
     db $00, $01, $12, $35, $8a, $cd, $ee, $ff, $ff, $fe, $ed, $ca, $85, $32, $11, $00
-
-    ld bc, $4523
-    ld h, a
-    adc c
-    xor e
-    call $feef
-    call c, $98ba
-    halt
-    ld d, h
-    ld [hl-], a
-    db $10
-
+    db $01, $23, $45, $67, $89, $ab, $cd, $ef, $fe, $dc, $ba, $98, $76, $54, $32, $10
     db $ff, $ff, $ff, $ff, $ff, $ff, $ff, $ff, $00, $00, $00, $00, $00, $00, $00, $00
-
-    rst $38
-    xor $dd
-    call z, $aabb
-    sbc c
-    adc b
-    ld [hl], a
-    ld h, [hl]
-    ld d, l
-    ld b, h
-    inc sp
-    ld [hl+], a
-    db $11
-    nop
+    db $ff, $ee, $dd, $cc, $bb, $aa, $99, $88, $77, $66, $55, $44, $33, $22, $11, $00
 
 Jump_000_1110::
     ldh a, [$ffe6]
@@ -3964,14 +3942,8 @@ jr_000_127e::
     jp jr_000_111e
 
 
-    nop
-    db $01
-
-    db $11, $12, $14, $23, $07, $15, $17, $32, $33, $60, $61
-
-    ld b, l
-
-    db $53, $62
+SoundNoiseNoteIndexTable_1282:: ; note index table used by channel 4/noise playback.
+    db $00, $01, $11, $12, $14, $23, $07, $15, $17, $32, $33, $60, $61, $45, $53, $62
 
 jr_000_1292::
     call Call_000_14a8
@@ -3993,7 +3965,7 @@ Jump_000_1296::
     cp $10
     jr nc, jr_000_12b8
 
-    ld hl, $1282
+    ld hl, SoundNoiseNoteIndexTable_1282
     add l
     ld l, a
     ld a, h
@@ -4026,7 +3998,7 @@ jr_000_12bd::
 
 jr_000_12d0::
     ld d, $00
-    ld hl, $14c3
+    ld hl, SoundFrequencyTable_14c3
     add hl, de
     ld a, [hl+]
     ld h, [hl]
@@ -4208,7 +4180,7 @@ Call_000_13a8::
     or b
     ld e, a
     ld d, $00
-    ld hl, $1683
+    ld hl, SoundVibratoOffsetTable_1683
     add hl, de
     ldh a, [$fff7]
     add [hl]
@@ -4305,7 +4277,7 @@ jr_000_142b::
     or e
     ld e, a
     ld d, $00
-    ld hl, $14e3
+    ld hl, SoundPitchEnvelopeTable_14e3
     add hl, de
     ldh a, [$ffec]
     swap a
@@ -4352,7 +4324,7 @@ jr_000_1471::
     bit 0, h
     jr z, jr_000_148f
 
-    ld hl, $1583
+    ld hl, SoundDutyEnvelopeTable_1583
     add hl, de
     ld a, [hl]
     or b
@@ -4382,7 +4354,7 @@ jr_000_148f::
     cp l
     ret z
 
-    ld hl, $1583
+    ld hl, SoundDutyEnvelopeTable_1583
     add hl, de
     ld a, [hl]
     or b
@@ -4411,464 +4383,51 @@ Call_000_14b8::
     ret
 
 
+SoundFrequencyTable_14c3:: ; base pitch period table / sound driver data anchor.
     db $d4, $07, $64, $07, $f9, $06, $95, $06, $37, $06, $dd, $05, $89, $05, $3a, $05
-    db $f0, $04, $a8, $04, $65, $04, $26, $04
+    db $f0, $04, $a8, $04, $65, $04, $26, $04, $9c, $07, $2e, $07, $c7, $06, $66, $06
 
-    sbc h
-    rlca
-    ld l, $07
-    rst $00
-    ld b, $66
-    ld b, $0a
-    ld b, $b3
-    dec b
-    ld h, c
-    dec b
-    dec d
-    dec b
-    call z, $8604
-    inc b
-    ld b, l
-    inc b
-    db $08
-    inc b
-
+SoundPitchEnvelopeTable_14e3:: ; pitch/envelope lookup data used by Call_000_140d.
+    db $0a, $06, $b3, $05, $61, $05, $15, $05, $cc, $04, $86, $04, $45, $04, $08, $04
     db $f1, $e0, $d0, $c0, $b0, $a0, $90, $80, $70, $60, $50, $40, $30, $20, $10, $05
     db $09, $18, $28, $38, $48, $58, $68, $78, $88, $98, $a8, $b8, $c8, $d8, $e8, $f5
-    db $f1, $e0, $d0, $c0, $b0, $a0, $90, $85
-
-    adc c
-    sbc b
-    xor b
-    cp b
-    ret z
-
-    ret c
-
-    add sp, -$0b
-
+    db $f1, $e0, $d0, $c0, $b0, $a0, $90, $85, $89, $98, $a8, $b8, $c8, $d8, $e8, $f5
     db $89, $98, $a8, $b8, $c8, $d8, $e8, $f5, $f1, $e0, $d0, $c0, $b0, $a0, $90, $85
-
-    pop af
-    pop de
-    or c
-    sub c
-    ld [hl], c
-    ld d, c
-    ld sp, $e111
-    pop bc
-    and c
-    add c
-    ld h, c
-    ld b, c
-    db $21
-    dec b
-
+    db $f1, $d1, $b1, $91, $71, $51, $31, $11, $e1, $c1, $a1, $81, $61, $41, $21, $05
     db $f1, $e0, $d0, $c5, $c9, $d8, $e1, $d0, $c0, $a1, $81, $61, $41, $21, $10, $05
     db $f1, $d1, $b1, $90, $a9, $b1, $91, $71, $60, $50, $40, $30, $20, $15, $11, $05
-
-    ld d, l
-    ld d, h
-    ld d, h
-    ld d, h
-    ld d, h
-    ld d, h
-    ld e, c
-    ld h, l
-    ld l, c
-    ld a, b
-    adc b
-    xor c
-    ret
-
-
-    pop af
-    or c
-    add l
-
-    db $f5
-
-    pop af
-
-    db $a1
-
-    adc c
-    db $f8
-
-    db $f1
-
-    and c
-    add c
-
-    db $75
-
-    ld [hl], h
-
-    db $71
-
-    ld h, l
-    ld h, h
-
-    db $61
-
-    ld d, l
-
-    db $55
-
-    nop
-    nop
-    nop
-    nop
-    nop
-
-    db $00, $00
-
-    nop
-
-    db $00, $00, $00, $00, $00, $00, $00, $00
-
-    nop
-    nop
-    nop
-    nop
-    nop
-
-    db $00
-
-    nop
-    nop
-    db $10
-
-    db $10
-
-    db $10
-
-    db $10, $10
-
-    db $10
-    db $10
-    stop
-    nop
-    nop
-    nop
-    db $10
-    db $10
-    db $10
-    db $10
-    db $10
-
-    db $10
-
-    db $10
-    db $10
-
-    db $20
-
-    jr nz, @+$22
-
-    db $20
-
-    nop
-    nop
-    nop
-    db $10
-    db $10
-    db $10
-    db $10
-    db $10
-    jr nz, @+$22
-
-    jr nz, jr_000_15df
-
-    jr nz, jr_000_15f1
-
-    jr nc, jr_000_15f3
-
-    nop
-    nop
-    db $10
-    db $10
-    db $10
-    db $10
-    jr nz, @+$22
-
-    db $20
-
-    db $20
-
-    jr nc, jr_000_15ff
-
-    db $30
-
-    jr nc, @+$42
-
-    db $40
-
-    nop
-    nop
-    db $10
-    db $10
-    db $10
-    jr nz, @+$22
-
-    jr nz, @+$32
-
-    jr nc, jr_000_160e
-
-    db $40
-
-jr_000_15df::
-    ld b, b
-    ld b, b
-    ld d, b
-    ld d, b
-    nop
-    nop
-    db $10
-    db $10
-    jr nz, @+$22
-
-    jr nz, @+$32
-
-    db $30, $40, $40, $40
-
-    ld d, b
-
-    db $50
-
-jr_000_15f1::
-    ld h, b
-
-    db $60
-
-jr_000_15f3::
-    nop
-    nop
-    db $10
-    db $10
-    db $20
-
-    db $20
-
-    jr nc, @+$32
-
-    ld b, b
-    ld b, b
-
-    db $50, $50
-
-jr_000_15ff::
-    ld h, b
-    ld h, b
-    ld [hl], b
-    ld [hl], b
-    nop
-
-    db $10
-
-    db $10
-    jr nz, @+$22
-
-    db $30, $30
-
-    ld b, b
-
-    db $40, $50, $50
-
-jr_000_160e::
-    ld h, b
-
-    db $60
-
-    ld [hl], b
-
-    db $70, $80
-
-    nop
-    db $10
-    db $10
-    jr nz, @+$22
-
-    db $30
-
-jr_000_1619::
-    ld b, b
-    ld b, b
-
-    db $50, $50
-
-    ld h, b
-
-    db $70, $70
-
-    add b
-    add b
-    sub b
-    nop
-    db $10
-    db $10
-    jr nz, @+$32
-
-    db $30
-
-    ld b, b
-    ld d, b
-
-    db $50, $60
-
-    ld [hl], b
-
-    db $70, $80, $90
-
-    sub b
-
-    db $a0
-
-    nop
-    db $10
-    db $10
-    jr nz, jr_000_1668
-
-    db $40
-
-    ld b, b
-    ld d, b
-    ld h, b
-
-    db $70
-
-    ld [hl], b
-
-    db $80, $90
-
-    and b
-    and b
-    or b
-    nop
-    db $10
-    jr nz, jr_000_1667
-
-    jr nc, jr_000_1689
-
-    ld d, b
-    ld h, b
-    ld h, b
-
-    db $70
-
-    add b
-    sub b
-
-    db $a0
-
-    and b
-    or b
-
-    db $c0
-
-    nop
-    db $10
-    jr nz, @+$32
-
-    db $30
-
-    db $40
-
-    ld d, b
-    ld h, b
-    ld [hl], b
-
-    db $80
-
-    sub b
-
-    db $a0, $a0
-
-    or b
-    ret nz
-
-    ret nc
-
-    nop
-    db $10
-    jr nz, @+$32
-
-jr_000_1667::
-    ld b, b
-
-jr_000_1668::
-    ld d, b
-    ld h, b
-    ld [hl], b
-
-    db $70, $80
-
-    sub b
-    and b
-
-    db $b0
-
-    ret nz
-
-    ret nc
-
-    db $e0
-
-    nop
-
-    db $10
-
-    jr nz, @+$32
-
-    ld b, b
-
-    db $50, $60
-
-    ld [hl], b
-
-    db $80, $90, $a0, $b0, $c0, $d0, $e0, $f0
-
-    nop
-    nop
-    ld bc, $0001
-    nop
-
-jr_000_1689::
-    rst $38
-    rst $38
-    nop
-    nop
-    ld bc, $0001
-    nop
-    rst $38
-    rst $38
-
+    db $55, $54, $54, $54, $54, $54, $59, $65, $69, $78, $88, $a9, $c9, $f1, $b1, $85
+    db $f5, $f1, $a1, $89, $f8, $f1, $a1, $81, $75, $74, $71, $65, $64, $61, $55, $55
+
+SoundDutyEnvelopeTable_1583:: ; duty/volume envelope lookup data used by Call_000_140d.
+    db $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+    db $00, $00, $00, $00, $00, $00, $00, $00, $10, $10, $10, $10, $10, $10, $10, $10
+    db $00, $00, $00, $00, $10, $10, $10, $10, $10, $10, $10, $10, $20, $20, $20, $20
+    db $00, $00, $00, $10, $10, $10, $10, $10, $20, $20, $20, $20, $20, $30, $30, $30
+    db $00, $00, $10, $10, $10, $10, $20, $20, $20, $20, $30, $30, $30, $30, $40, $40
+    db $00, $00, $10, $10, $10, $20, $20, $20, $30, $30, $30, $40, $40, $40, $50, $50
+    db $00, $00, $10, $10, $20, $20, $20, $30, $30, $40, $40, $40, $50, $50, $60, $60
+    db $00, $00, $10, $10, $20, $20, $30, $30, $40, $40, $50, $50, $60, $60, $70, $70
+    db $00, $10, $10, $20, $20, $30, $30, $40, $40, $50, $50, $60, $60, $70, $70, $80
+    db $00, $10, $10, $20, $20, $30, $40, $40, $50, $50, $60, $70, $70, $80, $80, $90
+    db $00, $10, $10, $20, $30, $30, $40, $50, $50, $60, $70, $70, $80, $90, $90, $a0
+    db $00, $10, $10, $20, $30, $40, $40, $50, $60, $70, $70, $80, $90, $a0, $a0, $b0
+    db $00, $10, $20, $20, $30, $40, $50, $60, $60, $70, $80, $90, $a0, $a0, $b0, $c0
+    db $00, $10, $20, $30, $30, $40, $50, $60, $70, $80, $90, $a0, $a0, $b0, $c0, $d0
+    db $00, $10, $20, $30, $40, $50, $60, $70, $70, $80, $90, $a0, $b0, $c0, $d0, $e0
+    db $00, $10, $20, $30, $40, $50, $60, $70, $80, $90, $a0, $b0, $c0, $d0, $e0, $f0
+
+SoundVibratoOffsetTable_1683:: ; vibrato / pitch offset lookup data used by Call_000_13a8.
+    db $00, $00, $01, $01, $00, $00, $ff, $ff, $00, $00, $01, $01, $00, $00, $ff, $ff
     db $00, $00, $00, $00, $01, $01, $01, $01, $00, $00, $00, $00, $ff, $ff, $ff, $ff
     db $00, $01, $02, $01, $00, $ff, $fe, $ff, $00, $01, $02, $01, $00, $ff, $fe, $ff
     db $00, $00, $01, $01, $02, $02, $01, $01, $00, $00, $ff, $ff, $fe, $fe, $ff, $ff
     db $ff, $ff, $ff, $ff, $ff, $ff, $ff, $ff, $ff, $ff, $ff, $ff, $ff, $ff, $ff, $ff
     db $fe, $fe, $fe, $fe, $fe, $fe, $fe, $fe, $fe, $fe, $fe, $fe, $fe, $fe, $fe, $fe
+    db $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01
+    db $02, $02, $02, $02, $02, $02, $02, $02, $02, $02, $02, $02, $02, $02, $02, $02
 
-    ld bc, $0101
-    ld bc, $0101
-    ld bc, $0101
-    ld bc, $0101
-    ld bc, $0101
-    ld bc, $0202
-    ld [bc], a
-    ld [bc], a
-    ld [bc], a
-    ld [bc], a
-    ld [bc], a
-    ld [bc], a
-    ld [bc], a
-    ld [bc], a
-    ld [bc], a
-    ld [bc], a
-    ld [bc], a
-    ld [bc], a
-    ld [bc], a
-    ld [bc], a
+Call_000_1703::
     ld a, [$dffe]
     and $04
     ld hl, hStageIndex
