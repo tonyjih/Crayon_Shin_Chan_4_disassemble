@@ -13,17 +13,17 @@ DEF wCameraDeadzoneBottom     EQU $c40b
 DEF wCameraMaxStepX           EQU $c40c
 DEF wCameraMaxStepY           EQU $c40d
 
-; These $c0b* slots are shared by several stage systems.  The aliases below
-; are used only in the Stage 1 camera-profile and Stage 2 transition code.
+; These $c0b* slots are shared by several stage systems: Stage 1 camera profiles,
+; Stage 2 transitions, and the boss intro/clear flow.
 DEF wStageInteractionSubstate EQU $c0b1
 DEF wStageInteractionCounter  EQU $c0b2
 DEF wStage2TransitionStep     EQU $c0b3
 DEF wStage1CameraProfileIndex EQU $c0b4
 DEF wStageBossCountdown      EQU $c0b5
 DEF wStageBossStateFlag      EQU $c0b6
-DEF STAGE_BOSS_NORMAL        EQU $00
-DEF STAGE_BOSS_ACTIVE        EQU $01 ; countdown/tile-event phase, disables fall death boundary
-DEF STAGE_BOSS_CLEAR         EQU $ff ; event/boss defeated, disables right clamp and some body collisions
+DEF STAGE_BOSS_STATE_INACTIVE EQU $00
+DEF STAGE_BOSS_STATE_ACTIVE   EQU $01 ; countdown/tile-load/boss-active phase; disables fall death boundary
+DEF STAGE_BOSS_STATE_CLEAR    EQU $ff ; boss defeated / stage-clear phase; disables right clamp and child collisions
 DEF wStage1ResumeProfileFlag  EQU $c0bc
 
 DEF PlayerState_NormalGround          EQU $00
@@ -1300,23 +1300,23 @@ UpdateObjectSlotByType:: ; Dispatch an object slot behavior by type.
 
     ; Object behavior dispatch table. rst $00 consumes these words as data.
     dw UpdateObjNone00 ; 00: OBJ_NONE
-    dw UpdateObjStageEvent01 ; 01: OBJ_STAGE_EVENT_TYPE_01
-    dw UpdateObjStageEvent02 ; 02: OBJ_STAGE_EVENT_TYPE_02
-    dw UpdateObjStageEvent03 ; 03: OBJ_STAGE_EVENT_TYPE_03
-    dw UpdateObjStageEvent04 ; 04: OBJ_STAGE_EVENT_TYPE_04
-    dw UpdateObjStageEvent05 ; 05: OBJ_STAGE_EVENT_TYPE_05
-    dw UpdateObjStageEventChildA ; 06: OBJ_STAGE_EVENT_CHILD_A
-    dw UpdateObjStageEvent07 ; 07: OBJ_STAGE_EVENT_TYPE_07
-    dw UpdateObjStageEvent08 ; 08: OBJ_STAGE_EVENT_TYPE_08
+    dw UpdateObjStage0Boss ; 01: OBJ_STAGE0_BOSS
+    dw UpdateObjStage1Boss ; 02: OBJ_STAGE1_BOSS
+    dw UpdateObjStage2Boss ; 03: OBJ_STAGE2_BOSS
+    dw UpdateObjStage3Boss ; 04: OBJ_STAGE3_BOSS
+    dw UpdateObjStage0BossProjectile ; 05: OBJ_STAGE0_BOSS_PROJECTILE
+    dw UpdateObjBouncingBall ; 06: OBJ_BOUNCING_BALL
+    dw UpdateObjActionKamenHangingDoll ; 07: OBJ_ACTION_KAMEN_HANGING_DOLL
+    dw UpdateObjFloatingBeachBall ; 08: OBJ_FLOATING_BEACH_BALL
     dw UpdateObjDropPlatformA ; 09: OBJ_PLATFORM_DROP_A_VARIANT
     dw UpdateObjEnemyWalkingKid ; 0a: OBJ_ENEMY_WALKING_KID
     dw UpdateObjEnemyPartyHornKid ; 0b: OBJ_ENEMY_PARTY_HORN_KID
     dw UpdateObjEnemyUmbrellaKid ; 0c: OBJ_ENEMY_UMBRELLA_KID
     dw UpdateObjEnemyPaperAirplaneKid ; 0d: OBJ_ENEMY_PAPER_AIRPLANE_KID
     dw UpdateObjEnemyPaperAirplane ; 0e: OBJ_ENEMY_PAPER_AIRPLANE
-    dw UpdateObjEnemyProjectileB ; 0f: OBJ_ENEMY_PROJECTILE_B
-    dw UpdateObjPickupBonusCounter ; 10: OBJ_PICKUP_BONUS_COUNTER
-    dw UpdateObjPickupBonusCounterAnim ; 11: OBJ_PICKUP_BONUS_COUNTER_ANIM
+    dw UpdateObjEnemyToughKid ; 0f: OBJ_ENEMY_TOUGH_KID
+    dw UpdateObjPickupChocobi ; 10: OBJ_PICKUP_CHOCOBI
+    dw UpdateObjPickupHiddenChocobi ; 11: OBJ_PICKUP_HIDDEN_CHOCOBI
     dw UpdateObjPickupExtraLife ; 12: OBJ_PICKUP_EXTRA_LIFE
     dw UpdateObjPickupExtraLifeAnim ; 13: OBJ_PICKUP_EXTRA_LIFE_ANIM
     dw UpdateObjPickupHealth ; 14: OBJ_PICKUP_HEALTH
@@ -1330,12 +1330,12 @@ UpdateObjectSlotByType:: ; Dispatch an object slot behavior by type.
     dw UpdateObjDropPlatformA ; 1c: OBJ_PLATFORM_DROP_A
     dw UpdateObjPlatformBouncePad ; 1d: OBJ_PLATFORM_BOUNCE_PAD
     dw UpdateObjDropPlatformB ; 1e: OBJ_PLATFORM_DROP_B
-    dw UpdateObjStageEventType1F ; 1f: platform/event, pending
-    dw UpdateObjStageEventType20 ; 20: platform/event, pending
-    dw UpdateObjStageEvent21 ; 21: OBJ_STAGE_EVENT_TYPE_21 (UpdateObjStageEvent21)
-    dw UpdateObjMovingPlatformHorizontal ; 22: OBJ_PLATFORM_MOVING_HORIZONTAL
-    dw UpdateObjStageEvent23 ; 23: OBJ_STAGE_EVENT_TYPE_23
-    dw UpdateObjStageEventChild24 ; 24: OBJ_STAGE_EVENT_CHILD_24
+    dw UpdateObjStage2FallingProduct ; 1f: OBJ_STAGE2_FALLING_PRODUCT
+    dw UpdateObjStage2SoccerBall ; 20: OBJ_STAGE2_SOCCER_BALL
+    dw UpdateObjStage2BossProjectile ; 21: OBJ_STAGE2_BOSS_PROJECTILE
+    dw UpdateObjStage2ShoppingCart ; 22: OBJ_STAGE2_SHOPPING_CART
+    dw UpdateObjStage3FallingCoconut ; 23: OBJ_STAGE3_FALLING_COCONUT
+    dw UpdateObjStage3BossProjectile ; 24: OBJ_STAGE3_BOSS_PROJECTILE
     dw UpdateObjNone00 ; 25: unused/fallback
     dw UpdateObjNone00 ; 26: unused/fallback
     dw UpdateObjNone00 ; 27: unused/fallback
@@ -2315,10 +2315,15 @@ jr_001_4d21::
     jp Jump_000_0a69
 
 
-Call_001_4d25::
+; Boss intro flow:
+;   BANK0 camera clamp sets wStageBossCountdown=$ff when the player reaches the stage end.
+;   While the countdown is nonzero, this handler adjusts boss-area camera position,
+;   streams boss sprite graphics from bank 5, then spawns OBJ_STAGE0_BOSS-OBJ_STAGE3_BOSS.
+UpdateStageBossIntro:: ; Boss intro/countdown handler. Loads boss tiles, then spawns the stage boss.
+Call_001_4d25:: ; Compatibility alias.
     dec a
     ld [wStageBossCountdown], a
-    jr z, jr_001_4d51
+    jr z, SpawnStageBossFromIntro
 
     ld b, a
     ld a, $bd
@@ -2327,9 +2332,9 @@ Call_001_4d25::
     cp $60
     jr nc, jr_001_4d04
 
-    ld a, $01
+    ld a, STAGE_BOSS_STATE_ACTIVE
     ld [wStageBossStateFlag], a
-    ld hl, $4d49
+    ld hl, BossSpriteGfxSourceBaseTable
     ldh a, [hStageIndex]
     rst $20
     ld c, b
@@ -2340,10 +2345,15 @@ Call_001_4d25::
     jp QueueBankedVramTile8000
 
 
-    db $61, $65, $21, $68, $f1, $6a, $81, $6e
+BossSpriteGfxSourceBaseTable:: ; Bank 5 source bases for boss sprite graphics loaded during intro.
+    dw $6561 ; Stage 0 boss graphics base in bank 5.
+    dw $6821 ; Stage 1 boss graphics base in bank 5.
+    dw $6af1 ; Stage 2 boss graphics base in bank 5.
+    dw $6e81 ; Stage 3 boss graphics base in bank 5.
 
-jr_001_4d51::
-    ld hl, $4d60
+SpawnStageBossFromIntro::
+jr_001_4d51:: ; Compatibility alias.
+    ld hl, BossSpawnRecordPtrs
     ldh a, [hStageIndex]
     rst $20
     ld a, l
@@ -2353,8 +2363,20 @@ jr_001_4d51::
     jp FindFreeObjectSlot
 
 
-    db $68, $4d, $6d, $4d, $72, $4d, $77, $4d, $01, $08, $0e, $f0, $00, $02, $08, $0e
-    db $c0, $00, $03, $08, $02, $c0, $00, $04, $08, $0a, $f0, $00
+BossSpawnRecordPtrs:: ; Bosses are spawned by the countdown flow, not normal stage spawn lists.
+    dw BossSpawnRecord_Stage0
+    dw BossSpawnRecord_Stage1
+    dw BossSpawnRecord_Stage2
+    dw BossSpawnRecord_Stage3
+
+BossSpawnRecord_Stage0::
+    db OBJ_STAGE0_BOSS, $08, $0e, $f0, $00 ; type, x_lo, x_hi, y_lo, y_hi
+BossSpawnRecord_Stage1::
+    db OBJ_STAGE1_BOSS, $08, $0e, $c0, $00
+BossSpawnRecord_Stage2::
+    db OBJ_STAGE2_BOSS, $08, $02, $c0, $00
+BossSpawnRecord_Stage3::
+    db OBJ_STAGE3_BOSS, $08, $0a, $f0, $00
 
 Call_001_4d7c::
     ldh a, [hPlayerFlags]
@@ -2522,7 +2544,7 @@ ApplyPlayerXVelocity:: ; Apply signed player horizontal step to world X with bou
     ret c
 
     ld a, [wStageBossStateFlag]
-    cp $ff
+    cp STAGE_BOSS_STATE_CLEAR
     ret z
 
     ld a, [wPlayerXMaxHi]
@@ -5636,7 +5658,7 @@ jr_001_5f62::
 
     db $31, $41, $a1, $45, $a1, $53, $41, $4f, $d1, $4a
 
-UpdateObjPickupBonusCounter:: ; Object type $10: add hBonusCounter by 1; 30 awards an extra life.
+UpdateObjPickupChocobi:: ; Object type $10: Chocobi pickup; 30 awards an extra life.
     call CullObjectAndReleaseSpawn
     ret nz
 
@@ -5644,7 +5666,7 @@ UpdateObjPickupBonusCounter:: ; Object type $10: add hBonusCounter by 1; 30 awar
     or a
     jp nz, jr_001_4bbd
 
-    call CheckPlayerPickupBonusCounter
+    call CheckPlayerPickupChocobi
 
 jr_001_5f7f::
     ld hl, SpriteFrameData_2c85
@@ -5655,7 +5677,7 @@ jr_001_5f7f::
     jp Jump_000_0269
 
 
-CheckPlayerPickupBonusCounter::
+CheckPlayerPickupChocobi::
     ld e, $0a
     ld d, $11
     call CheckPlayerPickupOverlap
@@ -5692,7 +5714,7 @@ CheckPlayerPickupOverlap::
     ret
 
 
-UpdateObjPickupBonusCounterAnim:: ; Object type $11: animated bonus-counter pickup.
+UpdateObjPickupHiddenChocobi:: ; Object type $11: hidden Chocobi; appears/effects after collection.
     ld h, b
     ld l, c
     inc hl
@@ -5722,7 +5744,7 @@ UpdateObjPickupBonusCounterAnim:: ; Object type $11: animated bonus-counter pick
 
 
 jr_001_5fda::
-    call FinishAnimatedBonusCounterPickup
+    call FinishHiddenChocobiPickup
     call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
     or a
@@ -5730,7 +5752,7 @@ jr_001_5fda::
 
     jr jr_001_5f7f
 
-FinishAnimatedBonusCounterPickup::
+FinishHiddenChocobiPickup::
     call UpdateAnimatedPickupMotion
     ret c
 
@@ -6085,7 +6107,7 @@ CheckPlayerPickupFormActionKamen::
     jp jr_001_6135
 
 
-UpdateObjStageEventChildA:: ; Object type $06: stage/event child actor with enemy-like collision.
+UpdateObjBouncingBall:: ; Object type $06: Stage 2 bouncing ball; hurts on contact, stompable.
     call CullObjectAndReleaseSpawn
     ret nz
 
@@ -6096,13 +6118,13 @@ UpdateObjStageEventChildA:: ; Object type $06: stage/event child actor with enem
     ld a, [bc]
     or $80
     ld [bc], a
-    call UpdateStageEventChildAState
-    call CheckStageEventChildAActionHitbox
-    call CheckStageEventChildABodyCollision
+    call UpdateBouncingBallState
+    call CheckBouncingBallActionHitbox
+    call CheckBouncingBallBodyCollision
     jp Jump_001_4c06
 
 
-UpdateStageEventChildAState::
+UpdateBouncingBallState:: ; Update state/animation for Stage 2 bouncing ball.
     xor a
     ldh [hSpriteFlags], a
     ld h, b
@@ -6195,12 +6217,12 @@ label_001_6252::
     ret
 
 
-CheckStageEventChildAActionHitbox::
+CheckBouncingBallActionHitbox::
     ld de, $0408
     jp CheckPlayerActionHitboxCollision
 
 
-CheckStageEventChildABodyCollision::
+CheckBouncingBallBodyCollision::
     ld d, $05
     jp CheckPlayerBodyCollision
 
@@ -6808,7 +6830,7 @@ label_001_6567::
     ld a, [hl]
     inc [hl]
     and $7f
-    jr z, SpawnEnemyProjectileB
+    jr z, SpawnEnemyPaperAirplane
 
     cp $78
     ret c
@@ -6816,7 +6838,7 @@ label_001_6567::
     jp Jump_001_6444
 
 
-SpawnEnemyProjectileB::
+SpawnEnemyPaperAirplane::
     ld hl, wObjectSlots
 
 jr_001_657e::
@@ -6843,7 +6865,7 @@ jr_001_6592::
     or OBJ_ENEMY_PAPER_AIRPLANE
     ld [hl+], a
 
-InitSpawnedEnemyProjectileB::
+InitSpawnedChildObjectFromParent::
     xor a
     ld [hl+], a
     call CopyParentProjectileXOffset
@@ -7001,7 +7023,7 @@ CheckEnemyProjectileABodyCollision::
     jp CheckPlayerBodyCollision
 
 
-UpdateObjStageEvent05:: ; Object type $05: stage-specific object, exact role pending.
+UpdateObjStage0BossProjectile:: ; Object type $05: Stage 0 boss hat projectile.
     call Call_001_6664
     call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
@@ -7078,15 +7100,15 @@ label_001_66a4::
 
 Call_001_66b3::
     ld a, [wStageBossStateFlag]
-    cp $ff
+    cp STAGE_BOSS_STATE_CLEAR
     ret z
 
     ld d, $04
     jp CheckPlayerBodyCollision
 
 
-UpdateObjEnemyProjectileB:: ; Object type $0f: enemy projectile / child object, exact source pending.
-    call UpdateEnemyProjectileBState
+UpdateObjEnemyToughKid:: ; Object type $0f: tough kid enemy with higher HP.
+    call UpdateEnemyToughKidState
     call CullObjectAndReleaseSpawn
     ret nz
 
@@ -7094,12 +7116,12 @@ UpdateObjEnemyProjectileB:: ; Object type $0f: enemy projectile / child object, 
     or a
     ret nz
 
-    call CheckEnemyProjectileBActionHitbox
-    call CheckEnemyProjectileBBodyCollision
+    call CheckEnemyToughKidActionHitbox
+    call CheckEnemyToughKidBodyCollision
     jp Jump_001_4c06
 
 
-UpdateEnemyProjectileBState::
+UpdateEnemyToughKidState::
     call GetObjectStateAndDirectionFlags
     rst $00
 
@@ -7156,17 +7178,17 @@ label_001_671a::
     jp UpdateObjectThrownStateB
 
 
-CheckEnemyProjectileBActionHitbox::
+CheckEnemyToughKidActionHitbox::
     ld de, $0410
     jp CheckPlayerActionHitboxCollision
 
 
-CheckEnemyProjectileBBodyCollision::
+CheckEnemyToughKidBodyCollision::
     ld d, $02
     jp CheckPlayerBodyCollision
 
 
-UpdateObjStageEvent01:: ; Object type $01: stage-specific event/object, exact role pending.
+UpdateObjStage0Boss:: ; Object type $01: Stage 0 boss / stage-clear actor.
     call ProjectObjectToScreenAndCull
     call Call_001_6751
     ld a, [$d931]
@@ -7251,7 +7273,7 @@ jr_001_6795::
     and $80
     or $05
     ld [hl+], a
-    jp InitSpawnedEnemyProjectileB
+    jp InitSpawnedChildObjectFromParent
 
 
 label_001_679e::
@@ -7288,7 +7310,7 @@ label_001_679e::
 
 label_001_67d0::
     pop af
-    ld a, $ff
+    ld a, STAGE_BOSS_STATE_CLEAR
     ld [wStageBossStateFlag], a
     ld hl, $67fc
     call AnimateObjectFromTableFast
@@ -7391,7 +7413,7 @@ Call_001_6851::
     jp CheckPlayerBodyCollision
 
 
-UpdateObjStageEvent02:: ; Object type $02: stage-specific event/object, exact role pending.
+UpdateObjStage1Boss:: ; Object type $02: Stage 1 boss / stage-clear actor.
     call ProjectObjectToScreenAndCull
     call Call_001_6878
     ld a, [$d931]
@@ -7437,7 +7459,7 @@ label_001_6887::
 
 label_001_6897::
     pop af
-    ld a, $ff
+    ld a, STAGE_BOSS_STATE_CLEAR
     ld [wStageBossStateFlag], a
     ld hl, $6893
     call AnimateObjectFromTableFast
@@ -7589,7 +7611,7 @@ label_001_6970::
     jp Jump_001_68e4
 
 
-UpdateObjStageEvent03:: ; Object type $03: scripted stage event that can spawn OBJ_STAGE_EVENT_CHILD_24.
+UpdateObjStage2Boss:: ; Object type $03: Stage 2 boss / stage-clear actor; can spawn OBJ_STAGE2_BOSS_PROJECTILE.
     call ProjectObjectToScreenAndCull
     call Call_001_69a0
     ld a, [$d931]
@@ -7633,7 +7655,7 @@ Call_001_69a0::
     rst $00
 
     ; rst $00 jump table (5 entries)
-    dw UpdateObjStageEvent03ScriptController, label_001_69b3, label_001_69c3, label_001_6a59
+    dw UpdateObjStage2BossScriptController, label_001_69b3, label_001_69c3, label_001_6a59
     dw label_001_679e
 
 
@@ -7649,7 +7671,7 @@ label_001_69b3::
 
 label_001_69c3::
     pop af
-    ld a, $ff
+    ld a, STAGE_BOSS_STATE_CLEAR
     ld [wStageBossStateFlag], a
     ld hl, $69bf
     call AnimateObjectFromTableFast
@@ -7667,7 +7689,7 @@ label_001_69c3::
     ret
 
 
-UpdateObjStageEvent03ScriptController:: ; Stage event 03 script/controller routine at $69e3.
+UpdateObjStage2BossScriptController:: ; Stage 2 boss script/controller routine at $69e3.
     call Call_001_6a09
     call MoveObjectXBySpeed
     call Call_001_6a6e
@@ -7788,7 +7810,7 @@ Call_001_6a6e::
 jr_001_6a7e::
     ld a, [hl]
     and $7f
-    cp OBJ_STAGE_EVENT_TYPE_21
+    cp OBJ_STAGE2_BOSS_PROJECTILE
     ret z
 
     ld a, $10
@@ -7809,7 +7831,7 @@ jr_001_6a7e::
 jr_001_6a98::
     ld a, [hl]
     or a
-    jr z, SpawnStageEvent21Child
+    jr z, SpawnStage2BossProjectile
 
     cp $ff
     jr z, jr_001_6aa6
@@ -7819,13 +7841,13 @@ jr_001_6a98::
     jr jr_001_6a98
 
 jr_001_6aa6::
-    call SpawnStageEvent21Child
+    call SpawnStage2BossProjectile
     ld [hl], $ff
     ret
 
 
-SpawnStageEvent21Child::
-    ld a, $80 | OBJ_STAGE_EVENT_TYPE_21
+SpawnStage2BossProjectile:: ; Spawn the Stage 2 boss small-ball projectile ($21).
+    ld a, $80 | OBJ_STAGE2_BOSS_PROJECTILE
     ld [hl+], a
     xor a
     ld [hl+], a
@@ -7886,7 +7908,7 @@ Call_001_6add::
     ret
 
 
-UpdateObjStageEvent21:: ; Object type $21: stage-specific event/controller target at $6af3.
+UpdateObjStage2BossProjectile:: ; Object type $21: Stage 2 boss small-ball projectile.
     call Call_001_6b07
     call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
@@ -7945,14 +7967,14 @@ label_001_6b2f::
 
 Call_001_6b3c::
     ld a, [wStageBossStateFlag]
-    cp $ff
+    cp STAGE_BOSS_STATE_CLEAR
     ret z
 
     ld d, $07
     jp CheckPlayerBodyCollision
 
 
-UpdateObjStageEvent04:: ; Object type $04: stage-specific event/object with custom action hitbox handling.
+UpdateObjStage3Boss:: ; Object type $04: Stage 3 boss / stage-clear actor with custom action hitbox handling.
     call ProjectObjectToScreenAndCull
     call Call_001_6bd6
     ld a, [$d931]
@@ -8077,7 +8099,7 @@ label_001_6be5::
 
 label_001_6bf5::
     pop af
-    ld a, $ff
+    ld a, STAGE_BOSS_STATE_CLEAR
     ld [wStageBossStateFlag], a
     ld hl, $6bf1
     call AnimateObjectFromTableFast
@@ -8193,14 +8215,14 @@ label_001_6c92::
     ret nc
 
     cp $1f
-    jr z, SpawnStageEventChild24
+    jr z, SpawnStage3BossProjectile
 
     ld a, $1c
     ldh [$ffd6], a
     ret
 
 
-SpawnStageEventChild24::
+SpawnStage3BossProjectile:: ; Spawn Stage 3 boss coconut projectile/dropped hazard ($24).
     ld a, $1c
     ldh [$ffd6], a
     ld hl, wObjectSlots
@@ -8224,7 +8246,7 @@ jr_001_6ccd::
 
 
 jr_001_6cd3::
-    ld a, OBJ_STAGE_EVENT_CHILD_24
+    ld a, OBJ_STAGE3_BOSS_PROJECTILE
     ld [hl+], a
     xor a
     ld [hl+], a
@@ -8437,7 +8459,7 @@ label_001_6dd3::
     ret
 
 
-UpdateObjStageEventChild24:: ; Object type $24: stage event child/effect actor spawned by OBJ_STAGE_EVENT_TYPE_03.
+UpdateObjStage3BossProjectile:: ; Object type $24: Stage 3 boss coconut projectile/dropped hazard.
     call Call_001_6e0c
     call ProjectObjectToScreenAndCull
     ldh a, [$ffd5]
@@ -8471,7 +8493,7 @@ Call_001_6e0c::
 
 Call_001_6e1f::
     ld a, [wStageBossStateFlag]
-    cp $ff
+    cp STAGE_BOSS_STATE_CLEAR
     ret z
 
     ld d, $03
@@ -8997,7 +9019,7 @@ jr_001_70ab::
     db $08, $b9, $00, $f8, $f0, $ba, $00, $f8, $f8, $bb, $00, $f8, $00, $bb, $00, $f8
     db $08, $bc, $00, $80
 
-UpdateObjMovingPlatformHorizontal:: ; Object type $22: horizontal moving platform / carrier.
+UpdateObjStage2ShoppingCart:: ; Object type $22: Stage 2 shopping cart platform; moves after Shin-chan stands on it.
     call CullObjectAndReleaseSpawn
     ret nz
 
@@ -9210,7 +9232,7 @@ jr_001_7208::
     ret
 
 
-UpdateObjStageEventType1F:: ; Object type $1f: platform/event behavior, exact role pending.
+UpdateObjStage2FallingProduct:: ; Object type $1f: Stage 2 loose shelf product; falls when approached.
     call CullObjectAndReleaseSpawn
     ret nz
 
@@ -9312,7 +9334,7 @@ jr_001_728c::
     ret
 
 
-UpdateObjStageEventType20:: ; Object type $20: platform/event behavior, exact role pending.
+UpdateObjStage2SoccerBall:: ; Object type $20: Stage 2 soccer ball; rolls toward Shin-chan and can be stomp-bounced.
     call CullObjectAndReleaseSpawn
     ret nz
 
@@ -9419,7 +9441,7 @@ jr_001_72ff::
     ret
 
 
-UpdateObjStageEvent07:: ; Object type $07: stage-specific object, exact role pending.
+UpdateObjActionKamenHangingDoll:: ; Object type $07: Stage 2 hanging Action Kamen doll; Shin-chan can grab/ride it.
     call CullObjectAndReleaseSpawn
     ret nz
 
@@ -9542,7 +9564,7 @@ jr_001_73ba::
     ret
 
 
-UpdateObjStageEvent08:: ; Object type $08: stage-specific object, exact role pending.
+UpdateObjFloatingBeachBall:: ; Object type $08: Stage 3 floating beach ball; sinks while stood on.
     call CullObjectAndReleaseSpawn
     ret nz
 
@@ -9653,7 +9675,7 @@ jr_001_7442::
     jp ResetPlayerToNormalState
 
 
-UpdateObjStageEvent23:: ; Object type $23: stage-specific event/object, exact role pending.
+UpdateObjStage3FallingCoconut:: ; Object type $23: Stage 3 coconut; shakes, then falls when approached.
     call CullObjectAndReleaseSpawn
     ret nz
 

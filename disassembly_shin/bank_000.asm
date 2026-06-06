@@ -145,44 +145,56 @@ DEF SPAWN_STATE_BLOCKED EQU $02
 DEF SPAWN_LIST_END      EQU $ff
 
 
-; Object type constants. Corrected in pass 12: the first dispatch-table entry is dw $4867.
+; Object type constants. Object type is stored in slot byte +0, masked by OBJECT_TYPE_MASK.
 DEF OBJ_NONE                       EQU $00
-DEF OBJ_STAGE_EVENT_TYPE_01        EQU $01 ; Stage-specific event/object, exact role pending.
-DEF OBJ_STAGE_EVENT_TYPE_02        EQU $02 ; Stage-specific event/object, exact role pending.
-DEF OBJ_STAGE_EVENT_TYPE_03        EQU $03 ; Stage-specific event/object, exact role pending.
-DEF OBJ_STAGE_EVENT_TYPE_04        EQU $04 ; Stage-specific event/object, exact role pending.
-DEF OBJ_STAGE_EVENT_TYPE_05        EQU $05 ; Stage-specific object, exact role pending.
-DEF OBJ_STAGE_EVENT_CHILD_A        EQU $06 ; Enemy-like child actor behavior, exact source pending.
-DEF OBJ_STAGE_EVENT_TYPE_07        EQU $07 ; Stage-specific event/object, exact role pending.
-DEF OBJ_STAGE_EVENT_TYPE_08        EQU $08 ; Stage-specific event/object, exact role pending.
-DEF OBJ_PLATFORM_DROP_A_VARIANT    EQU $09 ; Shares UpdateObjDropPlatformA behavior.
+
+; Boss actors. These are spawned by the boss-intro flow, not by the normal stage spawn list.
+DEF OBJ_STAGE0_BOSS                EQU $01 ; たけし: kid who steals Shin-chan's Chocobi.
+DEF OBJ_STAGE1_BOSS                EQU $02 ; 河村: Rose Class student; fast runner and high jumper.
+DEF OBJ_STAGE2_BOSS                EQU $03 ; Kangaroo-man boss; throws small balls.
+DEF OBJ_STAGE3_BOSS                EQU $04 ; Heavy man boss; climbs tree, drops coconuts, then ground-pounds.
+DEF OBJ_STAGE0_BOSS_PROJECTILE     EQU $05 ; Stage 0 boss hat projectile; flies forward, then drifts diagonally upward.
+
+; Confirmed stage interactables / hazards.
+DEF OBJ_BOUNCING_BALL              EQU $06 ; Stage 2: bouncing ball, hurts on contact, stompable.
+DEF OBJ_ACTION_KAMEN_HANGING_DOLL  EQU $07 ; Stage 2: hanging Action Kamen doll that Shin-chan can grab/ride.
+DEF OBJ_FLOATING_BEACH_BALL        EQU $08 ; Stage 3: beach ball floating on water; sinks while stood on.
+DEF OBJ_PLATFORM_DROP_A_VARIANT    EQU $09 ; Shares UpdateObjDropPlatformA behavior; visual role pending.
+
+; Enemies / projectiles.
 DEF OBJ_ENEMY_WALKING_KID          EQU $0a
 DEF OBJ_ENEMY_PARTY_HORN_KID       EQU $0b
 DEF OBJ_ENEMY_UMBRELLA_KID         EQU $0c
 DEF OBJ_ENEMY_PAPER_AIRPLANE_KID   EQU $0d
 DEF OBJ_ENEMY_PAPER_AIRPLANE       EQU $0e
-DEF OBJ_ENEMY_PROJECTILE_B         EQU $0f ; Enemy projectile / child object, exact source pending.
+DEF OBJ_ENEMY_TOUGH_KID            EQU $0f ; Heavy kid enemy with higher HP.
 
-; Confirmed pickup/form object type constants.
-DEF OBJ_PICKUP_BONUS_COUNTER      EQU $10 ; Adds hBonusCounter; 30 awards an extra life.
-DEF OBJ_PICKUP_BONUS_COUNTER_ANIM EQU $11 ; Animated version of bonus-counter pickup.
-DEF OBJ_PICKUP_EXTRA_LIFE         EQU $12
-DEF OBJ_PICKUP_EXTRA_LIFE_ANIM    EQU $13 ; Animated version of extra-life pickup.
-DEF OBJ_PICKUP_HEALTH             EQU $14 ; Adds hPlayerHealth, max 3.
-DEF OBJ_PICKUP_HEALTH_ANIM        EQU $15 ; Animated version of health pickup.
-DEF OBJ_FORM_FLYING_SQUIRREL      EQU $16
-DEF OBJ_FORM_COCKROACH            EQU $17
-DEF OBJ_FORM_CHICKEN              EQU $18
-DEF OBJ_FORM_ACTION_KAMEN         EQU $19
-DEF OBJ_PLATFORM_MOVING_VERTICAL_A   EQU $1a
-DEF OBJ_PLATFORM_MOVING_VERTICAL_B   EQU $1b
-DEF OBJ_PLATFORM_DROP_A              EQU $1c
-DEF OBJ_PLATFORM_BOUNCE_PAD          EQU $1d
-DEF OBJ_PLATFORM_DROP_B              EQU $1e
-DEF OBJ_STAGE_EVENT_TYPE_21          EQU $21 ; Stage-specific event/controller, not a simple platform.
-DEF OBJ_PLATFORM_MOVING_HORIZONTAL   EQU $22
-DEF OBJ_STAGE_EVENT_TYPE_23          EQU $23 ; Stage-specific event/object, exact role pending.
-DEF OBJ_STAGE_EVENT_CHILD_24         EQU $24 ; Child/effect actor spawned by stage event type $03.
+; Pickups.
+DEF OBJ_PICKUP_CHOCOBI             EQU $10 ; Chocobi; 30 awards an extra life.
+DEF OBJ_PICKUP_HIDDEN_CHOCOBI      EQU $11 ; Hidden Chocobi; appears/effects after being collected.
+DEF OBJ_PICKUP_EXTRA_LIFE          EQU $12
+DEF OBJ_PICKUP_EXTRA_LIFE_ANIM     EQU $13 ; Animated/effect version of extra-life pickup, pending visual confirmation.
+DEF OBJ_PICKUP_HEALTH              EQU $14 ; Adds hPlayerHealth, max 3.
+DEF OBJ_PICKUP_HEALTH_ANIM         EQU $15 ; Animated/effect version of health pickup, pending visual confirmation.
+
+; Form items.
+DEF OBJ_FORM_FLYING_SQUIRREL       EQU $16
+DEF OBJ_FORM_COCKROACH             EQU $17
+DEF OBJ_FORM_CHICKEN               EQU $18
+DEF OBJ_FORM_ACTION_KAMEN          EQU $19
+
+; Platforms / stage hazards.
+DEF OBJ_PLATFORM_MOVING_VERTICAL_A EQU $1a
+DEF OBJ_PLATFORM_MOVING_VERTICAL_B EQU $1b
+DEF OBJ_PLATFORM_DROP_A            EQU $1c
+DEF OBJ_PLATFORM_BOUNCE_PAD        EQU $1d
+DEF OBJ_PLATFORM_DROP_B            EQU $1e
+DEF OBJ_STAGE2_FALLING_PRODUCT     EQU $1f ; Stage 2: loose shelf product that falls when approached.
+DEF OBJ_STAGE2_SOCCER_BALL         EQU $20 ; Stage 2: rolling soccer ball; stomp gives a higher bounce.
+DEF OBJ_STAGE2_BOSS_PROJECTILE     EQU $21 ; Stage 2 boss small-ball projectile.
+DEF OBJ_STAGE2_SHOPPING_CART       EQU $22 ; Stage 2: shopping cart platform; starts moving when stood on.
+DEF OBJ_STAGE3_FALLING_COCONUT     EQU $23 ; Stage 3: coconut that shakes, then falls when approached.
+DEF OBJ_STAGE3_BOSS_PROJECTILE     EQU $24 ; Stage 3 boss coconut projectile/dropped hazard.
 
 ; Player form/action work variables.
 DEF wSavedPlayerState     EQU $c0ac
@@ -2502,7 +2514,8 @@ jr_000_0ae4::
     or a
     ret nz
 
-jr_000_0ae8::
+StartStageBossCountdownAtRightEdge:: ; Lock the stage end and let bank 1 run the boss intro countdown.
+jr_000_0ae8:: ; Compatibility alias.
     ldh a, [hCollisionFlag]
     cp $ff
     ret z
