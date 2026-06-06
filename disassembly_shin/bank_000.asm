@@ -173,9 +173,9 @@ DEF OBJ_ENEMY_TOUGH_KID            EQU $0f ; Heavy kid enemy with higher HP.
 DEF OBJ_PICKUP_CHOCOBI             EQU $10 ; Chocobi; 30 awards an extra life.
 DEF OBJ_PICKUP_HIDDEN_CHOCOBI      EQU $11 ; Hidden Chocobi; appears/effects after being collected.
 DEF OBJ_PICKUP_EXTRA_LIFE          EQU $12
-DEF OBJ_PICKUP_EXTRA_LIFE_ANIM     EQU $13 ; Animated/effect version of extra-life pickup, pending visual confirmation.
+DEF OBJ_PICKUP_HIDDEN_EXTRA_LIFE     EQU $13 ; Hidden extra-life pickup; appears/effects after collection.
 DEF OBJ_PICKUP_HEALTH              EQU $14 ; Adds hPlayerHealth, max 3.
-DEF OBJ_PICKUP_HEALTH_ANIM         EQU $15 ; Animated/effect version of health pickup, pending visual confirmation.
+DEF OBJ_PICKUP_HIDDEN_HEALTH         EQU $15 ; Hidden health pickup; appears/effects after collection.
 
 ; Form items.
 DEF OBJ_FORM_FLYING_SQUIRREL       EQU $16

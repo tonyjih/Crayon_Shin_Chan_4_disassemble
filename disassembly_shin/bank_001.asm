@@ -1318,9 +1318,9 @@ UpdateObjectSlotByType:: ; Dispatch an object slot behavior by type.
     dw UpdateObjPickupChocobi ; 10: OBJ_PICKUP_CHOCOBI
     dw UpdateObjPickupHiddenChocobi ; 11: OBJ_PICKUP_HIDDEN_CHOCOBI
     dw UpdateObjPickupExtraLife ; 12: OBJ_PICKUP_EXTRA_LIFE
-    dw UpdateObjPickupExtraLifeAnim ; 13: OBJ_PICKUP_EXTRA_LIFE_ANIM
+    dw UpdateObjPickupHiddenExtraLife ; 13: OBJ_PICKUP_HIDDEN_EXTRA_LIFE
     dw UpdateObjPickupHealth ; 14: OBJ_PICKUP_HEALTH
-    dw UpdateObjPickupHealthAnim ; 15: OBJ_PICKUP_HEALTH_ANIM
+    dw UpdateObjPickupHiddenHealth ; 15: OBJ_PICKUP_HIDDEN_HEALTH
     dw UpdateObjFormFlyingSquirrel ; 16: OBJ_FORM_FLYING_SQUIRREL
     dw UpdateObjFormCockroach ; 17: OBJ_FORM_COCKROACH
     dw UpdateObjFormChicken ; 18: OBJ_FORM_CHICKEN
@@ -5837,7 +5837,7 @@ CheckPlayerPickupExtraLife::
     jp AddExtraLife
 
 
-UpdateObjPickupExtraLifeAnim:: ; Object type $13: animated extra-life pickup.
+UpdateObjPickupHiddenExtraLife:: ; Object type $13: hidden extra-life pickup; appears/effects after collection.
     ld h, b
     ld l, c
     inc hl
@@ -5917,7 +5917,7 @@ CheckPlayerPickupHealth::
     jp AddPlayerHealth
 
 
-UpdateObjPickupHealthAnim:: ; Object type $15: animated health pickup.
+UpdateObjPickupHiddenHealth:: ; Object type $15: hidden health pickup; appears/effects after collection.
     ld h, b
     ld l, c
     inc hl
