@@ -878,7 +878,9 @@ jr_006_429e::
     rst $38
     nop
     rst $38
-    jp Jump_000_3cff
+    db $c3
+    db $ff
+    db $3c
 
 
     rst $38

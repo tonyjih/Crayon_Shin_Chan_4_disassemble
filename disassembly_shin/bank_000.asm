@@ -580,7 +580,7 @@ jr_000_017c::
     call CopyDmaStubToHram
     call ReadJoypad
     call InitSound
-
+	
 ReinitCurrentState:: ; Rebuild current state with LCD off. Repeats if init sets hNeedsReset.
     di
     call DisableLCD
@@ -4898,749 +4898,630 @@ DebugTextFormChicken::
 DebugTextFormActionKamen::
     db $46, $52, $56, $74, $7c, $fe, $ff
 
-    db $23, $1a, $4f, $1a, $83, $1a, $bf, $1a, $f3, $1a, $2b, $2a, $44, $2a
+SpriteAnimPointerTable_1a19::
+    ; Large animation pointer table. Entries point either to nested pointer tables or sprite frame data.
+    dw SpriteAnimPointerTable_1a23, SpriteAnimPointerTable_1a4f, SpriteAnimPointerTable_1a83, SpriteAnimPointerTable_1abf, SpriteAnimPointerTable_1af3
 
-    ld e, l
-    ld a, [hl+]
+SpriteAnimPointerTable_1a23::
+    dw SpriteFrameData_2a2b, SpriteFrameData_2a44, SpriteFrameData_2a5d, SpriteFrameData_2a72, SpriteFrameData_2a7f, SpriteFrameData_2a98, SpriteFrameData_2ab1, SpriteFrameData_2aca
+    dw SpriteFrameData_2ae3, SpriteFrameData_2afc, SpriteFrameData_2b1d, SpriteFrameData_2b3e, SpriteFrameData_2b5b, SpriteFrameData_2b6c, SpriteFrameData_2b7d, SpriteFrameData_2b92
+    dw SpriteFrameData_2baf, SpriteFrameData_2bc8, SpriteFrameData_2be1, SpriteFrameData_2bf6, SpriteFrameData_2c0f, SpriteFrameData_2c28
 
-    db $72, $2a, $7f, $2a, $98, $2a, $b1, $2a, $ca, $2a
+SpriteAnimPointerTable_1a4f::
+    dw SpriteFrameData_2a2b, SpriteFrameData_2a44, SpriteFrameData_2a5d, SpriteFrameData_2a72, SpriteFrameData_2cb9, SpriteFrameData_2cd6, SpriteFrameData_2cf3, SpriteFrameData_2d10
+    dw SpriteFrameData_2d10, SpriteFrameData_2d2d, SpriteFrameData_2d52, SpriteFrameData_2d77, SpriteFrameData_2d98, SpriteFrameData_2d98, SpriteFrameData_2da9, SpriteFrameData_2dc6
+    dw SpriteFrameData_2de3, SpriteFrameData_2dfc, SpriteFrameData_2e15, SpriteFrameData_2e2e, SpriteFrameData_2e47, SpriteFrameData_2e60, SpriteFrameData_2e79, SpriteFrameData_2ea0
+    dw SpriteFrameData_2ebd, SpriteFrameData_2c28
 
-    db $e3
-    ld a, [hl+]
-    db $fc
-    ld a, [hl+]
-    dec e
-    dec hl
-    ld a, $2b
+SpriteAnimPointerTable_1a83::
+    dw SpriteFrameData_2a2b, SpriteFrameData_2a44, SpriteFrameData_2a5d, SpriteFrameData_2a72, SpriteFrameData_3321, SpriteFrameData_333a, SpriteFrameData_333a, SpriteFrameData_333a
+    dw SpriteFrameData_3353, SpriteFrameData_3364, SpriteFrameData_337d, SpriteFrameData_3396, SpriteFrameData_33ab, SpriteFrameData_33ab, SpriteFrameData_33ab, SpriteFrameData_33c4
+    dw SpriteFrameData_33dd, SpriteFrameData_33f6, SpriteFrameData_340f, SpriteFrameData_3428, SpriteFrameData_3441, SpriteFrameData_345a, SpriteFrameData_347b, SpriteFrameData_34a0
+    dw SpriteFrameData_34c5, SpriteFrameData_34e6, SpriteFrameData_350b, SpriteFrameData_3530, SpriteFrameData_3551, SpriteFrameData_2c28
 
-    db $5b, $2b
+SpriteAnimPointerTable_1abf::
+    dw SpriteFrameData_2a2b, SpriteFrameData_2a44, SpriteFrameData_2a5d, SpriteFrameData_2a72, SpriteFrameData_2f2e, SpriteFrameData_2f4b, SpriteFrameData_2f4b, SpriteFrameData_2f4b
+    dw SpriteFrameData_2f68, SpriteFrameData_2f85, SpriteFrameData_2fa6, SpriteFrameData_2fc7, SpriteFrameData_2fe4, SpriteFrameData_2fe4, SpriteFrameData_3012, SpriteFrameData_2ff5
+    dw SpriteFrameData_302f, SpriteFrameData_3048, SpriteFrameData_3061, SpriteFrameData_3076, SpriteFrameData_308f, SpriteFrameData_30e7, SpriteFrameData_3104, SpriteFrameData_30a8
+    dw SpriteFrameData_30c5, SpriteFrameData_2c28
 
-    ld l, h
-    dec hl
+SpriteAnimPointerTable_1af3::
+    dw SpriteFrameData_2a2b, SpriteFrameData_2a44, SpriteFrameData_2a5d, SpriteFrameData_2a72, SpriteFrameData_3121, SpriteFrameData_313a, SpriteFrameData_3153, SpriteFrameData_316c
+    dw SpriteFrameData_316c, SpriteFrameData_3185, SpriteFrameData_31a6, SpriteFrameData_31c7, SpriteFrameData_31e4, SpriteFrameData_31e4, SpriteFrameData_31f5, SpriteFrameData_320a
+    dw SpriteFrameData_3227, SpriteFrameData_3240, SpriteFrameData_3259, SpriteFrameData_326e, SpriteFrameData_3287, SpriteFrameData_32a0, SpriteFrameData_32fc, SpriteFrameData_32b9
+    dw SpriteFrameData_2c28, SpriteAnimPointerTable_1b2d, SpriteAnimPointerTable_1b61, SpriteAnimPointerTable_1b99, SpriteAnimPointerTable_1bd1
 
-    db $7d, $2b, $92, $2b, $af, $2b, $c8, $2b, $e1, $2b, $f6, $2b
+SpriteAnimPointerTable_1b2d::
+    dw SpriteFrameData_1c11, SpriteFrameData_1c2a, SpriteFrameData_1c43, SpriteFrameData_1c5c, SpriteFrameData_1c11, SpriteFrameData_1c11, SpriteFrameData_1c75, SpriteFrameData_1c92
+    dw SpriteFrameData_1caf, SpriteFrameData_1ccc, SpriteFrameData_1ce9, SpriteFrameData_1d0a, SpriteFrameData_1d23, SpriteFrameData_1d50, SpriteFrameData_1d7d, SpriteFrameData_1daa
+    dw SpriteFrameData_2497, SpriteFrameData_24bc, SpriteFrameData_24e1, SpriteFrameData_24ea, SpriteFrameData_24f3, SpriteFrameData_24fc, SpriteFrameData_251d, SpriteFrameData_253a
+    dw SpriteFrameData_255b, SpriteFrameData_257c
 
-    rrca
-    inc l
+SpriteAnimPointerTable_1b61::
+    dw SpriteFrameData_1f19, SpriteFrameData_1f3a, SpriteFrameData_1f5b, SpriteFrameData_1f7c, SpriteFrameData_1f99, SpriteFrameData_1fa2, SpriteFrameData_1dc7, SpriteFrameData_1de4
+    dw SpriteFrameData_1e01, SpriteFrameData_1e1e, SpriteFrameData_1e3b, SpriteFrameData_1e5c, SpriteFrameData_1e75, SpriteFrameData_1ea2, SpriteFrameData_1ecf, SpriteFrameData_1efc
+    dw SpriteFrameData_1fbf, SpriteFrameData_1fd0, SpriteFrameData_1fe1, SpriteFrameData_1ff2, SpriteFrameData_259d, SpriteFrameData_25be, SpriteFrameData_25df, SpriteFrameData_2600
+    dw SpriteFrameData_2625, SpriteFrameData_2646, SpriteFrameData_2663, SpriteFrameData_2684
 
-    db $28, $2c, $2b, $2a, $44, $2a
+SpriteAnimPointerTable_1b99::
+    dw SpriteFrameData_209f, SpriteFrameData_20c0, SpriteFrameData_20e1, SpriteFrameData_2102, SpriteFrameData_211f, SpriteFrameData_2128, SpriteFrameData_1ffb, SpriteFrameData_1ffb
+    dw SpriteFrameData_1ffb, SpriteFrameData_1ffb, SpriteFrameData_1ffb, SpriteFrameData_1ffb, SpriteFrameData_1ffb, SpriteFrameData_2028, SpriteFrameData_2055, SpriteFrameData_2082
+    dw SpriteFrameData_2145, SpriteFrameData_215e, SpriteFrameData_2177, SpriteFrameData_2190, SpriteFrameData_21ad, SpriteFrameData_26a5, SpriteFrameData_26da, SpriteFrameData_270f
+    dw SpriteFrameData_2740, SpriteFrameData_2771, SpriteFrameData_27aa, SpriteFrameData_27df
 
-    ld e, l
-    ld a, [hl+]
+SpriteAnimPointerTable_1bd1::
+    dw SpriteFrameData_2346, SpriteFrameData_2367, SpriteFrameData_2388, SpriteFrameData_23a9, SpriteFrameData_23c6, SpriteFrameData_23cf, SpriteFrameData_2298, SpriteFrameData_22b5
+    dw SpriteFrameData_22d2, SpriteFrameData_22ef, SpriteFrameData_230c, SpriteFrameData_232d, SpriteFrameData_2298, SpriteFrameData_2298, SpriteFrameData_2298, SpriteFrameData_2298
+    dw SpriteFrameData_23ec, SpriteFrameData_2405, SpriteFrameData_241e, SpriteFrameData_2437, SpriteFrameData_2454, SpriteFrameData_27e4, SpriteFrameData_2821, SpriteFrameData_285e
+    dw SpriteFrameData_2893, SpriteFrameData_28cc, SpriteFrameData_2909, SpriteFrameData_293e, SpriteFrameData_2973, SpriteFrameData_29ac, SpriteFrameData_29e9, SpriteFrameData_2a26
 
-    db $72, $2a, $b9, $2c, $d6, $2c, $f3, $2c
-
-    db $10
-    dec l
-    db $10
-    dec l
-    dec l
-    dec l
-    ld d, d
-    dec l
-    ld [hl], a
-    dec l
-
-    db $98, $2d
-
-    sbc b
-    dec l
-
-    db $a9, $2d, $c6, $2d, $e3, $2d, $fc, $2d, $15, $2e, $2e, $2e, $47, $2e, $60, $2e
-    db $79, $2e, $a0, $2e, $bd, $2e
-
-    jr z, @+$2e
-
-    db $2b, $2a, $44, $2a
-
-    ld e, l
-    ld a, [hl+]
-
-    db $72, $2a, $21, $33, $3a, $33, $3a, $33
-
-    ld a, [hl-]
-    inc sp
-    ld d, e
-    inc sp
-    ld h, h
-    inc sp
-    ld a, l
-    inc sp
-    sub [hl]
-    inc sp
-    xor e
-    inc sp
-    xor e
-    inc sp
-
-    db $ab, $33, $c4, $33, $dd, $33, $f6, $33, $0f, $34, $28, $34, $41, $34, $5a, $34
-    db $7b, $34, $a0, $34, $c5, $34, $e6, $34, $0b, $35, $30, $35, $51, $35
-
-    jr z, @+$2e
-
-    db $2b, $2a, $44, $2a
-
-    ld e, l
-    ld a, [hl+]
-
-    db $72, $2a, $2e, $2f, $4b, $2f, $4b, $2f
-
-    ld c, e
-    cpl
-    ld l, b
-    cpl
-
-jr_000_1ad1::
-    add l
-    cpl
-    and [hl]
-    cpl
-    rst $00
-    cpl
-
-    db $e4, $2f
-
-    db $e4
-    cpl
-
-    db $12, $30, $f5, $2f, $2f, $30, $48, $30
-
-    ld h, c
-    jr nc, @+$78
-
-    jr nc, @-$6f
-
-    db $30
-
-    db $e7, $30, $04, $31, $a8, $30, $c5, $30
-
-    jr z, @+$2e
-
-    db $2b, $2a, $44, $2a
-
-    ld e, l
-    ld a, [hl+]
-
-    db $72, $2a, $21, $31, $3a, $31, $53, $31
-
-    ld l, h
-    ld sp, $316c
-    add l
-    ld sp, $31a6
-    rst $00
-    db $31
-
-    db $e4, $31
-
-    db $e4
-    db $31
-
-    db $f5, $31, $0a, $32
-
-    daa
-    ld [hl-], a
-    ld b, b
-    ld [hl-], a
-    ld e, c
-    ld [hl-], a
-    ld l, [hl]
-    ld [hl-], a
-    add a
-    ld [hl-], a
-
-    db $a0, $32, $fc, $32, $b9, $32
-
-    jr z, @+$2e
-
-    db $2d, $1b, $61, $1b, $99, $1b, $d1, $1b, $11, $1c, $2a, $1c, $43, $1c, $5c, $1c
-
-    ld de, $111c
-    inc e
-
-    db $75, $1c, $92, $1c, $af, $1c, $cc, $1c
-
-    jp hl
-
-
-    inc e
-
-    db $0a, $1d, $23, $1d, $50, $1d, $7d, $1d, $aa, $1d, $97, $24, $bc, $24, $e1, $24
-    db $ea, $24, $f3, $24, $fc, $24, $1d, $25, $3a, $25, $5b, $25, $7c, $25, $19, $1f
-    db $3a, $1f, $5b, $1f, $7c, $1f, $99, $1f, $a2, $1f, $c7, $1d, $e4, $1d, $01, $1e
-
-    ld e, $1e
-    dec sp
-    db $1e
-
-    db $5c, $1e, $75, $1e, $a2, $1e, $cf, $1e, $fc, $1e, $bf, $1f, $d0, $1f, $e1, $1f
-    db $f2, $1f, $9d, $25, $be, $25, $df, $25, $00, $26, $25, $26, $46, $26, $63, $26
-    db $84, $26, $9f, $20, $c0, $20, $e1, $20, $02, $21, $1f, $21, $28, $21
-
-    ei
-    rra
-    ei
-    rra
-    ei
-    rra
-    ei
-    rra
-    ei
-    rra
-    ei
-    rra
-
-    db $fb, $1f, $28, $20, $55, $20
-
-    add d
-    db $20
-
-    db $45, $21, $5e, $21, $77, $21, $90, $21, $ad, $21, $a5, $26, $da, $26, $0f, $27
-    db $40, $27, $71, $27, $aa, $27, $df, $27, $46, $23, $67, $23, $88, $23, $a9, $23
-    db $c6, $23, $cf, $23, $98, $22, $b5, $22, $d2, $22, $ef, $22, $0c, $23, $2d, $23
-
-    sbc b
-    ld [hl+], a
-    sbc b
-    ld [hl+], a
-
-    db $98, $22
-
-    sbc b
-    ld [hl+], a
-
-    db $ec, $23, $05, $24, $1e, $24, $37, $24, $54, $24, $e4, $27, $21, $28, $5e, $28
-    db $93, $28, $cc, $28, $09, $29, $3e, $29, $73, $29, $ac, $29, $e9, $29, $26, $2a
+SpriteFrameData_1c11::
     db $eb, $f8, $70, $00, $eb, $00, $71, $00, $f3, $f8, $72, $00, $f3, $00, $73, $00
-    db $fb, $f8, $7e, $00, $fb, $00, $7f, $00, $80, $ec, $f8, $70, $00, $ec, $00, $71
-    db $00, $f4, $f8, $74, $00, $f4, $00, $75, $00, $fc, $f8, $80, $00, $fc, $00, $81
-    db $00, $80, $ec, $f8, $70, $00, $ec, $00, $71, $00, $f4, $f8, $76, $00, $f4, $00
-    db $77, $00, $fc, $f8, $82, $00, $fc, $00, $83, $00, $80, $ef, $f8, $78, $00, $ef
-    db $00, $79, $00, $f7, $f8, $7a, $00, $f7, $00, $7b, $00, $f7, $08, $7c, $00, $ff
-    db $ff, $7d, $00, $80, $eb, $f8, $84, $00, $eb, $00, $85, $00, $f3, $f8, $86, $00
-    db $f3, $00, $87, $00, $f1, $08, $89, $00, $fb, $f7, $88, $00, $fb, $ff, $7f, $00
-    db $80, $ec, $f8, $84, $00, $ec, $00, $85, $00, $f4, $f8, $8a, $00, $f4, $00, $8b
-    db $00, $f2, $08, $89, $00, $fc, $f8, $80, $00, $fc, $00, $81, $00, $80, $ec, $f8
-    db $84, $00, $ec, $00, $85, $00, $f4, $f8, $8c, $00, $f4, $00, $8d, $00, $f2, $08
-    db $89, $00, $fc, $f8, $82, $00, $fc, $00, $83, $00, $80, $eb, $f8, $84, $00, $eb
-    db $00, $85, $00, $f3, $f8, $86, $00, $f3, $00, $87, $00, $f1, $08, $89, $00, $fb
-    db $f8, $8e, $00, $fb, $00, $8f, $00, $80
+    db $fb, $f8, $7e, $00, $fb, $00, $7f, $00, $80
 
-    db $eb
-    ld sp, hl
-    add h
-    nop
-    db $eb
-    ld bc, $0085
-    di
-    ld sp, hl
-    sub b
-    nop
-    di
-    ld bc, $0087
-    di
-    add hl, bc
-    sub c
-    nop
-    ldh a, [c]
-    ld de, $0092
+SpriteFrameData_1c2a::
+    db $ec, $f8, $70, $00, $ec, $00, $71, $00, $f4, $f8, $74, $00, $f4, $00, $75, $00
+    db $fc, $f8, $80, $00, $fc, $00, $81, $00, $80
 
-jr_000_1d01::
-    ei
-    ld sp, hl
-    adc a
-    jr nz, jr_000_1d01
+SpriteFrameData_1c43::
+    db $ec, $f8, $70, $00, $ec, $00, $71, $00, $f4, $f8, $76, $00, $f4, $00, $77, $00
+    db $fc, $f8, $82, $00, $fc, $00, $83, $00, $80
 
-    nop
-    adc a
-    nop
-    add b
+SpriteFrameData_1c5c::
+    db $ef, $f8, $78, $00, $ef, $00, $79, $00, $f7, $f8, $7a, $00, $f7, $00, $7b, $00
+    db $f7, $08, $7c, $00, $ff, $ff, $7d, $00, $80
 
+SpriteFrameData_1c75::
+    db $eb, $f8, $84, $00, $eb, $00, $85, $00, $f3, $f8, $86, $00, $f3, $00, $87, $00
+    db $f1, $08, $89, $00, $fb, $f7, $88, $00, $fb, $ff, $7f, $00, $80
+
+SpriteFrameData_1c92::
+    db $ec, $f8, $84, $00, $ec, $00, $85, $00, $f4, $f8, $8a, $00, $f4, $00, $8b, $00
+    db $f2, $08, $89, $00, $fc, $f8, $80, $00, $fc, $00, $81, $00, $80
+
+SpriteFrameData_1caf::
+    db $ec, $f8, $84, $00, $ec, $00, $85, $00, $f4, $f8, $8c, $00, $f4, $00, $8d, $00
+    db $f2, $08, $89, $00, $fc, $f8, $82, $00, $fc, $00, $83, $00, $80
+
+SpriteFrameData_1ccc::
+    db $eb, $f8, $84, $00, $eb, $00, $85, $00, $f3, $f8, $86, $00, $f3, $00, $87, $00
+    db $f1, $08, $89, $00, $fb, $f8, $8e, $00, $fb, $00, $8f, $00, $80
+
+SpriteFrameData_1ce9::
+    db $eb, $f9, $84, $00, $eb, $01, $85, $00, $f3, $f9, $90, $00, $f3, $01, $87, $00
+    db $f3, $09, $91, $00, $f2, $11, $92, $00, $fb, $f9, $8f, $20, $fb, $00, $8f, $00
+    db $80
+
+SpriteFrameData_1d0a::
     db $ee, $f8, $93, $00, $ee, $00, $94, $00, $f6, $f8, $95, $00, $f6, $00, $96, $00
-    db $fe, $f8, $97, $00, $fe, $00, $98, $00, $80, $e0, $f8, $99, $00, $e0, $00, $9a
-    db $00, $e0, $08, $9b, $00, $e0, $10, $9c, $00, $e8, $f8, $9d, $00, $e8, $00, $9e
-    db $00, $e8, $08, $9f, $00, $f0, $f8, $a0, $00, $f0, $00, $a1, $00, $f8, $f8, $a2
-    db $00, $f8, $00, $a3, $00, $80, $e1, $f8, $99, $00, $e1, $00, $9a, $00, $e1, $08
-    db $9b, $00, $e1, $10, $9c, $00, $e9, $f8, $9d, $00, $e9, $00, $9e, $00, $e9, $08
-    db $9f, $00, $f1, $f8, $a0, $00, $f1, $00, $a1, $00, $f9, $f8, $a4, $00, $f9, $00
-    db $a5, $00, $80, $e1, $f8, $99, $00, $e1, $00, $9a, $00, $e1, $08, $9b, $00, $e1
-    db $10, $9c, $00, $e9, $f8, $9d, $00, $e9, $00, $9e, $00, $e9, $08, $9f, $00, $f1
-    db $f8, $a0, $00, $f1, $00, $a1, $00, $f9, $f8, $a6, $00, $f9, $00, $a7, $00, $80
+    db $fe, $f8, $97, $00, $fe, $00, $98, $00, $80
+
+SpriteFrameData_1d23::
+    db $e0, $f8, $99, $00, $e0, $00, $9a, $00, $e0, $08, $9b, $00, $e0, $10, $9c, $00
+    db $e8, $f8, $9d, $00, $e8, $00, $9e, $00, $e8, $08, $9f, $00, $f0, $f8, $a0, $00
+    db $f0, $00, $a1, $00, $f8, $f8, $a2, $00, $f8, $00, $a3, $00, $80
+
+SpriteFrameData_1d50::
+    db $e1, $f8, $99, $00, $e1, $00, $9a, $00, $e1, $08, $9b, $00, $e1, $10, $9c, $00
+    db $e9, $f8, $9d, $00, $e9, $00, $9e, $00, $e9, $08, $9f, $00, $f1, $f8, $a0, $00
+    db $f1, $00, $a1, $00, $f9, $f8, $a4, $00, $f9, $00, $a5, $00, $80
+
+SpriteFrameData_1d7d::
+    db $e1, $f8, $99, $00, $e1, $00, $9a, $00, $e1, $08, $9b, $00, $e1, $10, $9c, $00
+    db $e9, $f8, $9d, $00, $e9, $00, $9e, $00, $e9, $08, $9f, $00, $f1, $f8, $a0, $00
+    db $f1, $00, $a1, $00, $f9, $f8, $a6, $00, $f9, $00, $a7, $00, $80
+
+SpriteFrameData_1daa::
     db $e8, $f8, $a8, $00, $e8, $00, $a9, $00, $f0, $f7, $aa, $00, $f0, $ff, $ab, $00
-    db $f8, $f8, $ac, $00, $f8, $00, $ad, $00, $f8, $08, $ae, $00, $80, $eb, $f8, $75
-    db $00, $eb, $00, $76, $00, $f3, $f8, $77, $00, $f3, $00, $78, $00, $f1, $08, $7a
-    db $00, $fb, $f7, $79, $00, $fb, $ff, $70, $00, $80, $ec, $f8, $75, $00, $ec, $00
-    db $76, $00, $f4, $f8, $7b, $00, $f4, $00, $7c, $00, $f2, $08, $7a, $00, $fc, $f8
-    db $71, $00, $fc, $00, $72, $00, $80, $ec, $f8, $75, $00, $ec, $00, $76, $00, $f4
-    db $f8, $7d, $00, $f4, $00, $7e, $00, $f2, $08, $7a, $00, $fc, $f8, $73, $00, $fc
-    db $00, $74, $00, $80
+    db $f8, $f8, $ac, $00, $f8, $00, $ad, $00, $f8, $08, $ae, $00, $80
 
-    db $eb
-    ld hl, sp+$75
-    nop
-    db $eb
-    nop
-    halt
-    nop
-    di
-    ld hl, sp+$77
-    nop
-    di
-    nop
-    ld a, b
-    nop
-    pop af
-    ld [$007a], sp
-    ei
-    ld hl, sp+$7f
-    nop
-    ei
-    nop
-    add b
-    nop
-    add b
-    db $eb
-    ld sp, hl
-    ld [hl], l
-    nop
-    db $eb
-    ld bc, $0076
-    di
-    ld sp, hl
-    add c
-    nop
-    di
-    ld bc, $0078
-    di
-    add hl, bc
-    add d
-    nop
-    ldh a, [c]
-    ld de, $0083
+SpriteFrameData_1dc7::
+    db $eb, $f8, $75, $00, $eb, $00, $76, $00, $f3, $f8, $77, $00, $f3, $00, $78, $00
+    db $f1, $08, $7a, $00, $fb, $f7, $79, $00, $fb, $ff, $70, $00, $80
 
-jr_000_1e53::
-    ei
-    ld sp, hl
-    add b
-    jr nz, jr_000_1e53
+SpriteFrameData_1de4::
+    db $ec, $f8, $75, $00, $ec, $00, $76, $00, $f4, $f8, $7b, $00, $f4, $00, $7c, $00
+    db $f2, $08, $7a, $00, $fc, $f8, $71, $00, $fc, $00, $72, $00, $80
 
-    nop
-    add b
-    nop
-    add b
+SpriteFrameData_1e01::
+    db $ec, $f8, $75, $00, $ec, $00, $76, $00, $f4, $f8, $7d, $00, $f4, $00, $7e, $00
+    db $f2, $08, $7a, $00, $fc, $f8, $73, $00, $fc, $00, $74, $00, $80
 
+SpriteFrameData_1e1e::
+    db $eb, $f8, $75, $00, $eb, $00, $76, $00, $f3, $f8, $77, $00, $f3, $00, $78, $00
+    db $f1, $08, $7a, $00, $fb, $f8, $7f, $00, $fb, $00, $80, $00, $80
+
+SpriteFrameData_1e3b::
+    db $eb, $f9, $75, $00, $eb, $01, $76, $00, $f3, $f9, $81, $00, $f3, $01, $78, $00
+    db $f3, $09, $82, $00, $f2, $11, $83, $00, $fb, $f9, $80, $20, $fb, $00, $80, $00
+    db $80
+
+SpriteFrameData_1e5c::
     db $ee, $f8, $84, $00, $ee, $00, $85, $00, $f6, $f8, $86, $00, $f6, $00, $87, $00
-    db $fe, $f8, $88, $00, $fe, $00, $89, $00, $80, $e0, $f8, $8a, $00, $e0, $00, $8b
-    db $00, $e0, $08, $8c, $00, $e0, $10, $8d, $00, $e8, $f8, $8e, $00, $e8, $00, $8f
-    db $00, $e8, $08, $90, $00, $f0, $f8, $91, $00, $f0, $00, $92, $00, $f8, $f8, $93
-    db $00, $f8, $00, $94, $00, $80, $e1, $f8, $8a, $00, $e1, $00, $8b, $00, $e1, $08
-    db $8c, $00, $e1, $10, $8d, $00, $e9, $f8, $8e, $00, $e9, $00, $8f, $00, $e9, $08
-    db $90, $00, $f1, $f8, $91, $00, $f1, $00, $92, $00, $f9, $f8, $95, $00, $f9, $00
-    db $96, $00, $80, $e1, $f8, $8a, $00, $e1, $00, $8b, $00, $e1, $08, $8c, $00, $e1
-    db $10, $8d, $00, $e9, $f8, $8e, $00, $e9, $00, $8f, $00, $e9, $08, $90, $00, $f1
-    db $f8, $91, $00, $f1, $00, $92, $00, $f9, $f8, $97, $00, $f9, $00, $98, $00, $80
+    db $fe, $f8, $88, $00, $fe, $00, $89, $00, $80
+
+SpriteFrameData_1e75::
+    db $e0, $f8, $8a, $00, $e0, $00, $8b, $00, $e0, $08, $8c, $00, $e0, $10, $8d, $00
+    db $e8, $f8, $8e, $00, $e8, $00, $8f, $00, $e8, $08, $90, $00, $f0, $f8, $91, $00
+    db $f0, $00, $92, $00, $f8, $f8, $93, $00, $f8, $00, $94, $00, $80
+
+SpriteFrameData_1ea2::
+    db $e1, $f8, $8a, $00, $e1, $00, $8b, $00, $e1, $08, $8c, $00, $e1, $10, $8d, $00
+    db $e9, $f8, $8e, $00, $e9, $00, $8f, $00, $e9, $08, $90, $00, $f1, $f8, $91, $00
+    db $f1, $00, $92, $00, $f9, $f8, $95, $00, $f9, $00, $96, $00, $80
+
+SpriteFrameData_1ecf::
+    db $e1, $f8, $8a, $00, $e1, $00, $8b, $00, $e1, $08, $8c, $00, $e1, $10, $8d, $00
+    db $e9, $f8, $8e, $00, $e9, $00, $8f, $00, $e9, $08, $90, $00, $f1, $f8, $91, $00
+    db $f1, $00, $92, $00, $f9, $f8, $97, $00, $f9, $00, $98, $00, $80
+
+SpriteFrameData_1efc::
     db $e8, $f8, $99, $00, $e8, $00, $9a, $00, $f0, $f7, $9b, $00, $f0, $ff, $9c, $00
-    db $f8, $f8, $9d, $00, $f8, $00, $9e, $00, $f8, $08, $9f, $00, $80, $e8, $f8, $ab
-    db $00, $e8, $00, $ac, $00, $e8, $08, $ad, $00, $f0, $f8, $ae, $00, $f0, $00, $af
-    db $00, $f0, $08, $b0, $00, $f8, $f8, $b1, $00, $f8, $00, $b2, $00, $80, $e9, $f8
-    db $ab, $00, $e9, $00, $ac, $00, $e9, $08, $ad, $00, $f1, $f8, $b3, $00, $f1, $00
-    db $af, $00, $f1, $08, $b0, $00, $f9, $f8, $b4, $00, $f9, $00, $b5, $00, $80, $e9
-    db $f8, $ab, $00, $e9, $00, $ac, $00, $e9, $08, $ad, $00, $f1, $f8, $b6, $00, $f1
-    db $00, $b7, $00, $f1, $08, $b0, $00, $f9, $f8, $b8, $00, $f9, $00, $b9, $00, $80
+    db $f8, $f8, $9d, $00, $f8, $00, $9e, $00, $f8, $08, $9f, $00, $80
+
+SpriteFrameData_1f19::
+    db $e8, $f8, $ab, $00, $e8, $00, $ac, $00, $e8, $08, $ad, $00, $f0, $f8, $ae, $00
+    db $f0, $00, $af, $00, $f0, $08, $b0, $00, $f8, $f8, $b1, $00, $f8, $00, $b2, $00
+    db $80
+
+SpriteFrameData_1f3a::
+    db $e9, $f8, $ab, $00, $e9, $00, $ac, $00, $e9, $08, $ad, $00, $f1, $f8, $b3, $00
+    db $f1, $00, $af, $00, $f1, $08, $b0, $00, $f9, $f8, $b4, $00, $f9, $00, $b5, $00
+    db $80
+
+SpriteFrameData_1f5b::
+    db $e9, $f8, $ab, $00, $e9, $00, $ac, $00, $e9, $08, $ad, $00, $f1, $f8, $b6, $00
+    db $f1, $00, $b7, $00, $f1, $08, $b0, $00, $f9, $f8, $b8, $00, $f9, $00, $b9, $00
+    db $80
+
+SpriteFrameData_1f7c::
     db $e8, $fa, $ab, $00, $e8, $02, $ba, $00, $f0, $f9, $bb, $00, $f0, $01, $bc, $00
-    db $f0, $09, $bd, $00, $f8, $f9, $a0, $00, $f8, $01, $a1, $00, $80, $f8, $f4, $a2
-    db $00, $f8, $fc, $a3, $00, $80, $ec, $fc, $a4, $00, $ec, $04, $a5, $00, $f4, $f4
-    db $a6, $00, $f4, $fc, $a7, $00, $f4, $04, $a8, $00, $fc, $fb, $a9, $00, $fc, $03
-    db $aa, $00, $80, $f8, $f8, $be, $10, $f8, $00, $c4, $10, $00, $f8, $bf, $10, $00
-    db $00, $c0, $10, $80, $f7, $f8, $c1, $10, $f7, $00, $c1, $30, $ff, $f8, $c2, $10
-    db $ff, $00, $c3, $10, $80, $f0, $f8, $c5, $10, $f0, $00, $c6, $10, $f8, $f8, $c7
-    db $10, $f8, $00, $c8, $10, $80, $f8, $f8, $c9, $10, $f8, $00, $c9, $30, $80, $e0
-    db $f8, $70, $00, $e0, $00, $71, $00, $e0, $08, $72, $00, $e0, $10, $73, $00, $e8
-    db $f8, $74, $00, $e8, $00, $75, $00, $e8, $08, $76, $00, $f0, $f8, $77, $00, $f0
-    db $00, $78, $00, $f8, $f8, $79, $00, $f8, $00, $7a, $00, $80, $e1, $f8, $70, $00
-    db $e1, $00, $71, $00, $e1, $08, $72, $00, $e1, $10, $73, $00, $e9, $f8, $74, $00
-    db $e9, $00, $75, $00, $e9, $08, $76, $00, $f1, $f8, $77, $00, $f1, $00, $78, $00
-    db $f9, $f8, $7b, $00, $f9, $00, $7c, $00, $80, $e1, $f8, $70, $00, $e1, $00, $71
-    db $00, $e1, $08, $72, $00, $e1, $10, $73, $00, $e9, $f8, $74, $00, $e9, $00, $75
-    db $00, $e9, $08, $76, $00, $f1, $f8, $77, $00, $f1, $00, $78, $00, $f9, $f8, $7d
-    db $00, $f9, $00, $7e, $00, $80
+    db $f0, $09, $bd, $00, $f8, $f9, $a0, $00, $f8, $01, $a1, $00, $80
 
-    add sp, -$08
-    ld a, a
-    nop
-    add sp, $00
-    add b
-    nop
-    ldh a, [$fff7]
-    add c
-    nop
-    ldh a, [rIE]
-    add d
-    nop
-    ld hl, sp-$08
-    add e
-    nop
-    ld hl, sp+$00
-    add h
-    nop
-    ld hl, sp+$08
-    add l
-    nop
-    add b
+SpriteFrameData_1f99::
+    db $f8, $f4, $a2, $00, $f8, $fc, $a3, $00, $80
 
+SpriteFrameData_1fa2::
+    db $ec, $fc, $a4, $00, $ec, $04, $a5, $00, $f4, $f4, $a6, $00, $f4, $fc, $a7, $00
+    db $f4, $04, $a8, $00, $fc, $fb, $a9, $00, $fc, $03, $aa, $00, $80
+
+SpriteFrameData_1fbf::
+    db $f8, $f8, $be, $10, $f8, $00, $c4, $10, $00, $f8, $bf, $10, $00, $00, $c0, $10
+    db $80
+
+SpriteFrameData_1fd0::
+    db $f7, $f8, $c1, $10, $f7, $00, $c1, $30, $ff, $f8, $c2, $10, $ff, $00, $c3, $10
+    db $80
+
+SpriteFrameData_1fe1::
+    db $f0, $f8, $c5, $10, $f0, $00, $c6, $10, $f8, $f8, $c7, $10, $f8, $00, $c8, $10
+    db $80
+
+SpriteFrameData_1ff2::
+    db $f8, $f8, $c9, $10, $f8, $00, $c9, $30, $80
+
+SpriteFrameData_1ffb::
+    db $e0, $f8, $70, $00, $e0, $00, $71, $00, $e0, $08, $72, $00, $e0, $10, $73, $00
+    db $e8, $f8, $74, $00, $e8, $00, $75, $00, $e8, $08, $76, $00, $f0, $f8, $77, $00
+    db $f0, $00, $78, $00, $f8, $f8, $79, $00, $f8, $00, $7a, $00, $80
+
+SpriteFrameData_2028::
+    db $e1, $f8, $70, $00, $e1, $00, $71, $00, $e1, $08, $72, $00, $e1, $10, $73, $00
+    db $e9, $f8, $74, $00, $e9, $00, $75, $00, $e9, $08, $76, $00, $f1, $f8, $77, $00
+    db $f1, $00, $78, $00, $f9, $f8, $7b, $00, $f9, $00, $7c, $00, $80
+
+SpriteFrameData_2055::
+    db $e1, $f8, $70, $00, $e1, $00, $71, $00, $e1, $08, $72, $00, $e1, $10, $73, $00
+    db $e9, $f8, $74, $00, $e9, $00, $75, $00, $e9, $08, $76, $00, $f1, $f8, $77, $00
+    db $f1, $00, $78, $00, $f9, $f8, $7d, $00, $f9, $00, $7e, $00, $80
+
+SpriteFrameData_2082::
+    db $e8, $f8, $7f, $00, $e8, $00, $80, $00, $f0, $f7, $81, $00, $f0, $ff, $82, $00
+    db $f8, $f8, $83, $00, $f8, $00, $84, $00, $f8, $08, $85, $00, $80
+
+SpriteFrameData_209f::
     db $e8, $f8, $91, $00, $e8, $00, $92, $00, $e8, $08, $93, $00, $f0, $f8, $94, $00
     db $f0, $00, $95, $00, $f0, $08, $96, $00, $f8, $f8, $97, $00, $f8, $00, $98, $00
-    db $80, $e9, $f8, $91, $00, $e9, $00, $92, $00, $e9, $08, $93, $00, $f1, $f8, $99
-    db $00, $f1, $00, $95, $00, $f1, $08, $96, $00, $f9, $f8, $9a, $00, $f9, $00, $9b
-    db $00, $80, $e9, $f8, $91, $00, $e9, $00, $92, $00, $e9, $08, $93, $00, $f1, $f8
-    db $9c, $00, $f1, $00, $9d, $00, $f1, $08, $96, $00, $f9, $f8, $9e, $00, $f9, $00
-    db $9f, $00, $80, $e8, $fa, $91, $00, $e8, $02, $a0, $00, $f0, $f9, $a1, $00, $f0
-    db $01, $a2, $00, $f0, $09, $a3, $00, $f8, $f9, $86, $00, $f8, $01, $87, $00, $80
-    db $f8, $f4, $88, $00, $f8, $fc, $89, $00, $80, $ec, $fc, $8a, $00, $ec, $04, $8b
-    db $00, $f4, $f4, $8c, $00, $f4, $fc, $8d, $00, $f4, $04, $8e, $00, $fc, $fb, $8f
-    db $00, $fc, $03, $90, $00, $80, $e8, $f8, $af, $00, $e8, $00, $b0, $00, $f0, $f8
-    db $b1, $00, $f0, $00, $b2, $00, $f8, $f8, $b3, $00, $f8, $00, $b4, $00, $80, $e9
-    db $f8, $af, $00, $e9, $00, $b0, $00, $f1, $f8, $b5, $00, $f1, $00, $b6, $00, $f9
-    db $f8, $b7, $00, $f9, $00, $b8, $00, $80, $e9, $f8, $af, $00, $e9, $00, $b0, $00
-    db $f1, $f8, $b9, $00, $f1, $00, $ba, $00, $f9, $f8, $bb, $00, $f9, $00, $bc, $00
-    db $80, $ed, $f8, $bd, $00, $ed, $00, $be, $00, $f5, $f8, $bf, $00, $f5, $00, $a4
-    db $00, $f5, $08, $a5, $00, $fd, $f8, $a6, $00, $fd, $00, $a7, $00, $80, $ed, $f8
-    db $bd, $00, $ed, $00, $a8, $00, $f5, $f8, $a9, $00, $f5, $00, $aa, $00, $f5, $08
-    db $ab, $00, $fd, $f8, $ac, $00, $fd, $00, $ad, $00, $fd, $08, $ae, $00, $80, $d8
-    db $ec, $c0, $00, $e0, $ec, $c1, $00, $e0, $f4, $c2, $00, $e0, $fc, $c3, $00, $e0
-    db $04, $c4, $00, $e8, $f4, $c5, $00, $e8, $fc, $c6, $00, $e8, $04, $c7, $00, $f0
-    db $f4, $cd, $00, $f8, $f4, $c8, $00, $f8, $fc, $c9, $00, $f8, $04, $ca, $00, $80
-    db $d9, $ec, $c0, $00, $e1, $ec, $c1, $00, $e1, $f4, $c2, $00, $e1, $fc, $c3, $00
-    db $e1, $04, $c4, $00, $e9, $f4, $c5, $00, $e9, $fc, $c6, $00, $e9, $04, $c7, $00
-    db $f1, $f4, $cd, $00, $f9, $f4, $cb, $00, $f9, $fc, $c9, $00, $f9, $04, $cc, $00
-    db $80, $f8, $fc, $c0, $10, $80, $f8, $fc, $c1, $10, $80, $f8, $fc, $c2, $10, $80
-    db $f8, $fb, $c0, $10, $80, $f0, $f8, $c3, $00, $f0, $00, $c4, $00, $f8, $f8, $c5
-    db $00, $f8, $00, $c6, $00, $80, $f0, $f8, $c4, $20, $f0, $00, $c3, $20, $f8, $f8
-    db $c6, $20, $f8, $00, $c5, $20, $80, $f2, $f8, $c5, $40, $f2, $00, $c6, $40, $fa
-    db $f8, $c3, $40, $fa, $00, $c4, $40, $80, $e8, $f4, $c7, $00, $e8, $fc, $c8, $00
-    db $e8, $04, $c7, $20, $f0, $f4, $c9, $00, $f0, $fc, $ca, $00, $f0, $04, $c9, $20
-    db $f8, $f8, $cb, $00, $f8, $00, $cc, $00, $80, $eb, $f8, $75, $00, $eb, $00, $76
-    db $00, $f3, $f8, $77, $00, $f3, $00, $78, $00, $f1, $08, $7a, $00, $fb, $f7, $79
-    db $00, $fb, $ff, $70, $00, $80, $ec, $f8, $75, $00, $ec, $00, $76, $00, $f4, $f8
-    db $7b, $00, $f4, $00, $7c, $00, $f2, $08, $7a, $00, $fc, $f8, $71, $00, $fc, $00
-    db $72, $00, $80, $ec, $f8, $75, $00, $ec, $00, $76, $00, $f4, $f8, $7d, $00, $f4
-    db $00, $7e, $00, $f2, $08, $7a, $00, $fc, $f8, $73, $00, $fc, $00, $74, $00, $80
+    db $80
+
+SpriteFrameData_20c0::
+    db $e9, $f8, $91, $00, $e9, $00, $92, $00, $e9, $08, $93, $00, $f1, $f8, $99, $00
+    db $f1, $00, $95, $00, $f1, $08, $96, $00, $f9, $f8, $9a, $00, $f9, $00, $9b, $00
+    db $80
+
+SpriteFrameData_20e1::
+    db $e9, $f8, $91, $00, $e9, $00, $92, $00, $e9, $08, $93, $00, $f1, $f8, $9c, $00
+    db $f1, $00, $9d, $00, $f1, $08, $96, $00, $f9, $f8, $9e, $00, $f9, $00, $9f, $00
+    db $80
+
+SpriteFrameData_2102::
+    db $e8, $fa, $91, $00, $e8, $02, $a0, $00, $f0, $f9, $a1, $00, $f0, $01, $a2, $00
+    db $f0, $09, $a3, $00, $f8, $f9, $86, $00, $f8, $01, $87, $00, $80
+
+SpriteFrameData_211f::
+    db $f8, $f4, $88, $00, $f8, $fc, $89, $00, $80
+
+SpriteFrameData_2128::
+    db $ec, $fc, $8a, $00, $ec, $04, $8b, $00, $f4, $f4, $8c, $00, $f4, $fc, $8d, $00
+    db $f4, $04, $8e, $00, $fc, $fb, $8f, $00, $fc, $03, $90, $00, $80
+
+SpriteFrameData_2145::
+    db $e8, $f8, $af, $00, $e8, $00, $b0, $00, $f0, $f8, $b1, $00, $f0, $00, $b2, $00
+    db $f8, $f8, $b3, $00, $f8, $00, $b4, $00, $80
+
+SpriteFrameData_215e::
+    db $e9, $f8, $af, $00, $e9, $00, $b0, $00, $f1, $f8, $b5, $00, $f1, $00, $b6, $00
+    db $f9, $f8, $b7, $00, $f9, $00, $b8, $00, $80
+
+SpriteFrameData_2177::
+    db $e9, $f8, $af, $00, $e9, $00, $b0, $00, $f1, $f8, $b9, $00, $f1, $00, $ba, $00
+    db $f9, $f8, $bb, $00, $f9, $00, $bc, $00, $80
+
+SpriteFrameData_2190::
+    db $ed, $f8, $bd, $00, $ed, $00, $be, $00, $f5, $f8, $bf, $00, $f5, $00, $a4, $00
+    db $f5, $08, $a5, $00, $fd, $f8, $a6, $00, $fd, $00, $a7, $00, $80
+
+SpriteFrameData_21ad::
+    db $ed, $f8, $bd, $00, $ed, $00, $a8, $00, $f5, $f8, $a9, $00, $f5, $00, $aa, $00
+    db $f5, $08, $ab, $00, $fd, $f8, $ac, $00, $fd, $00, $ad, $00, $fd, $08, $ae, $00
+    db $80, $d8, $ec, $c0, $00, $e0, $ec, $c1, $00, $e0, $f4, $c2, $00, $e0, $fc, $c3
+    db $00, $e0, $04, $c4, $00, $e8, $f4, $c5, $00, $e8, $fc, $c6, $00, $e8, $04, $c7
+    db $00, $f0, $f4, $cd, $00, $f8, $f4, $c8, $00, $f8, $fc, $c9, $00, $f8, $04, $ca
+    db $00, $80, $d9, $ec, $c0, $00, $e1, $ec, $c1, $00, $e1, $f4, $c2, $00, $e1, $fc
+    db $c3, $00, $e1, $04, $c4, $00, $e9, $f4, $c5, $00, $e9, $fc, $c6, $00, $e9, $04
+    db $c7, $00, $f1, $f4, $cd, $00, $f9, $f4, $cb, $00, $f9, $fc, $c9, $00, $f9, $04
+    db $cc, $00, $80, $f8, $fc, $c0, $10, $80, $f8, $fc, $c1, $10, $80, $f8, $fc, $c2
+    db $10, $80, $f8, $fb, $c0, $10, $80, $f0, $f8, $c3, $00, $f0, $00, $c4, $00, $f8
+    db $f8, $c5, $00, $f8, $00, $c6, $00, $80, $f0, $f8, $c4, $20, $f0, $00, $c3, $20
+    db $f8, $f8, $c6, $20, $f8, $00, $c5, $20, $80, $f2, $f8, $c5, $40, $f2, $00, $c6
+    db $40, $fa, $f8, $c3, $40, $fa, $00, $c4, $40, $80, $e8, $f4, $c7, $00, $e8, $fc
+    db $c8, $00, $e8, $04, $c7, $20, $f0, $f4, $c9, $00, $f0, $fc, $ca, $00, $f0, $04
+    db $c9, $20, $f8, $f8, $cb, $00, $f8, $00, $cc, $00, $80
+
+SpriteFrameData_2298::
     db $eb, $f8, $75, $00, $eb, $00, $76, $00, $f3, $f8, $77, $00, $f3, $00, $78, $00
-    db $f1, $08, $7a, $00, $fb, $f8, $7f, $00, $fb, $00, $80, $00, $80, $eb, $f9, $75
-    db $00, $eb, $01, $76, $00, $f3, $f9, $81, $00, $f3, $01, $78, $00, $f3, $09, $82
-    db $00, $f2, $11, $83, $00, $fb, $f9, $80, $20, $fb, $00, $80, $00, $80, $ee, $f8
-    db $84, $00, $ee, $00, $85, $00, $f6, $f8, $86, $00, $f6, $00, $87, $00, $fe, $f8
-    db $88, $00, $fe, $00, $89, $00, $80, $e8, $f8, $95, $00, $e8, $00, $96, $00, $e8
-    db $08, $97, $00, $f0, $f8, $98, $00, $f0, $00, $99, $00, $f0, $08, $9a, $00, $f8
-    db $f8, $9b, $00, $f8, $00, $9c, $00, $80, $e9, $f8, $95, $00, $e9, $00, $96, $00
-    db $e9, $08, $97, $00, $f1, $f8, $9d, $00, $f1, $00, $99, $00, $f1, $08, $9a, $00
-    db $f9, $f8, $9e, $00, $f9, $00, $9f, $00, $80, $e9, $f8, $95, $00, $e9, $00, $96
-    db $00, $e9, $08, $97, $00, $f1, $f8, $a0, $00, $f1, $00, $a1, $00, $f1, $08, $9a
-    db $00, $f9, $f8, $a2, $00, $f9, $00, $a3, $00, $80, $e8, $fa, $95, $00, $e8, $02
-    db $a4, $00, $f0, $f9, $a5, $00, $f0, $01, $a6, $00, $f0, $09, $a7, $00, $f8, $f9
-    db $8a, $00, $f8, $01, $8b, $00, $80, $f8, $f4, $8c, $00, $f8, $fc, $8d, $00, $80
+    db $f1, $08, $7a, $00, $fb, $f7, $79, $00, $fb, $ff, $70, $00, $80
+
+SpriteFrameData_22b5::
+    db $ec, $f8, $75, $00, $ec, $00, $76, $00, $f4, $f8, $7b, $00, $f4, $00, $7c, $00
+    db $f2, $08, $7a, $00, $fc, $f8, $71, $00, $fc, $00, $72, $00, $80
+
+SpriteFrameData_22d2::
+    db $ec, $f8, $75, $00, $ec, $00, $76, $00, $f4, $f8, $7d, $00, $f4, $00, $7e, $00
+    db $f2, $08, $7a, $00, $fc, $f8, $73, $00, $fc, $00, $74, $00, $80
+
+SpriteFrameData_22ef::
+    db $eb, $f8, $75, $00, $eb, $00, $76, $00, $f3, $f8, $77, $00, $f3, $00, $78, $00
+    db $f1, $08, $7a, $00, $fb, $f8, $7f, $00, $fb, $00, $80, $00, $80
+
+SpriteFrameData_230c::
+    db $eb, $f9, $75, $00, $eb, $01, $76, $00, $f3, $f9, $81, $00, $f3, $01, $78, $00
+    db $f3, $09, $82, $00, $f2, $11, $83, $00, $fb, $f9, $80, $20, $fb, $00, $80, $00
+    db $80
+
+SpriteFrameData_232d::
+    db $ee, $f8, $84, $00, $ee, $00, $85, $00, $f6, $f8, $86, $00, $f6, $00, $87, $00
+    db $fe, $f8, $88, $00, $fe, $00, $89, $00, $80
+
+SpriteFrameData_2346::
+    db $e8, $f8, $95, $00, $e8, $00, $96, $00, $e8, $08, $97, $00, $f0, $f8, $98, $00
+    db $f0, $00, $99, $00, $f0, $08, $9a, $00, $f8, $f8, $9b, $00, $f8, $00, $9c, $00
+    db $80
+
+SpriteFrameData_2367::
+    db $e9, $f8, $95, $00, $e9, $00, $96, $00, $e9, $08, $97, $00, $f1, $f8, $9d, $00
+    db $f1, $00, $99, $00, $f1, $08, $9a, $00, $f9, $f8, $9e, $00, $f9, $00, $9f, $00
+    db $80
+
+SpriteFrameData_2388::
+    db $e9, $f8, $95, $00, $e9, $00, $96, $00, $e9, $08, $97, $00, $f1, $f8, $a0, $00
+    db $f1, $00, $a1, $00, $f1, $08, $9a, $00, $f9, $f8, $a2, $00, $f9, $00, $a3, $00
+    db $80
+
+SpriteFrameData_23a9::
+    db $e8, $fa, $95, $00, $e8, $02, $a4, $00, $f0, $f9, $a5, $00, $f0, $01, $a6, $00
+    db $f0, $09, $a7, $00, $f8, $f9, $8a, $00, $f8, $01, $8b, $00, $80
+
+SpriteFrameData_23c6::
+    db $f8, $f4, $8c, $00, $f8, $fc, $8d, $00, $80
+
+SpriteFrameData_23cf::
     db $ec, $fc, $8e, $00, $ec, $04, $8f, $00, $f4, $f4, $90, $00, $f4, $fc, $91, $00
-    db $f4, $04, $92, $00, $fc, $fb, $93, $00, $fc, $03, $94, $00, $80, $e8, $f8, $b3
-    db $00, $e8, $00, $b4, $00, $f0, $f8, $b5, $00, $f0, $00, $b6, $00, $f8, $f8, $b7
-    db $00, $f8, $00, $b8, $00, $80, $e9, $f8, $b3, $00, $e9, $00, $b4, $00, $f1, $f8
-    db $b9, $00, $f1, $00, $ba, $00, $f9, $f8, $bb, $00, $f9, $00, $bc, $00, $80, $e9
-    db $f8, $b3, $00, $e9, $00, $b4, $00, $f1, $f8, $bd, $00, $f1, $00, $be, $00, $f9
-    db $f8, $bf, $00, $f9, $00, $c0, $00, $80, $ed, $f8, $c1, $00, $ed, $00, $c2, $00
-    db $f5, $f8, $c3, $00, $f5, $00, $a8, $00, $f5, $08, $a9, $00, $fd, $f8, $aa, $00
-    db $fd, $00, $ab, $00, $80, $ed, $f8, $c1, $00, $ed, $00, $ac, $00, $f5, $f8, $ad
-    db $00, $f5, $00, $ae, $00, $f5, $08, $af, $00, $fd, $f8, $b0, $00, $fd, $00, $b1
-    db $00, $fd, $08, $b2, $00, $80, $f0, $f8, $c4, $00, $f0, $00, $c5, $00, $f8, $f8
-    db $c6, $10, $f8, $00, $c7, $10, $80, $f0, $f8, $c8, $00, $f0, $00, $c9, $00, $f8
-    db $f8, $ca, $00, $f8, $00, $cb, $00, $80, $e0, $f8, $70, $00, $e0, $00, $71, $00
-    db $e8, $f8, $72, $00, $e8, $00, $73, $00, $f0, $f8, $74, $00, $f0, $00, $75, $00
-    db $ed, $08, $78, $00, $f8, $f8, $76, $00, $f8, $00, $77, $00, $80, $e0, $f9, $70
-    db $00, $e0, $01, $71, $00, $e8, $f9, $72, $00, $e8, $01, $79, $00, $f0, $f8, $7a
-    db $00, $f0, $00, $7b, $00, $f0, $08, $7c, $00, $f8, $f8, $7d, $00, $f8, $00, $77
-    db $00, $80, $f8, $f8, $7e, $00, $f8, $00, $7f, $00, $80, $f8, $f8, $81, $20, $f8
-    db $00, $80, $20, $80, $f8, $f8, $83, $20, $f8, $00, $82, $20, $80, $e8, $fc, $84
-    db $00, $e8, $04, $71, $00, $f0, $f4, $85, $00, $f0, $fc, $86, $00, $f0, $04, $87
-    db $00, $f8, $f4, $88, $00, $f8, $fc, $89, $00, $f8, $04, $8a, $00, $80, $e8, $fc
-    db $84, $00, $e8, $04, $71, $00, $f0, $fc, $8b, $00, $f0, $04, $8c, $00, $f8, $f4
-    db $8d, $00, $f8, $fc, $8e, $00, $f8, $04, $8f, $00, $80, $e0, $f8, $70, $00, $e0
-    db $00, $71, $00, $e8, $f8, $72, $00, $e8, $00, $79, $00, $f0, $f8, $90, $00, $f0
-    db $00, $91, $00, $f8, $f8, $92, $00, $f8, $00, $93, $00, $80, $e1, $f8, $70, $00
-    db $e1, $00, $71, $00, $e9, $f8, $72, $00, $e9, $00, $79, $00, $f1, $f8, $94, $00
-    db $f1, $00, $95, $00, $f9, $f8, $96, $00, $f9, $00, $97, $00, $80, $e1, $f8, $70
-    db $00, $e1, $00, $71, $00, $e9, $f8, $72, $00, $e9, $00, $79, $00, $f1, $f8, $98
-    db $00, $f1, $00, $99, $00, $f9, $f8, $9a, $00, $f9, $00, $9b, $00, $80, $e0, $f8
-    db $70, $00, $e0, $00, $71, $00, $e8, $f8, $72, $00, $e8, $00, $73, $00, $f0, $f8
-    db $74, $00, $f0, $00, $75, $00, $f8, $f8, $76, $00, $f8, $00, $77, $00, $80, $e1
-    db $f8, $70, $00, $e1, $00, $71, $00, $e9, $f8, $72, $00, $e9, $00, $73, $00, $f1
-    db $f8, $78, $00, $f1, $00, $79, $00, $f9, $f8, $7a, $00, $f9, $00, $7b, $00, $80
+    db $f4, $04, $92, $00, $fc, $fb, $93, $00, $fc, $03, $94, $00, $80
+
+SpriteFrameData_23ec::
+    db $e8, $f8, $b3, $00, $e8, $00, $b4, $00, $f0, $f8, $b5, $00, $f0, $00, $b6, $00
+    db $f8, $f8, $b7, $00, $f8, $00, $b8, $00, $80
+
+SpriteFrameData_2405::
+    db $e9, $f8, $b3, $00, $e9, $00, $b4, $00, $f1, $f8, $b9, $00, $f1, $00, $ba, $00
+    db $f9, $f8, $bb, $00, $f9, $00, $bc, $00, $80
+
+SpriteFrameData_241e::
+    db $e9, $f8, $b3, $00, $e9, $00, $b4, $00, $f1, $f8, $bd, $00, $f1, $00, $be, $00
+    db $f9, $f8, $bf, $00, $f9, $00, $c0, $00, $80
+
+SpriteFrameData_2437::
+    db $ed, $f8, $c1, $00, $ed, $00, $c2, $00, $f5, $f8, $c3, $00, $f5, $00, $a8, $00
+    db $f5, $08, $a9, $00, $fd, $f8, $aa, $00, $fd, $00, $ab, $00, $80
+
+SpriteFrameData_2454::
+    db $ed, $f8, $c1, $00, $ed, $00, $ac, $00, $f5, $f8, $ad, $00, $f5, $00, $ae, $00
+    db $f5, $08, $af, $00, $fd, $f8, $b0, $00, $fd, $00, $b1, $00, $fd, $08, $b2, $00
+    db $80, $f0, $f8, $c4, $00, $f0, $00, $c5, $00, $f8, $f8, $c6, $10, $f8, $00, $c7
+    db $10, $80, $f0, $f8, $c8, $00, $f0, $00, $c9, $00, $f8, $f8, $ca, $00, $f8, $00
+    db $cb, $00, $80
+
+SpriteFrameData_2497::
+    db $e0, $f8, $70, $00, $e0, $00, $71, $00, $e8, $f8, $72, $00, $e8, $00, $73, $00
+    db $f0, $f8, $74, $00, $f0, $00, $75, $00, $ed, $08, $78, $00, $f8, $f8, $76, $00
+    db $f8, $00, $77, $00, $80
+
+SpriteFrameData_24bc::
+    db $e0, $f9, $70, $00, $e0, $01, $71, $00, $e8, $f9, $72, $00, $e8, $01, $79, $00
+    db $f0, $f8, $7a, $00, $f0, $00, $7b, $00, $f0, $08, $7c, $00, $f8, $f8, $7d, $00
+    db $f8, $00, $77, $00, $80
+
+SpriteFrameData_24e1::
+    db $f8, $f8, $7e, $00, $f8, $00, $7f, $00, $80
+
+SpriteFrameData_24ea::
+    db $f8, $f8, $81, $20, $f8, $00, $80, $20, $80
+
+SpriteFrameData_24f3::
+    db $f8, $f8, $83, $20, $f8, $00, $82, $20, $80
+
+SpriteFrameData_24fc::
+    db $e8, $fc, $84, $00, $e8, $04, $71, $00, $f0, $f4, $85, $00, $f0, $fc, $86, $00
+    db $f0, $04, $87, $00, $f8, $f4, $88, $00, $f8, $fc, $89, $00, $f8, $04, $8a, $00
+    db $80
+
+SpriteFrameData_251d::
+    db $e8, $fc, $84, $00, $e8, $04, $71, $00, $f0, $fc, $8b, $00, $f0, $04, $8c, $00
+    db $f8, $f4, $8d, $00, $f8, $fc, $8e, $00, $f8, $04, $8f, $00, $80
+
+SpriteFrameData_253a::
+    db $e0, $f8, $70, $00, $e0, $00, $71, $00, $e8, $f8, $72, $00, $e8, $00, $79, $00
+    db $f0, $f8, $90, $00, $f0, $00, $91, $00, $f8, $f8, $92, $00, $f8, $00, $93, $00
+    db $80
+
+SpriteFrameData_255b::
+    db $e1, $f8, $70, $00, $e1, $00, $71, $00, $e9, $f8, $72, $00, $e9, $00, $79, $00
+    db $f1, $f8, $94, $00, $f1, $00, $95, $00, $f9, $f8, $96, $00, $f9, $00, $97, $00
+    db $80
+
+SpriteFrameData_257c::
+    db $e1, $f8, $70, $00, $e1, $00, $71, $00, $e9, $f8, $72, $00, $e9, $00, $79, $00
+    db $f1, $f8, $98, $00, $f1, $00, $99, $00, $f9, $f8, $9a, $00, $f9, $00, $9b, $00
+    db $80
+
+SpriteFrameData_259d::
+    db $e0, $f8, $70, $00, $e0, $00, $71, $00, $e8, $f8, $72, $00, $e8, $00, $73, $00
+    db $f0, $f8, $74, $00, $f0, $00, $75, $00, $f8, $f8, $76, $00, $f8, $00, $77, $00
+    db $80
+
+SpriteFrameData_25be::
+    db $e1, $f8, $70, $00, $e1, $00, $71, $00, $e9, $f8, $72, $00, $e9, $00, $73, $00
+    db $f1, $f8, $78, $00, $f1, $00, $79, $00, $f9, $f8, $7a, $00, $f9, $00, $7b, $00
+    db $80
+
+SpriteFrameData_25df::
     db $e1, $f8, $70, $00, $e1, $00, $71, $00, $e9, $f8, $72, $00, $e9, $00, $73, $00
     db $f1, $f8, $7c, $00, $f1, $00, $7d, $00, $f9, $f8, $7e, $00, $f9, $00, $7f, $00
-    db $80, $e5, $f8, $70, $00, $e5, $00, $71, $00, $ed, $f8, $80, $00, $ed, $00, $81
-    db $00, $f5, $f8, $82, $00, $f5, $00, $83, $00, $f5, $08, $84, $00, $fd, $f8, $85
-    db $00, $fd, $00, $86, $00, $80, $e5, $f8, $70, $00, $e5, $00, $71, $00, $ed, $f9
-    db $87, $00, $ed, $01, $88, $00, $f5, $f8, $89, $00, $f5, $00, $8a, $00, $fd, $f8
-    db $85, $00, $fd, $00, $8b, $00, $80, $e8, $fc, $8c, $00, $e8, $04, $8d, $00, $f0
-    db $fa, $8e, $00, $f0, $02, $8f, $00, $f8, $f4, $90, $00, $f8, $fc, $91, $00, $f8
-    db $04, $92, $00, $80, $e0, $f8, $70, $00, $e0, $00, $71, $00, $e8, $f8, $93, $00
-    db $e8, $00, $94, $00, $f0, $f8, $95, $00, $f0, $00, $96, $00, $f8, $f8, $97, $00
-    db $f8, $00, $98, $00, $80, $e0, $f8, $70, $00, $e0, $00, $71, $00, $e8, $f8, $72
-    db $00, $e8, $00, $73, $00, $f0, $f8, $99, $00, $f0, $00, $9a, $00, $f8, $f8, $9b
-    db $00, $f8, $00, $9c, $00, $80, $d9, $f3, $70, $00, $e0, $ee, $71, $10, $e0, $f6
-    db $72, $10, $e0, $fe, $73, $10, $e8, $f1, $74, $00, $e8, $f9, $75, $00, $e8, $01
-    db $76, $00, $f0, $f4, $77, $10, $f0, $fc, $78, $10, $f0, $04, $79, $10, $f8, $f3
-    db $7a, $10, $f8, $fb, $7b, $10, $f8, $03, $7c, $10, $80, $d9, $f3, $70, $00, $e0
-    db $ee, $71, $10, $e0, $f6, $72, $10, $e0, $fe, $73, $10, $e8, $f1, $7d, $00, $e8
-    db $f9, $75, $00, $e8, $01, $76, $00, $f0, $f2, $7e, $10, $f0, $fa, $7f, $10, $f0
-    db $02, $80, $10, $f8, $f2, $81, $10, $f8, $fa, $82, $10, $f8, $02, $83, $10, $80
+    db $80
+
+SpriteFrameData_2600::
+    db $e5, $f8, $70, $00, $e5, $00, $71, $00, $ed, $f8, $80, $00, $ed, $00, $81, $00
+    db $f5, $f8, $82, $00, $f5, $00, $83, $00, $f5, $08, $84, $00, $fd, $f8, $85, $00
+    db $fd, $00, $86, $00, $80
+
+SpriteFrameData_2625::
+    db $e5, $f8, $70, $00, $e5, $00, $71, $00, $ed, $f9, $87, $00, $ed, $01, $88, $00
+    db $f5, $f8, $89, $00, $f5, $00, $8a, $00, $fd, $f8, $85, $00, $fd, $00, $8b, $00
+    db $80
+
+SpriteFrameData_2646::
+    db $e8, $fc, $8c, $00, $e8, $04, $8d, $00, $f0, $fa, $8e, $00, $f0, $02, $8f, $00
+    db $f8, $f4, $90, $00, $f8, $fc, $91, $00, $f8, $04, $92, $00, $80
+
+SpriteFrameData_2663::
+    db $e0, $f8, $70, $00, $e0, $00, $71, $00, $e8, $f8, $93, $00, $e8, $00, $94, $00
+    db $f0, $f8, $95, $00, $f0, $00, $96, $00, $f8, $f8, $97, $00, $f8, $00, $98, $00
+    db $80
+
+SpriteFrameData_2684::
+    db $e0, $f8, $70, $00, $e0, $00, $71, $00, $e8, $f8, $72, $00, $e8, $00, $73, $00
+    db $f0, $f8, $99, $00, $f0, $00, $9a, $00, $f8, $f8, $9b, $00, $f8, $00, $9c, $00
+    db $80
+
+SpriteFrameData_26a5::
+    db $d9, $f3, $70, $00, $e0, $ee, $71, $10, $e0, $f6, $72, $10, $e0, $fe, $73, $10
+    db $e8, $f1, $74, $00, $e8, $f9, $75, $00, $e8, $01, $76, $00, $f0, $f4, $77, $10
+    db $f0, $fc, $78, $10, $f0, $04, $79, $10, $f8, $f3, $7a, $10, $f8, $fb, $7b, $10
+    db $f8, $03, $7c, $10, $80
+
+SpriteFrameData_26da::
+    db $d9, $f3, $70, $00, $e0, $ee, $71, $10, $e0, $f6, $72, $10, $e0, $fe, $73, $10
+    db $e8, $f1, $7d, $00, $e8, $f9, $75, $00, $e8, $01, $76, $00, $f0, $f2, $7e, $10
+    db $f0, $fa, $7f, $10, $f0, $02, $80, $10, $f8, $f2, $81, $10, $f8, $fa, $82, $10
+    db $f8, $02, $83, $10, $80
+
+SpriteFrameData_270f::
     db $e0, $f4, $84, $10, $e0, $fc, $85, $10, $e0, $04, $86, $10, $e8, $f4, $87, $00
     db $e8, $fc, $88, $00, $e8, $04, $89, $00, $f0, $f4, $8a, $10, $f0, $fc, $8b, $10
     db $f0, $04, $8c, $10, $f8, $f3, $7a, $10, $f8, $fb, $7b, $10, $f8, $03, $7c, $10
-    db $80, $e0
-
-    db $f4
-    add h
-    db $10
-
-    db $e0
-
-    db $fc
-    add l
-    db $10
-
-    db $e0
-
-    inc b
-    add [hl]
-    db $10
-
-    db $e8
-
-    db $f4
-    sub b
-    nop
-
-    db $e8
-
-    db $fc
-    adc b
-    nop
-
-    db $e8
-
-    inc b
-    adc c
-    nop
-
-    db $f0
-
-    ldh a, [c]
-    ld a, [hl]
-    db $10
-
-    db $f0
-
-    ld a, [$1091]
-
-    db $f0
-
-    ld [bc], a
-    sub d
-    db $10
-
-    db $f8
-
-    ldh a, [c]
-    add c
-    db $10
-
-    db $f8
-
-    ld a, [$1082]
-
-    db $f8
-
-    ld [bc], a
-    add e
-    db $10
-
-    db $80, $e5, $f4, $93, $10, $e5, $fc, $94, $10, $e5, $04, $95, $10, $ed, $ed, $96
-    db $00, $ed, $f5, $97, $00, $ed, $fd, $98, $00, $ed, $05, $99, $00, $f5, $ed, $9a
-    db $10, $f5, $f5, $9b, $10, $f5, $fd, $9c, $10, $f5, $05, $9d, $10, $fd, $f4, $9e
-    db $10, $fd, $fc, $9f, $10, $fd, $04, $7c, $10, $80, $e5, $f4, $a0, $10, $e5, $fc
-    db $a1, $10, $ea, $ec, $a2, $10, $ed, $f4, $a3, $10, $ed, $fc, $a4, $10, $ea, $04
-    db $a5, $10, $f5, $f4, $a6, $10, $f5, $fc, $a7, $10, $f2, $04, $a8, $10, $f6, $0c
-    db $8d, $10, $fd, $f4, $8e, $10, $fd, $fc, $9f, $10, $fa, $04, $8f, $10, $80, $f8
-    db $fc, $70, $00, $80, $db, $f7, $70, $10, $db, $ff, $71, $10, $e3, $f0, $72, $00
-    db $e3, $f8, $73, $00, $e3, $00, $74, $00, $e3, $08, $75, $00, $eb, $f0, $76, $00
-    db $eb, $f8, $77, $00, $eb, $00, $78, $00, $eb, $08, $79, $00, $f3, $f4, $7a, $10
-    db $f3, $fc, $7b, $10, $f3, $04, $b9, $10, $fb, $f9, $7c, $10, $fb, $00, $7c, $10
-    db $80, $dc, $f7, $70, $10, $dc, $ff, $71, $10, $e4, $f0, $7e, $00, $e4, $f8, $73
-    db $00, $e4, $00, $74, $00, $e4, $08, $7f, $00, $ec, $f0, $80, $00, $ec, $f8, $77
-    db $00, $ec, $00, $78, $00, $ec, $08, $81, $00, $f4, $f1, $82, $10, $f4, $f9, $83
-    db $10, $f4, $01, $84, $10, $fc, $f7, $85, $10, $fc, $ff, $86, $10, $80, $dc, $f7
-    db $70, $10, $dc, $ff, $71, $10, $e4, $f2, $87, $00, $e4, $fa, $88, $00, $e4, $02
-    db $89, $00, $ec, $f2, $8a, $00, $ec, $fa, $8b, $00, $ec, $02, $8c, $00, $f4, $f2
-    db $8d, $10, $f4, $fa, $8e, $10, $f4, $02, $8f, $10, $fc, $f5, $90, $10, $fc, $02
-    db $7d, $10, $80, $e0, $f0, $92, $10, $e0, $f8, $93, $10, $e0, $00, $94, $10, $e8
-    db $f0, $95, $00, $e8, $f8, $96, $00, $e8, $00, $97, $00, $e8, $08, $98, $00, $f0
-    db $f0, $99, $00, $f0, $f8, $9a, $00, $f0, $00, $9b, $00, $f0, $08, $9c, $00, $f8
-    db $f8, $9d, $10, $f8, $00, $9e, $10, $f8, $08, $9f, $10, $80, $e0, $f7, $a0, $10
-    db $e0, $ff, $a1, $10, $e0, $08, $a2, $10, $e8, $f0, $7e, $00, $e8, $f8, $73, $00
-    db $e8, $00, $a3, $00, $e8, $08, $a4, $00, $f0, $f0, $80, $00, $f0, $f8, $a5, $00
-    db $f0, $00, $a6, $00, $f0, $08, $a7, $00, $f8, $f6, $a8, $10, $f8, $fe, $a9, $10
-    db $f8, $06, $aa, $10, $f8, $0e, $91, $10, $80, $e1, $f7, $a0, $10, $e1, $ff, $a1
-    db $10, $e9, $f0, $ac, $00, $e9, $f8, $73, $00, $e9, $00, $74, $00, $e9, $08, $ad
-    db $00, $f1, $f0, $ae, $00, $f1, $f8, $b1, $00, $f1, $00, $ab, $00, $f1, $08, $af
-    db $00, $f9, $f6, $a8, $10, $f9, $fe, $a9, $10, $f9, $06, $b0, $10, $80, $db, $f7
-    db $70, $10, $db, $ff, $71, $10, $e3, $f3, $b3, $00, $e3, $fb, $b4, $00, $e3, $03
-    db $bf, $00, $eb, $f3, $b6, $00, $eb, $fb, $b7, $00, $eb, $03, $b8, $00, $f3, $f4
-    db $7a, $10, $f3, $fc, $7b, $10, $f3, $04, $b9, $10, $fb, $f9, $7c, $10, $fb, $00
-    db $7c, $10, $80, $e3, $fa, $c5, $10, $e3, $00, $70, $10, $e3, $08, $71, $10, $eb
-    db $f4, $bc, $10, $eb, $fc, $bd, $00, $eb, $04, $b4, $00, $eb, $0c, $bf, $00, $f3
-    db $f6, $b2, $10, $f3, $fe, $b5, $10, $f3, $06, $ba, $00, $f3, $0e, $bb, $00, $fb
-    db $f9, $be, $10, $fb, $06, $7c, $10, $f8, $0e, $cf, $00, $80, $d9, $fa, $c5, $10
-    db $e1, $f7, $c6, $00, $e1, $ff, $c7, $00, $e8, $ef, $c0, $00, $e8, $f7, $c1, $00
-    db $e9, $ff, $ca, $00, $e8, $07, $c0, $20, $f0, $ef, $c2, $00, $f0, $f7, $cc, $00
-    db $f0, $ff, $cc, $00, $f0, $07, $c2, $20, $f8, $ef, $c3, $10, $f8, $f7, $ce, $10
-    db $f8, $ff, $c4, $10, $f8, $07, $c3, $30, $80, $d8, $fa, $c5, $10, $e0, $f7, $c6
-    db $00, $e0, $ff, $c7, $00, $e8, $ef, $c8, $00, $e8, $f7, $c9, $00, $e8, $ff, $ca
-    db $00, $e8, $07, $c8, $20, $f0, $ef, $cb, $00, $f0, $f7, $cc, $00, $f0, $ff, $cc
-    db $00, $f0, $07, $cb, $20, $f8, $ef, $cd, $10, $f8, $f7, $ce, $10, $f8, $ff, $c4
-    db $10, $f8, $07, $cd, $30, $80, $f8, $fc, $cf, $00, $80, $eb, $f8, $00, $01, $eb
-    db $00, $01, $01, $f3, $f8, $02, $01, $f3, $00, $03, $01, $fb, $f8, $04, $01, $fb
-    db $00, $05, $01, $80, $eb, $f8, $06, $01, $eb, $00, $07, $01, $f3, $f8, $08, $01
-    db $f3, $00, $09, $01, $fb, $f8, $0a, $01, $fb, $00, $0b, $01, $80
-
-    db $eb
-    db $fc
-    inc c
-    ld bc, $f8f3
-    dec c
-    ld bc, $00f3
-    ld c, $01
-    ei
-    ld hl, sp+$0f
-    ld bc, $00fb
-    db $10
-    db $01
-    add b
-
-    db $eb, $00, $11, $01, $f3, $f7, $11, $21, $f3, $00, $12, $01, $80, $eb, $f8, $13
-    db $01, $eb, $00, $14, $01, $f3, $f8, $15, $01, $f3, $00, $16, $01, $fb, $f8, $17
-    db $01, $fb, $00, $18, $01, $80, $ec, $f8, $13, $01, $ec, $00, $14, $01, $f4, $f8
-    db $19, $01, $f4, $00, $1a, $01, $fc, $f8, $1b, $01, $fc, $00, $1c, $01, $80, $ec
-    db $f8, $13, $01, $ec, $00, $14, $01, $f4, $f8, $1d, $01, $f4, $00, $1e, $01, $fc
-    db $f8, $1f, $01, $fc, $00, $20, $01, $80, $eb, $f8, $21, $01, $eb, $00, $22, $01
-    db $f3, $f8, $15, $01, $f3, $00, $16, $01, $fb, $f8, $17, $01, $fb, $00, $18, $01
     db $80
 
-    db $ed
-    ld hl, sp+$23
-    ld bc, $00ed
-    inc h
-    ld bc, $f8f5
-    dec h
-    ld bc, $00f5
-    ld h, $01
-    db $fd
-    ld hl, sp+$27
-    ld bc, $00fd
-    jr z, jr_000_2afc
+SpriteFrameData_2740::
+    db $e0, $f4, $84, $10, $e0, $fc, $85, $10, $e0, $04, $86, $10, $e8, $f4, $90, $00
+    db $e8, $fc, $88, $00, $e8, $04, $89, $00, $f0, $f2, $7e, $10, $f0, $fa, $91, $10
+    db $f0, $02, $92, $10, $f8, $f2, $81, $10, $f8, $fa, $82, $10, $f8, $02, $83, $10
+    db $80
 
-    add b
+SpriteFrameData_2771::
+    db $e5, $f4, $93, $10, $e5, $fc, $94, $10, $e5, $04, $95, $10, $ed, $ed, $96, $00
+    db $ed, $f5, $97, $00, $ed, $fd, $98, $00, $ed, $05, $99, $00, $f5, $ed, $9a, $10
+    db $f5, $f5, $9b, $10, $f5, $fd, $9c, $10, $f5, $05, $9d, $10, $fd, $f4, $9e, $10
+    db $fd, $fc, $9f, $10, $fd, $04, $7c, $10, $80
 
-jr_000_2afc::
-    db $ec
-    ld sp, hl
-    inc hl
-    ld bc, $01ec
-    inc h
-    ld bc, $f9f4
-    add hl, hl
-    ld bc, $01f4
-    ld a, [hl+]
-    ld bc, $09f4
-    dec hl
-    ld bc, $0df1
-    dec l
-    ld bc, $f7fc
-    rra
-    ld bc, $fffc
-    inc l
-    ld bc, $ec80
-    ld sp, hl
-    inc hl
-    ld bc, $01ec
-    inc h
-    ld bc, $12ee
-    ld l, $01
-    db $f4
-    ld sp, hl
-    add hl, hl
-    ld bc, $01f4
-    ld a, [hl+]
-    ld bc, $09f4
-    dec hl
-    ld bc, $f7fc
-    rra
-    ld bc, $fffc
-    inc l
-    ld bc, $ec80
-    ld sp, hl
-    inc hl
-    ld bc, $01ec
-    inc h
-    ld bc, $f9f4
-    add hl, hl
-    ld bc, $01f4
-    ld a, [hl+]
-    ld bc, $09f4
-    dec hl
-    ld bc, $f7fc
-    rra
-    ld bc, $fffc
-    inc l
-    db $01
-    add b
+SpriteFrameData_27aa::
+    db $e5, $f4, $a0, $10, $e5, $fc, $a1, $10, $ea, $ec, $a2, $10, $ed, $f4, $a3, $10
+    db $ed, $fc, $a4, $10, $ea, $04, $a5, $10, $f5, $f4, $a6, $10, $f5, $fc, $a7, $10
+    db $f2, $04, $a8, $10, $f6, $0c, $8d, $10, $fd, $f4, $8e, $10, $fd, $fc, $9f, $10
+    db $fa, $04, $8f, $10, $80
 
+SpriteFrameData_27df::
+    db $f8, $fc, $70, $00, $80
+
+SpriteFrameData_27e4::
+    db $db, $f7, $70, $10, $db, $ff, $71, $10, $e3, $f0, $72, $00, $e3, $f8, $73, $00
+    db $e3, $00, $74, $00, $e3, $08, $75, $00, $eb, $f0, $76, $00, $eb, $f8, $77, $00
+    db $eb, $00, $78, $00, $eb, $08, $79, $00, $f3, $f4, $7a, $10, $f3, $fc, $7b, $10
+    db $f3, $04, $b9, $10, $fb, $f9, $7c, $10, $fb, $00, $7c, $10, $80
+
+SpriteFrameData_2821::
+    db $dc, $f7, $70, $10, $dc, $ff, $71, $10, $e4, $f0, $7e, $00, $e4, $f8, $73, $00
+    db $e4, $00, $74, $00, $e4, $08, $7f, $00, $ec, $f0, $80, $00, $ec, $f8, $77, $00
+    db $ec, $00, $78, $00, $ec, $08, $81, $00, $f4, $f1, $82, $10, $f4, $f9, $83, $10
+    db $f4, $01, $84, $10, $fc, $f7, $85, $10, $fc, $ff, $86, $10, $80
+
+SpriteFrameData_285e::
+    db $dc, $f7, $70, $10, $dc, $ff, $71, $10, $e4, $f2, $87, $00, $e4, $fa, $88, $00
+    db $e4, $02, $89, $00, $ec, $f2, $8a, $00, $ec, $fa, $8b, $00, $ec, $02, $8c, $00
+    db $f4, $f2, $8d, $10, $f4, $fa, $8e, $10, $f4, $02, $8f, $10, $fc, $f5, $90, $10
+    db $fc, $02, $7d, $10, $80
+
+SpriteFrameData_2893::
+    db $e0, $f0, $92, $10, $e0, $f8, $93, $10, $e0, $00, $94, $10, $e8, $f0, $95, $00
+    db $e8, $f8, $96, $00, $e8, $00, $97, $00, $e8, $08, $98, $00, $f0, $f0, $99, $00
+    db $f0, $f8, $9a, $00, $f0, $00, $9b, $00, $f0, $08, $9c, $00, $f8, $f8, $9d, $10
+    db $f8, $00, $9e, $10, $f8, $08, $9f, $10, $80
+
+SpriteFrameData_28cc::
+    db $e0, $f7, $a0, $10, $e0, $ff, $a1, $10, $e0, $08, $a2, $10, $e8, $f0, $7e, $00
+    db $e8, $f8, $73, $00, $e8, $00, $a3, $00, $e8, $08, $a4, $00, $f0, $f0, $80, $00
+    db $f0, $f8, $a5, $00, $f0, $00, $a6, $00, $f0, $08, $a7, $00, $f8, $f6, $a8, $10
+    db $f8, $fe, $a9, $10, $f8, $06, $aa, $10, $f8, $0e, $91, $10, $80
+
+SpriteFrameData_2909::
+    db $e1, $f7, $a0, $10, $e1, $ff, $a1, $10, $e9, $f0, $ac, $00, $e9, $f8, $73, $00
+    db $e9, $00, $74, $00, $e9, $08, $ad, $00, $f1, $f0, $ae, $00, $f1, $f8, $b1, $00
+    db $f1, $00, $ab, $00, $f1, $08, $af, $00, $f9, $f6, $a8, $10, $f9, $fe, $a9, $10
+    db $f9, $06, $b0, $10, $80
+
+SpriteFrameData_293e::
+    db $db, $f7, $70, $10, $db, $ff, $71, $10, $e3, $f3, $b3, $00, $e3, $fb, $b4, $00
+    db $e3, $03, $bf, $00, $eb, $f3, $b6, $00, $eb, $fb, $b7, $00, $eb, $03, $b8, $00
+    db $f3, $f4, $7a, $10, $f3, $fc, $7b, $10, $f3, $04, $b9, $10, $fb, $f9, $7c, $10
+    db $fb, $00, $7c, $10, $80
+
+SpriteFrameData_2973::
+    db $e3, $fa, $c5, $10, $e3, $00, $70, $10, $e3, $08, $71, $10, $eb, $f4, $bc, $10
+    db $eb, $fc, $bd, $00, $eb, $04, $b4, $00, $eb, $0c, $bf, $00, $f3, $f6, $b2, $10
+    db $f3, $fe, $b5, $10, $f3, $06, $ba, $00, $f3, $0e, $bb, $00, $fb, $f9, $be, $10
+    db $fb, $06, $7c, $10, $f8, $0e, $cf, $00, $80
+
+SpriteFrameData_29ac::
+    db $d9, $fa, $c5, $10, $e1, $f7, $c6, $00, $e1, $ff, $c7, $00, $e8, $ef, $c0, $00
+    db $e8, $f7, $c1, $00, $e9, $ff, $ca, $00, $e8, $07, $c0, $20, $f0, $ef, $c2, $00
+    db $f0, $f7, $cc, $00, $f0, $ff, $cc, $00, $f0, $07, $c2, $20, $f8, $ef, $c3, $10
+    db $f8, $f7, $ce, $10, $f8, $ff, $c4, $10, $f8, $07, $c3, $30, $80
+
+SpriteFrameData_29e9::
+    db $d8, $fa, $c5, $10, $e0, $f7, $c6, $00, $e0, $ff, $c7, $00, $e8, $ef, $c8, $00
+    db $e8, $f7, $c9, $00, $e8, $ff, $ca, $00, $e8, $07, $c8, $20, $f0, $ef, $cb, $00
+    db $f0, $f7, $cc, $00, $f0, $ff, $cc, $00, $f0, $07, $cb, $20, $f8, $ef, $cd, $10
+    db $f8, $f7, $ce, $10, $f8, $ff, $c4, $10, $f8, $07, $cd, $30, $80
+
+SpriteFrameData_2a26::
+    db $f8, $fc, $cf, $00, $80
+
+SpriteFrameData_2a2b::
+    db $eb, $f8, $00, $01, $eb, $00, $01, $01, $f3, $f8, $02, $01, $f3, $00, $03, $01
+    db $fb, $f8, $04, $01, $fb, $00, $05, $01, $80
+
+SpriteFrameData_2a44::
+    db $eb, $f8, $06, $01, $eb, $00, $07, $01, $f3, $f8, $08, $01, $f3, $00, $09, $01
+    db $fb, $f8, $0a, $01, $fb, $00, $0b, $01, $80
+
+SpriteFrameData_2a5d::
+    db $eb, $fc, $0c, $01, $f3, $f8, $0d, $01, $f3, $00, $0e, $01, $fb, $f8, $0f, $01
+    db $fb, $00, $10, $01, $80
+
+SpriteFrameData_2a72::
+    db $eb, $00, $11, $01, $f3, $f7, $11, $21, $f3, $00, $12, $01, $80
+
+SpriteFrameData_2a7f::
+    db $eb, $f8, $13, $01, $eb, $00, $14, $01, $f3, $f8, $15, $01, $f3, $00, $16, $01
+    db $fb, $f8, $17, $01, $fb, $00, $18, $01, $80
+
+SpriteFrameData_2a98::
+    db $ec, $f8, $13, $01, $ec, $00, $14, $01, $f4, $f8, $19, $01, $f4, $00, $1a, $01
+    db $fc, $f8, $1b, $01, $fc, $00, $1c, $01, $80
+
+SpriteFrameData_2ab1::
+    db $ec, $f8, $13, $01, $ec, $00, $14, $01, $f4, $f8, $1d, $01, $f4, $00, $1e, $01
+    db $fc, $f8, $1f, $01, $fc, $00, $20, $01, $80
+
+SpriteFrameData_2aca::
+    db $eb, $f8, $21, $01, $eb, $00, $22, $01, $f3, $f8, $15, $01, $f3, $00, $16, $01
+    db $fb, $f8, $17, $01, $fb, $00, $18, $01, $80
+
+SpriteFrameData_2ae3::
+    db $ed, $f8, $23, $01, $ed, $00, $24, $01, $f5, $f8, $25, $01, $f5, $00, $26, $01
+    db $fd, $f8, $27, $01, $fd, $00, $28, $01, $80
+
+SpriteFrameData_2afc::
+    db $ec, $f9, $23, $01, $ec, $01, $24, $01, $f4, $f9, $29, $01, $f4, $01, $2a, $01
+    db $f4, $09, $2b, $01, $f1, $0d, $2d, $01, $fc, $f7, $1f, $01, $fc, $ff, $2c, $01
+    db $80
+
+SpriteFrameData_2b1d::
+    db $ec, $f9, $23, $01, $ec, $01, $24, $01, $ee, $12, $2e, $01, $f4, $f9, $29, $01
+    db $f4, $01, $2a, $01, $f4, $09, $2b, $01, $fc, $f7, $1f, $01, $fc, $ff, $2c, $01
+    db $80
+
+SpriteFrameData_2b3e::
+    db $ec, $f9, $23, $01, $ec, $01, $24, $01, $f4, $f9, $29, $01, $f4, $01, $2a, $01
+    db $f4, $09, $2b, $01, $fc, $f7, $1f, $01, $fc, $ff, $2c, $01, $80
+
+SpriteFrameData_2b5b::
     db $f0, $f8, $2f, $01, $f0, $00, $30, $01, $f8, $f8, $31, $01, $f8, $00, $32, $01
     db $80
 
-    ldh a, [$fff8]
-    inc sp
-    ld bc, $00f0
-    inc [hl]
-    ld bc, $f8f8
-    dec [hl]
-    ld bc, $00f8
-    ld [hl-], a
-    db $01
-    add b
+SpriteFrameData_2b6c::
+    db $f0, $f8, $33, $01, $f0, $00, $34, $01, $f8, $f8, $35, $01, $f8, $00, $32, $01
+    db $80
 
+SpriteFrameData_2b7d::
     db $eb, $f8, $36, $01, $eb, $00, $37, $01, $f3, $f8, $38, $01, $f3, $00, $39, $01
-    db $fb, $fc, $3a, $01, $80, $ec, $f8, $3b, $01, $ec, $00, $3c, $01, $f4, $f1, $3d
-    db $01, $f4, $f9, $3e, $01, $f4, $01, $3f, $01, $fc, $f8, $40, $01, $fc, $00, $41
-    db $01, $80, $ef, $f8, $42, $01, $ef, $00, $43, $01, $f7, $f8, $47, $01, $f7, $00
-    db $48, $01, $fe, $f8, $46, $01, $fe, $00, $46, $21, $80, $ee, $f8, $42, $01, $ee
-    db $00, $43, $01, $f6, $f8, $44, $01, $f6, $00, $45, $01, $fe, $f8, $46, $01, $fe
-    db $00, $46, $21, $80, $eb, $f8, $49, $01, $eb, $00, $4a, $01, $f3, $f8, $4b, $01
-    db $f3, $00, $4c, $01, $fb, $fc, $3a, $01, $80, $eb, $f8, $4d, $01, $eb, $00, $4e
-    db $01, $f3, $f8, $4f, $01, $f3, $00, $50, $01, $fa, $f8, $1f, $01, $fa, $00, $20
-    db $01, $80
+    db $fb, $fc, $3a, $01, $80
 
-    db $eb
-    ld hl, sp+$51
-    ld bc, $00eb
-    ld d, d
-    ld bc, $f8f3
-    ld d, e
-    ld bc, $00f3
-    ld d, h
-    ld bc, $f8fa
-    dec de
-    ld bc, $00fa
-    inc e
-    db $01
-    add b
+SpriteFrameData_2b92::
+    db $ec, $f8, $3b, $01, $ec, $00, $3c, $01, $f4, $f1, $3d, $01, $f4, $f9, $3e, $01
+    db $f4, $01, $3f, $01, $fc, $f8, $40, $01, $fc, $00, $41, $01, $80
 
+SpriteFrameData_2baf::
+    db $ef, $f8, $42, $01, $ef, $00, $43, $01, $f7, $f8, $47, $01, $f7, $00, $48, $01
+    db $fe, $f8, $46, $01, $fe, $00, $46, $21, $80
+
+SpriteFrameData_2bc8::
+    db $ee, $f8, $42, $01, $ee, $00, $43, $01, $f6, $f8, $44, $01, $f6, $00, $45, $01
+    db $fe, $f8, $46, $01, $fe, $00, $46, $21, $80
+
+SpriteFrameData_2be1::
+    db $eb, $f8, $49, $01, $eb, $00, $4a, $01, $f3, $f8, $4b, $01, $f3, $00, $4c, $01
+    db $fb, $fc, $3a, $01, $80
+
+SpriteFrameData_2bf6::
+    db $eb, $f8, $4d, $01, $eb, $00, $4e, $01, $f3, $f8, $4f, $01, $f3, $00, $50, $01
+    db $fa, $f8, $1f, $01, $fa, $00, $20, $01, $80
+
+SpriteFrameData_2c0f::
+    db $eb, $f8, $51, $01, $eb, $00, $52, $01, $f3, $f8, $53, $01, $f3, $00, $54, $01
+    db $fa, $f8, $1b, $01, $fa, $00, $1c, $01, $80
+
+SpriteFrameData_2c28::
     db $eb, $f8, $eb, $01, $eb, $00, $ec, $01, $f3, $f8, $ed, $01, $f3, $00, $ee, $01
     db $fb, $f9, $ef, $21, $fb, $00, $ef, $01, $80, $f8, $f8, $d0, $10, $f8, $00, $d1
     db $10, $00, $f8, $d2, $10, $00, $00, $d3, $10, $80, $f8, $f8, $d4, $10, $f8, $00
@@ -5649,1306 +5530,502 @@ jr_000_2afc::
     db $f8, $00, $dd, $10, $00, $f8, $d2, $10, $00, $00, $de, $10, $80, $f8, $fc, $df
     db $10, $00, $fc, $e0, $10, $80, $f8, $f8, $e1, $10, $f8, $00, $e2, $10, $00, $f8
     db $e3, $10, $00, $00, $e4, $10, $80, $f8, $f8, $e5, $10, $f8, $00, $e6, $10, $00
-    db $f8, $e7, $10, $00, $00, $e8, $10, $80
+    db $f8, $e7, $10, $00, $00, $e8, $10, $80, $f0, $fc, $e9, $10, $f8, $fc, $ea, $10
+    db $80
 
-    ldh a, [$fffc]
-    jp hl
-
-
-    db $10
-    ld hl, sp-$04
-    ld [$8010], a
-
+SpriteFrameData_2cb9::
     db $eb, $f8, $13, $01, $eb, $00, $14, $01, $f4, $f0, $19, $01, $f3, $f8, $15, $01
-    db $f3, $00, $16, $01, $fb, $f8, $17, $01, $fb, $00, $18, $01, $80, $ec, $f8, $13
-    db $01, $ec, $00, $14, $01, $f4, $f0, $1e, $01, $f4, $f8, $1a, $01, $f4, $00, $1b
-    db $01, $fc, $f8, $1c, $01, $fc, $00, $1d, $01, $80, $ec, $f8, $13, $01, $ec, $00
-    db $14, $01, $f4, $f0, $1e, $01, $f4, $f8, $1f, $01, $f4, $00, $20, $01, $fc, $f8
-    db $21, $01, $fc, $00, $22, $01, $80
+    db $f3, $00, $16, $01, $fb, $f8, $17, $01, $fb, $00, $18, $01, $80
 
-    db $ed
-    ld hl, sp+$23
-    ld bc, $00ed
-    inc h
-    ld bc, $f0f5
-    add hl, hl
-    ld bc, $f8f5
-    dec h
-    ld bc, $00f5
-    ld h, $01
-    db $fd
-    ld hl, sp+$27
-    ld bc, $00fd
-    jr z, jr_000_2d2d
+SpriteFrameData_2cd6::
+    db $ec, $f8, $13, $01, $ec, $00, $14, $01, $f4, $f0, $1e, $01, $f4, $f8, $1a, $01
+    db $f4, $00, $1b, $01, $fc, $f8, $1c, $01, $fc, $00, $1d, $01, $80
 
-    add b
+SpriteFrameData_2cf3::
+    db $ec, $f8, $13, $01, $ec, $00, $14, $01, $f4, $f0, $1e, $01, $f4, $f8, $1f, $01
+    db $f4, $00, $20, $01, $fc, $f8, $21, $01, $fc, $00, $22, $01, $80
 
-jr_000_2d2d::
-    db $ec
-    ld sp, hl
-    inc hl
-    ld bc, $01ec
-    inc h
-    ld bc, $f1f4
-    add hl, hl
-    ld bc, $f9f4
-    ld a, [hl+]
-    ld bc, $01f4
-    dec hl
-    ld bc, $09f4
-    inc l
-    ld bc, $0df1
-    cpl
-    ld bc, $f9fc
-    dec l
-    ld bc, Call_000_01fc
-    ld l, $01
-    add b
-    db $ec
-    ld sp, hl
-    inc hl
-    ld bc, $01ec
-    inc h
-    ld bc, $12ee
-    jr nc, jr_000_2d5f
+SpriteFrameData_2d10::
+    db $ed, $f8, $23, $01, $ed, $00, $24, $01, $f5, $f0, $29, $01, $f5, $f8, $25, $01
+    db $f5, $00, $26, $01, $fd, $f8, $27, $01, $fd, $00, $28, $01, $80
 
-    db $f4
+SpriteFrameData_2d2d::
+    db $ec, $f9, $23, $01, $ec, $01, $24, $01, $f4, $f1, $29, $01, $f4, $f9, $2a, $01
+    db $f4, $01, $2b, $01, $f4, $09, $2c, $01, $f1, $0d, $2f, $01, $fc, $f9, $2d, $01
+    db $fc, $01, $2e, $01, $80
 
-jr_000_2d5f::
-    pop af
-    add hl, hl
-    ld bc, $f9f4
-    ld a, [hl+]
-    ld bc, $01f4
-    dec hl
-    ld bc, $09f4
-    inc l
-    ld bc, $f9fc
-    dec l
-    ld bc, Call_000_01fc
-    ld l, $01
-    add b
-    db $ec
-    ld sp, hl
-    inc hl
-    ld bc, $01ec
-    inc h
-    ld bc, $f1f4
-    add hl, hl
-    ld bc, $f9f4
-    ld a, [hl+]
-    ld bc, $01f4
-    dec hl
-    ld bc, $09f4
-    inc l
-    ld bc, $f9fc
-    dec l
-    ld bc, Call_000_01fc
-    ld l, $01
-    add b
+SpriteFrameData_2d52::
+    db $ec, $f9, $23, $01, $ec, $01, $24, $01, $ee, $12, $30, $01, $f4, $f1, $29, $01
+    db $f4, $f9, $2a, $01, $f4, $01, $2b, $01, $f4, $09, $2c, $01, $fc, $f9, $2d, $01
+    db $fc, $01, $2e, $01, $80
 
+SpriteFrameData_2d77::
+    db $ec, $f9, $23, $01, $ec, $01, $24, $01, $f4, $f1, $29, $01, $f4, $f9, $2a, $01
+    db $f4, $01, $2b, $01, $f4, $09, $2c, $01, $fc, $f9, $2d, $01, $fc, $01, $2e, $01
+    db $80
+
+SpriteFrameData_2d98::
     db $f0, $f8, $31, $01, $f0, $00, $32, $01, $f8, $f8, $33, $01, $f8, $00, $34, $01
-    db $80, $e8, $f8, $13, $01, $e8, $00, $14, $01, $f0, $f1, $35, $01, $f0, $f9, $36
-    db $01, $f0, $01, $37, $01, $f8, $f5, $38, $01, $f8, $fd, $39, $01, $80, $e7, $f8
-    db $13, $01, $e7, $00, $14, $01, $ef, $f0, $3a, $01, $ef, $f8, $3b, $01, $ef, $00
-    db $3c, $01, $f7, $f5, $3d, $01, $f7, $fd, $3e, $01, $80, $ef, $f8, $3f, $01, $ef
-    db $00, $40, $01, $f7, $f8, $44, $01, $f7, $00, $45, $01, $fe, $f8, $43, $01, $fe
-    db $00, $43, $21, $80, $ee, $f8, $3f, $01, $ee, $00, $40, $01, $f6, $f8, $41, $01
-    db $f6, $00, $42, $01, $fe, $f8, $43, $01, $fe, $00, $43, $21, $80, $eb, $f8, $46
-    db $01, $eb, $00, $47, $01, $f3, $f8, $48, $01, $f3, $00, $49, $01, $fb, $f8, $4a
-    db $01, $fb, $00, $4b, $01, $80, $eb, $f8, $4c, $01, $eb, $00, $4d, $01, $f3, $f8
-    db $4e, $01, $f3, $00, $4f, $01, $fb, $f8, $50, $01, $fb, $00, $51, $01, $80, $eb
-    db $f8, $52, $01, $eb, $00, $53, $01, $f3, $f8, $54, $01, $f3, $00, $55, $01, $fb
-    db $f8, $56, $01, $fb, $00, $57, $01, $80, $e7, $f8, $58, $01, $e7, $00, $59, $01
-    db $ef, $f8, $5a, $01, $ef, $00, $5b, $01, $f7, $f5, $5c, $01, $f7, $fd, $39, $01
-    db $80, $e8, $f8, $58, $01, $e8, $00, $59, $01, $f0, $f1, $5d, $01, $f0, $f9, $5e
-    db $01, $f0, $01, $5f, $01, $f8, $f2, $60, $01, $f8, $fa, $61, $01, $80, $fc, $fc
-    db $62, $00, $80, $fc, $fc, $63, $00, $80, $ec, $f9, $13, $01, $ec, $01, $14, $01
-    db $f4, $f2, $64, $01, $f4, $fa, $36, $01, $f4, $01, $3c, $01, $fc, $f9, $2d, $01
-    db $fc, $01, $2e, $01, $80, $ec, $fb, $58, $01, $ec, $03, $59, $01, $f4, $f5, $65
-    db $01, $f4, $fc, $5e, $01, $f4, $04, $5f, $01, $fc, $f9, $2d, $01, $fc, $01, $2e
+    db $80
+
+SpriteFrameData_2da9::
+    db $e8, $f8, $13, $01, $e8, $00, $14, $01, $f0, $f1, $35, $01, $f0, $f9, $36, $01
+    db $f0, $01, $37, $01, $f8, $f5, $38, $01, $f8, $fd, $39, $01, $80
+
+SpriteFrameData_2dc6::
+    db $e7, $f8, $13, $01, $e7, $00, $14, $01, $ef, $f0, $3a, $01, $ef, $f8, $3b, $01
+    db $ef, $00, $3c, $01, $f7, $f5, $3d, $01, $f7, $fd, $3e, $01, $80
+
+SpriteFrameData_2de3::
+    db $ef, $f8, $3f, $01, $ef, $00, $40, $01, $f7, $f8, $44, $01, $f7, $00, $45, $01
+    db $fe, $f8, $43, $01, $fe, $00, $43, $21, $80
+
+SpriteFrameData_2dfc::
+    db $ee, $f8, $3f, $01, $ee, $00, $40, $01, $f6, $f8, $41, $01, $f6, $00, $42, $01
+    db $fe, $f8, $43, $01, $fe, $00, $43, $21, $80
+
+SpriteFrameData_2e15::
+    db $eb, $f8, $46, $01, $eb, $00, $47, $01, $f3, $f8, $48, $01, $f3, $00, $49, $01
+    db $fb, $f8, $4a, $01, $fb, $00, $4b, $01, $80
+
+SpriteFrameData_2e2e::
+    db $eb, $f8, $4c, $01, $eb, $00, $4d, $01, $f3, $f8, $4e, $01, $f3, $00, $4f, $01
+    db $fb, $f8, $50, $01, $fb, $00, $51, $01, $80
+
+SpriteFrameData_2e47::
+    db $eb, $f8, $52, $01, $eb, $00, $53, $01, $f3, $f8, $54, $01, $f3, $00, $55, $01
+    db $fb, $f8, $56, $01, $fb, $00, $57, $01, $80
+
+SpriteFrameData_2e60::
+    db $e7, $f8, $58, $01, $e7, $00, $59, $01, $ef, $f8, $5a, $01, $ef, $00, $5b, $01
+    db $f7, $f5, $5c, $01, $f7, $fd, $39, $01, $80
+
+SpriteFrameData_2e79::
+    db $e8, $f8, $58, $01, $e8, $00, $59, $01, $f0, $f1, $5d, $01, $f0, $f9, $5e, $01
+    db $f0, $01, $5f, $01, $f8, $f2, $60, $01, $f8, $fa, $61, $01, $80, $fc, $fc, $62
+    db $00, $80, $fc, $fc, $63, $00, $80
+
+SpriteFrameData_2ea0::
+    db $ec, $f9, $13, $01, $ec, $01, $14, $01, $f4, $f2, $64, $01, $f4, $fa, $36, $01
+    db $f4, $01, $3c, $01, $fc, $f9, $2d, $01, $fc, $01, $2e, $01, $80
+
+SpriteFrameData_2ebd::
+    db $ec, $fb, $58, $01, $ec, $03, $59, $01, $f4, $f5, $65, $01, $f4, $fc, $5e, $01
+    db $f4, $04, $5f, $01, $fc, $f9, $2d, $01, $fc, $01, $2e, $01, $80, $eb, $f8, $00
+    db $01, $eb, $00, $01, $01, $f3, $f8, $02, $01, $f3, $00, $03, $01, $fb, $f8, $04
+    db $01, $fb, $00, $05, $01, $80, $eb, $f8, $06, $01, $eb, $00, $07, $01, $f3, $f8
+    db $08, $01, $f3, $00, $09, $01, $fb, $f8, $0a, $01, $fb, $00, $0b, $01, $80, $eb
+    db $fc, $0c, $01, $f3, $f8, $0d, $01, $f3, $00, $0e, $01, $fb, $f8, $0f, $01, $fb
+    db $00, $10, $01, $80, $eb, $00, $11, $01, $f3, $f7, $11, $21, $f3, $00, $12, $01
+    db $80
+
+SpriteFrameData_2f2e::
+    db $eb, $f8, $13, $01, $eb, $00, $14, $01, $f3, $f0, $15, $01, $f3, $f8, $16, $01
+    db $f3, $00, $17, $01, $fb, $f8, $18, $01, $fb, $00, $19, $01, $80
+
+SpriteFrameData_2f4b::
+    db $ec, $f9, $13, $01, $ec, $01, $14, $01, $f4, $f1, $1a, $01, $f4, $f9, $1b, $01
+    db $f4, $01, $1c, $01, $fc, $f8, $1d, $01, $fc, $00, $1e, $01, $80
+
+SpriteFrameData_2f68::
+    db $ed, $f8, $1f, $01, $ed, $00, $20, $01, $f5, $f0, $21, $01, $f5, $f8, $22, $01
+    db $f5, $00, $23, $01, $fd, $f8, $24, $01, $fd, $00, $25, $01, $80
+
+SpriteFrameData_2f85::
+    db $ec, $f9, $1f, $01, $ec, $01, $20, $01, $f4, $f7, $26, $01, $f4, $ff, $27, $01
+    db $f4, $07, $28, $01, $f1, $0d, $2b, $01, $fc, $f9, $29, $01, $fc, $01, $2a, $01
+    db $80
+
+SpriteFrameData_2fa6::
+    db $ec, $f9, $1f, $01, $ec, $01, $20, $01, $ee, $12, $2c, $01, $f4, $f7, $26, $01
+    db $f4, $ff, $27, $01, $f4, $07, $28, $01, $fc, $f9, $29, $01, $fc, $01, $2a, $01
+    db $80
+
+SpriteFrameData_2fc7::
+    db $ec, $f9, $1f, $01, $ec, $01, $20, $01, $f4, $f7, $26, $01, $f4, $ff, $27, $01
+    db $f4, $07, $28, $01, $fc, $f9, $29, $01, $fc, $01, $2a, $01, $80
+
+SpriteFrameData_2fe4::
+    db $f0, $f8, $2d, $01, $f0, $00, $2e, $01, $f8, $f8, $2f, $01, $f8, $00, $30, $01
+    db $80
+
+SpriteFrameData_2ff5::
+    db $eb, $f8, $31, $01, $eb, $00, $14, $01, $f3, $f0, $32, $01, $f3, $f8, $33, $01
+    db $f3, $00, $34, $01, $fb, $f8, $35, $01, $fb, $00, $36, $01, $80
+
+SpriteFrameData_3012::
+    db $ea, $f8, $13, $01, $ea, $00, $14, $01, $f2, $f0, $37, $01, $f2, $f8, $38, $01
+    db $f2, $00, $39, $01, $fa, $f8, $35, $01, $fa, $00, $36, $01, $80
+
+SpriteFrameData_302f::
+    db $ef, $f8, $3a, $01, $ef, $00, $3b, $01, $f7, $f8, $3f, $01, $f7, $00, $40, $01
+    db $fe, $f8, $3e, $01, $fe, $00, $3e, $21, $80
+
+SpriteFrameData_3048::
+    db $ee, $f8, $3a, $01, $ee, $00, $3b, $01, $f6, $f8, $3c, $01, $f6, $00, $3d, $01
+    db $fe, $f8, $3e, $01, $fe, $00, $3e, $21, $80
+
+SpriteFrameData_3061::
+    db $eb, $f8, $41, $01, $eb, $00, $42, $01, $f3, $f8, $43, $01, $f3, $00, $44, $01
+    db $fb, $fc, $45, $01, $80
+
+SpriteFrameData_3076::
+    db $eb, $f8, $46, $01, $eb, $00, $47, $01, $f3, $f8, $48, $01, $f3, $00, $49, $01
+    db $fb, $f8, $4a, $01, $fb, $00, $4b, $01, $80
+
+SpriteFrameData_308f::
+    db $eb, $f8, $4c, $01, $eb, $00, $4d, $01, $f3, $f8, $4e, $01, $f3, $00, $4f, $01
+    db $fb, $f8, $50, $01, $fb, $00, $51, $01, $80
+
+SpriteFrameData_30a8::
+    db $ec, $f8, $31, $01, $ec, $00, $14, $01, $f4, $f0, $32, $01, $f4, $f8, $33, $01
+    db $f4, $00, $17, $01, $fc, $f8, $1d, $01, $fc, $00, $1e, $01, $80
+
+SpriteFrameData_30c5::
+    db $ec, $f9, $52, $01, $ec, $01, $53, $01, $f4, $f2, $54, $01, $f4, $fa, $55, $01
+    db $f4, $02, $56, $01, $fc, $f8, $57, $01, $fc, $00, $1e, $01, $80, $fc, $fc, $58
     db $01, $80
 
-    db $eb
-    ld hl, sp+$00
-    ld bc, $00eb
-    ld bc, $f301
-    ld hl, sp+$02
-    ld bc, $00f3
-    inc bc
-    ld bc, $f8fb
-    inc b
-    ld bc, $00fb
-    dec b
-    ld bc, $eb80
-    ld hl, sp+$06
-    ld bc, $00eb
-    rlca
-    ld bc, $f8f3
-    ld [$f301], sp
-    nop
-    add hl, bc
-    ld bc, $f8fb
-    ld a, [bc]
-    ld bc, $00fb
-    dec bc
-    ld bc, $eb80
-    db $fc
-    inc c
-    ld bc, $f8f3
-    dec c
-    ld bc, $00f3
-    ld c, $01
-    ei
-    ld hl, sp+$0f
-    ld bc, $00fb
-    db $10
-    ld bc, $eb80
-    nop
-    ld de, $f301
-    rst $30
-    ld de, $f321
-    nop
-    ld [de], a
-    db $01
-    add b
+SpriteFrameData_30e7::
+    db $eb, $f8, $52, $01, $eb, $00, $53, $01, $f3, $f1, $54, $01, $f3, $f9, $55, $01
+    db $f3, $01, $56, $01, $fb, $f8, $35, $01, $fb, $00, $36, $01, $80
 
-    db $eb, $f8, $13, $01, $eb, $00, $14, $01, $f3, $f0, $15, $01, $f3, $f8, $16, $01
-    db $f3, $00, $17, $01, $fb, $f8, $18, $01, $fb, $00, $19, $01, $80, $ec, $f9, $13
-    db $01, $ec, $01, $14, $01, $f4, $f1, $1a, $01, $f4, $f9, $1b, $01, $f4, $01, $1c
-    db $01, $fc, $f8, $1d, $01, $fc, $00, $1e, $01, $80
+SpriteFrameData_3104::
+    db $ea, $f8, $52, $01, $ea, $00, $53, $01, $f2, $f1, $54, $01, $f2, $f9, $55, $01
+    db $f2, $01, $56, $01, $fa, $f8, $35, $01, $fa, $00, $36, $01, $80
 
-    db $ed
-    ld hl, sp+$1f
-    ld bc, $00ed
-    jr nz, jr_000_2f71
+SpriteFrameData_3121::
+    db $eb, $f8, $13, $01, $eb, $00, $14, $01, $f3, $f8, $15, $01, $f3, $00, $16, $01
+    db $fb, $f8, $17, $01, $fb, $00, $18, $01, $80
 
-    push af
+SpriteFrameData_313a::
+    db $ec, $f8, $13, $01, $ec, $00, $14, $01, $f4, $f8, $19, $01, $f4, $00, $1a, $01
+    db $fc, $f8, $1b, $01, $fc, $00, $1c, $01, $80
 
-jr_000_2f71::
-    ldh a, [rNR42]
-    ld bc, $f8f5
-    ld [hl+], a
-    ld bc, $00f5
-    inc hl
-    ld bc, $f8fd
-    inc h
-    ld bc, $00fd
-    dec h
-    ld bc, $ec80
-    ld sp, hl
-    rra
-    ld bc, $01ec
-    jr nz, jr_000_2f8e
+SpriteFrameData_3153::
+    db $ec, $f8, $13, $01, $ec, $00, $14, $01, $f4, $f8, $1d, $01, $f4, $00, $1e, $01
+    db $fc, $f8, $1f, $01, $fc, $00, $20, $01, $80
 
-    db $f4
+SpriteFrameData_316c::
+    db $ed, $f8, $21, $01, $ed, $00, $22, $01, $f5, $f8, $23, $01, $f5, $00, $24, $01
+    db $fd, $f8, $25, $01, $fd, $00, $26, $01, $80
 
-jr_000_2f8e::
-    rst $30
-    ld h, $01
-    db $f4
-    rst $38
-    daa
-    ld bc, $07f4
-    jr z, jr_000_2f9a
+SpriteFrameData_3185::
+    db $ec, $f9, $21, $01, $ec, $01, $22, $01, $f4, $f9, $27, $01, $f4, $01, $28, $01
+    db $f4, $09, $29, $01, $f1, $0d, $2b, $01, $fc, $f7, $1f, $01, $fc, $ff, $2a, $01
+    db $80
 
-    pop af
+SpriteFrameData_31a6::
+    db $ec, $f9, $21, $01, $ec, $01, $22, $01, $ee, $12, $2c, $01, $f4, $f9, $27, $01
+    db $f4, $01, $28, $01, $f4, $09, $29, $01, $fc, $f7, $1f, $01, $fc, $ff, $2a, $01
+    db $80
 
-jr_000_2f9a::
-    dec c
-    dec hl
-    ld bc, $f9fc
-    add hl, hl
-    ld bc, Call_000_01fc
-    ld a, [hl+]
-    ld bc, $ec80
-    ld sp, hl
-    rra
-    ld bc, $01ec
-    jr nz, @+$03
+SpriteFrameData_31c7::
+    db $ec, $f9, $21, $01, $ec, $01, $22, $01, $f4, $f9, $27, $01, $f4, $01, $28, $01
+    db $f4, $09, $29, $01, $fc, $f7, $1f, $01, $fc, $ff, $2a, $01, $80
 
-    xor $12
-    inc l
-    ld bc, $f7f4
-    ld h, $01
-    db $f4
-    rst $38
-    daa
-    ld bc, $07f4
-    jr z, jr_000_2fbf
-
-    db $fc
-
-jr_000_2fbf::
-    ld sp, hl
-    add hl, hl
-    ld bc, Call_000_01fc
-    ld a, [hl+]
-    ld bc, $ec80
-    ld sp, hl
-    rra
-    ld bc, $01ec
-    jr nz, jr_000_2fd0
-
-    db $f4
-
-jr_000_2fd0::
-    rst $30
-    ld h, $01
-    db $f4
-    rst $38
-    daa
-    ld bc, $07f4
-    jr z, jr_000_2fdc
-
-    db $fc
-
-jr_000_2fdc::
-    ld sp, hl
-    add hl, hl
-    ld bc, Call_000_01fc
-    ld a, [hl+]
-    db $01
-    add b
-
+SpriteFrameData_31e4::
     db $f0, $f8, $2d, $01, $f0, $00, $2e, $01, $f8, $f8, $2f, $01, $f8, $00, $30, $01
-    db $80, $eb, $f8, $31, $01, $eb, $00, $14, $01, $f3, $f0, $32, $01, $f3, $f8, $33
-    db $01, $f3, $00, $34, $01, $fb, $f8, $35, $01, $fb, $00, $36, $01, $80, $ea, $f8
-    db $13, $01, $ea, $00, $14, $01, $f2, $f0, $37, $01, $f2, $f8, $38, $01, $f2, $00
-    db $39, $01, $fa, $f8, $35, $01, $fa, $00, $36, $01, $80, $ef, $f8, $3a, $01, $ef
-    db $00, $3b, $01, $f7, $f8, $3f, $01, $f7, $00, $40, $01, $fe, $f8, $3e, $01, $fe
-    db $00, $3e, $21, $80, $ee, $f8, $3a, $01, $ee, $00, $3b, $01, $f6, $f8, $3c, $01
-    db $f6, $00, $3d, $01, $fe, $f8, $3e, $01, $fe, $00, $3e, $21, $80
+    db $80
 
-    db $eb
-    ld hl, sp+$41
-    ld bc, $00eb
-    ld b, d
-    ld bc, $f8f3
-    ld b, e
-    ld bc, $00f3
-    ld b, h
-    ld bc, $fcfb
-    ld b, l
-    ld bc, $eb80
-    ld hl, sp+$46
-    ld bc, $00eb
-    ld b, a
-    ld bc, $f8f3
-    ld c, b
-    ld bc, $00f3
-    ld c, c
-    ld bc, $f8fb
-    ld c, d
-    ld bc, $00fb
-    ld c, e
-    ld bc, $eb80
-    ld hl, sp+$4c
-    ld bc, $00eb
-    ld c, l
-    ld bc, $f8f3
-    ld c, [hl]
-    ld bc, $00f3
-    ld c, a
-    ld bc, $f8fb
-    ld d, b
-    ld bc, $00fb
-    ld d, c
-    db $01
-    add b
+SpriteFrameData_31f5::
+    db $eb, $f8, $31, $01, $eb, $00, $32, $01, $f3, $f8, $33, $01, $f3, $00, $34, $01
+    db $fb, $fc, $35, $01, $80
 
-    db $ec, $f8, $31, $01, $ec, $00, $14, $01, $f4, $f0, $32, $01, $f4, $f8, $33, $01
-    db $f4, $00, $17, $01, $fc, $f8, $1d, $01, $fc, $00, $1e, $01, $80, $ec, $f9, $52
-    db $01, $ec, $01, $53, $01, $f4, $f2, $54, $01, $f4, $fa, $55, $01, $f4, $02, $56
-    db $01, $fc, $f8, $57, $01, $fc, $00, $1e, $01, $80, $fc, $fc, $58, $01, $80, $eb
-    db $f8, $52, $01, $eb, $00, $53, $01, $f3, $f1, $54, $01, $f3, $f9, $55, $01, $f3
-    db $01, $56, $01, $fb, $f8, $35, $01, $fb, $00, $36, $01, $80, $ea, $f8, $52, $01
-    db $ea, $00, $53, $01, $f2, $f1, $54, $01, $f2, $f9, $55, $01, $f2, $01, $56, $01
-    db $fa, $f8, $35, $01, $fa, $00, $36, $01, $80, $eb, $f8, $13, $01, $eb, $00, $14
-    db $01, $f3, $f8, $15, $01, $f3, $00, $16, $01, $fb, $f8, $17, $01, $fb, $00, $18
-    db $01, $80, $ec, $f8, $13, $01, $ec, $00, $14, $01, $f4, $f8, $19, $01, $f4, $00
-    db $1a, $01, $fc, $f8, $1b, $01, $fc, $00, $1c, $01, $80, $ec, $f8, $13, $01, $ec
-    db $00, $14, $01, $f4, $f8, $1d, $01, $f4, $00, $1e, $01, $fc, $f8, $1f, $01, $fc
-    db $00, $20, $01, $80
+SpriteFrameData_320a::
+    db $ec, $f8, $36, $01, $ec, $00, $37, $01, $f4, $f1, $38, $01, $f4, $f9, $39, $01
+    db $f4, $01, $3a, $01, $fc, $f8, $3b, $01, $fc, $00, $3c, $01, $80
 
-    db $ed
-    ld hl, sp+$21
-    ld bc, $00ed
-    ld [hl+], a
-    ld bc, $f8f5
-    inc hl
-    ld bc, $00f5
-    inc h
-    ld bc, $f8fd
-    dec h
-    ld bc, $00fd
-    ld h, $01
-    add b
-    db $ec
-    ld sp, hl
-    ld hl, $ec01
-    ld bc, $0122
-    db $f4
-    ld sp, hl
-    daa
-    ld bc, $01f4
-    jr z, jr_000_3196
+SpriteFrameData_3227::
+    db $ef, $f8, $3d, $01, $ef, $00, $3e, $01, $f7, $f8, $42, $01, $f7, $00, $43, $01
+    db $fe, $f8, $44, $01, $fe, $00, $44, $21, $80
 
-    db $f4
+SpriteFrameData_3240::
+    db $ee, $f8, $3d, $01, $ee, $00, $3e, $01, $f6, $f8, $3f, $01, $f6, $00, $40, $01
+    db $fe, $f8, $44, $01, $fe, $00, $44, $21, $80
 
-jr_000_3196::
-    add hl, bc
-    add hl, hl
-    ld bc, $0df1
-    dec hl
-    ld bc, $f7fc
-    rra
-    ld bc, $fffc
-    ld a, [hl+]
-    ld bc, $ec80
-    ld sp, hl
-    ld hl, $ec01
-    ld bc, $0122
-    xor $12
-    inc l
-    ld bc, $f9f4
-    daa
-    ld bc, $01f4
-    jr z, jr_000_31bb
+SpriteFrameData_3259::
+    db $eb, $f8, $45, $01, $eb, $00, $46, $01, $f3, $f8, $47, $01, $f3, $00, $48, $01
+    db $fb, $fc, $35, $01, $80
 
-    db $f4
+SpriteFrameData_326e::
+    db $eb, $f8, $49, $01, $eb, $00, $4a, $01, $f3, $f8, $4b, $01, $f3, $00, $4c, $01
+    db $fa, $f8, $1f, $01, $fa, $00, $20, $01, $80
 
-jr_000_31bb::
-    add hl, bc
-    add hl, hl
-    ld bc, $f7fc
-    rra
-    ld bc, $fffc
-    ld a, [hl+]
-    ld bc, $ec80
-    ld sp, hl
-    ld hl, $ec01
-    ld bc, $0122
-    db $f4
-    ld sp, hl
-    daa
-    ld bc, $01f4
-    jr z, jr_000_31d8
+SpriteFrameData_3287::
+    db $eb, $f8, $4d, $01, $eb, $00, $4e, $01, $f3, $f8, $4f, $01, $f3, $00, $50, $01
+    db $fa, $f8, $1b, $01, $fa, $00, $1c, $01, $80
 
-    db $f4
-
-jr_000_31d8::
-    add hl, bc
-    add hl, hl
-    ld bc, $f7fc
-    rra
-    ld bc, $fffc
-    ld a, [hl+]
-    db $01
-    add b
-
-    db $f0, $f8, $2d, $01, $f0, $00, $2e, $01, $f8, $f8, $2f, $01, $f8, $00, $30, $01
-    db $80, $eb, $f8, $31, $01, $eb, $00, $32, $01, $f3, $f8, $33, $01, $f3, $00, $34
-    db $01, $fb, $fc, $35, $01, $80, $ec, $f8, $36, $01, $ec, $00, $37, $01, $f4, $f1
-    db $38, $01, $f4, $f9, $39, $01, $f4, $01, $3a, $01, $fc, $f8, $3b, $01, $fc, $00
-    db $3c, $01, $80
-
-    rst $28
-    ld hl, sp+$3d
-    ld bc, $00ef
-    ld a, $01
-    rst $30
-    ld hl, sp+$42
-    ld bc, $00f7
-    ld b, e
-    ld bc, $f8fe
-    ld b, h
-    ld bc, $00fe
-    ld b, h
-    ld hl, $ee80
-    ld hl, sp+$3d
-    ld bc, $00ee
-    ld a, $01
-    or $f8
-    ccf
-    ld bc, $00f6
-    ld b, b
-    ld bc, $f8fe
-    ld b, h
-    ld bc, $00fe
-    ld b, h
-    ld hl, $eb80
-    ld hl, sp+$45
-    ld bc, $00eb
-    ld b, [hl]
-    ld bc, $f8f3
-    ld b, a
-    ld bc, $00f3
-    ld c, b
-    ld bc, $fcfb
-    dec [hl]
-    ld bc, $eb80
-    ld hl, sp+$49
-    ld bc, $00eb
-    ld c, d
-    ld bc, $f8f3
-    ld c, e
-    ld bc, $00f3
-    ld c, h
-    ld bc, $f8fa
-    rra
-    ld bc, $00fa
-    jr nz, jr_000_3287
-
-    add b
-
-jr_000_3287::
-    db $eb
-    ld hl, sp+$4d
-    ld bc, $00eb
-    ld c, [hl]
-    ld bc, $f8f3
-    ld c, a
-    ld bc, $00f3
-    ld d, b
-    ld bc, $f8fa
-    dec de
-    ld bc, $00fa
-    inc e
-    db $01
-    add b
-
+SpriteFrameData_32a0::
     db $eb, $f8, $13, $01, $eb, $00, $14, $01, $f3, $f8, $51, $01, $f3, $00, $52, $01
-    db $fb, $f9, $53, $21, $fb, $00, $53, $01, $80, $ec, $f8, $13, $01, $ec, $00, $14
-    db $01, $f4, $f8, $54, $01, $f4, $00, $55, $01, $fc, $f9, $56, $21, $fc, $00, $56
-    db $01, $80, $f8, $f8, $57, $01, $f8, $00, $58, $01, $fb, $08, $59, $01, $00, $f8
-    db $57, $41, $00, $00, $58, $41, $80, $f7, $f8, $57, $01, $f7, $00, $58, $01, $fa
-    db $08, $59, $01, $ff, $f8, $57, $41, $ff, $00, $58, $41, $80, $ec, $f8, $13, $01
-    db $ec, $00, $14, $01, $f4, $f8, $54, $01, $f4, $00, $55, $01, $f0, $08, $58, $01
-    db $f3, $10, $59, $01, $fc, $f9, $56, $21, $fc, $00, $56, $01, $f8, $08, $58, $41
-    db $80, $f8, $04, $18, $01, $f8, $fc, $17, $01, $f8, $f4, $16, $01, $f0, $04, $15
-    db $01, $f0, $fc, $14, $01, $f0, $f4, $13, $01, $80, $f9, $04, $1b, $01, $f9, $fc
-    db $1a, $01, $f9, $f4, $19, $01, $f1, $04, $15, $01, $f1, $fc, $14, $01, $f1, $f4
-    db $13, $01, $80
+    db $fb, $f9, $53, $21, $fb, $00, $53, $01, $80
 
-    ld hl, sp+$00
-    rra
-    ld bc, $f8f8
-    ld e, $01
-    ldh a, [rP1]
-    dec e
-    ld bc, $f8f0
-    inc e
-    ld bc, $f580
-    inc c
-    inc hl
-    ld bc, $f9f0
-    inc e
-    ld bc, $01f0
-    dec e
-    ld bc, jr_000_08f8
-    ld [hl+], a
-    ld bc, $00f8
-    ld hl, $f801
-    ld hl, sp+$20
-    ld bc, $f280
-    ld de, $0124
-    ldh a, [$fff9]
-    inc e
-    ld bc, $01f0
-    dec e
-    ld bc, jr_000_08f8
-    ld [hl+], a
-    ld bc, $00f8
-    ld hl, $f801
-    ld hl, sp+$20
-    ld bc, $f080
-    ld sp, hl
-    inc e
-    ld bc, $01f0
-    dec e
-    ld bc, jr_000_08f8
-    ld [hl+], a
-    ld bc, $00f8
-    ld hl, $f801
-    ld hl, sp+$20
-    db $01
-    add b
+SpriteFrameData_32b9::
+    db $ec, $f8, $13, $01, $ec, $00, $14, $01, $f4, $f8, $54, $01, $f4, $00, $55, $01
+    db $fc, $f9, $56, $21, $fc, $00, $56, $01, $80, $f8, $f8, $57, $01, $f8, $00, $58
+    db $01, $fb, $08, $59, $01, $00, $f8, $57, $41, $00, $00, $58, $41, $80, $f7, $f8
+    db $57, $01, $f7, $00, $58, $01, $fa, $08, $59, $01, $ff, $f8, $57, $41, $ff, $00
+    db $58, $41, $80
 
+SpriteFrameData_32fc::
+    db $ec, $f8, $13, $01, $ec, $00, $14, $01, $f4, $f8, $54, $01, $f4, $00, $55, $01
+    db $f0, $08, $58, $01, $f3, $10, $59, $01, $fc, $f9, $56, $21, $fc, $00, $56, $01
+    db $f8, $08, $58, $41, $80
+
+SpriteFrameData_3321::
+    db $f8, $04, $18, $01, $f8, $fc, $17, $01, $f8, $f4, $16, $01, $f0, $04, $15, $01
+    db $f0, $fc, $14, $01, $f0, $f4, $13, $01, $80
+
+SpriteFrameData_333a::
+    db $f9, $04, $1b, $01, $f9, $fc, $1a, $01, $f9, $f4, $19, $01, $f1, $04, $15, $01
+    db $f1, $fc, $14, $01, $f1, $f4, $13, $01, $80
+
+SpriteFrameData_3353::
+    db $f8, $00, $1f, $01, $f8, $f8, $1e, $01, $f0, $00, $1d, $01, $f0, $f8, $1c, $01
+    db $80
+
+SpriteFrameData_3364::
+    db $f5, $0c, $23, $01, $f0, $f9, $1c, $01, $f0, $01, $1d, $01, $f8, $08, $22, $01
+    db $f8, $00, $21, $01, $f8, $f8, $20, $01, $80
+
+SpriteFrameData_337d::
+    db $f2, $11, $24, $01, $f0, $f9, $1c, $01, $f0, $01, $1d, $01, $f8, $08, $22, $01
+    db $f8, $00, $21, $01, $f8, $f8, $20, $01, $80
+
+SpriteFrameData_3396::
+    db $f0, $f9, $1c, $01, $f0, $01, $1d, $01, $f8, $08, $22, $01, $f8, $00, $21, $01
+    db $f8, $f8, $20, $01, $80
+
+SpriteFrameData_33ab::
     db $f8, $04, $18, $01, $f0, $04, $15, $01, $f8, $fc, $17, $01, $f0, $fc, $26, $01
-    db $f8, $f4, $27, $01, $f0, $f4, $25, $01, $80, $f8, $04, $18, $01, $f8, $fc, $17
-    db $01, $f8, $f4, $29, $01, $f0, $04, $15, $01, $f0, $fc, $26, $01, $f0, $f4, $28
-    db $01, $80, $ef, $00, $2b, $01, $ef, $f8, $2a, $01, $f7, $00, $31, $01, $f7, $f8
-    db $30, $01, $ff, $f8, $32, $01, $ff, $00, $33, $01, $80, $fe, $00, $2f, $01, $fe
-    db $f8, $2e, $01, $f6, $00, $2d, $01, $f6, $f8, $2c, $01, $ee, $00, $2b, $01, $ee
-    db $f8, $2a, $01, $80, $eb, $00, $35, $01, $eb, $f8, $34, $01, $f3, $00, $37, $01
-    db $f3, $f8, $36, $01, $fb, $00, $39, $01, $fb, $f8, $38, $01, $80, $eb, $00, $3b
-    db $01, $eb, $f8, $3a, $01, $f3, $00, $3d, $01, $f3, $f8, $3c, $01, $fb, $00, $3f
-    db $01, $fb, $f8, $3e, $01, $80, $eb, $00, $41, $01, $eb, $f8, $40, $01, $f3, $00
-    db $43, $01, $f3, $f8, $42, $01, $fb, $00, $45, $01, $fb, $f8, $44, $01, $80, $f0
-    db $08, $47, $01, $f0, $10, $48, $01, $f0, $04, $46, $01, $f8, $04, $18, $01, $f8
-    db $fc, $17, $01, $f0, $fc, $14, $01, $f0, $f4, $13, $01, $f8, $f4, $16, $01, $80
+    db $f8, $f4, $27, $01, $f0, $f4, $25, $01, $80
+
+SpriteFrameData_33c4::
+    db $f8, $04, $18, $01, $f8, $fc, $17, $01, $f8, $f4, $29, $01, $f0, $04, $15, $01
+    db $f0, $fc, $26, $01, $f0, $f4, $28, $01, $80
+
+SpriteFrameData_33dd::
+    db $ef, $00, $2b, $01, $ef, $f8, $2a, $01, $f7, $00, $31, $01, $f7, $f8, $30, $01
+    db $ff, $f8, $32, $01, $ff, $00, $33, $01, $80
+
+SpriteFrameData_33f6::
+    db $fe, $00, $2f, $01, $fe, $f8, $2e, $01, $f6, $00, $2d, $01, $f6, $f8, $2c, $01
+    db $ee, $00, $2b, $01, $ee, $f8, $2a, $01, $80
+
+SpriteFrameData_340f::
+    db $eb, $00, $35, $01, $eb, $f8, $34, $01, $f3, $00, $37, $01, $f3, $f8, $36, $01
+    db $fb, $00, $39, $01, $fb, $f8, $38, $01, $80
+
+SpriteFrameData_3428::
+    db $eb, $00, $3b, $01, $eb, $f8, $3a, $01, $f3, $00, $3d, $01, $f3, $f8, $3c, $01
+    db $fb, $00, $3f, $01, $fb, $f8, $3e, $01, $80
+
+SpriteFrameData_3441::
+    db $eb, $00, $41, $01, $eb, $f8, $40, $01, $f3, $00, $43, $01, $f3, $f8, $42, $01
+    db $fb, $00, $45, $01, $fb, $f8, $44, $01, $80
+
+SpriteFrameData_345a::
+    db $f0, $08, $47, $01, $f0, $10, $48, $01, $f0, $04, $46, $01, $f8, $04, $18, $01
+    db $f8, $fc, $17, $01, $f0, $fc, $14, $01, $f0, $f4, $13, $01, $f8, $f4, $16, $01
+    db $80
+
+SpriteFrameData_347b::
     db $f0, $1c, $48, $01, $f0, $14, $47, $01, $f0, $0c, $47, $01, $f0, $04, $46, $01
     db $f8, $04, $18, $01, $f0, $fc, $14, $01, $f8, $fc, $17, $01, $f0, $f4, $13, $01
-    db $f8, $f4, $16, $01, $80, $f1, $1c, $48, $01, $f1, $14, $47, $01, $f1, $0c, $47
-    db $01, $f1, $04, $46, $01, $f9, $04, $1b, $01, $f1, $fc, $14, $01, $f9, $fc, $1a
-    db $01, $f1, $f4, $13, $01, $f9, $f4, $19, $01, $80, $f0, $08, $47, $01, $f0, $10
-    db $48, $01, $f0, $04, $46, $01, $f8, $04, $18, $01, $f0, $fc, $26, $01, $f8, $fc
-    db $17, $01, $f0, $f4, $25, $01, $f8, $f4, $27, $01, $80, $f0, $1c, $48, $01, $f0
-    db $14, $47, $01, $f0, $0c, $47, $01, $f0, $04, $46, $01, $f8, $04, $18, $01, $f0
-    db $fc, $26, $01, $f8, $fc, $17, $01, $f0, $f4, $25, $01, $f8, $f4, $27, $01, $80
+    db $f8, $f4, $16, $01, $80
+
+SpriteFrameData_34a0::
+    db $f1, $1c, $48, $01, $f1, $14, $47, $01, $f1, $0c, $47, $01, $f1, $04, $46, $01
+    db $f9, $04, $1b, $01, $f1, $fc, $14, $01, $f9, $fc, $1a, $01, $f1, $f4, $13, $01
+    db $f9, $f4, $19, $01, $80
+
+SpriteFrameData_34c5::
+    db $f0, $08, $47, $01, $f0, $10, $48, $01, $f0, $04, $46, $01, $f8, $04, $18, $01
+    db $f0, $fc, $26, $01, $f8, $fc, $17, $01, $f0, $f4, $25, $01, $f8, $f4, $27, $01
+    db $80
+
+SpriteFrameData_34e6::
+    db $f0, $1c, $48, $01, $f0, $14, $47, $01, $f0, $0c, $47, $01, $f0, $04, $46, $01
+    db $f8, $04, $18, $01, $f0, $fc, $26, $01, $f8, $fc, $17, $01, $f0, $f4, $25, $01
+    db $f8, $f4, $27, $01, $80
+
+SpriteFrameData_350b::
     db $f0, $1c, $48, $01, $f0, $14, $47, $01, $f0, $0c, $47, $01, $f0, $04, $46, $01
     db $f8, $04, $18, $01, $f0, $fc, $26, $01, $f8, $fc, $17, $01, $f0, $f4, $28, $01
-    db $f8, $f4, $29, $01, $80, $f1, $10, $48, $01, $f1, $08, $47, $01, $f1, $04, $46
-    db $01, $f1, $fc, $14, $01, $f1, $f4, $13, $01, $f9, $04, $1b, $01, $f9, $fc, $1a
-    db $01, $f9, $f4, $19, $01, $80, $f0, $10, $48, $01, $f0, $08, $47, $01, $f0, $04
-    db $46, $01, $f8, $04, $18, $01, $f0, $fc, $26, $01, $f8, $fc, $17, $01, $f0, $f4
-    db $28, $01, $f8, $f4, $29, $01, $80, $00, $ff, $7e, $81, $7e, $81, $7e, $81, $7e
-    db $81, $7e, $81, $7e, $81, $00, $ff, $00, $00, $00, $00, $00, $00, $00, $00, $00
-    db $ff, $fe, $01, $fe, $01, $fe, $01, $aa, $01, $d6, $01, $aa, $01, $d6, $01, $aa
-    db $01, $d6, $01, $aa, $01, $d6, $01, $00, $00, $00, $00, $00, $00, $00, $00, $ff
-    db $00, $80, $00, $ff, $00, $80, $00, $02, $05, $02, $05, $02, $05, $02, $05, $ff
-    db $00, $01, $00, $ff, $00, $01, $00, $7f, $80, $7f, $80, $7f, $80, $7f, $80, $7f
-    db $80, $7f, $80, $7f, $80, $7f, $80, $fe, $01, $fe, $01, $fe, $01, $fe, $01, $fe
-    db $01, $fe, $01, $fe, $01, $fe, $01, $00, $c0, $c0, $20, $20, $d0, $d0, $28, $a8
-    db $14, $d4, $0a, $aa, $05, $d4, $03, $ff, $ff, $7f, $80, $00, $ff, $7f, $80, $7f
-    db $80, $7f, $80, $7f, $80, $7f, $80, $ff, $ff, $fe, $01, $00, $ff, $fe, $01, $fe
-    db $01, $fe, $01, $fe, $01, $fe, $01, $00, $00, $00, $00, $00, $00, $00, $00, $00
-    db $00, $00, $00, $00, $00, $00, $ff, $ff, $ff, $7f, $80, $00, $ff, $40, $a0, $40
-    db $a0, $40, $a0, $40, $a0, $40, $a0, $ff, $ff, $ff, $00, $00, $ff, $00, $00, $00
-    db $00, $00, $ff, $7e, $81, $7e, $81, $ff, $ff, $ff, $00, $00, $ff, $00, $00, $00
-    db $00, $00, $0f, $07, $08, $07, $08, $ff, $ff, $fe, $01, $00, $ff, $02, $05, $02
-    db $05, $02, $f5, $e2, $15, $e2, $15, $40, $af, $47, $a8, $47, $a8, $47, $a8, $47
-    db $a8, $47, $a8, $47, $a8, $40, $bf, $1e, $e1, $9e, $21, $de, $21, $de, $21, $de
-    db $21, $de, $21, $de, $21, $00, $ff, $00, $7f, $38, $41, $38, $41, $3e, $41, $3e
-    db $41, $3e, $41, $3e, $41, $00, $ff, $e2, $15, $e2, $15, $e2, $15, $e2, $15, $e2
-    db $15, $e2, $15, $e2, $15, $02, $fd, $40, $a0, $40, $a0, $40, $a0, $40, $af, $47
-    db $a8, $47, $a8, $47, $a8, $47, $a8, $00, $00, $00, $00, $00, $00, $00, $fe, $fc
-    db $02, $fc, $02, $80, $7f, $be, $41, $00, $00, $00, $00, $00, $00, $00, $00, $00
-    db $07, $03, $04, $03, $04, $03, $04, $02, $05, $02, $05, $02, $05, $02, $05, $02
-    db $f5, $e2, $15, $e2, $15, $e2, $15, $47, $a8, $47, $a8, $47, $a8, $47, $a8, $47
-    db $a8, $47, $a8, $47, $a8, $40, $bf, $00, $00, $00, $00, $00, $00, $08, $00, $08
-    db $00, $08, $00, $38, $00, $f8, $00, $3c, $00, $3f, $00, $3f, $00, $3f, $00, $1f
-    db $00, $0f, $00, $0f, $00, $0f, $00, $3c, $00, $fc, $00, $fc, $00, $fc, $00, $f8
-    db $00, $f0, $00, $f0, $00, $f0, $00, $1f, $00, $1f, $00, $1f, $00, $0f, $00, $07
-    db $00, $03, $00, $01, $00, $00, $00, $f8, $00, $f8, $00, $f8, $00, $f0, $00, $e0
-    db $00, $c0, $00, $80, $00, $00, $00, $00, $00, $18, $00, $24, $00, $44, $00, $5c
-    db $00, $60, $00, $60, $00, $60, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-    db $00, $00, $00, $ff, $00, $ff, $ff, $01, $00, $02, $00, $02, $00, $02, $00, $05
-    db $00, $05, $00, $05, $00, $0a, $00, $00, $00, $80, $00, $80, $00, $80, $00, $40
-    db $00, $40, $00, $40, $00, $a0, $00, $0a, $00, $0a, $00, $15, $00, $15, $00, $17
-    db $00, $2e, $00, $3a, $00, $2a, $00, $a0, $00, $a0, $00, $50, $00, $50, $00, $d0
-    db $00, $e8, $00, $b8, $00, $a8, $00, $55, $00, $55, $00, $55, $00, $2a, $00, $2a
-    db $00, $15, $00, $0d, $00, $03, $00, $54, $00, $54, $00, $54, $00, $a8, $00, $a8
-    db $00, $50, $00, $60, $00, $80, $00, $00, $00, $00, $00, $01, $00, $02, $00, $04
-    db $00, $04, $00, $04, $00, $04, $00, $7c, $00, $82, $00, $01, $00, $01, $00, $01
-    db $00, $01, $00, $03, $00, $06, $00, $04, $00, $0f, $00, $1c, $00, $38, $00, $70
-    db $00, $e0, $00, $c0, $00, $00, $00, $1c, $00, $f0, $00, $00, $00, $00, $00, $00
-    db $00, $00, $00, $00, $00, $00, $00, $ff, $00, $80, $00, $ff, $00, $80, $00, $ff
-    db $00, $80, $00, $ff, $00, $80, $00, $fe, $00, $02, $00, $fe, $00, $02, $00, $fe
-    db $00, $02, $00, $fe, $00, $02, $00, $00, $80, $19, $80, $00, $80, $00, $80, $00
-    db $80, $1c, $80, $1c, $80, $14, $80, $00, $00, $ce, $00, $00, $00, $00, $00, $00
-    db $00, $ee, $00, $ec, $00, $cc, $00, $00, $01, $b0, $01, $00, $01, $00, $01, $00
-    db $01, $cc, $01, $ec, $01, $e8, $01, $0f, $b0, $1f, $a0, $1f, $a0, $1f, $a0, $1f
-    db $a0, $1f, $a0, $00, $ff, $00, $80, $ff, $00, $ff, $00, $ff, $00, $ff, $00, $ff
-    db $00, $ff, $00, $00, $ff, $00, $00, $f0, $0d, $f8, $05, $f8, $05, $f8, $05, $f8
-    db $05, $f8, $05, $00, $ff, $00, $01, $60, $00, $60, $00, $60, $00, $60, $00, $60
-    db $00, $60, $00, $60, $00, $60, $00, $00, $00, $00, $00, $00, $00, $10, $00, $10
-    db $00, $10, $00, $1c, $00, $1f, $00, $ff, $ff, $0f, $80, $3f, $80, $3f, $80, $7f
-    db $80, $7f, $80, $00, $ff, $ff, $ff, $ff, $ff, $ff, $00, $ff, $00, $ff, $00, $ff
-    db $00, $ff, $00, $00, $ff, $ff, $ff, $ff, $ff, $fe, $01, $fe, $01, $fe, $01, $fe
-    db $01, $fe, $01, $00, $ff, $ff, $ff, $00, $80, $00, $80, $7f, $80, $ff, $ff, $00
-    db $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $ff, $00, $ff, $ff, $00
-    db $00, $00, $00, $00, $00, $00, $00, $00, $01, $00, $01, $fe, $01, $ff, $ff, $00
-    db $00, $00, $00, $00, $00, $00, $00, $f7, $00, $0f, $00, $ff, $00, $e3, $00, $dd
-    db $00, $36, $00, $3e, $00, $1c, $00, $00, $00, $01, $00, $7f, $00, $07, $00, $1f
-    db $00, $3f, $00, $3f, $00, $1f, $00, $00, $00, $c0, $00, $f0, $00, $f0, $00, $fc
-    db $00, $fe, $00, $fe, $00, $fc, $00, $ff, $00, $80, $00, $9b, $00, $80, $00, $ff
-    db $00, $80, $00, $bc, $00, $bc, $00, $ff, $00, $01, $00, $01, $00, $01, $00, $ff
-    db $00, $01, $00, $69, $00, $01, $00, $af, $50, $af, $50, $af, $50, $af, $50, $af
-    db $50, $af, $50, $af, $50, $af, $50, $20, $5f, $20, $50, $20, $50, $00, $70, $30
-    db $88, $70, $88, $70, $88, $00, $70, $04, $fa, $04, $0a, $04, $0a, $00, $0e, $06
-    db $11, $0e, $11, $0e, $11, $00, $0e, $f5, $0a, $f5, $0a, $f5, $0a, $f5, $0a, $f5
-    db $0a, $f5, $0a, $f5, $0a, $f5, $0a, $00, $ff, $00, $00, $00, $00, $00, $00, $00
-    db $00, $00, $00, $00, $00, $00, $00, $20, $50, $20, $50, $20, $50, $20, $50, $20
-    db $50, $20, $50, $20, $50, $20, $50, $04, $0a, $04, $0a, $04, $0a, $04, $0a, $04
-    db $0a, $04, $0a, $04, $0a, $04, $0a, $7f, $00, $80, $00, $80, $00, $8f, $00, $9f
-    db $00, $9e, $00, $9e, $00, $9e, $00, $ff, $00, $00, $00, $00, $00, $ff, $00, $ff
-    db $00, $00, $00, $00, $00, $00, $00, $fe, $00, $01, $00, $01, $00, $f1, $00, $f9
-    db $00, $79, $00, $79, $00, $79, $00, $9e, $00, $9e, $00, $9e, $00, $9f, $00, $8f
-    db $00, $80, $00, $80, $00, $96, $00, $00, $00, $00, $00, $00, $00, $ff, $00, $ff
-    db $00, $00, $00, $7c, $00, $7f, $00, $79, $00, $79, $00, $79, $00, $f1, $00, $e1
-    db $00, $01, $00, $c1, $00, $41, $00, $80, $00, $80, $00, $86, $00, $86, $00, $9f
-    db $00, $9f, $00, $86, $19, $86, $00, $00, $00, $00, $00, $00, $00, $00, $00, $80
-    db $00, $80, $00, $03, $80, $07, $00, $01, $00, $01, $00, $01, $00, $01, $00, $19
-    db $00, $3d, $00, $3d, $00, $99, $24, $80, $06, $80, $00, $80, $00, $80, $00, $80
-    db $00, $80, $00, $7f, $80, $00, $7f, $07, $00, $03, $04, $00, $03, $00, $00, $00
-    db $00, $00, $00, $ff, $00, $00, $ff, $81, $18, $01, $80, $01, $00, $01, $00, $01
-    db $00, $01, $00, $fe, $01, $00, $fe, $00, $ff, $7e, $81, $42, $81, $42, $81, $42
-    db $81, $42, $81, $42, $81, $42, $81, $ff, $00, $ff, $00, $ff, $00, $c0, $00, $c0
-    db $00, $c0, $00, $c0, $00, $c0, $00, $ff, $00, $ff, $00, $ff, $00, $03, $00, $03
-    db $00, $03, $00, $03, $00, $03, $00, $c0, $00, $c0, $00, $c0, $00, $c0, $00, $c0
-    db $00, $ff, $00, $ff, $00, $ff, $00, $03, $00, $03, $00, $03, $00, $03, $00, $03
-    db $00, $ff, $00, $ff, $00, $ff, $00, $00, $00, $7e, $00, $7e, $00, $42, $00, $7e
-    db $00, $7e, $00, $7e, $00, $7e, $00, $00, $00, $00, $00, $00, $00, $00, $00, $7e
-    db $00, $66, $00, $18, $00, $7e, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-    db $00, $00, $00, $00, $00, $0f, $00, $7d, $00, $be, $00, $ff, $00, $e3, $00, $dd
-    db $00, $36, $00, $3e, $00, $1c, $00, $aa, $00, $55, $00, $aa, $00, $55, $00, $aa
-    db $00, $55, $00, $aa, $00, $55, $00, $ff, $00, $ff, $00, $a9, $00, $55, $00, $a9
-    db $00, $55, $00, $a9, $00, $55, $00, $a9, $00, $55, $00, $a9, $00, $55, $00, $a9
-    db $00, $55, $00, $a9, $00, $55, $00, $ff, $ff, $0f, $80, $3f, $80, $3f, $80, $7f
-    db $80, $7f, $80, $00, $ff, $ff, $ff, $ff, $ff, $fe, $01, $fe, $01, $fe, $01, $fe
-    db $01, $fe, $01, $00, $ff, $ff, $ff, $ff, $00, $00, $00, $ff, $00, $ff, $00, $00
-    db $00, $ff, $00, $00, $00, $00, $00, $ff, $00, $f0, $00, $c0, $00, $83, $00, $8f
-    db $00, $8f, $00, $c7, $00, $e0, $00, $ff, $00, $00, $00, $00, $00, $ff, $00, $ff
-    db $00, $ff, $00, $ff, $00, $be, $00, $ff, $00, $0f, $00, $01, $00, $c0, $00, $f0
-    db $00, $f8, $00, $f1, $00, $83, $00, $ff, $00, $ff, $00, $ef, $08, $ff, $98, $7f
-    db $47, $38, $38, $60, $60, $ff, $c0, $ff, $00, $ff, $00, $ff, $00, $ff, $7f, $f0
-    db $80, $18, $00, $0c, $00, $ff, $00, $ff, $ff, $00, $00, $ff, $00, $ff, $00, $ff
-    db $00, $ff, $00, $ff, $00, $ff, $00, $ff, $01, $fe, $02, $fd, $04, $fb, $08, $f7
-    db $10, $f0, $20, $ff, $40, $ff, $7f, $ff, $01, $fe, $02, $fd, $04, $fb, $08, $f7
-    db $10, $ef, $20, $df, $40, $bf, $80, $7f, $00, $ff, $00, $ff, $00, $ff, $00, $ff
-    db $00, $ff, $00, $ff, $00, $ff, $00, $7f, $00, $ff, $00, $ff, $00, $ff, $00, $ff
-    db $00, $00, $00, $ff, $00, $ff, $ff, $e0, $80, $e0, $80, $e0, $80, $e0, $80, $e0
-    db $80, $e0, $80, $e0, $80, $e0, $80, $07, $01, $07, $01, $07, $01, $07, $01, $07
-    db $01, $07, $01, $07, $01, $07, $01, $e0, $80, $e0, $80, $e0, $80, $e0, $80, $e0
-    db $80, $ff, $80, $ff, $80, $7f, $7f, $00, $00, $00, $00, $00, $00, $00, $00, $00
-    db $00, $ff, $00, $ff, $00, $ff, $ff, $07, $01, $07, $01, $07, $01, $07, $01, $07
-    db $01, $ff, $01, $ff, $01, $fe, $fe, $ff, $00, $ff, $00, $aa, $00, $55, $00, $aa
-    db $00, $55, $00, $22, $00, $00, $00, $ff, $00, $ff, $00, $aa, $00, $55, $00, $aa
-    db $00, $55, $00, $aa, $00, $55, $00, $6a, $00, $55, $00, $6a, $00, $55, $00, $6a
-    db $00, $55, $00, $6a, $00, $55, $00, $ff, $00, $ff, $00, $6a, $00, $55, $00, $6a
-    db $00, $55, $00, $6a, $00, $55, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-    db $00, $00, $00, $00, $00, $00, $00
+    db $f8, $f4, $29, $01, $80
 
-    nop
-    ld b, $09
-    ld de, $1412
-    inc d
-    ccf
-    nop
-    ld bc, $0202
-    ld [bc], a
-    ld [bc], a
-    ld bc, $d800
-    inc b
-    inc b
-    ld b, b
-    nop
-    nop
-    nop
-    add b
-    ldh [rNR32], a
-    ld [bc], a
-    ld bc, $0100
-    nop
-    nop
+SpriteFrameData_3530::
+    db $f1, $10, $48, $01, $f1, $08, $47, $01, $f1, $04, $46, $01, $f1, $fc, $14, $01
+    db $f1, $f4, $13, $01, $f9, $04, $1b, $01, $f9, $fc, $1a, $01, $f9, $f4, $19, $01
+    db $80
 
-jr_000_3cd2::
-    nop
-    ld c, $11
-    and c
-    ld c, [hl]
-    or b
-    ld h, b
-    ld d, b
-    nop
-    nop
-    nop
-    nop
-    nop
-    inc a
-    ld a, a
-    ld h, [hl]
-    ld b, [hl]
-    inc sp
-    inc c
-    inc de
-    db $10
-    jr nz, jr_000_3cd2
+SpriteFrameData_3551::
+    db $F0, $10, $48, $01, $F0, $08, $47, $01, $F0, $04, $46, $01, $F8, $04, $18, $01
+    db $F0, $FC, $26, $01, $F8, $FC, $17, $01, $F0, $F4, $28, $01, $F8, $F4, $29, $01
+    db $80, $00, $FF, $7E, $81, $7E, $81, $7E, $81, $7E, $81, $7E, $81, $7E, $81, $00
+    db $FF, $00, $00, $00, $00, $00, $00, $00, $00, $00, $FF, $FE, $01, $FE, $01, $FE
+    db $01, $AA, $01, $D6, $01, $AA, $01, $D6, $01, $AA, $01, $D6, $01, $AA, $01, $D6
+    db $01, $00, $00, $00, $00, $00, $00, $00, $00, $FF, $00, $80, $00, $FF, $00, $80
+    db $00, $02, $05, $02, $05, $02, $05, $02, $05, $FF, $00, $01, $00, $FF, $00, $01
+    db $00, $7F, $80, $7F, $80, $7F, $80, $7F, $80, $7F, $80, $7F, $80, $7F, $80, $7F
+    db $80, $FE, $01, $FE, $01, $FE, $01, $FE, $01, $FE, $01, $FE, $01, $FE, $01, $FE
+    db $01, $00, $C0, $C0, $20, $20, $D0, $D0, $28, $A8, $14, $D4, $0A, $AA, $05, $D4
+    db $03, $FF, $FF, $7F, $80, $00, $FF, $7F, $80, $7F, $80, $7F, $80, $7F, $80, $7F
+    db $80, $FF, $FF, $FE, $01, $00, $FF, $FE, $01, $FE, $01, $FE, $01, $FE, $01, $FE
+    db $01, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+    db $FF, $FF, $FF, $7F, $80, $00, $FF, $40, $A0, $40, $A0, $40, $A0, $40, $A0, $40
+    db $A0, $FF, $FF, $FF, $00, $00, $FF, $00, $00, $00, $00, $00, $FF, $7E, $81, $7E
+    db $81, $FF, $FF, $FF, $00, $00, $FF, $00, $00, $00, $00, $00, $0F, $07, $08, $07
+    db $08, $FF, $FF, $FE, $01, $00, $FF, $02, $05, $02, $05, $02, $F5, $E2, $15, $E2
+    db $15, $40, $AF, $47, $A8, $47, $A8, $47, $A8, $47, $A8, $47, $A8, $47, $A8, $40
+    db $BF, $1E, $E1, $9E, $21, $DE, $21, $DE, $21, $DE, $21, $DE, $21, $DE, $21, $00
+    db $FF, $00, $7F, $38, $41, $38, $41, $3E, $41, $3E, $41, $3E, $41, $3E, $41, $00
+    db $FF, $E2, $15, $E2, $15, $E2, $15, $E2, $15, $E2, $15, $E2, $15, $E2, $15, $02
+    db $FD, $40, $A0, $40, $A0, $40, $A0, $40, $AF, $47, $A8, $47, $A8, $47, $A8, $47
+    db $A8, $00, $00, $00, $00, $00, $00, $00, $FE, $FC, $02, $FC, $02, $80, $7F, $BE
+    db $41, $00, $00, $00, $00, $00, $00, $00, $00, $00, $07, $03, $04, $03, $04, $03
+    db $04, $02, $05, $02, $05, $02, $05, $02, $05, $02, $F5, $E2, $15, $E2, $15, $E2
+    db $15, $47, $A8, $47, $A8, $47, $A8, $47, $A8, $47, $A8, $47, $A8, $47, $A8, $40
+    db $BF, $00, $00, $00, $00, $00, $00, $08, $00, $08, $00, $08, $00, $38, $00, $F8
+    db $00, $3C, $00, $3F, $00, $3F, $00, $3F, $00, $1F, $00, $0F, $00, $0F, $00, $0F
+    db $00, $3C, $00, $FC, $00, $FC, $00, $FC, $00, $F8, $00, $F0, $00, $F0, $00, $F0
+    db $00, $1F, $00, $1F, $00, $1F, $00, $0F, $00, $07, $00, $03, $00, $01, $00, $00
+    db $00, $F8, $00, $F8, $00, $F8, $00, $F0, $00, $E0, $00, $C0, $00, $80, $00, $00
+    db $00, $00, $00, $18, $00, $24, $00, $44, $00, $5C, $00, $60, $00, $60, $00, $60
+    db $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $FF, $00, $FF
+    db $FF, $01, $00, $02, $00, $02, $00, $02, $00, $05, $00, $05, $00, $05, $00, $0A
+    db $00, $00, $00, $80, $00, $80, $00, $80, $00, $40, $00, $40, $00, $40, $00, $A0
+    db $00, $0A, $00, $0A, $00, $15, $00, $15, $00, $17, $00, $2E, $00, $3A, $00, $2A
+    db $00, $A0, $00, $A0, $00, $50, $00, $50, $00, $D0, $00, $E8, $00, $B8, $00, $A8
+    db $00, $55, $00, $55, $00, $55, $00, $2A, $00, $2A, $00, $15, $00, $0D, $00, $03
+    db $00, $54, $00, $54, $00, $54, $00, $A8, $00, $A8, $00, $50, $00, $60, $00, $80
+    db $00, $00, $00, $00, $00, $01, $00, $02, $00, $04, $00, $04, $00, $04, $00, $04
+    db $00, $7C, $00, $82, $00, $01, $00, $01, $00, $01, $00, $01, $00, $03, $00, $06
+    db $00, $04, $00, $0F, $00, $1C, $00, $38, $00, $70, $00, $E0, $00, $C0, $00, $00
+    db $00, $1C, $00, $F0, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+    db $00, $FF, $00, $80, $00, $FF, $00, $80, $00, $FF, $00, $80, $00, $FF, $00, $80
+    db $00, $FE, $00, $02, $00, $FE, $00, $02, $00, $FE, $00, $02, $00, $FE, $00, $02
+    db $00, $00, $80, $19, $80, $00, $80, $00, $80, $00, $80, $1C, $80, $1C, $80, $14
+    db $80, $00, $00, $CE, $00, $00, $00, $00, $00, $00, $00, $EE, $00, $EC, $00, $CC
+    db $00, $00, $01, $B0, $01, $00, $01, $00, $01, $00, $01, $CC, $01, $EC, $01, $E8
+    db $01, $0F, $B0, $1F, $A0, $1F, $A0, $1F, $A0, $1F, $A0, $1F, $A0, $00, $FF, $00
+    db $80, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $00, $FF, $00
+    db $00, $F0, $0D, $F8, $05, $F8, $05, $F8, $05, $F8, $05, $F8, $05, $00, $FF, $00
+    db $01, $60, $00, $60, $00, $60, $00, $60, $00, $60, $00, $60, $00, $60, $00, $60
+    db $00, $00, $00, $00, $00, $00, $00, $10, $00, $10, $00, $10, $00, $1C, $00, $1F
+    db $00, $FF, $FF, $0F, $80, $3F, $80, $3F, $80, $7F, $80, $7F, $80, $00, $FF, $FF
+    db $FF, $FF, $FF, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $00, $FF, $FF
+    db $FF, $FF, $FF, $FE, $01, $FE, $01, $FE, $01, $FE, $01, $FE, $01, $00, $FF, $FF
+    db $FF, $00, $80, $00, $80, $7F, $80, $FF, $FF, $00, $00, $00, $00, $00, $00, $00
+    db $00, $00, $00, $00, $00, $FF, $00, $FF, $FF, $00, $00, $00, $00, $00, $00, $00
+    db $00, $00, $01, $00, $01, $FE, $01, $FF, $FF, $00, $00, $00, $00, $00, $00, $00
+    db $00, $F7, $00, $0F, $00, $FF, $00, $E3, $00, $DD, $00, $36, $00, $3E, $00, $1C
+    db $00, $00, $00, $01, $00, $7F, $00, $07, $00, $1F, $00, $3F, $00, $3F, $00, $1F
+    db $00, $00, $00, $C0, $00, $F0, $00, $F0, $00, $FC, $00, $FE, $00, $FE, $00, $FC
+    db $00, $FF, $00, $80, $00, $9B, $00, $80, $00, $FF, $00, $80, $00, $BC, $00, $BC
+    db $00, $FF, $00, $01, $00, $01, $00, $01, $00, $FF, $00, $01, $00, $69, $00, $01
+    db $00, $AF, $50, $AF, $50, $AF, $50, $AF, $50, $AF, $50, $AF, $50, $AF, $50, $AF
+    db $50, $20, $5F, $20, $50, $20, $50, $00, $70, $30, $88, $70, $88, $70, $88, $00
+    db $70, $04, $FA, $04, $0A, $04, $0A, $00, $0E, $06, $11, $0E, $11, $0E, $11, $00
+    db $0E, $F5, $0A, $F5, $0A, $F5, $0A, $F5, $0A, $F5, $0A, $F5, $0A, $F5, $0A, $F5
+    db $0A, $00, $FF, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+    db $00, $20, $50, $20, $50, $20, $50, $20, $50, $20, $50, $20, $50, $20, $50, $20
+    db $50, $04, $0A, $04, $0A, $04, $0A, $04, $0A, $04, $0A, $04, $0A, $04, $0A, $04
+    db $0A, $7F, $00, $80, $00, $80, $00, $8F, $00, $9F, $00, $9E, $00, $9E, $00, $9E
+    db $00, $FF, $00, $00, $00, $00, $00, $FF, $00, $FF, $00, $00, $00, $00, $00, $00
+    db $00, $FE, $00, $01, $00, $01, $00, $F1, $00, $F9, $00, $79, $00, $79, $00, $79
+    db $00, $9E, $00, $9E, $00, $9E, $00, $9F, $00, $8F, $00, $80, $00, $80, $00, $96
+    db $00, $00, $00, $00, $00, $00, $00, $FF, $00, $FF, $00, $00, $00, $7C, $00, $7F
+    db $00, $79, $00, $79, $00, $79, $00, $F1, $00, $E1, $00, $01, $00, $C1, $00, $41
+    db $00, $80, $00, $80, $00, $86, $00, $86, $00, $9F, $00, $9F, $00, $86, $19, $86
+    db $00, $00, $00, $00, $00, $00, $00, $00, $00, $80, $00, $80, $00, $03, $80, $07
+    db $00, $01, $00, $01, $00, $01, $00, $01, $00, $19, $00, $3D, $00, $3D, $00, $99
+    db $24, $80, $06, $80, $00, $80, $00, $80, $00, $80, $00, $80, $00, $7F, $80, $00
+    db $7F, $07, $00, $03, $04, $00, $03, $00, $00, $00, $00, $00, $00, $FF, $00, $00
+    db $FF, $81, $18, $01, $80, $01, $00, $01, $00, $01, $00, $01, $00, $FE, $01, $00
+    db $FE, $00, $FF, $7E, $81, $42, $81, $42, $81, $42, $81, $42, $81, $42, $81, $42
+    db $81, $FF, $00, $FF, $00, $FF, $00, $C0, $00, $C0, $00, $C0, $00, $C0, $00, $C0
+    db $00, $FF, $00, $FF, $00, $FF, $00, $03, $00, $03, $00, $03, $00, $03, $00, $03
+    db $00, $C0, $00, $C0, $00, $C0, $00, $C0, $00, $C0, $00, $FF, $00, $FF, $00, $FF
+    db $00, $03, $00, $03, $00, $03, $00, $03, $00, $03, $00, $FF, $00, $FF, $00, $FF
+    db $00, $00, $00, $7E, $00, $7E, $00, $42, $00, $7E, $00, $7E, $00, $7E, $00, $7E
+    db $00, $00, $00, $00, $00, $00, $00, $00, $00, $7E, $00, $66, $00, $18, $00, $7E
+    db $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $0F
+    db $00, $7D, $00, $BE, $00, $FF, $00, $E3, $00, $DD, $00, $36, $00, $3E, $00, $1C
+    db $00, $AA, $00, $55, $00, $AA, $00, $55, $00, $AA, $00, $55, $00, $AA, $00, $55
+    db $00, $FF, $00, $FF, $00, $A9, $00, $55, $00, $A9, $00, $55, $00, $A9, $00, $55
+    db $00, $A9, $00, $55, $00, $A9, $00, $55, $00, $A9, $00, $55, $00, $A9, $00, $55
+    db $00, $FF, $FF, $0F, $80, $3F, $80, $3F, $80, $7F, $80, $7F, $80, $00, $FF, $FF
+    db $FF, $FF, $FF, $FE, $01, $FE, $01, $FE, $01, $FE, $01, $FE, $01, $00, $FF, $FF
+    db $FF, $FF, $00, $00, $00, $FF, $00, $FF, $00, $00, $00, $FF, $00, $00, $00, $00
+    db $00, $FF, $00, $F0, $00, $C0, $00, $83, $00, $8F, $00, $8F, $00, $C7, $00, $E0
+    db $00, $FF, $00, $00, $00, $00, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $BE
+    db $00, $FF, $00, $0F, $00, $01, $00, $C0, $00, $F0, $00, $F8, $00, $F1, $00, $83
+    db $00, $FF, $00, $FF, $00, $EF, $08, $FF, $98, $7F, $47, $38, $38, $60, $60, $FF
+    db $C0, $FF, $00, $FF, $00, $FF, $00, $FF, $7F, $F0, $80, $18, $00, $0C, $00, $FF
+    db $00, $FF, $FF, $00, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF
+    db $00, $FF, $01, $FE, $02, $FD, $04, $FB, $08, $F7, $10, $F0, $20, $FF, $40, $FF
+    db $7F, $FF, $01, $FE, $02, $FD, $04, $FB, $08, $F7, $10, $EF, $20, $DF, $40, $BF
+    db $80, $7F, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $FF
+    db $00, $7F, $00, $FF, $00, $FF, $00, $FF, $00, $FF, $00, $00, $00, $FF, $00, $FF
+    db $FF, $E0, $80, $E0, $80, $E0, $80, $E0, $80, $E0, $80, $E0, $80, $E0, $80, $E0
+    db $80, $07, $01, $07, $01, $07, $01, $07, $01, $07, $01, $07, $01, $07, $01, $07
+    db $01, $E0, $80, $E0, $80, $E0, $80, $E0, $80, $E0, $80, $FF, $80, $FF, $80, $7F
+    db $7F, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $FF, $00, $FF, $00, $FF
+    db $FF, $07, $01, $07, $01, $07, $01, $07, $01, $07, $01, $FF, $01, $FF, $01, $FE
+    db $FE, $FF, $00, $FF, $00, $AA, $00, $55, $00, $AA, $00, $55, $00, $22, $00, $00
+    db $00, $FF, $00, $FF, $00, $AA, $00, $55, $00, $AA, $00, $55, $00, $AA, $00, $55
+    db $00, $6A, $00, $55, $00, $6A, $00, $55, $00, $6A, $00, $55, $00, $6A, $00, $55
+    db $00, $FF, $00, $FF, $00, $6A, $00, $55, $00, $6A, $00, $55, $00, $6A, $00, $55
+    db $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+    db $00, $00, $06, $09, $11, $12, $14, $14, $3F, $00, $01, $02, $02, $02, $02, $01
+    db $00, $D8, $04, $04, $40, $00, $00, $00, $80, $E0, $1C, $02, $01, $00, $01, $00
+    db $00, $00, $0E, $11, $A1, $4E, $B0, $60, $50, $00, $00, $00, $00, $00, $3C, $7F
+    db $66, $46, $33, $0C, $13, $10, $20, $E9, $FA, $00, $81, $00, $C0, $3F, $88, $08
+    db $44, $50, $10, $10, $20, $C0, $00, $60, $50, $00, $00, $00, $03, $0C, $10, $20
+    db $20, $46, $86, $B8, $04, $04, $30, $48, $48, $3E, $0F, $00, $0F, $0F, $01, $71
+    db $89, $84, $02, $83, $40, $A0, $A0, $AC, $B2, $50, $93, $27, $C9, $B2, $8C, $84
+    db $83, $00, $80, $00, $00, $0E, $1C, $24, $C4, $40, $40, $40, $40, $26, $29, $19
+    db $0E, $30, $01, $02, $02, $01, $00, $00, $00, $04, $82, $42, $42, $80, $00, $00
+    db $02, $71, $70, $70, $10, $08, $08, $08, $10, $C1, $21, $10, $10, $08, $0B, $0C
+    db $10, $08, $10, $E0, $80, $80, $00, $00, $00, $0D, $12, $13, $0C, $00, $00, $00
+    db $00, $C0, $3F, $C0, $01, $02, $02, $01, $00, $0D, $F0, $80, $80, $4F, $70, $80
+    db $00, $E0, $00, $03, $1C, $E0, $00, $00, $00, $20, $C0, $00, $00, $00, $00, $00
+    db $00, $99, $99, $99, $99, $99, $99, $99, $99, $FF, $00, $00, $FF, $FF, $00, $00
+    db $FF, $0F, $30, $40, $47, $8F, $9E, $9C, $98, $00, $00, $03, $1F, $3F, $71, $70
+    db $67, $1F, $FF, $C1, $03, $87, $86, $01, $82, $F0, $FE, $FF, $FB, $1D, $0C, $F0
+    db $08, $00, $00, $80, $C0, $E0, $F0, $F0, $78, $00, $00, $00, $00, $01, $01, $02
+    db $02, $28, $20, $41, $83, $03, $03, $01, $00, $44, $20, $C0, $E0, $60, $E0, $C0
+    db $00, $04, $70, $F8, $D8, $F8, $71, $02, $1C, $04, $02, $02, $02, $02, $C4, $38
+    db $20, $02, $02, $01, $00, $00, $00, $00, $00, $00, $00, $01, $82, $62, $5F, $80
+    db $80, $00, $03, $9E, $61, $41, $88, $80, $80, $20, $FF, $0E, $01, $00, $00, $00
+    db $00, $20, $C0, $40, $E0, $31, $0A, $04, $05, $00, $00, $00, $00, $F0, $08, $08
+    db $F0, $80, $80, $40, $20, $38, $27, $20, $20, $40, $A0, $78, $16, $13, $FD, $09
+    db $10, $00, $00, $C0, $30, $80, $70, $3F, $C2, $3A, $05, $05, $01, $11, $01, $06
+    db $F8, $20, $47, $78, $20, $20, $20, $1F, $08, $10, $15, $E3, $20, $20, $20, $E0
+    db $93, $02, $03, $52, $64, $04, $07, $04, $0E, $80, $80, $80, $80, $40, $C0, $20
+    db $20, $08, $04, $02, $01, $03, $00, $00, $00, $94, $58, $40, $40, $C0, $00, $00
+    db $00, $89, $48, $28, $18, $00, $00, $00, $00, $20, $A0, $F0, $00, $00, $00, $00
+    db $00, $00, $00, $00, $00, $00, $00, $1C, $23, $20, $1E, $03, $04, $0B, $14, $10
+    db $12, $80, $7F, $80, $00, $00, $80, $00, $00, $00, $E3, $1C, $03, $0D, $12, $01
+    db $01, $00, $E0, $10, $88, $48, $B0, $40, $40, $10, $10, $08, $07, $00, $00, $00
+    db $01, $00, $00, $1E, $00, $FF, $40, $80, $A0, $04, $00, $00, $0F, $F0, $20, $10
+    db $10, $40, $40, $80, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $01, $01
+    db $06, $00, $78, $FF, $CD, $8C, $0C, $70, $08, $07, $38, $C7, $F0, $7C, $1E, $01
+    db $1E, $80, $70, $08, $84, $42, $21, $11, $88, $01, $01, $01, $03, $03, $07, $06
+    db $8E, $64, $D8, $E1, $5E, $40, $20, $20, $20, $12, $13, $12, $0C, $09, $0E, $08
+    db $08, $00, $00, $80, $80, $00, $00, $00, $00, $18, $20, $40, $40, $80, $80, 
 
-    ld a, [$8100]
-    nop
-    ret nz
+Jump_000_3f00::	
+	db $80
+    db $87, $08, $60, $90, $91, $60, $03, $04, $04, $1F, $03, $E3, $13, $08, $04, $84
+    db $84, $48, $44, $44, $65, $FF, $FF, $E9, $31, $9C, $B8, $F0, $E0, $80, $00, $00
+    db $00, $47, $48, $50, $50, $60, $00, $00, $00, $08, $90, $50, $50, $60, $00, $00
+    db $00, $48, $50, $30, $18, $26, $21, $1C, $0B, $83, $40, $40, $40, $80, $FF, $48
+    db $8F, $00, $00, $00, $04, $1B, $E2, $04, $F8, $1E, $12, $12, $32, $CD, $05, $06
+    db $00, $09, $0A, $12, $1C, $00, $00, $00, $00, $02, $02, $02, $02, $04, $07, $00
+    db $00, $40, $40, $40, $80, $80, $00, $00, $00
 
-    ccf
-    adc b
-    ld [$5044], sp
-    db $10
-    db $10
-    jr nz, @-$3e
-
-    nop
-    ld h, b
-    ld d, b
-    nop
-    nop
-    nop
-    inc bc
-    inc c
-
-Jump_000_3cff::
-    db $10
-    jr nz, jr_000_3d22
-
-    ld b, [hl]
-    add [hl]
-    cp b
-    inc b
-    inc b
-    jr nc, jr_000_3d51
-
-    ld c, b
-    ld a, $0f
-    nop
-    rrca
-    rrca
-    ld bc, $8971
-    add h
-    ld [bc], a
-    add e
-    ld b, b
-    and b
-    and b
-    xor h
-    or d
-    ld d, b
-    sub e
-    daa
-    ret
-
-
-    or d
-    adc h
-    add h
-    add e
-
-jr_000_3d22::
-    nop
-    add b
-    nop
-    nop
-    ld c, $1c
-    inc h
-    call nz, $4040
-    ld b, b
-    ld b, b
-    ld h, $29
-    add hl, de
-    ld c, $30
-    ld bc, $0202
-    ld bc, $0000
-    nop
-    inc b
-    add d
-
-jr_000_3d3c::
-    ld b, d
-    ld b, d
-    add b
-    nop
-    nop
-    ld [bc], a
-    ld [hl], c
-    ld [hl], b
-    ld [hl], b
-    db $10
-    ld [$0808], sp
-    db $10
-    pop bc
-    ld hl, $1010
-    ld [$0c0b], sp
-
-jr_000_3d51::
-    db $10
-    ld [$e010], sp
-    add b
-    add b
-    nop
-    nop
-    nop
-    dec c
-    ld [de], a
-    inc de
-    inc c
-    nop
-    nop
-    nop
-    nop
-    ret nz
-
-    ccf
-    ret nz
-
-    ld bc, $0202
-    ld bc, $0d00
-    ldh a, [_HRAM]
-    add b
-    ld c, a
-    ld [hl], b
-    add b
-    nop
-    ldh [rP1], a
-    inc bc
-    inc e
-    ldh [rP1], a
-    nop
-    nop
-    jr nz, jr_000_3d3c
-
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    sbc c
-    sbc c
-    sbc c
-    sbc c
-    sbc c
-    sbc c
-    sbc c
-    sbc c
-    rst $38
-    nop
-    nop
-
-jr_000_3d8d::
-    rst $38
-    rst $38
-    nop
-    nop
-    rst $38
-    rrca
-    jr nc, @+$42
-
-    ld b, a
-    adc a
-    sbc [hl]
-    sbc h
-    sbc b
-    nop
-    nop
-    inc bc
-    rra
-    ccf
-    ld [hl], c
-    ld [hl], b
-    ld h, a
-    rra
-    rst $38
-    pop bc
-    inc bc
-    add a
-
-jr_000_3da7::
-    add [hl]
-    ld bc, $f082
-    cp $ff
-    ei
-    dec e
-    inc c
-    ldh a, [$ff08]
-    nop
-    nop
-    add b
-    ret nz
-
-    ldh [$fff0], a
-    ldh a, [$ff78]
-    nop
-    nop
-    nop
-    nop
-    ld bc, $0201
-    ld [bc], a
-    jr z, jr_000_3de4
-
-jr_000_3dc4::
-    ld b, c
-    add e
-    inc bc
-    inc bc
-    ld bc, $4400
-    jr nz, jr_000_3d8d
-
-    ldh [$ff60], a
-    ldh [$ffc0], a
-    nop
-    inc b
-    ld [hl], b
-    ld hl, sp-$28
-    ld hl, sp+$71
-    ld [bc], a
-    inc e
-    inc b
-    ld [bc], a
-    ld [bc], a
-    ld [bc], a
-    ld [bc], a
-    call nz, $2038
-    ld [bc], a
-    ld [bc], a
-
-jr_000_3de4::
-    ld bc, $0000
-    nop
-    nop
-    nop
-    nop
-    nop
-    ld bc, $6282
-    ld e, a
-    add b
-    add b
-    nop
-    inc bc
-    sbc [hl]
-    ld h, c
-    ld b, c
-    adc b
-    add b
-    add b
-    jr nz, @+$01
-
-    ld c, $01
-    nop
-    nop
-    nop
-    nop
-    jr nz, jr_000_3dc4
-
-    ld b, b
-    ldh [$ff31], a
-    ld a, [bc]
-    inc b
-    dec b
-    nop
-    nop
-
-jr_000_3e0c::
-    nop
-    nop
-    ldh a, [$ff08]
-    ld [$80f0], sp
-    add b
-    ld b, b
-    jr nz, jr_000_3e4f
-
-    daa
-    jr nz, @+$22
-
-    ld b, b
-    and b
-    ld a, b
-    ld d, $13
-    db $fd
-    add hl, bc
-
-jr_000_3e21::
-    stop
-    nop
-    ret nz
-
-    jr nc, jr_000_3da7
-
-    ld [hl], b
-    ccf
-    jp nz, Jump_000_053a
-
-    dec b
-    ld bc, $0111
-    ld b, $f8
-    jr nz, @+$49
-
-    ld a, b
-    jr nz, @+$22
-
-    jr nz, jr_000_3e58
-
-    ld [$1510], sp
-    db $e3
-    jr nz, jr_000_3e5f
-
-    jr nz, jr_000_3e21
-
-    sub e
-    ld [bc], a
-    inc bc
-    ld d, d
-    ld h, h
-    inc b
-    rlca
-    inc b
-    ld c, $80
-    add b
-    add b
-    add b
-    ld b, b
-
-jr_000_3e4f::
-    ret nz
-
-    jr nz, jr_000_3e72
-
-    ld [$0204], sp
-    ld bc, $0003
-
-jr_000_3e58::
-    nop
-    nop
-    sub h
-    ld e, b
-    ld b, b
-    ld b, b
-    ret nz
-
-jr_000_3e5f::
-    nop
-    nop
-    nop
-    adc c
-    ld c, b
-    jr z, jr_000_3e7e
-
-    nop
-    nop
-    nop
-    nop
-    jr nz, jr_000_3e0c
-
-    ldh a, [rP1]
-    nop
-    nop
-    nop
-    nop
-
-jr_000_3e72::
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    inc e
-    inc hl
-    jr nz, jr_000_3e9a
-
-    inc bc
-    inc b
-
-jr_000_3e7e::
-    dec bc
-    inc d
-    db $10
-    ld [de], a
-    add b
-    ld a, a
-    add b
-    nop
-    nop
-    add b
-    nop
-    nop
-    nop
-    db $e3
-    inc e
-    inc bc
-    dec c
-    ld [de], a
-    ld bc, $0001
-    ldh [rNR10], a
-    adc b
-    ld c, b
-    or b
-    ld b, b
-    ld b, b
-
-jr_000_3e9a::
-    db $10
-    db $10
-    ld [$0007], sp
-    nop
-    nop
-    ld bc, $0000
-    ld e, $00
-    rst $38
-    ld b, b
-    add b
-    and b
-    inc b
-    nop
-    nop
-    rrca
-    ldh a, [rNR41]
-    db $10
-    db $10
-    ld b, b
-    ld b, b
-    add b
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    ld bc, $0601
-    nop
-    ld a, b
-    rst $38
-    call $0c8c
-    ld [hl], b
-    ld [$3807], sp
-    rst $00
-    ldh a, [$ff7c]
-    ld e, $01
-    ld e, $80
-    ld [hl], b
-    ld [$4284], sp
-    ld hl, $8811
-    ld bc, $0101
-    inc bc
-    inc bc
-    rlca
-    ld b, $8e
-    ld h, h
-    ret c
-
-    pop hl
-    ld e, [hl]
-    ld b, b
-    jr nz, jr_000_3f09
-
-    jr nz, jr_000_3efd
-
-    inc de
-    ld [de], a
-    inc c
-    add hl, bc
-    ld c, $08
-    ld [$0000], sp
-    add b
-    add b
-    nop
-    nop
-    nop
-    nop
-    jr jr_000_3f1c
-
-    ld b, b
-
-jr_000_3efd::
-    ld b, b
-    add b
-    add b
-
-Jump_000_3f00::
-    add b
-    add a
-    ld [$9060], sp
-    sub c
-    ld h, b
-    inc bc
-    inc b
-
-jr_000_3f09::
-    inc b
-    rra
-    inc bc
-    db $e3
-    inc de
-    ld [$8404], sp
-    add h
-    ld c, b
-    ld b, h
-    ld b, h
-    ld h, l
-    rst $38
-    rst $38
-    jp hl
-
-
-    ld sp, $b89c
-
-jr_000_3f1c::
-    ldh a, [$ffe0]
-    add b
-    nop
-    nop
-    nop
-    ld b, a
-    ld c, b
-    ld d, b
-    ld d, b
-    ld h, b
-    nop
-    nop
-    nop
-    ld [$5090], sp
-    ld d, b
-    ld h, b
-    nop
-    nop
-    nop
-    ld c, b
-    ld d, b
-    jr nc, jr_000_3f4e
-
-    ld h, $21
-    inc e
-    dec bc
-    add e
-    ld b, b
-    ld b, b
-    ld b, b
-    add b
-    rst $38
-    ld c, b
-    adc a
-    nop
-    nop
-    nop
-    inc b
-    dec de
-    ldh [c], a
-    inc b
-    ld hl, sp+$1e
-    ld [de], a
-    ld [de], a
-    ld [hl-], a
-
-jr_000_3f4e::
-    call $0605
-    nop
-    add hl, bc
-    ld a, [bc]
-    ld [de], a
-    inc e
-    nop
-    nop
-    nop
-    nop
-    ld [bc], a
-    ld [bc], a
-    ld [bc], a
-    ld [bc], a
-    inc b
-    rlca
-    nop
-    nop
-    ld b, b
-    ld b, b
-    ld b, b
-    add b
-    add b
-    nop
-    nop
-    nop
 IF DEF(DEBUG)
 Call_000_3f6a::
     ldh [hNeedsReset], a
