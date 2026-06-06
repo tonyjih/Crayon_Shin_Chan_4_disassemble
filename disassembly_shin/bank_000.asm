@@ -11,6 +11,9 @@ DEF wMsgSubstitutionId     EQU $d971
 
 DEF wCgbEnabled EQU $dff7
 DEF wSgbEnabled EQU $dff8
+DEF wCgbBaseBgPalettes EQU $df80 ; 4 CGB BG base palettes, 4 colors each.
+DEF wCgbBaseObjPalettes EQU $dfa0 ; 4 CGB OBJ base palettes, 4 colors each.
+DEF wCgbObjTilePaletteMap EQU $de00 ; 256-byte active OBJ tile-id -> CGB OBJ palette map. $ff = DMG fallback.
 ; Hardware / memory aliases identified during cleanup pass 1.
 ; Keep these conservative: names below are based on direct register usage in bank 0.
 DEF hJoyHeld       EQU $ff8a
@@ -517,16 +520,10 @@ HeaderLogo::
     db $00, $08, $11, $1f, $88, $89, $00, $0e, $dc, $cc, $6e, $e6, $dd, $dd, $d9, $99
     db $bb, $bb, $67, $63, $6e, $0e, $ec, $cc, $dd, $dc, $99, $9f, $bb, $b9, $33, $3e
 
-IF DEF(DX)
 HeaderTitle::
     db "KUREYON SHIN4DX"
 HeaderCGBFlag::
     db $80 ; Supports CGB functions, but still works on DMG/SGB.
-ELSE
-HeaderTitle::
-    db "GB KUREYON SHIN4"
-
-ENDC
 HeaderNewLicenseeCode::
     db $42, $32
 
@@ -537,7 +534,7 @@ HeaderCartridgeType::
     db $01
 
 HeaderROMSize::
-    db $02
+    db $03 ; 256KB / 16 banks; DX support uses bank 8.
 
 HeaderRAMSize::
     db $00
@@ -558,6 +555,7 @@ HeaderGlobalChecksum::
     db $fb, $dc
 
 Jump_000_0150::
+    ld b, a ; Preserve boot ROM A. CGB boot enters with A=$11.
     ld sp, $dff0
     ld a, $01
     ld [$dff9], a
@@ -567,8 +565,16 @@ Jump_000_0150::
     ld [$dffe], a
     ld [$dffd], a
     ld [$dffc], a
-    xor a
     ld [wSgbEnabled], a
+    ld [wCgbEnabled], a
+    ld a, b
+    cp $11
+    jr nz, .notCgb
+
+    ld a, $ff
+    ld [wCgbEnabled], a
+
+.notCgb
     call DetectSgbOrInitSgb
     jr nc, jr_000_017c
 
@@ -592,6 +598,7 @@ jr_000_017c::
     call CopyDmaStubToHram
     call ReadJoypad
     call InitSound
+    call InitCgbGrayscalePalettes_Far
 	
 ReinitCurrentState:: ; Rebuild current state with LCD off. Repeats if init sets hNeedsReset.
     di
@@ -606,6 +613,7 @@ ReinitCurrentState:: ; Rebuild current state with LCD off. Repeats if init sets 
     ld bc, $00a0
     call bzero
     call InitCurrentGameState
+    call LoadCgbScreenPaletteFromSgbId_Far
     xor a
     ldh [hPrevOamPos], a
     call ApplyLCDC
@@ -813,26 +821,91 @@ Call_000_02b7::
     ld a, [hl+]
     xor $20
     set 7, a
-    ld [de], a
-    ret
+    jp WriteOamAttrDx
 
 
 jr_000_02c9::
     ld a, [hl+]
     set 7, a
-    ld [de], a
-    ret
+    jp WriteOamAttrDx
 
 
 jr_000_02ce::
     ld a, [hl+]
     xor $20
-    ld [de], a
-    ret
+    jp WriteOamAttrDx
 
 
 jr_000_02d3::
     ld a, [hl+]
+    jp WriteOamAttrDx
+
+
+; Write final OBJ attribute byte, with optional CGB palette override by OBJ tile ID.
+;
+; DMG/SGB path preserves the original attribute byte.
+; CGB path first performs a DMG-compatible fallback conversion:
+;   DMG OBP0 -> CGB OBJ palette 0
+;   DMG OBP1 -> CGB OBJ palette 1
+; Then it checks wCgbObjTilePaletteMap[tile_id]:
+;   $ff    -> keep fallback result
+;   $00-07 -> force that CGB OBJ palette number
+;
+; This keeps Bank0 generic. Screen/form-specific OBJ coloring can now be changed
+; by editing/loading the 256-byte RAM map instead of hardcoding tile ranges here.
+;
+; Input:
+;   A  = attribute byte after hSpriteFlags transform
+;   DE = current OAM attribute byte address, so [DE-1] is tile ID
+; Preserves:
+;   BC, DE, HL
+WriteOamAttrDx::
+    push bc
+    push hl
+    ld b, a
+    ld a, [wCgbEnabled]
+    or a
+    ld a, b
+    jr z, .store
+
+    ; Default CGB conversion: clear OBJ palette bits 0-2, then map
+    ; DMG OBP1 bit 4 to CGB OBJ palette 1.
+    and $f8
+    bit 4, b
+    jr z, .defaultPaletteDone
+
+    or $01
+
+.defaultPaletteDone
+    ld c, a
+
+    ; Read OAM tile ID from the previous byte in the current OAM entry.
+    dec de
+    ld a, [de]
+    inc de
+
+    ; Look up active DX OBJ palette override.
+    ; wCgbObjTilePaletteMap is page-aligned at $de00, so tile id can be L.
+    ld l, a
+    ld h, HIGH(wCgbObjTilePaletteMap)
+    ld a, [hl]
+    cp $ff
+    jr z, .useFallback
+
+    ; A = forced OBJ palette id. Merge into fallback attr while preserving flags.
+    and $07
+    ld b, a
+    ld a, c
+    and $f8
+    or b
+    jr .store
+
+.useFallback
+    ld a, c
+
+.store
+    pop hl
+    pop bc
     ld [de], a
     ret
 
@@ -1517,7 +1590,11 @@ jr_000_05e5::
     ret
 
 
-ApplyPalettes:: ; Copy palette shadow bytes to BGP/OBP0/OBP1.
+ApplyPalettes:: ; Copy palette shadow bytes to DMG or CGB palette registers.
+    ld a, [wCgbEnabled]
+    or a
+    jp nz, ApplyCgbPalettesFromDmgShadow_Far
+
     ld hl, wPaletteBGP
     ld a, [hl+]
     ldh [rBGP], a
@@ -1525,6 +1602,55 @@ ApplyPalettes:: ; Copy palette shadow bytes to BGP/OBP0/OBP1.
     ldh [rOBP0], a
     ld a, [hl]
     ldh [rOBP1], a
+    ret
+
+
+InitCgbGrayscalePalettes_Far::
+    ld a, [wCgbEnabled]
+    or a
+    ret z
+
+    ld a, [$4000]
+    push af
+    ld a, BANK(InitCgbGrayscalePalettes)
+    ld [$2100], a
+    call InitCgbGrayscalePalettes
+    pop af
+    ld [$2100], a
+    ret
+
+
+ApplyCgbPalettesFromDmgShadow_Far:: ; Far-call bank 8 CGB palette bridge.
+    push bc
+    push de
+    push hl
+    ld a, [$4000]
+    push af
+    ld a, BANK(ApplyCgbPalettesFromDmgShadow)
+    ld [$2100], a
+    call ApplyCgbPalettesFromDmgShadow
+    pop af
+    ld [$2100], a
+    pop hl
+    pop de
+    pop bc
+    ret
+
+
+LoadCgbScreenPaletteFromSgbId_Far:: ; Far-call bank 8 SGB-palette-id -> CGB base palette loader.
+    push bc
+    push de
+    push hl
+    ld a, [$4000]
+    push af
+    ld a, BANK(LoadCgbScreenPaletteFromSgbId)
+    ld [$2100], a
+    call LoadCgbScreenPaletteFromSgbId
+    pop af
+    ld [$2100], a
+    pop hl
+    pop de
+    pop bc
     ret
 
 

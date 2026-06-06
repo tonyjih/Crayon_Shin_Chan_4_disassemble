@@ -5,7 +5,7 @@ RGBLINK ?= ../rgblink.exe
 RGBFIX ?= ../rgbfix.exe
 RGBGFX ?= ../rgbgfx.exe
 
-all: game.gb
+all: game.gbc
 
 %.2bpp: %.png
 	$(RGBGFX) --colors embedded -o $@ $<
@@ -24,12 +24,12 @@ gfx/debugmenu_font_9000.rle: gfx/debugmenu_font_9000.raw2bpp tools/shin_prev_byt
 game.o: game.asm bank_*.asm $(IMAGE_DEPS) $(RLE_DEPS) $(RLE_DEPS)
 	$(RGBASM) -o game.o game.asm
 
-game.gb: game.o
+game.gbc: game.o
 	$(RGBLINK) -n game.sym -m game.map -o $@ $<
 	$(RGBFIX) -v -p 255 $@
 
 	@if which md5sum &>/dev/null; then md5sum $@; else md5 $@; fi
 
 clean:
-	rm -f game.o game.gb game.sym game.map
+	rm -f game.o game.gbc game.sym game.map
 	find . \( -iname '*.1bpp' -o -iname '*.2bpp' -o -iname '*.rle' \) -exec rm {} +
