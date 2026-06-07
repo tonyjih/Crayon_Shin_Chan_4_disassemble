@@ -22,16 +22,6 @@ DEF wCgbCurrentTilePaletteId EQU $dff0 ; Scratch: selected 8x8 tile ID used to l
 DEF wCgbStageAttrActive EQU $dff1 ; Nonzero when wCgbStageTilePaletteAttrs contains a valid stage tile attr table.
 DEF wFrameReady EQU $dff2 ; Set by VBlank after hardware transfers; consumed by main loop update/sound tick.
 DEF wFrameUpdateBusy EQU $dff3 ; Nonzero while main loop is building next frame queues/OAM.
-DEF wCgbDebugFirstBadLy EQU $df72 ; Sticky debug: first LY < $90 observed after CGB attr flush. 0 = none latched.
-DEF wCgbDebugBadVramQueuePos EQU $df73 ; Sticky debug: hVramQueuePos when first bad LY was latched.
-DEF wCgbDebugBadAttrTail EQU $df74 ; Sticky debug: wCgbBgAttrQueueTail when first bad LY was latched.
-DEF wCgbDebugNonStageTilemapCount EQU $df75 ; Sticky-ish counter: generic tilemap queue calls during gameplay.
-DEF wCgbDebugNonStageTilemapHi EQU $df76 ; Last generic gameplay tilemap destination high byte.
-DEF wCgbDebugNonStageTilemapLo EQU $df77 ; Last generic gameplay tilemap destination low byte.
-DEF wCgbDebugEndBadLy EQU $df7c ; Sticky debug: first LY < $90 observed near VBlank handler end.
-DEF wCgbDebugEndBadVramQueuePos EQU $df7d ; hVramQueuePos when end-overrun was latched.
-DEF wCgbDebugEndBadAttrTail EQU $df7e ; wCgbBgAttrQueueTail when end-overrun was latched.
-DEF wCgbDoubleSpeedEnabled EQU $df7f ; Nonzero after CGB double-speed switch succeeds.
 DEF CGB_BG_ATTR_QUEUE_MAX_START EQU $47 ; Do not start a 35-byte command at or beyond this offset.
 DEF wCgbLastPaletteBGP  EQU $dff4 ; Last DMG palette shadow applied to CGB palette RAM.
 DEF wCgbLastPaletteOBP0 EQU $dff5
@@ -623,6 +613,8 @@ jr_000_017c::
     ld bc, $007f
     call bzero
     call DisableLCD
+    xor a
+    ldh [rVBK], a ; Safety: clear VRAM bank select before original DMG VRAM init.
     ld hl, $8000
     ld bc, $5f80
     call bzero
@@ -636,6 +628,7 @@ ReinitCurrentState:: ; Rebuild current state with LCD off. Repeats if init sets 
     di
     call DisableLCD
     xor a
+    ldh [rVBK], a ; Safety: original DMG init code directly writes VRAM bank 0.
     ld [wScreenPaletteId], a
     call Call_000_079b
     ld hl, _OAMRAM
@@ -660,15 +653,6 @@ ReinitCurrentState:: ; Rebuild current state with LCD off. Repeats if init sets 
     xor a
     ld [wFrameReady], a
     ld [wFrameUpdateBusy], a
-    ld [wCgbDebugFirstBadLy], a
-    ld [wCgbDebugBadVramQueuePos], a
-    ld [wCgbDebugBadAttrTail], a
-    ld [wCgbDebugNonStageTilemapCount], a
-    ld [wCgbDebugNonStageTilemapHi], a
-    ld [wCgbDebugNonStageTilemapLo], a
-    ld [wCgbDebugEndBadLy], a
-    ld [wCgbDebugEndBadVramQueuePos], a
-    ld [wCgbDebugEndBadAttrTail], a
     ei
 
 MainWaitForStateReset:: ; Main-thread frame loop. VBlank only performs hardware transfers; gameplay update runs here.
@@ -727,7 +711,6 @@ VBlankHandler:: ; Main VBlank handler: DMA/OAM, VRAM queues, scroll, palettes on
     ld de, wVramQueue
     call jr_000_0347
     call FlushCgbBgAttrQueue
-    call LatchCgbVramOverrunDebug
     call ApplyScrollRegs
     call ApplyPalettes
     xor a
@@ -752,7 +735,6 @@ VBlankSoundOnly::
 
     ei
     call Call_000_04f2
-    call LatchCgbVblankEndOverrunDebug
 
     xor a
     ldh [hVBlankBusy], a
@@ -1338,8 +1320,6 @@ EnableCgbDoubleSpeedIfCgb:: ; DX test: switch CGB CPU to double speed. Safe no-o
     stop
 
 .alreadyDoubleSpeed
-    ld a, $ff
-    ld [wCgbDoubleSpeedEnabled], a
     ret
 
 
@@ -1489,7 +1469,6 @@ QueueVramFill_SetHighBit::
     jr QueueVramFill
 
 QueueVramFill:: ; Queue a VRAM fill/single-byte command at wVramQueue.
-    call LogNonStageTilemapUpdateIfGameplay
     call GetVramQueueTail
     ld a, b
     ld [hl+], a
@@ -1753,94 +1732,6 @@ ApplyPalettes:: ; Copy palette shadow bytes to DMG or CGB palette registers.
 
 
 ; -----------------------------------------------------------------------------
-; LatchCgbVramOverrunDebug
-; -----------------------------------------------------------------------------
-; Sticky debug for intermittent CGB attr corruption. If the attr flush finishes
-; after VBlank, latch the first bad LY and the queue sizes. This is intentionally
-; sticky so BGB inspection after the visible glitch still has useful evidence.
-; Cleared during ReinitCurrentState.
-; -----------------------------------------------------------------------------
-LatchCgbVramOverrunDebug::
-    ldh a, [rLY]
-    cp $90
-    ret nc
-
-    ld a, [wCgbDebugFirstBadLy]
-    or a
-    ret nz
-
-    ldh a, [rLY]
-    ld [wCgbDebugFirstBadLy], a
-    ldh a, [hVramQueuePos]
-    ld [wCgbDebugBadVramQueuePos], a
-    ld a, [wCgbBgAttrQueueTail]
-    ld [wCgbDebugBadAttrTail], a
-    ret
-
-
-; -----------------------------------------------------------------------------
-; LatchCgbVblankEndOverrunDebug
-; -----------------------------------------------------------------------------
-; Separate sticky latch for the end of the VBlank handler. This distinguishes
-; VRAM-transfer overrun from later sound/bookkeeping overrun.
-; Cleared during ReinitCurrentState.
-; -----------------------------------------------------------------------------
-LatchCgbVblankEndOverrunDebug::
-    ldh a, [rLY]
-    cp $90
-    ret nc
-
-    ld a, [wCgbDebugEndBadLy]
-    or a
-    ret nz
-
-    ldh a, [rLY]
-    ld [wCgbDebugEndBadLy], a
-    ldh a, [hVramQueuePos]
-    ld [wCgbDebugEndBadVramQueuePos], a
-    ld a, [wCgbBgAttrQueueTail]
-    ld [wCgbDebugEndBadAttrTail], a
-    ret
-
-
-; -----------------------------------------------------------------------------
-; LogNonStageTilemapUpdateIfGameplay
-; -----------------------------------------------------------------------------
-; Debug helper for generic QueueVramFill / QueueTilemapRect calls while gameplay
-; is active. Stage scrolling should normally use QueueBgRowForWorldY /
-; QueueBgColumnForWorldX instead, so these counters help identify tilemap writes
-; that may need their own CGB attr policy. Input: B=dest high, C=dest low.
-; Preserves AF only; caller already owns BC/DE/HL.
-; -----------------------------------------------------------------------------
-LogNonStageTilemapUpdateIfGameplay::
-    push af
-    ldh a, [hGameState]
-    cp $02
-    jr nz, .done
-
-    ld a, [wCgbStageAttrActive]
-    or a
-    jr z, .done
-
-    ld a, b
-    and $fc
-    cp $98
-    jr nz, .done
-
-    ld a, [wCgbDebugNonStageTilemapCount]
-    inc a
-    ld [wCgbDebugNonStageTilemapCount], a
-    ld a, b
-    ld [wCgbDebugNonStageTilemapHi], a
-    ld a, c
-    ld [wCgbDebugNonStageTilemapLo], a
-
-.done
-    pop af
-    ret
-
-
-; -----------------------------------------------------------------------------
 ; FlushCgbBgAttrQueue
 ; -----------------------------------------------------------------------------
 ; CGB BG attribute queue flush. The queue uses the same command
@@ -1914,11 +1805,6 @@ QueueTilemapRect:: ; Queue a rectangular tilemap upload. HL=dest, DE=src, B=widt
     ldh [$ffc5], a
     ld a, h
     ldh [$ffc6], a
-    push bc
-    ld b, h
-    ld c, l
-    call LogNonStageTilemapUpdateIfGameplay
-    pop bc
     call GetVramQueueTail
 
 jr_000_0628::
