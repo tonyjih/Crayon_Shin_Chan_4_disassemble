@@ -225,7 +225,7 @@ Call_001_417f::
     ld hl, wPaletteBGP
     ld a, $e4
     ld [hl+], a
-    ld a, $e4
+    ld a, $d0
     ld [hl+], a
     ld a, $e4
     ld [hl+], a
@@ -320,11 +320,11 @@ jr_001_4225::
     rst $20
     ld de, wStageLayoutMap
     ld bc, $0e00
-    ld a, $04
+    ld a, BANK(Stage0LayoutRle_Bank4)
     jp BankedMemcpy_RLEFF
 
 
-StageLayoutRlePtrs:: ; Bank4 RLEFF layout streams selected by hStageIndex/$ff9f.
+StageLayoutRlePtrs:: ; Bank9 RLEFF layout streams selected by hStageIndex/$ff9f.
     dw Stage0LayoutRle_Bank4
     dw Stage1LayoutRle_Bank4
     dw Stage2LayoutRle_Bank4
@@ -342,7 +342,7 @@ jr_001_4250::
     ld hl, Stage3LayoutRle_Bank4
     ld de, wStageLayoutMap
     ld bc, $1100
-    ld a, $04
+    ld a, BANK(Stage3LayoutRle_Bank4)
     jp BankedMemcpy_RLEFF
 
 

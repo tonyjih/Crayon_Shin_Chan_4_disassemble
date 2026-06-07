@@ -903,33 +903,13 @@ jr_003_461b::
     dec b
     jr nz, jr_003_461b
 
-    ld hl, wStageLayoutMap
-    ld de, Bank0TrailingGraphicsData_3ca2
-    ld b, $59
-
-jr_003_4634::
-    ld c, $08
-
-jr_003_4636::
-    ld a, [de]
-    inc de
-    ld [hl+], a
-    ld a, $ff
-    ld [hl+], a
-    dec c
-    jr nz, jr_003_4636
-
-    xor a
-    ld c, $08
-
-jr_003_4642::
-    ld [hl+], a
-    ld [hl+], a
-    dec c
-    jr nz, jr_003_4642
-
-    dec b
-    jr nz, jr_003_4634
+    ; Expand SGB border raw data moved to bank 9.
+    ; IMPORTANT: bank 3 still has hard-coded intra-bank addresses later in this
+    ; SGB border/title path (for example $4714/$4724/$4b5f).  The original
+    ; inline expansion block was 30 bytes; this call is 3 bytes, so keep the
+    ; remaining 27 bytes as NOP padding to preserve every following address.
+    call ExpandSgbBorderRawDataFromBank9_ForBank3
+    ds 27, $00
 
     ld hl, wStageLayoutMap
     ld bc, $0020

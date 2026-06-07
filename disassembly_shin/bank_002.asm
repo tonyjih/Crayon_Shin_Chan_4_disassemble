@@ -2520,8 +2520,8 @@ jr_002_4fe5::
     ld hl, $7481
     ld de, $8000
     call LoadMaskedGfx
-    ld a, $04
-    ld hl, $79da
+    ld a, BANK(MinigameWaterfallLayoutRle_Bank4)
+    ld hl, MinigameWaterfallLayoutRle_Bank4
     ld de, wStageLayoutMap
     ld bc, $1000
     call BankedMemcpy_RLEFF

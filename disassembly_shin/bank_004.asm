@@ -259,26 +259,10 @@ Stage4MetatileQuads_Bank4:: ; $4db9-$4e38, 0x080 bytes, 32 metatiles
     db $00, $00, $00, $96, $00, $99, $00, $99, $00, $99, $97, $97, $00, $00, $00, $00
     db $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 
+
 ; =========================
-; Stage layout RLEFF streams
+; Restored Bank4 collision/window data
 ; =========================
-; RLEFF format: literal byte != $ff outputs itself; $ff,count,value outputs
-; value repeated count times. Streams decode to wStageLayoutMap ($c800).
-Stage0LayoutRle_Bank4:: ; $4e39-$584a, externalized RLEFF layout data
-    INCBIN "assets/levels/stage0/layout.rleff"
-
-Stage1LayoutRle_Bank4:: ; $584b-$6139, externalized RLEFF layout data
-    INCBIN "assets/levels/stage1/layout.rleff"
-
-Stage2LayoutRle_Bank4:: ; $613a-$6b76, externalized RLEFF layout data
-    INCBIN "assets/levels/stage2/layout.rleff"
-
-Stage3LayoutRle_Bank4:: ; $6b77-$75d2, externalized RLEFF layout data
-    INCBIN "assets/levels/stage3/layout.rleff"
-
-Stage4LayoutRle_Bank4:: ; $75d3-$7631, externalized RLEFF layout data
-    INCBIN "assets/levels/stage4/layout.rleff"
-
 StageCollisionAttrsBlob_Bank4::
 Stage0CollisionAttrsWindow_Bank4:: ; $7632, bank1 StageCollisionAttrPtrs[0]
     db $00, $00, $00, $00, $1f, $00, $01, $00, $01, $01, $01, $01, $01, $01, $01, $01
@@ -350,6 +334,8 @@ Stage3CollisionAttrsWindow_Bank4:: ; $78fa, bank1 StageCollisionAttrPtrs[3]
 Stage4CollisionAttrsWindow_Bank4:: ; $79ba, bank1 StageCollisionAttrPtrs[4]
     db $00, $00, $00, $00, $05, $00, $04, $04, $05, $05, $00, $01, $01, $01, $01, $01
     db $01, $01, $06, $06, $08, $07, $07, $07, $0c, $00, $05, $00, $00, $00, $00, $00
+
+MinigameWaterfallLayoutRle_Bank4:: ; Was hardcoded as bank4:$79da before PhaseD1 moved layout streams.
     db $ff, $a7, $01, $a3, $a4, $a5, $ff, $20, $01, $a3, $a4, $a5, $ff, $9d, $01, $a3
     db $a4, $a5, $ff, $25, $01, $a3, $a4, $a5, $ff, $69, $01, $a3, $a5, $ff, $03, $01
     db $a3, $a4, $a5, $ff, $2d, $01, $a3, $a5, $ff, $20, $01, $a3, $a4, $a5, $ff, $42

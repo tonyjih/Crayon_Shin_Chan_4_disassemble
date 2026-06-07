@@ -23,6 +23,7 @@ DxBank8CallTable::
     dw InitCgbGrayscalePalettes
     dw DxLoadCgbScreenPaletteFromSgbId_Preserve
     dw DxApplyCgbPalettesFromDmgShadow_Preserve
+    dw DxLoadCgbStageTilePaletteAttrs_Preserve
 
 DxLoadCgbScreenPaletteFromSgbId_Preserve::
     push bc
@@ -39,6 +40,16 @@ DxApplyCgbPalettesFromDmgShadow_Preserve::
     push de
     push hl
     call ApplyCgbPalettesFromDmgShadow
+    pop hl
+    pop de
+    pop bc
+    ret
+
+DxLoadCgbStageTilePaletteAttrs_Preserve::
+    push bc
+    push de
+    push hl
+    call LoadCgbStageTilePaletteAttrs
     pop hl
     pop de
     pop bc
@@ -128,6 +139,11 @@ LoadCgbScreenPaletteFromSgbId::
     or a
     ret z
 
+    ; Static/menu palette loads should not leave the gameplay attr sync active.
+    ; Stage redraw explicitly reloads the active table before it queues BG columns.
+    xor a
+    ld [wCgbStageAttrActive], a
+
     ; DX override path:
     ;   wScreenPaletteId -> CGB palette set id
     ;   set id -> 16 palette IDs: BG0-7, OBJ0-7
@@ -177,6 +193,16 @@ LoadCgbScreenPaletteFromSgbId::
 
 .paletteIdsLoaded
     call InitCgbObjTilePaletteMap_Default
+
+    ; Normal state-palette loads only activate gameplay 8x8 tile attrs when
+    ; hGameState already says gameplay. RedrawVisibleBgMapColumns also calls
+    ; the same loader directly, because initial stage redraw can happen before
+    ; this state-level palette load.
+    ldh a, [hGameState]
+    cp $02
+    jr nz, .skipStageAttrLoad
+    call LoadCgbStageTilePaletteAttrs
+.skipStageAttrLoad
     call ApplyCgbPalettesFromDmgShadow
     jp LoadCgbBgAttrsForScreenFromSgbId
 
@@ -246,6 +272,7 @@ CopyCgbPaletteIdToDE::
     inc de
     dec b
     jr nz, .copyLoop
+
     ret
 
 
@@ -453,13 +480,17 @@ LoadCgbBgAttrsForScreenFromSgbId::
     or a
     ret z
 
-    call ClearCgbBgAttrMap
-
     ; Mirror the SGB PAL_SET attr-file selection instead of keying directly on
     ; wScreenPaletteId. Bank 3 stores six-byte records:
     ;   pal0, pal1, pal2, pal3, attr_file, extra
     ; The SGB sender sets bit 7 before putting attr_file in the PAL_SET packet,
     ; so CGB only cares about the low 7 bits here.
+    ;
+    ; Important: gameplay/stage BG attrs are owned by the streaming path.
+    ; RedrawVisibleBgMapColumns may already have written VRAM bank 1 attrs
+    ; before this state-level palette loader runs. Do not clear the BG attr map
+    ; after wCgbStageAttrActive is set, or the freshly streamed stage attrs get
+    ; wiped back to palette 0.
     ld a, [wScreenPaletteId]
     add a
     ld b, a
@@ -471,13 +502,24 @@ LoadCgbBgAttrsForScreenFromSgbId::
     ld a, [hl]
     and $7f
     cp $01 ; SGB attr file 1 = title screen layout.
-    jr nz, .notTitle
+    jr z, .title
 
+    ; No static attr file for this screen. If stage streaming is active, leave
+    ; VRAM bank 1 alone; otherwise clear stale attrs for conservative fallback.
+    ld a, [wCgbStageAttrActive]
+    or a
+    ret nz
+
+    jp ClearCgbBgAttrMap
+
+.title
+    ; Static title screen owns VRAM bank 1. Disable stage ownership, clear the
+    ; map, then load the explicit title attr map.
+    xor a
+    ld [wCgbStageAttrActive], a
+    call ClearCgbBgAttrMap
     call InitCgbObjTilePaletteMap_Title
     jp LoadCgbTitleScreenAttrMap
-
-.notTitle
-    ret
 
 
 ; Clears the full BG map attribute area ($9800-$9bff) to palette 0.
@@ -612,46 +654,90 @@ CgbTitleAttrMap::
 ;
 
 ; -----------------------------------------------------------------------------
-; Gameplay metatile -> BG palette attribute tables
+; LoadCgbStageTilePaletteAttrs
+; -----------------------------------------------------------------------------
+; Copies the current stage's 8x8 tile ID -> BG palette attribute table into WRAM.
+; Runtime column streaming reads this active table instead of doing ROM pointer
+; lookups in the hot path.
+;
+; Destination:
+;   wCgbStageTilePaletteAttrs = $dc00, 256 bytes
+;
+ ; This routine is deliberately not gated on hGameState. The initial stage
+; redraw path can run before the outer state-level palette load, so callers
+; use this routine to force-load the active table and enable attr sync.
+; -----------------------------------------------------------------------------
+LoadCgbStageTilePaletteAttrs::
+    ld a, [wCgbEnabled]
+    or a
+    ret z
+
+    ld hl, CgbStageTilePaletteAttrPtrs
+    ldh a, [hStageIndex]
+    add a
+    ld e, a
+    ld d, $00
+    add hl, de
+    ld a, [hl+]
+    ld h, [hl]
+    ld l, a
+
+    ld de, wCgbStageTilePaletteAttrs
+    ld b, $00 ; 256 bytes
+.copyLoop
+    ld a, [hl+]
+    ld [de], a
+    inc de
+    dec b
+    jr nz, .copyLoop
+
+    ld a, $ff
+    ld [wCgbStageAttrActive], a
+    ret
+
+
+; -----------------------------------------------------------------------------
+; Gameplay 8x8 tile ID -> BG palette attribute tables
 ; -----------------------------------------------------------------------------
 ; Phase14 POC data. Each table has 256 bytes:
-;   index = metatile id
+;   index = 8x8 tile ID
 ;   value = CGB BG palette attribute (low 3 bits)
 ;
 ; These are intentionally dummy-safe ($00 everywhere) so gameplay visuals do not
-; change until entries are edited. To test quickly, change selected metatile IDs
+; change until entries are edited. To test quickly, change selected 8x8 tile IDs
 ; to $01/$02/$03 and reassemble.
 ;
-CgbStageMetatilePaletteAttrPtrs::
-    dw CgbStage0MetatilePaletteAttrs
-    dw CgbStage1MetatilePaletteAttrs
-    dw CgbStage2MetatilePaletteAttrs
-    dw CgbStage3MetatilePaletteAttrs
-    dw CgbStage4MetatilePaletteAttrs
-    dw CgbStage0MetatilePaletteAttrs
-    dw CgbStage0MetatilePaletteAttrs
-    dw CgbStage0MetatilePaletteAttrs
 
-CgbStage0MetatilePaletteAttrs::
+CgbStageTilePaletteAttrPtrs::
+    dw CgbStage0TilePaletteAttrs
+    dw CgbStage1TilePaletteAttrs
+    dw CgbStage2TilePaletteAttrs
+    dw CgbStage3TilePaletteAttrs
+    dw CgbStage4TilePaletteAttrs
+    dw CgbStage0TilePaletteAttrs
+    dw CgbStage0TilePaletteAttrs
+    dw CgbStage0TilePaletteAttrs
+
+CgbStage0TilePaletteAttrs::
       ;$00,$01,$02,$03,$04,$05,$06,$07,$08,$09,$0A,$0B,$0C,$0D,$0E,$0F
-    db $00,$07,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	;00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	;00
     db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	;10
-    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	;20
-    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	;30
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$07,$07	;20
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$07,$07,$07,$07,$07,$00,$00	;30
     db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	;40
     db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	;50
-    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	;60
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$07,$00,$00	;60
     db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	;70
     db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	;80
     db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	;90
-    db $00,$00,$00,$00,$00,$00,$00,$07,$07,$07,$00,$00,$00,$00,$00,$00	;A0
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	;A0
     db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	;B0
     db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	;C0
     db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	;D0
     db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	;E0
     db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	;F0
 
-CgbStage1MetatilePaletteAttrs::
+CgbStage1TilePaletteAttrs::
     db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
     db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
     db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
@@ -669,7 +755,7 @@ CgbStage1MetatilePaletteAttrs::
     db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
     db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
 
-CgbStage2MetatilePaletteAttrs::
+CgbStage2TilePaletteAttrs::
     db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
     db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
     db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
@@ -687,7 +773,7 @@ CgbStage2MetatilePaletteAttrs::
     db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
     db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
 
-CgbStage3MetatilePaletteAttrs::
+CgbStage3TilePaletteAttrs::
     db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
     db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
     db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
@@ -705,7 +791,7 @@ CgbStage3MetatilePaletteAttrs::
     db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
     db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
 
-CgbStage4MetatilePaletteAttrs::
+CgbStage4TilePaletteAttrs::
     db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
     db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
     db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00

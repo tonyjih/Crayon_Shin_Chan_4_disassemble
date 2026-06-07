@@ -14,6 +14,25 @@ DEF wSgbEnabled EQU $dff8
 DEF wCgbBgPaletteIds EQU $df80 ; 8 active CGB BG palette IDs.
 DEF wCgbObjPaletteIds EQU $df88 ; 8 active CGB OBJ palette IDs.
 DEF wCgbObjTilePaletteMap EQU $de00 ; 256-byte active OBJ tile-id -> CGB OBJ palette map. $ff = DMG fallback.
+DEF wCgbStageTilePaletteAttrs EQU $dc00 ; 256-byte active gameplay 8x8 tile ID -> BG palette attr table.
+DEF wCgbBgAttrQueue EQU $df00 ; CGB BG attr queue, mirrors wVramQueue command format.
+DEF wCgbBgAttrWritePos EQU $df70 ; Low-byte write cursor for current CGB attr queue command data.
+DEF wCgbBgAttrQueueTail EQU $df71 ; Low-byte append cursor for wCgbBgAttrQueue.
+DEF wCgbCurrentTilePaletteId EQU $dff0 ; Scratch: selected 8x8 tile ID used to look up CGB BG attr.
+DEF wCgbStageAttrActive EQU $dff1 ; Nonzero when wCgbStageTilePaletteAttrs contains a valid stage tile attr table.
+DEF wFrameReady EQU $dff2 ; Set by VBlank after hardware transfers; consumed by main loop update/sound tick.
+DEF wFrameUpdateBusy EQU $dff3 ; Nonzero while main loop is building next frame queues/OAM.
+DEF wCgbDebugFirstBadLy EQU $df72 ; Sticky debug: first LY < $90 observed after CGB attr flush. 0 = none latched.
+DEF wCgbDebugBadVramQueuePos EQU $df73 ; Sticky debug: hVramQueuePos when first bad LY was latched.
+DEF wCgbDebugBadAttrTail EQU $df74 ; Sticky debug: wCgbBgAttrQueueTail when first bad LY was latched.
+DEF wCgbDebugNonStageTilemapCount EQU $df75 ; Sticky-ish counter: generic tilemap queue calls during gameplay.
+DEF wCgbDebugNonStageTilemapHi EQU $df76 ; Last generic gameplay tilemap destination high byte.
+DEF wCgbDebugNonStageTilemapLo EQU $df77 ; Last generic gameplay tilemap destination low byte.
+DEF wCgbDebugEndBadLy EQU $df7c ; Sticky debug: first LY < $90 observed near VBlank handler end.
+DEF wCgbDebugEndBadVramQueuePos EQU $df7d ; hVramQueuePos when end-overrun was latched.
+DEF wCgbDebugEndBadAttrTail EQU $df7e ; wCgbBgAttrQueueTail when end-overrun was latched.
+DEF wCgbDoubleSpeedEnabled EQU $df7f ; Nonzero after CGB double-speed switch succeeds.
+DEF CGB_BG_ATTR_QUEUE_MAX_START EQU $47 ; Do not start a 35-byte command at or beyond this offset.
 DEF wCgbLastPaletteBGP  EQU $dff4 ; Last DMG palette shadow applied to CGB palette RAM.
 DEF wCgbLastPaletteOBP0 EQU $dff5
 DEF wCgbLastPaletteOBP1 EQU $dff6
@@ -24,6 +43,7 @@ DEF wCgbLastPaletteOBP1 EQU $dff6
 DEF DX8_CALL_INIT_GRAYSCALE        EQU $0800
 DEF DX8_CALL_LOAD_SCREEN_PALETTE   EQU $0802
 DEF DX8_CALL_APPLY_PALETTES        EQU $0804
+DEF DX8_CALL_LOAD_STAGE_ATTRS      EQU $0806
 ; Hardware / memory aliases identified during cleanup pass 1.
 ; Keep these conservative: names below are based on direct register usage in bank 0.
 DEF hJoyHeld       EQU $ff8a
@@ -597,6 +617,7 @@ jr_000_017c::
     di
     xor a
     ldh [rIE], a
+    call EnableCgbDoubleSpeedIfCgb
     ld sp, $dff0
     ld hl, _HRAM
     ld bc, $007f
@@ -636,16 +657,55 @@ ReinitCurrentState:: ; Rebuild current state with LCD off. Repeats if init sets 
     call ApplyScrollRegs
     call SgbDelayIfEnabled
     call Call_000_079b
+    xor a
+    ld [wFrameReady], a
+    ld [wFrameUpdateBusy], a
+    ld [wCgbDebugFirstBadLy], a
+    ld [wCgbDebugBadVramQueuePos], a
+    ld [wCgbDebugBadAttrTail], a
+    ld [wCgbDebugNonStageTilemapCount], a
+    ld [wCgbDebugNonStageTilemapHi], a
+    ld [wCgbDebugNonStageTilemapLo], a
+    ld [wCgbDebugEndBadLy], a
+    ld [wCgbDebugEndBadVramQueuePos], a
+    ld [wCgbDebugEndBadAttrTail], a
     ei
 
-MainWaitForStateReset:: ; Main thread idles here; VBlank update sets hNeedsReset to request a state rebuild.
+MainWaitForStateReset:: ; Main-thread frame loop. VBlank only performs hardware transfers; gameplay update runs here.
     ldh a, [hNeedsReset]
+    or a
+    jr nz, ReinitCurrentState
+
+    ld a, [wFrameReady]
     or a
     jr z, MainWaitForStateReset
 
-    jr ReinitCurrentState
+    xor a
+    ld [wFrameReady], a
+    inc a
+    ld [wFrameUpdateBusy], a
 
-VBlankHandler:: ; Main VBlank handler: DMA/OAM, VRAM queue, palettes, joypad, sound.
+    call ReadJoypad
+    call UpdateCurrentGameState
+    ldh a, [hOamWritePos]
+    ldh [hPrevOamPos], a
+    call ClearUnusedOAM
+
+
+    ldh a, [hJoyHeld]
+    cp $0f
+    jr z, .softReset
+
+    xor a
+    ld [wFrameUpdateBusy], a
+    jr MainWaitForStateReset
+
+.softReset
+    xor a
+    ld [wFrameUpdateBusy], a
+    jp jr_000_017c
+
+VBlankHandler:: ; Main VBlank handler: DMA/OAM, VRAM queues, scroll, palettes only.
     push af
     push bc
     push de
@@ -656,9 +716,18 @@ VBlankHandler:: ; Main VBlank handler: DMA/OAM, VRAM queue, palettes, joypad, so
 
     inc a
     ldh [hVBlankBusy], a
+
+    ; If the main loop is still building the next frame, do not DMA or flush
+    ; VRAM queues. This avoids copying partial OAM/queue data if a frame overruns.
+    ld a, [wFrameUpdateBusy]
+    or a
+    jr nz, VBlankSoundOnly
+
     call _HRAM
     ld de, wVramQueue
     call jr_000_0347
+    call FlushCgbBgAttrQueue
+    call LatchCgbVramOverrunDebug
     call ApplyScrollRegs
     call ApplyPalettes
     xor a
@@ -667,6 +736,12 @@ VBlankHandler:: ; Main VBlank handler: DMA/OAM, VRAM queue, palettes, joypad, so
 Call_000_01fc::
     ldh [hVramQueuePos], a
     ldh [hOamWritePos], a
+    ld a, $01
+    ld [wFrameReady], a
+
+VBlankSoundOnly::
+    ; Keep sound ticking from VBlank; moving this to the main loop made audio
+    ; slow down in complex scenes.
     ld a, [$4000]
     push af
     ld a, $07
@@ -674,16 +749,10 @@ Call_000_01fc::
     call UpdateSound
     pop af
     ld [$2100], a
+
     ei
     call Call_000_04f2
-    call ReadJoypad
-    call UpdateCurrentGameState
-    ldh a, [hOamWritePos]
-    ldh [hPrevOamPos], a
-    call ClearUnusedOAM
-    ldh a, [hJoyHeld]
-    cp $0f
-    jp z, jr_000_017c
+    call LatchCgbVblankEndOverrunDebug
 
     xor a
     ldh [hVBlankBusy], a
@@ -695,13 +764,6 @@ Call_000_01fc::
 
 
 jr_000_0230::
-    ld a, [$4000]
-    push af
-    ld a, $07
-    ld [$2100], a
-    call UpdateSound
-    pop af
-    ld [$2100], a
     ldh a, [hVBlankBusy]
     dec a
     ldh [hVBlankBusy], a
@@ -1259,6 +1321,28 @@ jr_000_0406::
     ret
 
 
+EnableCgbDoubleSpeedIfCgb:: ; DX test: switch CGB CPU to double speed. Safe no-op on DMG/SGB.
+    ld a, [wCgbEnabled]
+    or a
+    ret z
+
+    ldh a, [rKEY1]
+    bit 7, a
+    jr nz, .alreadyDoubleSpeed
+
+    ; Make sure no joypad column is selected before STOP/speed switch.
+    ld a, $30
+    ldh [rP1], a
+    ld a, $01
+    ldh [rKEY1], a
+    stop
+
+.alreadyDoubleSpeed
+    ld a, $ff
+    ld [wCgbDoubleSpeedEnabled], a
+    ret
+
+
 DetectSgbOrInitSgb:: ; SGB detection/init handshake. Carry set means SGB path was detected.
     ld hl, SgbPacket_MltReq2P_0480
     call SendSgbPacket
@@ -1405,6 +1489,7 @@ QueueVramFill_SetHighBit::
     jr QueueVramFill
 
 QueueVramFill:: ; Queue a VRAM fill/single-byte command at wVramQueue.
+    call LogNonStageTilemapUpdateIfGameplay
     call GetVramQueueTail
     ld a, b
     ld [hl+], a
@@ -1667,6 +1752,122 @@ ApplyPalettes:: ; Copy palette shadow bytes to DMG or CGB palette registers.
     ret
 
 
+; -----------------------------------------------------------------------------
+; LatchCgbVramOverrunDebug
+; -----------------------------------------------------------------------------
+; Sticky debug for intermittent CGB attr corruption. If the attr flush finishes
+; after VBlank, latch the first bad LY and the queue sizes. This is intentionally
+; sticky so BGB inspection after the visible glitch still has useful evidence.
+; Cleared during ReinitCurrentState.
+; -----------------------------------------------------------------------------
+LatchCgbVramOverrunDebug::
+    ldh a, [rLY]
+    cp $90
+    ret nc
+
+    ld a, [wCgbDebugFirstBadLy]
+    or a
+    ret nz
+
+    ldh a, [rLY]
+    ld [wCgbDebugFirstBadLy], a
+    ldh a, [hVramQueuePos]
+    ld [wCgbDebugBadVramQueuePos], a
+    ld a, [wCgbBgAttrQueueTail]
+    ld [wCgbDebugBadAttrTail], a
+    ret
+
+
+; -----------------------------------------------------------------------------
+; LatchCgbVblankEndOverrunDebug
+; -----------------------------------------------------------------------------
+; Separate sticky latch for the end of the VBlank handler. This distinguishes
+; VRAM-transfer overrun from later sound/bookkeeping overrun.
+; Cleared during ReinitCurrentState.
+; -----------------------------------------------------------------------------
+LatchCgbVblankEndOverrunDebug::
+    ldh a, [rLY]
+    cp $90
+    ret nc
+
+    ld a, [wCgbDebugEndBadLy]
+    or a
+    ret nz
+
+    ldh a, [rLY]
+    ld [wCgbDebugEndBadLy], a
+    ldh a, [hVramQueuePos]
+    ld [wCgbDebugEndBadVramQueuePos], a
+    ld a, [wCgbBgAttrQueueTail]
+    ld [wCgbDebugEndBadAttrTail], a
+    ret
+
+
+; -----------------------------------------------------------------------------
+; LogNonStageTilemapUpdateIfGameplay
+; -----------------------------------------------------------------------------
+; Debug helper for generic QueueVramFill / QueueTilemapRect calls while gameplay
+; is active. Stage scrolling should normally use QueueBgRowForWorldY /
+; QueueBgColumnForWorldX instead, so these counters help identify tilemap writes
+; that may need their own CGB attr policy. Input: B=dest high, C=dest low.
+; Preserves AF only; caller already owns BC/DE/HL.
+; -----------------------------------------------------------------------------
+LogNonStageTilemapUpdateIfGameplay::
+    push af
+    ldh a, [hGameState]
+    cp $02
+    jr nz, .done
+
+    ld a, [wCgbStageAttrActive]
+    or a
+    jr z, .done
+
+    ld a, b
+    and $fc
+    cp $98
+    jr nz, .done
+
+    ld a, [wCgbDebugNonStageTilemapCount]
+    inc a
+    ld [wCgbDebugNonStageTilemapCount], a
+    ld a, b
+    ld [wCgbDebugNonStageTilemapHi], a
+    ld a, c
+    ld [wCgbDebugNonStageTilemapLo], a
+
+.done
+    pop af
+    ret
+
+
+; -----------------------------------------------------------------------------
+; FlushCgbBgAttrQueue
+; -----------------------------------------------------------------------------
+; CGB BG attribute queue flush. The queue uses the same command
+; format as wVramQueue, but is written with rVBK=1 so $9800-$9BFF selects
+; the CGB BG attribute map instead of tile IDs.
+; -----------------------------------------------------------------------------
+FlushCgbBgAttrQueue::
+    ld a, [wCgbEnabled]
+    or a
+    ret z
+
+    ld a, [wCgbBgAttrQueue]
+    or a
+    ret z
+
+    ld a, $01
+    ldh [rVBK], a
+    ld de, wCgbBgAttrQueue
+    call jr_000_0347
+    xor a
+    ldh [rVBK], a
+    ld [wCgbBgAttrQueue], a
+    ld [wCgbBgAttrQueueTail], a
+    dec a
+    ld [wCgbBgAttrWritePos], a
+    ret
+
 
 jr_000_05f7::
     call Call_000_05fe
@@ -1713,6 +1914,11 @@ QueueTilemapRect:: ; Queue a rectangular tilemap upload. HL=dest, DE=src, B=widt
     ldh [$ffc5], a
     ld a, h
     ldh [$ffc6], a
+    push bc
+    ld b, h
+    ld c, l
+    call LogNonStageTilemapUpdateIfGameplay
+    pop bc
     call GetVramQueueTail
 
 jr_000_0628::
@@ -2559,9 +2765,21 @@ UpdateCameraAndStreamMap:: ; Gameplay camera/scroll update and BG map streaming.
     ldh a, [hCollisionFlag]
     bit 6, a
     call nz, StreamBgColumnIfNeeded
+
+    ; CGB attr streaming doubles the amount of VRAM map work. When diagonal or
+    ; fast scrolling requests both a column and a row in the same frame, the
+    ; combined VRAM0 tile queue + VRAM1 attr queue can exceed VBlank time and
+    ; leave stale attr bytes. If the column path queued anything, defer the row
+    ; to the next frame; the row dirty condition remains true until streamed.
+    ldh a, [hVramQueuePos]
+    or a
+    jr nz, .doneStreamingMap
+
     ldh a, [hCollisionFlag]
     bit 5, a
     call nz, StreamBgRowIfNeeded
+
+.doneStreamingMap
     pop af
     ld [$2100], a
     ret
@@ -2942,11 +3160,66 @@ QueueBgRowForWorldY::
     ld [hl+], a
     ld a, $20 ; horizontal copy, 32 bytes
     ld [hl+], a
+    ; Preserve row destination BC for the CGB attr queue header.
+    ; The terminator setup below uses BC as a temporary $0020 offset.
+    push bc
     push hl
     ld bc, $0020
     add hl, bc
     ld [hl], $00
     pop hl
+    pop bc
+
+    ; CGB row attr sync: create a matching horizontal-copy command at
+    ; wCgbBgAttrQueue. Data bytes are filled in the same circular loop below.
+    ; The queue now appends commands so row and column updates can coexist in the same frame.
+    ld a, [wCgbEnabled]
+    or a
+    jr z, .cgbRowAttrHeaderDone
+    ld a, [wCgbStageAttrActive]
+    or a
+    jr z, .cgbRowAttrHeaderDone
+
+    push hl
+    ld a, [wCgbBgAttrQueue]
+    or a
+    jr nz, .cgbRowAttrQueueHasTail
+    xor a
+    ld [wCgbBgAttrQueueTail], a
+.cgbRowAttrQueueHasTail
+    ld a, [wCgbBgAttrQueueTail]
+    cp CGB_BG_ATTR_QUEUE_MAX_START
+    jr c, .cgbRowAttrQueueHasSpace
+    ld a, $ff
+    ld [wCgbBgAttrWritePos], a
+    pop hl
+    jr .cgbRowAttrHeaderDone
+.cgbRowAttrQueueHasSpace
+    ld l, a
+    ld h, HIGH(wCgbBgAttrQueue)
+    ld a, b
+    ld [hl+], a
+    ld a, c
+    ld [hl+], a
+    ld a, $20 ; horizontal copy, 32 bytes
+    ld [hl+], a
+    push hl
+    ld bc, $0020
+    add hl, bc
+    ld [hl], $00
+    ld a, l
+    ld [wCgbBgAttrQueueTail], a
+    pop hl
+
+    ldh a, [hSCX]
+    srl a
+    srl a
+    srl a
+    add l
+    ld [wCgbBgAttrWritePos], a
+    pop hl
+
+.cgbRowAttrHeaderDone
     ldh a, [hVramQueuePos]
     add $23
     ldh [hVramQueuePos], a
@@ -2989,7 +3262,6 @@ jr_000_0c63::
     jr z, jr_000_0c69
 
     set 1, l
-
 jr_000_0c69::
     ldh a, [hStageMetatileTableLo]
     add l
@@ -2998,16 +3270,43 @@ jr_000_0c69::
     adc h
     ld h, a
     ld a, [hl]
+    ld [wCgbCurrentTilePaletteId], a
     ; Store the selected 8x8 tile ID into the circular row data slot.
-    ; Future CGB attr sync point: write the matching attr byte to the same
-    ; relative slot in a VRAM-bank-1 attribute queue.
     ld hl, hTileStreamWritePos
     inc [hl]
     ld l, [hl]
     ld h, $c1
     dec hl
     ld [hl], a
+    pop hl ; restore layout pointer
+
+    ; CGB row attr sync: write the selected 8x8 tile ID's palette attr to the
+    ; matching circular data slot in wCgbBgAttrQueue.
+    ld a, [wCgbEnabled]
+    or a
+    jr z, .cgbRowAttrDataDone
+    ld a, [wCgbStageAttrActive]
+    or a
+    jr z, .cgbRowAttrDataDone
+    ld a, [wCgbBgAttrWritePos]
+    cp $ff
+    jr z, .cgbRowAttrDataDone
+
+    push hl
+    ld a, [wCgbCurrentTilePaletteId]
+    ld l, a
+    ld h, HIGH(wCgbStageTilePaletteAttrs)
+    ld a, [hl]
+    and $07
+    ld hl, wCgbBgAttrWritePos
+    inc [hl]
+    ld l, [hl]
+    ld h, HIGH(wCgbBgAttrQueue)
+    dec hl
+    ld [hl], a
     pop hl
+
+.cgbRowAttrDataDone
     bit 3, c
     jr z, jr_000_0c81
 
@@ -3028,7 +3327,22 @@ jr_000_0c81::
     ldh a, [hTileStreamWritePos]
     sub $20
     ldh [hTileStreamWritePos], a
-    jr jr_000_0c51
+
+    ; Keep the CGB attr queue circular cursor aligned with the original tile
+    ; queue cursor when the row wraps across a 256-pixel X boundary.
+    ld a, [wCgbEnabled]
+    or a
+    jr z, .cgbRowAttrWrapDone
+    ld a, [wCgbStageAttrActive]
+    or a
+    jr z, .cgbRowAttrWrapDone
+    ld a, [wCgbBgAttrWritePos]
+    cp $ff
+    jr z, .cgbRowAttrWrapDone
+    sub $20
+    ld [wCgbBgAttrWritePos], a
+.cgbRowAttrWrapDone
+    jp jr_000_0c51
 
 jr_000_0c96::
     ldh a, [hCollisionFlag]
@@ -3091,6 +3405,61 @@ QueueBgColumnForWorldX::
     add hl, de
     ld [hl], $00
     pop hl
+
+    ; CGB column attr sync: create a matching vertical-copy command at
+    ; wCgbBgAttrQueue. Data bytes are filled in the same circular loop below.
+    ; The queue appends commands until VBlank flush clears it.
+    ld a, [wCgbEnabled]
+    or a
+    jr z, .cgbColumnAttrHeaderDone
+    ld a, [wCgbStageAttrActive]
+    or a
+    jr z, .cgbColumnAttrHeaderDone
+
+    push hl
+    ld a, [wCgbBgAttrQueue]
+    or a
+    jr nz, .cgbColumnAttrQueueHasTail
+    xor a
+    ld [wCgbBgAttrQueueTail], a
+.cgbColumnAttrQueueHasTail
+    ld a, [wCgbBgAttrQueueTail]
+    cp CGB_BG_ATTR_QUEUE_MAX_START
+    jr c, .cgbColumnAttrQueueHasSpace
+    ld a, $ff
+    ld [wCgbBgAttrWritePos], a
+    pop hl
+    jr .cgbColumnAttrHeaderDone
+.cgbColumnAttrQueueHasSpace
+    ld l, a
+    ld h, HIGH(wCgbBgAttrQueue)
+    ld a, $98
+    ld [hl+], a
+    ld a, c
+    and $f8
+    rrca
+    rrca
+    rrca
+    ld [hl+], a
+    ld a, $a0 ; vertical copy, 32 bytes
+    ld [hl+], a
+    push hl
+    ld de, $0020
+    add hl, de
+    ld [hl], $00
+    ld a, l
+    ld [wCgbBgAttrQueueTail], a
+    pop hl
+
+    ldh a, [hSCY]
+    srl a
+    srl a
+    srl a
+    add l
+    ld [wCgbBgAttrWritePos], a
+    pop hl
+
+.cgbColumnAttrHeaderDone
     ldh a, [hVramQueuePos]
     add $23
     ldh [hVramQueuePos], a
@@ -3142,16 +3511,43 @@ jr_000_0d02::
     adc h
     ld h, a
     ld a, [hl]
+    ld [wCgbCurrentTilePaletteId], a
     ; Store the selected 8x8 tile ID into the circular column data slot.
-    ; Future CGB attr sync point: write the matching attr byte to the same
-    ; relative slot in a VRAM-bank-1 attribute queue.
     ld hl, hTileStreamWritePos
     inc [hl]
     ld l, [hl]
     ld h, $c1
     dec hl
     ld [hl], a
+    pop hl ; restore layout pointer
+
+    ; CGB column attr sync: write the selected 8x8 tile ID's palette attr to the
+    ; matching circular data slot in wCgbBgAttrQueue.
+    ld a, [wCgbEnabled]
+    or a
+    jr z, .cgbColumnAttrDataDone
+    ld a, [wCgbStageAttrActive]
+    or a
+    jr z, .cgbColumnAttrDataDone
+    ld a, [wCgbBgAttrWritePos]
+    cp $ff
+    jr z, .cgbColumnAttrDataDone
+
+    push hl
+    ld a, [wCgbCurrentTilePaletteId]
+    ld l, a
+    ld h, HIGH(wCgbStageTilePaletteAttrs)
+    ld a, [hl]
+    and $07
+    ld hl, wCgbBgAttrWritePos
+    inc [hl]
+    ld l, [hl]
+    ld h, HIGH(wCgbBgAttrQueue)
+    dec hl
+    ld [hl], a
     pop hl
+
+.cgbColumnAttrDataDone
     bit 3, e
     jr z, jr_000_0d21
 
@@ -3177,7 +3573,22 @@ jr_000_0d21::
     ldh a, [hTileStreamWritePos]
     sub $20
     ldh [hTileStreamWritePos], a
-    jr jr_000_0cea
+
+    ; Keep the CGB attr queue circular cursor aligned with the original tile
+    ; queue cursor when the column wraps across a 256-pixel Y boundary.
+    ld a, [wCgbEnabled]
+    or a
+    jr z, .cgbColumnAttrWrapDone
+    ld a, [wCgbStageAttrActive]
+    or a
+    jr z, .cgbColumnAttrWrapDone
+    ld a, [wCgbBgAttrWritePos]
+    cp $ff
+    jr z, .cgbColumnAttrWrapDone
+    sub $20
+    ld [wCgbBgAttrWritePos], a
+.cgbColumnAttrWrapDone
+    jp jr_000_0cea
 
 ; -----------------------------------------------------------------------------
 ; GetStageLayoutTileAtWorldPixel
@@ -3283,6 +3694,22 @@ jr_000_0d84::
 ; or integrate attr writes into QueueBgColumnForWorldX itself.
 ; -----------------------------------------------------------------------------
 RedrawVisibleBgMapColumns::
+    ; Cold redraw path: start from an empty CGB attr queue so the per-column
+    ; immediate flush below cannot inherit stale runtime commands.
+    xor a
+    ld [wCgbBgAttrQueue], a
+    ld [wCgbBgAttrQueueTail], a
+    dec a
+    ld [wCgbBgAttrWritePos], a
+
+    ; The gameplay init path calls RedrawVisibleBgMapColumns before
+    ; ReinitCurrentState later loads screen palettes. Load the active
+    ; 8x8 tile ID -> CGB BG attr table here as well, so the initial column
+    ; redraw can generate matching CGB attributes instead of using stale
+    ; / zeroed data.
+    ld hl, DX8_CALL_LOAD_STAGE_ATTRS
+    call FarCallFromBankTable
+
     ld a, [$4000]
     push af
     ld a, $04
@@ -3304,6 +3731,7 @@ jr_000_0d9b::
     call QueueBgColumnForWorldX
     ld de, wVramQueue
     call jr_000_0347
+    call FlushCgbBgAttrQueue
     xor a
     ld [wVramQueue], a
     ldh [hVramQueuePos], a
@@ -6296,56 +6724,15 @@ Bank0TrailingGraphicsData_3902:: ; Direct bank 1 xref into bank 0 sprite/graphic
     db $00, $FF, $00, $FF, $00, $6A, $00, $55, $00, $6A, $00, $55, $00, $6A, $00, $55
     db $00
 
-Bank0TrailingGraphicsData_3ca2:: ; SGB border source data used by bank 3 border upload path.
-    db $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-    db $00, $00, $06, $09, $11, $12, $14, $14, $3F, $00, $01, $02, $02, $02, $02, $01
-    db $00, $D8, $04, $04, $40, $00, $00, $00, $80, $E0, $1C, $02, $01, $00, $01, $00
-    db $00, $00, $0E, $11, $A1, $4E, $B0, $60, $50, $00, $00, $00, $00, $00, $3C, $7F
-    db $66, $46, $33, $0C, $13, $10, $20, $E9, $FA, $00, $81, $00, $C0, $3F, $88, $08
-    db $44, $50, $10, $10, $20, $C0, $00, $60, $50, $00, $00, $00, $03, $0C, $10, $20
-    db $20, $46, $86, $B8, $04, $04, $30, $48, $48, $3E, $0F, $00, $0F, $0F, $01, $71
-    db $89, $84, $02, $83, $40, $A0, $A0, $AC, $B2, $50, $93, $27, $C9, $B2, $8C, $84
-    db $83, $00, $80, $00, $00, $0E, $1C, $24, $C4, $40, $40, $40, $40, $26, $29, $19
-    db $0E, $30, $01, $02, $02, $01, $00, $00, $00, $04, $82, $42, $42, $80, $00, $00
-    db $02, $71, $70, $70, $10, $08, $08, $08, $10, $C1, $21, $10, $10, $08, $0B, $0C
-    db $10, $08, $10, $E0, $80, $80, $00, $00, $00, $0D, $12, $13, $0C, $00, $00, $00
-    db $00, $C0, $3F, $C0, $01, $02, $02, $01, $00, $0D, $F0, $80, $80, $4F, $70, $80
-    db $00, $E0, $00, $03, $1C, $E0, $00, $00, $00, $20, $C0, $00, $00, $00, $00, $00
-    db $00, $99, $99, $99, $99, $99, $99, $99, $99, $FF, $00, $00, $FF, $FF, $00, $00
-    db $FF, $0F, $30, $40, $47, $8F, $9E, $9C, $98, $00, $00, $03, $1F, $3F, $71, $70
-    db $67, $1F, $FF, $C1, $03, $87, $86, $01, $82, $F0, $FE, $FF, $FB, $1D, $0C, $F0
-    db $08, $00, $00, $80, $C0, $E0, $F0, $F0, $78, $00, $00, $00, $00, $01, $01, $02
-    db $02, $28, $20, $41, $83, $03, $03, $01, $00, $44, $20, $C0, $E0, $60, $E0, $C0
-    db $00, $04, $70, $F8, $D8, $F8, $71, $02, $1C, $04, $02, $02, $02, $02, $C4, $38
-    db $20, $02, $02, $01, $00, $00, $00, $00, $00, $00, $00, $01, $82, $62, $5F, $80
-    db $80, $00, $03, $9E, $61, $41, $88, $80, $80, $20, $FF, $0E, $01, $00, $00, $00
-    db $00, $20, $C0, $40, $E0, $31, $0A, $04, $05, $00, $00, $00, $00, $F0, $08, $08
-    db $F0, $80, $80, $40, $20, $38, $27, $20, $20, $40, $A0, $78, $16, $13, $FD, $09
-    db $10, $00, $00, $C0, $30, $80, $70, $3F, $C2, $3A, $05, $05, $01, $11, $01, $06
-    db $F8, $20, $47, $78, $20, $20, $20, $1F, $08, $10, $15, $E3, $20, $20, $20, $E0
-    db $93, $02, $03, $52, $64, $04, $07, $04, $0E, $80, $80, $80, $80, $40, $C0, $20
-    db $20, $08, $04, $02, $01, $03, $00, $00, $00, $94, $58, $40, $40, $C0, $00, $00
-    db $00, $89, $48, $28, $18, $00, $00, $00, $00, $20, $A0, $F0, $00, $00, $00, $00
-    db $00, $00, $00, $00, $00, $00, $00, $1C, $23, $20, $1E, $03, $04, $0B, $14, $10
-    db $12, $80, $7F, $80, $00, $00, $80, $00, $00, $00, $E3, $1C, $03, $0D, $12, $01
-    db $01, $00, $E0, $10, $88, $48, $B0, $40, $40, $10, $10, $08, $07, $00, $00, $00
-    db $01, $00, $00, $1E, $00, $FF, $40, $80, $A0, $04, $00, $00, $0F, $F0, $20, $10
-    db $10, $40, $40, $80, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $01, $01
-    db $06, $00, $78, $FF, $CD, $8C, $0C, $70, $08, $07, $38, $C7, $F0, $7C, $1E, $01
-    db $1E, $80, $70, $08, $84, $42, $21, $11, $88, $01, $01, $01, $03, $03, $07, $06
-    db $8E, $64, $D8, $E1, $5E, $40, $20, $20, $20, $12, $13, $12, $0C, $09, $0E, $08
-    db $08, $00, $00, $80, $80, $00, $00, $00, $00, $18, $20, $40, $40, $80, $80, 
+ExpandSgbBorderRawDataFromBank9_ForBank3:: ; Bank3-only trampoline. Maps bank 9, runs the bank 9 border expansion routine, then restores bank 3.
+    ld a, BANK(SgbBorderBank9Entry)
+    ld [$2100], a
 
-Bank0TrailingGraphicsData_3f00::
-Jump_000_3f00:: ; Compatibility alias: this is data, not executable code.
-    db $80
-    db $87, $08, $60, $90, $91, $60, $03, $04, $04, $1F, $03, $E3, $13, $08, $04, $84
-    db $84, $48, $44, $44, $65, $FF, $FF, $E9, $31, $9C, $B8, $F0, $E0, $80, $00, $00
-    db $00, $47, $48, $50, $50, $60, $00, $00, $00, $08, $90, $50, $50, $60, $00, $00
-    db $00, $48, $50, $30, $18, $26, $21, $1C, $0B, $83, $40, $40, $40, $80, $FF, $48
-    db $8F, $00, $00, $00, $04, $1B, $E2, $04, $F8, $1E, $12, $12, $32, $CD, $05, $06
-    db $00, $09, $0A, $12, $1C, $00, $00, $00, $00, $02, $02, $02, $02, $04, $07, $00
-    db $00, $40, $40, $40, $80, $80, $00, $00, $00
+    call SgbBorderBank9Entry
+
+    ld a, $03
+    ld [$2100], a
+    ret
 
 IF DEF(DEBUG)
 Call_000_3f6a::
