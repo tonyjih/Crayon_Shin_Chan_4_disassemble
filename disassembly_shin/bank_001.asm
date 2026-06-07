@@ -225,7 +225,7 @@ Call_001_417f::
     ld hl, wPaletteBGP
     ld a, $e4
     ld [hl+], a
-    ld a, $d0
+    ld a, $e4
     ld [hl+], a
     ld a, $e4
     ld [hl+], a

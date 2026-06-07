@@ -5,6 +5,12 @@ RGBLINK ?= ../rgblink.exe
 RGBFIX ?= ../rgbfix.exe
 RGBGFX ?= ../rgbgfx.exe
 
+RGBASMFLAGS :=
+
+ifeq ($(DEBUG),1)
+RGBASMFLAGS += -D DEBUG
+endif
+
 all: game.gbc
 
 %.2bpp: %.png
@@ -21,9 +27,9 @@ gfx/debugmenu_font_9000.rle: gfx/debugmenu_font_9000.raw2bpp tools/shin_prev_byt
 %.rle: %.raw2bpp tools/shin_prev_byte_rle.py
 	python tools/shin_prev_byte_rle.py encode $< $@
 
-game.o: game.asm bank_*.asm $(IMAGE_DEPS) $(RLE_DEPS) $(RLE_DEPS)
-	$(RGBASM) -o game.o game.asm
-
+game.o: game.asm bank_*.asm $(IMAGE_DEPS) $(RLE_DEPS)
+	$(RGBASM) $(RGBASMFLAGS) -o game.o game.asm
+	
 game.gbc: game.o
 	$(RGBLINK) -n game.sym -m game.map -o $@ $<
 	$(RGBFIX) -v -p 255 $@

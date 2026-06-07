@@ -6,6 +6,48 @@
 SECTION "ROM Bank $008", ROMX[$4000], BANK[$8]
 
 ; -----------------------------------------------------------------------------
+; Bank 8 DX call table
+; -----------------------------------------------------------------------------
+; Compatible with FarCallFromBankTable in bank 0. That helper reads a pointer
+; from bank:$4000 + L + 1, so byte $4000 is reserved as padding and the first
+; callable entry begins at $4001.
+;
+; Bank 0/1 should call these with:
+;   ld hl, DX8_CALL_* ; H=$08, L=table offset
+;   call FarCallFromBankTable
+;
+DxBank8CallTablePadding::
+    db $00
+
+DxBank8CallTable::
+    dw InitCgbGrayscalePalettes
+    dw DxLoadCgbScreenPaletteFromSgbId_Preserve
+    dw DxApplyCgbPalettesFromDmgShadow_Preserve
+
+DxLoadCgbScreenPaletteFromSgbId_Preserve::
+    push bc
+    push de
+    push hl
+    call LoadCgbScreenPaletteFromSgbId
+    pop hl
+    pop de
+    pop bc
+    ret
+
+DxApplyCgbPalettesFromDmgShadow_Preserve::
+    push bc
+    push de
+    push hl
+    call ApplyCgbPalettesFromDmgShadow
+    pop hl
+    pop de
+    pop bc
+    ret
+
+
+
+
+; -----------------------------------------------------------------------------
 ; InitCgbGrayscalePalettes
 ; -----------------------------------------------------------------------------
 ; Initializes all CGB BG palettes and OBJ palettes to a DMG-like 4-color
@@ -86,6 +128,16 @@ LoadCgbScreenPaletteFromSgbId::
     or a
     ret z
 
+    ; DX override path:
+    ;   wScreenPaletteId -> CGB palette set id
+    ;   set id -> 16 palette IDs: BG0-7, OBJ0-7
+    ; If there is no override entry, fall back to the original SGB PAL_SET
+    ; mirror path below.
+    call TryLoadCgbPaletteIdSetOverride
+    jr c, .paletteIdsLoaded
+
+    ; SGB compatibility fallback. Mirror the first four SGB PAL_SET palette IDs
+    ; into BG0-3 and OBJ0-3, then repeat palette 0 into slots 4-7.
     ld a, [wScreenPaletteId]
     ld e, a
     add a
@@ -95,50 +147,85 @@ LoadCgbScreenPaletteFromSgbId::
     ld hl, CgbSgbScreenPaletteTable
     rst $38
 
-    ld de, wCgbBaseBgPalettes
+    ld de, wCgbBgPaletteIds
     ld b, $04
-
-.loadBgLoop
-    ld a, [hl+]
-    push hl
-    push bc
-    push de
-    call CopyCgbSgbPaletteIdToDE
-    pop de
-    ld hl, $0008
-    add hl, de
-    ld d, h
-    ld e, l
-    pop bc
-    pop hl
-    dec b
-    jr nz, .loadBgLoop
-
-    ; For now OBJ base palettes mirror BG base palettes. This keeps the first
-    ; CGB color pass close to the existing SGB palette selection. We can split
-    ; BG/OBJ art direction later.
-    ld hl, wCgbBaseBgPalettes
-    ld de, wCgbBaseObjPalettes
-    ld b, $20
-.copyObjLoop
+.copySgbBgFirstFour
     ld a, [hl+]
     ld [de], a
     inc de
     dec b
-    jr nz, .copyObjLoop
+    jr nz, .copySgbBgFirstFour
 
+    ld a, [wCgbBgPaletteIds]
+    ld b, $04
+.fillSgbBgRest
+    ld [de], a
+    inc de
+    dec b
+    jr nz, .fillSgbBgRest
+
+    ; OBJ palette IDs mirror BG palette IDs in fallback mode.
+    ld hl, wCgbBgPaletteIds
+    ld de, wCgbObjPaletteIds
+    ld b, $08
+.copySgbObjIds
+    ld a, [hl+]
+    ld [de], a
+    inc de
+    dec b
+    jr nz, .copySgbObjIds
+
+.paletteIdsLoaded
     call InitCgbObjTilePaletteMap_Default
     call ApplyCgbPalettesFromDmgShadow
     jp LoadCgbBgAttrsForScreenFromSgbId
 
 
+; Attempts to load a DX-specific 16-byte CGB palette ID set.
+;
 ; Input:
-;   a  = SGB palette ID, 0-$3f
+;   wScreenPaletteId = screen/state palette selector
+; Output:
+;   carry set   = override was loaded into wCgbBgPaletteIds/wCgbObjPaletteIds
+;   carry clear = no override; caller should fall back to SGB PAL_SET mirror
+; Clobbers af, bc, de, hl.
+TryLoadCgbPaletteIdSetOverride::
+    ld a, [wScreenPaletteId]
+    ld hl, CgbPaletteOverrideTable
+    rst $38
+    ld a, [hl]
+    or a
+    ret z
+
+    ; Override IDs are 1-based so $00 can mean PASS.
+    dec a
+    ld l, a
+    ld h, $00
+    add hl, hl ; *2
+    add hl, hl ; *4
+    add hl, hl ; *8
+    add hl, hl ; *16
+    ld de, CgbPaletteIdSetTable
+    add hl, de
+
+    ld de, wCgbBgPaletteIds
+    ld b, $10
+.copySetLoop
+    ld a, [hl+]
+    ld [de], a
+    inc de
+    dec b
+    jr nz, .copySetLoop
+
+    scf
+    ret
+
+
+; Input:
+;   a  = CGB palette ID, $00-$ff
 ;   de = destination, 8 bytes
 ; Clobbers af, b, de, hl.
-CopyCgbSgbPaletteIdToDE::
-    and $3f
-
+CopyCgbPaletteIdToDE::
     push de                 ; save destination
 
     ld l, a
@@ -147,7 +234,7 @@ CopyCgbSgbPaletteIdToDE::
     add hl, hl              ; *4
     add hl, hl              ; *8
 
-    ld de, CgbSgbPaletteIdTable
+    ld de, CgbPaletteIdTable
     add hl, de              ; HL = table + palette_id * 8
 
     pop de                  ; restore destination
@@ -234,69 +321,101 @@ ApplyCgbPalettesFromDmgShadow::
     ld a, $80
     ldh [rBCPS], a
 
-    ld hl, wCgbBaseBgPalettes
+    ld hl, wCgbBgPaletteIds
+    ld b, $08
+.bgLoop
+    push bc
+    ld e, [hl]
+    inc hl
+    push hl
     ld a, [wPaletteBGP]
-    call WriteCgbPaletteFromDmgByteWithBaseToBCPD
-    ld hl, wCgbBaseBgPalettes + $08
-    ld a, [wPaletteBGP]
-    call WriteCgbPaletteFromDmgByteWithBaseToBCPD
-    ld hl, wCgbBaseBgPalettes + $10
-    ld a, [wPaletteBGP]
-    call WriteCgbPaletteFromDmgByteWithBaseToBCPD
-    ld hl, wCgbBaseBgPalettes + $18
-    ld a, [wPaletteBGP]
-    call WriteCgbPaletteFromDmgByteWithBaseToBCPD
+    call WriteCgbPaletteIdFromDmgByteToBCPD
+    pop hl
+    pop bc
+    dec b
+    jr nz, .bgLoop
 
-    ; OBJ palette 0 from wPaletteOBP0.
+    ; OBJ palette RAM index 0, auto-increment enabled.
     ld a, $80
     ldh [rOCPS], a
-    ld hl, wCgbBaseObjPalettes
+
+    ld hl, wCgbObjPaletteIds
+
+    ; OBJ0 follows DMG OBP0.
+    ld e, [hl]
+    inc hl
+    push hl
     ld a, [wPaletteOBP0]
-    call WriteCgbPaletteFromDmgByteWithBaseToOCPD
+    call WriteCgbPaletteIdFromDmgByteToOCPD
+    pop hl
 
-    ; OBJ palette 1 from wPaletteOBP1.
-    ld a, $88
-    ldh [rOCPS], a
-    ld hl, wCgbBaseObjPalettes + $08
+    ; OBJ1 follows DMG OBP1.
+    ld e, [hl]
+    inc hl
+    push hl
     ld a, [wPaletteOBP1]
-    call WriteCgbPaletteFromDmgByteWithBaseToOCPD
+    call WriteCgbPaletteIdFromDmgByteToOCPD
+    pop hl
 
-    ; OBJ palette 2 from wPaletteOBP0.
-    ; Used by the title Shiro tile-id override ($75-$83 -> OBJP2).
-    ld a, $90
-    ldh [rOCPS], a
-    ld hl, wCgbBaseObjPalettes + $10
+    ; OBJ2/OBJ3 currently follow OBP1 to preserve the title-screen Shin/Shiro
+    ; behavior from the proof-of-concept builds.
+    ld b, $02
+.objObp1Loop
+    push bc
+    ld e, [hl]
+    inc hl
+    push hl
     ld a, [wPaletteOBP1]
-    call WriteCgbPaletteFromDmgByteWithBaseToOCPD
+    call WriteCgbPaletteIdFromDmgByteToOCPD
+    pop hl
+    pop bc
+    dec b
+    jr nz, .objObp1Loop
 
-    ; OBJ palette 3 from wPaletteOBP0.
-    ; Reserved for future DX-only OBJ palette assignments.
-    ld a, $98
-    ldh [rOCPS], a
-    ld hl, wCgbBaseObjPalettes + $18
-    ld a, [wPaletteOBP1]
-    call WriteCgbPaletteFromDmgByteWithBaseToOCPD
+    ; OBJ4-OBJ7 fall back to OBP0 until we add per-OBJ shade-byte control.
+    ld b, $04
+.objObp0Loop
+    push bc
+    ld e, [hl]
+    inc hl
+    push hl
+    ld a, [wPaletteOBP0]
+    call WriteCgbPaletteIdFromDmgByteToOCPD
+    pop hl
+    pop bc
+    dec b
+    jr nz, .objObp0Loop
 
     ret
 
 
-WriteCgbPaletteFromDmgByteWithBaseToBCPD::
+WriteCgbPaletteIdFromDmgByteToBCPD::
     ld c, LOW(rBCPD)
-    jr WriteCgbPaletteFromDmgByteWithBase
+    jr WriteCgbPaletteIdFromDmgByte
 
-WriteCgbPaletteFromDmgByteWithBaseToOCPD::
+WriteCgbPaletteIdFromDmgByteToOCPD::
     ld c, LOW(rOCPD)
 
 ; Input:
-;   a  = DMG palette byte
-;   hl = 8-byte CGB base palette, shade 0..3
-;   c  = LOW(rBCPD) or LOW(rOCPD)
+;   a = DMG palette byte
+;   e = CGB palette ID, $00-$ff
+;   c = LOW(rBCPD) or LOW(rOCPD)
 ; Clobbers af, b, c, de, hl.
-WriteCgbPaletteFromDmgByteWithBase::
+WriteCgbPaletteIdFromDmgByte::
+    push af
+    ld a, e
+    ld l, a
+    ld h, $00
+    add hl, hl ; *2
+    add hl, hl ; *4
+    add hl, hl ; *8
+    ld de, CgbPaletteIdTable
+    add hl, de
     ld d, h
     ld e, l
-    ld b, $04
+    pop af
 
+    ld b, $04
 .colorLoop
     push af
     and $03
@@ -314,7 +433,6 @@ WriteCgbPaletteFromDmgByteWithBase::
     dec b
     jr nz, .colorLoop
     ret
-
 
 
 ; -----------------------------------------------------------------------------
@@ -480,6 +598,328 @@ CgbTitleAttrMap::
     db $02, $02, $02, $02, $02, $02, $02, $02, $02, $02, $02, $02, $02, $02, $02, $02, $02, $02, $02, $02 ; row 17
 
 
+
+; -----------------------------------------------------------------------------
+; CGB palette override tables
+; -----------------------------------------------------------------------------
+; CgbPaletteOverrideTable is indexed by wScreenPaletteId.
+;   $00 = PASS: use original SGB PAL_SET palette IDs
+;   $01+ = CGB palette ID set number, stored in CgbPaletteIdSetTable
+;
+; A CGB palette ID set is 16 bytes:
+;   BG0, BG1, BG2, BG3, BG4, BG5, BG6, BG7,
+;   OBJ0,OBJ1,OBJ2,OBJ3,OBJ4,OBJ5,OBJ6,OBJ7
+;
+
+; -----------------------------------------------------------------------------
+; Gameplay metatile -> BG palette attribute tables
+; -----------------------------------------------------------------------------
+; Phase14 POC data. Each table has 256 bytes:
+;   index = metatile id
+;   value = CGB BG palette attribute (low 3 bits)
+;
+; These are intentionally dummy-safe ($00 everywhere) so gameplay visuals do not
+; change until entries are edited. To test quickly, change selected metatile IDs
+; to $01/$02/$03 and reassemble.
+;
+CgbStageMetatilePaletteAttrPtrs::
+    dw CgbStage0MetatilePaletteAttrs
+    dw CgbStage1MetatilePaletteAttrs
+    dw CgbStage2MetatilePaletteAttrs
+    dw CgbStage3MetatilePaletteAttrs
+    dw CgbStage4MetatilePaletteAttrs
+    dw CgbStage0MetatilePaletteAttrs
+    dw CgbStage0MetatilePaletteAttrs
+    dw CgbStage0MetatilePaletteAttrs
+
+CgbStage0MetatilePaletteAttrs::
+      ;$00,$01,$02,$03,$04,$05,$06,$07,$08,$09,$0A,$0B,$0C,$0D,$0E,$0F
+    db $00,$07,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	;00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	;10
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	;20
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	;30
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	;40
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	;50
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	;60
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	;70
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	;80
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	;90
+    db $00,$00,$00,$00,$00,$00,$00,$07,$07,$07,$00,$00,$00,$00,$00,$00	;A0
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	;B0
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	;C0
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	;D0
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	;E0
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	;F0
+
+CgbStage1MetatilePaletteAttrs::
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+
+CgbStage2MetatilePaletteAttrs::
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+
+CgbStage3MetatilePaletteAttrs::
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+
+CgbStage4MetatilePaletteAttrs::
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+
+CgbPaletteOverrideTable::
+    db $00 ; $00: PASS
+    db $01 ; $01: title uses explicit BG0-7/OBJ0-7 IDs
+    db $00 ; $02: PASS
+    db $00 ; $03: PASS
+    db $00 ; $04: PASS
+    db $00 ; $05: PASS
+    db $00 ; $06: PASS
+    db $00 ; $07: PASS
+    db $00 ; $08: PASS
+    db $00 ; $09: PASS
+    db $00 ; $0a: PASS
+    db $00 ; $0b: PASS
+    db $00 ; $0c: PASS
+    db $00 ; $0d: PASS
+    db $00 ; $0e: PASS
+    db $00 ; $0f: PASS
+    db $00 ; $10: PASS
+    db $00 ; $11: PASS
+    db $00 ; $12: PASS
+    db $00 ; $13: PASS
+    db $00 ; $14: PASS
+    db $00 ; $15: PASS
+    db $00 ; $16: PASS
+    db $00 ; $17: PASS
+    db $00 ; $18: PASS
+    db $00 ; $19: PASS
+    db $1a ; $1a: Stage0
+    db $1b ; $1b: Stage1
+    db $1c ; $1c: Stage2
+    db $1d ; $1d: Stage3
+    db $00 ; $1e: PASS
+    db $00 ; $1f: PASS/safety
+
+CgbPaletteIdSetTable::
+    ; Set $01: title screen.
+    ; First four IDs match the SGB title PAL_SET ($04,$05,$06,$07).
+    ; Slots 4-7 are explicit so the editor/debugger can use the full CGB range.
+    db $04, $05, $06, $07, $04, $04, $04, $04 ; BG0-BG7
+    db $04, $05, $06, $07, $04, $04, $04, $04 ; OBJ0-OBJ7
+
+    ; Set $02: Stage0 / reserved for future CGB palette override.
+    ; Edit these 16 IDs as: BG0-BG7, then OBJ0-OBJ7.
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; BG0-BG7
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; OBJ0-OBJ7
+
+    ; Set $03: DUMMY / reserved for future CGB palette override.
+    ; Edit these 16 IDs as: BG0-BG7, then OBJ0-OBJ7.
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; BG0-BG7
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; OBJ0-OBJ7
+
+    ; Set $04: DUMMY / reserved for future CGB palette override.
+    ; Edit these 16 IDs as: BG0-BG7, then OBJ0-OBJ7.
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; BG0-BG7
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; OBJ0-OBJ7
+
+    ; Set $05: DUMMY / reserved for future CGB palette override.
+    ; Edit these 16 IDs as: BG0-BG7, then OBJ0-OBJ7.
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; BG0-BG7
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; OBJ0-OBJ7
+
+    ; Set $06: DUMMY / reserved for future CGB palette override.
+    ; Edit these 16 IDs as: BG0-BG7, then OBJ0-OBJ7.
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; BG0-BG7
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; OBJ0-OBJ7
+
+    ; Set $07: DUMMY / reserved for future CGB palette override.
+    ; Edit these 16 IDs as: BG0-BG7, then OBJ0-OBJ7.
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; BG0-BG7
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; OBJ0-OBJ7
+
+    ; Set $08: DUMMY / reserved for future CGB palette override.
+    ; Edit these 16 IDs as: BG0-BG7, then OBJ0-OBJ7.
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; BG0-BG7
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; OBJ0-OBJ7
+
+    ; Set $09: DUMMY / reserved for future CGB palette override.
+    ; Edit these 16 IDs as: BG0-BG7, then OBJ0-OBJ7.
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; BG0-BG7
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; OBJ0-OBJ7
+
+    ; Set $0a: DUMMY / reserved for future CGB palette override.
+    ; Edit these 16 IDs as: BG0-BG7, then OBJ0-OBJ7.
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; BG0-BG7
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; OBJ0-OBJ7
+
+    ; Set $0b: DUMMY / reserved for future CGB palette override.
+    ; Edit these 16 IDs as: BG0-BG7, then OBJ0-OBJ7.
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; BG0-BG7
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; OBJ0-OBJ7
+
+    ; Set $0c: DUMMY / reserved for future CGB palette override.
+    ; Edit these 16 IDs as: BG0-BG7, then OBJ0-OBJ7.
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; BG0-BG7
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; OBJ0-OBJ7
+
+    ; Set $0d: DUMMY / reserved for future CGB palette override.
+    ; Edit these 16 IDs as: BG0-BG7, then OBJ0-OBJ7.
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; BG0-BG7
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; OBJ0-OBJ7
+
+    ; Set $0e: DUMMY / reserved for future CGB palette override.
+    ; Edit these 16 IDs as: BG0-BG7, then OBJ0-OBJ7.
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; BG0-BG7
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; OBJ0-OBJ7
+
+    ; Set $0f: DUMMY / reserved for future CGB palette override.
+    ; Edit these 16 IDs as: BG0-BG7, then OBJ0-OBJ7.
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; BG0-BG7
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; OBJ0-OBJ7
+
+    ; Set $10: DUMMY / reserved for future CGB palette override.
+    ; Edit these 16 IDs as: BG0-BG7, then OBJ0-OBJ7.
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; BG0-BG7
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; OBJ0-OBJ7
+
+    ; Set $11: DUMMY / reserved for future CGB palette override.
+    ; Edit these 16 IDs as: BG0-BG7, then OBJ0-OBJ7.
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; BG0-BG7
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; OBJ0-OBJ7
+
+    ; Set $12: DUMMY / reserved for future CGB palette override.
+    ; Edit these 16 IDs as: BG0-BG7, then OBJ0-OBJ7.
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; BG0-BG7
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; OBJ0-OBJ7
+
+    ; Set $13: DUMMY / reserved for future CGB palette override.
+    ; Edit these 16 IDs as: BG0-BG7, then OBJ0-OBJ7.
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; BG0-BG7
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; OBJ0-OBJ7
+
+    ; Set $14: DUMMY / reserved for future CGB palette override.
+    ; Edit these 16 IDs as: BG0-BG7, then OBJ0-OBJ7.
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; BG0-BG7
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; OBJ0-OBJ7
+
+    ; Set $15: DUMMY / reserved for future CGB palette override.
+    ; Edit these 16 IDs as: BG0-BG7, then OBJ0-OBJ7.
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; BG0-BG7
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; OBJ0-OBJ7
+
+    ; Set $16: DUMMY / reserved for future CGB palette override.
+    ; Edit these 16 IDs as: BG0-BG7, then OBJ0-OBJ7.
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; BG0-BG7
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; OBJ0-OBJ7
+
+    ; Set $17: DUMMY / reserved for future CGB palette override.
+    ; Edit these 16 IDs as: BG0-BG7, then OBJ0-OBJ7.
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; BG0-BG7
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; OBJ0-OBJ7
+
+    ; Set $18: DUMMY / reserved for future CGB palette override.
+    ; Edit these 16 IDs as: BG0-BG7, then OBJ0-OBJ7.
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; BG0-BG7
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; OBJ0-OBJ7
+
+    ; Set $19: DUMMY / reserved for future CGB palette override.
+    ; Edit these 16 IDs as: BG0-BG7, then OBJ0-OBJ7.
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; BG0-BG7
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; OBJ0-OBJ7
+
+    ; Set $1a: Stage0
+    ; Edit these 16 IDs as: BG0-BG7, then OBJ0-OBJ7.
+    db $38, $38, $38, $38, $38, $38, $38, $3C ; BG0-BG7
+    db $3D, $38, $38, $38, $38, $38, $38, $38 ; OBJ0-OBJ7
+
+    ; Set $1b: Stage1
+    ; Edit these 16 IDs as: BG0-BG7, then OBJ0-OBJ7.
+    db $39, $39, $39, $39, $39, $39, $39, $39 ; BG0-BG7
+    db $3D, $39, $39, $39, $39, $39, $39, $39 ; OBJ0-OBJ7
+
+    ; Set $1c: Stage2
+    ; Edit these 16 IDs as: BG0-BG7, then OBJ0-OBJ7.
+    db $3a, $3a, $3a, $3a, $3a, $3a, $3a, $3a ; BG0-BG7
+    db $3D, $3a, $3a, $3a, $3a, $3a, $3a, $3a ; OBJ0-OBJ7
+
+    ; Set $1d: Stage3
+    ; Edit these 16 IDs as: BG0-BG7, then OBJ0-OBJ7.
+    db $3b, $3b, $3b, $3b, $3b, $3b, $3b, $3b ; BG0-BG7
+    db $3D, $3b, $3b, $3b, $3b, $3b, $3b, $3b ; OBJ0-OBJ7
+
+    ; Set $1e: DUMMY / reserved for future CGB palette override.
+    ; Edit these 16 IDs as: BG0-BG7, then OBJ0-OBJ7.
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; BG0-BG7
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; OBJ0-OBJ7
+
+    ; Set $1f: DUMMY / reserved for future CGB palette override.
+    ; Edit these 16 IDs as: BG0-BG7, then OBJ0-OBJ7.
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; BG0-BG7
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; OBJ0-OBJ7
+
+    ; Set $20: DUMMY / reserved for future CGB palette override.
+    ; Edit these 16 IDs as: BG0-BG7, then OBJ0-OBJ7.
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; BG0-BG7
+    db $00, $01, $02, $03, $04, $05, $06, $07 ; OBJ0-OBJ7
+
+
 CgbSgbScreenPaletteTable::
     ; Mirrored from bank 3 SgbScreenPaletteTable_4d5f.
     ; id  pal0 pal1 pal2 pal3 ctl extra
@@ -516,70 +956,71 @@ CgbSgbScreenPaletteTable::
     db $00, $00, $00, $00, $00, $02 ; $1e
 
 
-CgbSgbPaletteIdTable::
-    ; Initial RGB555 table keyed by SGB palette ID. This central table is the
-    ; only place that needs refinement if we replace the approximated colors
-    ; with exact SGB BIOS palette values later.
-    dw $679F, $161C, $0D13, $0000
-    dw $7FFF, $7FFF, $7FFF, $7FFF
-    dw $7FFF, $3B3F, $7DA0, $0000
-    dw $7FFF, $5294, $294A, $0000
-    dw $7FFB, $7FFF, $7FFF, $7CC0
-    dw $7FFB, $3F3F, $6D24, $0000
-    dw $7FFB, $7FFF, $0252, $0000
-    dw $7FFB, $557F, $03FF, $1D4B
-    dw $4BFF, $7D48, $0000, $0000
-    dw $4BFF, $3B3F, $2C7D, $0000
-    dw $4BFF, $3FF8, $285F, $0C20
-    dw $4BFF, $0000, $0000, $0280
-    dw $6B77, $43EA, $0DA7, $0000
-    dw $6B77, $7FFF, $7DE3, $0000
-    dw $6B77, $4AFF, $131F, $0000
-    dw $6B77, $0A7F, $001F, $0000
-    dw $7FFF, $03FF, $0233, $0000
-    dw $7FFF, $32FF, $2634, $0000
-    dw $7FFF, $67E7, $0000, $0000
-    dw $7FFF, $11BF, $0000, $0000
-    dw $7FFF, $021C, $001F, $0000
-    dw $7FFF, $32FF, $051E, $0000
-    dw $7FFF, $67E7, $0000, $0000
-    dw $7FFF, $11BF, $0000, $0000
-    dw $7FFF, $7E74, $7FFF, $0000
-    dw $7FFF, $3B3F, $0384, $0000
-    dw $7FFF, $3B3F, $091B, $0000
-    dw $7FFF, $03FF, $091B, $0000
-    dw $7FFF, $429F, $0000, $0000
-    dw $7FFF, $3B3F, $03FF, $0000
-    dw $7FFF, $3B3F, $7E02, $0000
-    dw $7FFF, $3B3F, $091B, $0000
-    dw $7FFF, $2F3F, $0000, $0000
-    dw $7FFF, $3B3F, $4666, $0000
-    dw $7FFF, $3B3F, $091B, $0000
-    dw $7FFF, $7FE3, $001F, $0000
-    dw $7FFF, $2FE9, $0000, $0000
-    dw $7FFF, $6BFF, $7EC2, $0000
-    dw $7FFF, $3B3F, $5A1F, $0000
-    dw $7FFF, $03FF, $001F, $0000
-    dw $3BFC, $53E0, $009F, $0000
-    dw $3BFC, $26DB, $6D24, $0000
-    dw $3BFC, $7FFF, $0252, $0000
-    dw $3BFC, $0000, $0000, $007C
-    dw $77BD, $7AF1, $4D8A, $0000
-    dw $77BD, $333F, $36D3, $0000
-    dw $77BD, $7D6C, $0000, $0000
-    dw $0000, $0000, $0000, $0000
-    dw $7FFF, $2DBE, $0000, $0000
-    dw $7FFF, $3B3F, $1DD5, $0000
-    dw $7FFF, $518C, $44E7, $0000
-    dw $7FFF, $0000, $001F, $0000
-    dw $77BD, $5A5F, $0CFD, $0000
-    dw $63BC, $29FF, $3176, $0000
-    dw $77BD, $5F9F, $2539, $0000
-    dw $7FFF, $0000, $0000, $0000
-    dw $77BD, $3B5D, $0ECC, $0000
-    dw $77BD, $5790, $7E32, $0000
-    dw $77BD, $5ADD, $6E8E, $0000
-    dw $77BD, $3B9C, $332C, $0000
-    dw $77BD, $7EEE, $0000, $01C0
-    dw $77BD, $3B3F, $037E, $0000
-    dw $77BD, $0258, $0193, $0000
+CgbPaletteIdTable::
+    ; RGB555 table keyed by unified CGB palette ID.
+    ; $00-$3f currently mirror the dumped SGB palette IDs.
+    ; $40-$ff are reserved for DX/CGB-only palettes and are initially dummy-filled.
+    dw $679F, $161C, $0D13, $0000 ; $00
+    dw $7FFF, $7FFF, $7FFF, $7FFF ; $01
+    dw $7FFF, $3B3F, $7DA0, $0000 ; $02
+    dw $7FFF, $5294, $294A, $0000 ; $03
+    dw $7FFB, $7FFF, $7FFF, $7CC0 ; $04
+    dw $7FFB, $3F3F, $6D24, $0000 ; $05
+    dw $7FFB, $7FFF, $0252, $0000 ; $06
+    dw $7FFB, $557F, $03FF, $1D4B ; $07
+    dw $4BFF, $7D48, $0000, $0000 ; $08
+    dw $4BFF, $3B3F, $2C7D, $0000 ; $09
+    dw $4BFF, $3FF8, $285F, $0C20 ; $0A
+    dw $4BFF, $0000, $0000, $0280 ; $0B
+    dw $6B77, $43EA, $0DA7, $0000 ; $0C
+    dw $6B77, $7FFF, $7DE3, $0000 ; $0D
+    dw $6B77, $4AFF, $131F, $0000 ; $0E
+    dw $6B77, $0A7F, $001F, $0000 ; $0F
+    dw $7FFF, $03FF, $0233, $0000 ; $10
+    dw $7FFF, $32FF, $2634, $0000 ; $11
+    dw $7FFF, $67E7, $0000, $0000 ; $12
+    dw $7FFF, $11BF, $0000, $0000 ; $13
+    dw $7FFF, $021C, $001F, $0000 ; $14
+    dw $7FFF, $32FF, $051E, $0000 ; $15
+    dw $7FFF, $67E7, $0000, $0000 ; $16
+    dw $7FFF, $11BF, $0000, $0000 ; $17
+    dw $7FFF, $7E74, $7FFF, $0000 ; $18
+    dw $7FFF, $3B3F, $0384, $0000 ; $19
+    dw $7FFF, $3B3F, $091B, $0000 ; $1A
+    dw $7FFF, $03FF, $091B, $0000 ; $1B
+    dw $7FFF, $429F, $0000, $0000 ; $1C
+    dw $7FFF, $3B3F, $03FF, $0000 ; $1D
+    dw $7FFF, $3B3F, $7E02, $0000 ; $1E
+    dw $7FFF, $3B3F, $091B, $0000 ; $1F
+    dw $7FFF, $2F3F, $0000, $0000 ; $20
+    dw $7FFF, $3B3F, $4666, $0000 ; $21
+    dw $7FFF, $3B3F, $091B, $0000 ; $22
+    dw $7FFF, $7FE3, $001F, $0000 ; $23
+    dw $7FFF, $2FE9, $0000, $0000 ; $24
+    dw $7FFF, $6BFF, $7EC2, $0000 ; $25
+    dw $7FFF, $3B3F, $5A1F, $0000 ; $26
+    dw $7FFF, $03FF, $001F, $0000 ; $27
+    dw $3BFC, $53E0, $009F, $0000 ; $28
+    dw $3BFC, $26DB, $6D24, $0000 ; $29
+    dw $3BFC, $7FFF, $0252, $0000 ; $2A
+    dw $3BFC, $0000, $0000, $007C ; $2B
+    dw $77BD, $7AF1, $4D8A, $0000 ; $2C
+    dw $77BD, $333F, $36D3, $0000 ; $2D
+    dw $77BD, $7D6C, $0000, $0000 ; $2E
+    dw $0000, $0000, $0000, $0000 ; $2F
+    dw $7FFF, $2DBE, $0000, $0000 ; $30
+    dw $7FFF, $3B3F, $1DD5, $0000 ; $31
+    dw $7FFF, $518C, $44E7, $0000 ; $32
+    dw $7FFF, $0000, $001F, $0000 ; $33
+    dw $77BD, $5A5F, $0CFD, $0000 ; $34
+    dw $63BC, $29FF, $3176, $0000 ; $35
+    dw $77BD, $5F9F, $2539, $0000 ; $36
+    dw $7FFF, $0000, $0000, $0000 ; $37
+    dw $77BD, $3B5D, $0ECC, $0000 ; $38
+    dw $77BD, $5790, $7E32, $0000 ; $39
+    dw $77BD, $5ADD, $6E8E, $0000 ; $3A
+    dw $77BD, $3B9C, $332C, $0000 ; $3B
+    dw $77BD, $7EEE, $0000, $01C0 ; $3C
+    dw $77BD, $3B3F, $037E, $0000 ; $3D
+    dw $77BD, $0258, $0193, $0000 ; $3E
+	dw $77BD, $7C00, $0000, $0000 ; $3F

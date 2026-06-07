@@ -11,9 +11,19 @@ DEF wMsgSubstitutionId     EQU $d971
 
 DEF wCgbEnabled EQU $dff7
 DEF wSgbEnabled EQU $dff8
-DEF wCgbBaseBgPalettes EQU $df80 ; 4 CGB BG base palettes, 4 colors each.
-DEF wCgbBaseObjPalettes EQU $dfa0 ; 4 CGB OBJ base palettes, 4 colors each.
+DEF wCgbBgPaletteIds EQU $df80 ; 8 active CGB BG palette IDs.
+DEF wCgbObjPaletteIds EQU $df88 ; 8 active CGB OBJ palette IDs.
 DEF wCgbObjTilePaletteMap EQU $de00 ; 256-byte active OBJ tile-id -> CGB OBJ palette map. $ff = DMG fallback.
+DEF wCgbLastPaletteBGP  EQU $dff4 ; Last DMG palette shadow applied to CGB palette RAM.
+DEF wCgbLastPaletteOBP0 EQU $dff5
+DEF wCgbLastPaletteOBP1 EQU $dff6
+
+; Bank 8 DX call-table entries for FarCallFromBankTable.
+; FarCallFromBankTable reads a pointer from bank:$4000 + L + 1, so these
+; constants use H=bank and L=table byte offset.
+DEF DX8_CALL_INIT_GRAYSCALE        EQU $0800
+DEF DX8_CALL_LOAD_SCREEN_PALETTE   EQU $0802
+DEF DX8_CALL_APPLY_PALETTES        EQU $0804
 ; Hardware / memory aliases identified during cleanup pass 1.
 ; Keep these conservative: names below are based on direct register usage in bank 0.
 DEF hJoyHeld       EQU $ff8a
@@ -598,7 +608,8 @@ jr_000_017c::
     call CopyDmaStubToHram
     call ReadJoypad
     call InitSound
-    call InitCgbGrayscalePalettes_Far
+    ld hl, DX8_CALL_INIT_GRAYSCALE
+    call FarCallFromBankTable
 	
 ReinitCurrentState:: ; Rebuild current state with LCD off. Repeats if init sets hNeedsReset.
     di
@@ -613,7 +624,8 @@ ReinitCurrentState:: ; Rebuild current state with LCD off. Repeats if init sets 
     ld bc, $00a0
     call bzero
     call InitCurrentGameState
-    call LoadCgbScreenPaletteFromSgbId_Far
+    ld hl, DX8_CALL_LOAD_SCREEN_PALETTE
+    call FarCallFromBankTable
     xor a
     ldh [hPrevOamPos], a
     call ApplyLCDC
@@ -974,6 +986,28 @@ jr_000_0312::
     ret
 
 
+; -----------------------------------------------------------------------------
+; VRAM queue interpreter
+; -----------------------------------------------------------------------------
+; Queue command format at DE:
+;   db dest_hi, dest_lo, control, data...
+;   db $00 terminates the queue.
+;
+; control byte:
+;   bits 5-0 = length
+;   bits 7-6 = transfer mode
+;     00: horizontal copy  ; writes [DE++] to [HL++]
+;     01: horizontal fill  ; writes one byte repeatedly to [HL++]
+;     10: vertical copy    ; writes [DE++] to [HL], HL += $20
+;     11: vertical fill    ; writes one byte repeatedly to [HL], HL += $20
+;
+; Existing gameplay BG streaming uses:
+;   $20 = horizontal copy, 32 bytes, for one BG map row
+;   $A0 = vertical copy,   32 bytes, for one BG map column
+;
+; CGB BG attribute streaming must mirror this exact command shape, but flush with
+; rVBK = 1 so the same $9800-$9bff addresses select BG attribute bytes.
+; -----------------------------------------------------------------------------
 jr_000_031b::
     inc de
     ld h, a
@@ -1593,8 +1627,36 @@ jr_000_05e5::
 ApplyPalettes:: ; Copy palette shadow bytes to DMG or CGB palette registers.
     ld a, [wCgbEnabled]
     or a
-    jp nz, ApplyCgbPalettesFromDmgShadow_Far
+    jr z, .dmgPalettes
 
+    ; CGB path: only rebuild CGB palette RAM when the DMG palette
+    ; shadow bytes actually changed. This avoids a Bank8 far call every
+    ; VBlank during steady gameplay.
+    ld hl, wPaletteBGP
+    ld a, [wCgbLastPaletteBGP]
+    cp [hl]
+    jr nz, .updateCgbPalettes
+    inc hl
+    ld a, [wCgbLastPaletteOBP0]
+    cp [hl]
+    jr nz, .updateCgbPalettes
+    inc hl
+    ld a, [wCgbLastPaletteOBP1]
+    cp [hl]
+    ret z
+
+.updateCgbPalettes
+    ld hl, wPaletteBGP
+    ld a, [hl+]
+    ld [wCgbLastPaletteBGP], a
+    ld a, [hl+]
+    ld [wCgbLastPaletteOBP0], a
+    ld a, [hl]
+    ld [wCgbLastPaletteOBP1], a
+    ld hl, DX8_CALL_APPLY_PALETTES
+    jp FarCallFromBankTable
+
+.dmgPalettes
     ld hl, wPaletteBGP
     ld a, [hl+]
     ldh [rBGP], a
@@ -1604,54 +1666,6 @@ ApplyPalettes:: ; Copy palette shadow bytes to DMG or CGB palette registers.
     ldh [rOBP1], a
     ret
 
-
-InitCgbGrayscalePalettes_Far::
-    ld a, [wCgbEnabled]
-    or a
-    ret z
-
-    ld a, [$4000]
-    push af
-    ld a, BANK(InitCgbGrayscalePalettes)
-    ld [$2100], a
-    call InitCgbGrayscalePalettes
-    pop af
-    ld [$2100], a
-    ret
-
-
-ApplyCgbPalettesFromDmgShadow_Far:: ; Far-call bank 8 CGB palette bridge.
-    push bc
-    push de
-    push hl
-    ld a, [$4000]
-    push af
-    ld a, BANK(ApplyCgbPalettesFromDmgShadow)
-    ld [$2100], a
-    call ApplyCgbPalettesFromDmgShadow
-    pop af
-    ld [$2100], a
-    pop hl
-    pop de
-    pop bc
-    ret
-
-
-LoadCgbScreenPaletteFromSgbId_Far:: ; Far-call bank 8 SGB-palette-id -> CGB base palette loader.
-    push bc
-    push de
-    push hl
-    ld a, [$4000]
-    push af
-    ld a, BANK(LoadCgbScreenPaletteFromSgbId)
-    ld [$2100], a
-    call LoadCgbScreenPaletteFromSgbId
-    pop af
-    ld [$2100], a
-    pop hl
-    pop de
-    pop bc
-    ret
 
 
 jr_000_05f7::
@@ -2887,7 +2901,30 @@ StreamBgRowIfNeeded:: ; If vertical scroll crossed an 8px boundary, queue one BG
 
     ldh [hStreamedRowY], a
 
-QueueBgRowForWorldY:: ; Queue one 32-tile BG row for world Y in DE using current SCX.
+; -----------------------------------------------------------------------------
+; QueueBgRowForWorldY
+; -----------------------------------------------------------------------------
+; Input:
+;   DE = world pixel Y for the BG row that must be streamed.
+; Uses current hSCX/hSCXHigh as the world X start.
+;
+; Output:
+;   Appends one VRAM queue command to wVramQueue:
+;     dest    = $9800 + ((worldY & $F8) >> 3) * 32
+;     control = $20 = horizontal copy, length 32
+;     data    = 32 tile IDs in circular BG-map order
+;
+; Important detail:
+;   Data is not written linearly from data[0]. The write pointer starts at
+;   data + (hSCX / 8), then wraps by subtracting $20 when world X crosses a
+;   256-pixel boundary. This is why a CGB attr stream must be generated in the
+;   same loop or perfectly mirror hTileStreamWritePos.
+;
+; Metatile quadrant selection:
+;   bit 3 of C = left/right 8x8 tile inside the 16x16 metatile
+;   bit 3 of E = top/bottom 8x8 tile inside the 16x16 metatile
+; -----------------------------------------------------------------------------
+QueueBgRowForWorldY::
     ld a, e
     and $f8
     ld l, a
@@ -2903,7 +2940,7 @@ QueueBgRowForWorldY:: ; Queue one 32-tile BG row for world Y in DE using current
     ld [hl+], a
     ld a, c
     ld [hl+], a
-    ld a, $20
+    ld a, $20 ; horizontal copy, 32 bytes
     ld [hl+], a
     push hl
     ld bc, $0020
@@ -2961,6 +2998,9 @@ jr_000_0c69::
     adc h
     ld h, a
     ld a, [hl]
+    ; Store the selected 8x8 tile ID into the circular row data slot.
+    ; Future CGB attr sync point: write the matching attr byte to the same
+    ; relative slot in a VRAM-bank-1 attribute queue.
     ld hl, hTileStreamWritePos
     inc [hl]
     ld l, [hl]
@@ -3012,7 +3052,29 @@ StreamBgColumnIfNeeded:: ; If horizontal scroll crossed an 8px boundary, queue o
 
     ldh [hStreamedColumnX], a
 
-QueueBgColumnForWorldX:: ; Queue one 32-tile BG column for world X in BC using current SCY.
+; -----------------------------------------------------------------------------
+; QueueBgColumnForWorldX
+; -----------------------------------------------------------------------------
+; Input:
+;   BC = world pixel X for the BG column that must be streamed.
+; Uses current hSCY/hSCYHigh as the world Y start.
+;
+; Output:
+;   Appends one VRAM queue command to wVramQueue:
+;     dest    = $9800 + ((worldX & $F8) >> 3)
+;     control = $A0 = vertical copy, length 32
+;     data    = 32 tile IDs in circular BG-map order
+;
+; Important detail:
+;   Data starts at data + (hSCY / 8). When world Y crosses a 256-pixel boundary,
+;   hTileStreamWritePos wraps by subtracting $20. CGB attr streaming must use the
+;   same position/loop to avoid 8x8 attribute mismatches.
+;
+; Metatile quadrant selection:
+;   bit 3 of C = left/right 8x8 tile inside the 16x16 metatile
+;   bit 3 of E = top/bottom 8x8 tile inside the 16x16 metatile
+; -----------------------------------------------------------------------------
+QueueBgColumnForWorldX::
     call GetVramQueueTail
     ld a, $98
     ld [hl+], a
@@ -3022,7 +3084,7 @@ QueueBgColumnForWorldX:: ; Queue one 32-tile BG column for world X in BC using c
     rrca
     rrca
     ld [hl+], a
-    ld a, $a0
+    ld a, $a0 ; vertical copy, 32 bytes
     ld [hl+], a
     push hl
     ld de, $0020
@@ -3080,6 +3142,9 @@ jr_000_0d02::
     adc h
     ld h, a
     ld a, [hl]
+    ; Store the selected 8x8 tile ID into the circular column data slot.
+    ; Future CGB attr sync point: write the matching attr byte to the same
+    ; relative slot in a VRAM-bank-1 attribute queue.
     ld hl, hTileStreamWritePos
     inc [hl]
     ld l, [hl]
@@ -3114,8 +3179,21 @@ jr_000_0d21::
     ldh [hTileStreamWritePos], a
     jr jr_000_0cea
 
-GetStageLayoutTileAtWorldPixel:: ; Return layout metatile id for world pixel coords BC=X, DE=Y.
-                              ; Uses virtual page map at wStageLayoutPageHighTable: row*14+col -> physical page id.
+; -----------------------------------------------------------------------------
+; GetStageLayoutTileAtWorldPixel
+; -----------------------------------------------------------------------------
+; Input:
+;   BC = world pixel X
+;   DE = world pixel Y
+; Output:
+;   HL = address of the selected metatile ID in wStageLayoutMap
+;   [HL] = metatile ID
+;
+; Layout is paged. The high world bytes choose a layout page through
+; wStageLayoutPageHighTable using: page_index = worldY_high * 14 + worldX_high.
+; The low world nybbles choose the 16x16 metatile inside that page.
+; -----------------------------------------------------------------------------
+GetStageLayoutTileAtWorldPixel::
     ld a, d
     or a
     jr z, jr_000_0d40
@@ -3194,7 +3272,17 @@ jr_000_0d84::
     ret
 
 
-RedrawVisibleBgMapColumns:: ; Rebuild visible BG map columns from current SCX/SCY, used after scroll/init.
+; -----------------------------------------------------------------------------
+; RedrawVisibleBgMapColumns
+; -----------------------------------------------------------------------------
+; Rebuilds the current 32-column BG map from hSCX by repeatedly calling
+; QueueBgColumnForWorldX, immediately flushing wVramQueue after each column.
+;
+; This is an initialization / redraw path, not the normal per-frame scroll path.
+; A future CGB attr implementation should either mirror each column flush exactly
+; or integrate attr writes into QueueBgColumnForWorldX itself.
+; -----------------------------------------------------------------------------
+RedrawVisibleBgMapColumns::
     ld a, [$4000]
     push af
     ld a, $04
