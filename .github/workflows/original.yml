@@ -1,0 +1,40 @@
+name: Original ROM
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  original:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install pinned RGBDS
+        shell: bash
+        run: |
+          version="$(cat disassembly_shin/.rgbds-version)"
+          archive="$RUNNER_TEMP/rgbds-linux-x86_64.tar.xz"
+          curl --fail --location --retry 3 --output "$archive" \
+            "https://github.com/gbdev/rgbds/releases/download/v${version}/rgbds-linux-x86_64.tar.xz"
+          echo "80a5cad8dae27e24e46a93041352c47cadbc165103983f41c2b3082c42f6dad9  $archive" | sha256sum --check
+          mkdir -p "$RUNNER_TEMP/rgbds"
+          tar -xJf "$archive" -C "$RUNNER_TEMP/rgbds"
+          echo "$RUNNER_TEMP/rgbds" >> "$GITHUB_PATH"
+
+      - name: Rebuild and verify original ROM
+        working-directory: disassembly_shin
+        run: make check-original PYTHON=python3

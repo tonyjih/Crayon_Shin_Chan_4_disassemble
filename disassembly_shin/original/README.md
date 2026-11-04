@@ -70,3 +70,4 @@ python -B tools/extract_original_assets.py clean.gb --out exported_original
 ```
 
 抽出工具另需 Pillow；正常建置只需要 Python 標準函式庫與 RGBDS。
+RGBDS 版本以專案根目錄的 `.rgbds-version` 為準，建置前會檢查四個工具的版本。

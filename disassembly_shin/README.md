@@ -21,8 +21,14 @@ python -B tools/build_original.py
 產生 tile data，重新壓縮圖片／地圖、編譯原生音軌，最後驗證 ROM 大小與 MD5。
 建置不讀取原始 ROM，不依賴 Git 歷史或舊的壓縮檔。
 
-需要 Python 3.10+ 和 RGBDS。工具會先找專案上一層的 `rgbasm.exe`、`rgblink.exe`、
-`rgbfix.exe`、`rgbgfx.exe`，再找 PATH。
+需要 Python 3.10+ 和 RGBDS **1.0.1**；版本記在 `.rgbds-version`。
+工具會先找專案上一層的 `rgbasm.exe`、`rgblink.exe`、`rgbfix.exe`、`rgbgfx.exe`，再找 PATH。
+建置前會核對四個工具的版本；版本不符、混用版本或工具無法執行時會停止，尚未開始產生資產。
+Linux 環境若只有 `python3`，可執行 `make check-original PYTHON=python3`。
+
+GitHub Actions 的 [Original ROM workflow](../.github/workflows/original.yml) 會在 `master` push、
+PR 或手動執行時，以 Python 3.12 和同版官方 RGBDS Linux 套件執行 `make check-original`。
+套件下載另核對 SHA-256。未來升級 RGBDS 時，需同步更新版本檔及 workflow 的套件雜湊。
 
 ## 原版來源
 

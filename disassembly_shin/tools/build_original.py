@@ -29,6 +29,20 @@ def tool(name: str) -> str:
     return found
 
 
+def rgbds_tools() -> dict[str, str]:
+    version = (ROOT / ".rgbds-version").read_text(encoding="ascii").strip()
+    paths = {name: tool(name) for name in ("rgbasm", "rgblink", "rgbfix", "rgbgfx")}
+    for name, path in paths.items():
+        result = subprocess.run([path, "--version"], capture_output=True, text=True)
+        reported = (result.stdout or result.stderr).strip()
+        if result.returncode or reported != f"{name} v{version}":
+            raise RuntimeError(
+                f"{name} requires RGBDS v{version}; {path} reported {reported!r} "
+                f"(exit {result.returncode})"
+            )
+    return paths
+
+
 def run(command: list[str]) -> None:
     result = subprocess.run(command, cwd=SOURCE, capture_output=True, text=True)
     if result.returncode:
@@ -53,8 +67,9 @@ def pack_spawns(path: Path) -> bytes:
 
 def build() -> str:
     manifest = json.loads((SOURCE / "assets.json").read_text(encoding="utf-8"))
+    rgbds = rgbds_tools()
     OUTPUT.mkdir(parents=True, exist_ok=True)
-    rgbgfx = tool("rgbgfx")
+    rgbgfx = rgbds["rgbgfx"]
     for asset in manifest["assets"]:
         path = SOURCE / asset["source"]
         target = OUTPUT / "assets" / (asset["id"] + ".bin")
@@ -90,10 +105,10 @@ def build() -> str:
             raise ValueError(f"{path}: compressed size changed; fixed ROM layout needs updating")
         target.write_bytes(packed)
     obj, rom = OUTPUT / "game.o", OUTPUT / "game.gb"
-    run([tool("rgbasm"), "-o", str(obj), "game.asm"])
-    run([tool("rgblink"), "-n", str(OUTPUT / "game.sym"), "-m", str(OUTPUT / "game.map"),
+    run([rgbds["rgbasm"], "-o", str(obj), "game.asm"])
+    run([rgbds["rgblink"], "-n", str(OUTPUT / "game.sym"), "-m", str(OUTPUT / "game.map"),
          "-o", str(rom), str(obj)])
-    run([tool("rgbfix"), "-v", "-p", "255", str(rom)])
+    run([rgbds["rgbfix"], "-v", "-p", "255", str(rom)])
     data = rom.read_bytes()
     digest = hashlib.md5(data).hexdigest().upper()
     if len(data) != 131072 or digest != manifest["rom_md5"]:
