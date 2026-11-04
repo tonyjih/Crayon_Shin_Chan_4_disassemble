@@ -103,3 +103,19 @@ SGB 命令名稱參照 [Pan Docs 原始命令表](https://raw.githubusercontent.
 拆分後原有 3,154 個 symbol 的 bank／地址與完整 ROM bytes 均不變。
 上面的 JSON／CSV 是首次 symbol 整理的快照；本輪尚未細分其餘 575 個 label 的用途，
 兩份 CSV 的來源位置也已核對仍有效。
+
+## 日文字碼與文字來源
+
+- 基礎字型 128 個 tiles 對照到 `charmap.inc`；濁音／半濁音以兩-byte CHARMAP 編碼。
+- 107 筆 descriptor 引用的 105 段訊息、14 段有效代字串，以及 14 段 DEBUG 單行字串，
+  改為 `text`／`line`／`done` 可讀來源，實際 bytes 和既有 string alias 均保留。
+- 35 個文字 label 補上依內容確認的名稱。bank 1／2 的 575 個待查自動 label 尚未減少。
+- 文字與指標表分別拆到 `text/`、`data/messages.asm`；表的筆數新增組譯期檢查。
+- 五個場景相關 tile ID 尚未確認用途，使用 `<TILE_XX>`；沒有當作已確認字形命名。
+- 加入三項原生組譯測試，涵蓋濁音、控制碼、空行、共用尾端、charmap 還原及非法字元。
+
+編輯規則與保留的原版特殊資料見 [文字格式](../text/README.md)。
+
+Windows 與 Ubuntu 均已通過完整編譯、9 個資產測試、3 個文字組譯測試與控制流程檢查；
+另外通過 `DEBUG=1` 組譯及連結。35 個 label 改名對照後，既有 3,156 個 symbol 的 bank／地址不變，
+ROM 與本輪修改前逐 byte 相同；兩份待查 CSV 的 575／588 個來源位置也仍有效。

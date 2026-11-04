@@ -1417,13 +1417,13 @@ CopyBankedTilemapRectToVram::
 CopyTextLineToVram::
     ld a, [de]
     inc de
-    cp $ff
+    cp TEXT_END
     ret z
 
-    cp $45
+    cp TEXT_DAKUTEN
     jr z, CopyTextLineToVram_Diacritic
 
-    cp $43
+    cp TEXT_HANDAKUTEN
     jr z, CopyTextLineToVram_Diacritic
 
     ld [hl+], a
@@ -1457,14 +1457,14 @@ QueueTextLine:: ; DE is FF-terminated text; dakuten/handakuten are queued one ti
 
 QueueTextLine_NextBaseGlyph::
     ld a, [de]
-    cp $ff
+    cp TEXT_END
     jr z, QueueTextLine_Finish
 
     inc de
-    cp $45
+    cp TEXT_DAKUTEN
     jr z, QueueTextLine_NextBaseGlyph
 
-    cp $43
+    cp TEXT_HANDAKUTEN
     jr z, QueueTextLine_NextBaseGlyph
 
     ld [hl+], a
@@ -1485,14 +1485,14 @@ QueueTextDiacriticsAndMeasure::
 
 QueueTextDiacriticsAndMeasure_Next::
     ld a, [de]
-    cp $ff
+    cp TEXT_END
     ret z
 
     inc de
-    cp $45
+    cp TEXT_DAKUTEN
     jr z, QueueTextDiacriticsAndMeasure_Emit
 
-    cp $43
+    cp TEXT_HANDAKUTEN
     jr z, QueueTextDiacriticsAndMeasure_Emit
 
     inc b
@@ -3555,34 +3555,7 @@ ENDC
     ret
 
 
-DebugTextStage::
-    db $57, $5e, $7e, $45, $56, $ff
-DebugTextFlagA::
-    db $24, $20, $3c, $12, $15, $34, $ff
-DebugTextFlagB::
-    db $31, $23, $16, $ff
-DebugTextLives::
-    db $45, $1a, $42, $1c, $12, $ff
-DebugTextForm::
-    db $46, $48, $5e, $6c, $ff
-DebugTextMusic::
-    db $2a, $11, $18, $11, $14, $42, $ff
-DebugTextSound::
-    db $19, $12, $15, $14, $42, $ff
-DebugTextOff::
-    db $00, $2a, $11, $ff
-DebugTextOn::
-    db $11, $11, $13, $ff
-DebugTextFormNormal::
-    db $00, $00, $00, $25, $1b, $ff
-DebugTextFormFlyingSquirrel::
-    db $00, $31, $1a, $1a, $45, $2b, $ff
-DebugTextFormCockroach::
-    db $00, $45, $19, $16, $45, $2c, $35, $ff
-DebugTextFormChicken::
-    db $00, $26, $3f, $24, $35, $ff
-DebugTextFormActionKamen::
-    db $46, $52, $56, $74, $7c, $fe, $ff
+INCLUDE "text/debug_menu.asm"
 
 SpriteAnimPointerTable_1a19::
     ; Large animation pointer table. Entries point either to nested pointer tables or sprite frame data.

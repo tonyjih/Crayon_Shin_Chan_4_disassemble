@@ -1,3 +1,5 @@
+DEF MESSAGE_NO_DIACRITIC EQU $ff ; Buffered upper-row tile: leave the previous tile alone.
+
 InitMessageStream::
     ldh a, [hTileStreamWritePos]
     add a
@@ -22,9 +24,9 @@ InitMessageStream::
     and $f0
     jr nz, InitMessageStream_AlternateDiacritics
 
-    ld a, $45
+    ld a, TEXT_DAKUTEN
     ld [wMessageDakutenTile], a
-    ld a, $43
+    ld a, TEXT_HANDAKUTEN
     ld [wMessageHandakutenTile], a
     jr InitMessageStream_ResetLine
 
@@ -119,7 +121,7 @@ MessageStream_ResetCharacterDelay::
     inc a
     ld [wMessagePrintedGlyphs], a
     ld a, [de]
-    cp $ff
+    cp MESSAGE_NO_DIACRITIC
     ret z
 
     ld bc, -$0020
@@ -159,23 +161,23 @@ MessageStream_SetSource::
 
 MessageStream_MeasureLine::
     call ReadMessageTileWithControlCodes
-    cp $ff
+    cp TEXT_END
     jr z, MessageStream_FinishMeasurement
 
-    cp $fe
+    cp TEXT_NEWLINE
     jr z, MessageStream_FinishMeasurement
 
     inc de
-    cp $45
+    cp TEXT_DAKUTEN
     jr z, MessageStream_Dakuten
 
-    cp $43
+    cp TEXT_HANDAKUTEN
     jr z, MessageStream_Handakuten
 
     bit 0, c
     jr z, MessageStream_CountBaseGlyph
 
-    ld a, $ff
+    ld a, MESSAGE_NO_DIACRITIC
     ld [hl], a
 
 MessageStream_CountBaseGlyph::
@@ -255,16 +257,16 @@ MessageStream_LoadSourceCursor::
 MessageStream_CopyBaseGlyphs::
     call ReadMessageTileWithControlCodes
     inc de
-    cp $ff
+    cp TEXT_END
     jr z, MessageStream_MarkEnd
 
-    cp $fe
+    cp TEXT_NEWLINE
     jr z, MessageStream_AdvanceLine
 
-    cp $45
+    cp TEXT_DAKUTEN
     jr z, MessageStream_CopyBaseGlyphs
 
-    cp $43
+    cp TEXT_HANDAKUTEN
     jr z, MessageStream_CopyBaseGlyphs
 
     bit 2, c
@@ -281,9 +283,9 @@ MessageStream_MarkEnd::
     ld [wMessageState], a
 
 MessageStream_AdvanceLine::
-    ld a, $45
+    ld a, TEXT_DAKUTEN
     ld [wMessageDakutenTile], a
-    ld a, $43
+    ld a, TEXT_HANDAKUTEN
     ld [wMessageHandakutenTile], a
     ld a, e
     ld [wMessageSourceLo], a
@@ -323,12 +325,12 @@ MessageStream_StoreVramDestination::
 
 ReadMessageTileWithControlCodes::
     ld a, [de]
-    cp $ff
+    cp TEXT_END
     jr z, ReadMessageByte_HandleTerminatorOrResume
 
-    cp $fc
+    cp TEXT_WRITE
     call z, HandleMessageControlFC
-    cp $fd
+    cp TEXT_SUB
     ret nz
 
     ld a, e

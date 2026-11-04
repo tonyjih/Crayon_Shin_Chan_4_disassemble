@@ -9,6 +9,7 @@ original:
 
 check-original: original
 	$(PYTHON) -B tools/test_original_assets.py
+	$(PYTHON) -B tools/test_original_text.py
 	$(PYTHON) -B tools/check_control_flow.py --self-test
 	$(PYTHON) -B tools/check_control_flow.py --asm-dir original --require-symbolic-memory
 
