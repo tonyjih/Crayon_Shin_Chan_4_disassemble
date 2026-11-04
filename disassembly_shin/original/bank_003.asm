@@ -284,6 +284,8 @@ Bank3MetaspritePtrTable::
     dw UiMetasprite_f0 ; metasprite $f0
     dw UiMetasprite_f1 ; metasprite $f1
 
+    ASSERT @ - Bank3MetaspritePtrTable == NUM_SCENE_METASPRITES * 2
+
 INCLUDE "text/messages.asm"
 INCLUDE "data/messages.asm"
 

@@ -21,10 +21,12 @@ bank 檔保留 ROM 配置順序，已確認的系統透過 INCLUDE 拆出：
 - `engine/audio.asm`：音效 sequencer；查表與波形宣告在 `data/audio/`。
 - `engine/messages.asm`：訊息解碼、換行與動態代字。
 - `engine/sgb.asm`：SGB 畫面調色盤與邊框傳輸；相關資料在 `data/sgb/`。
+- `engine/scene_animation.asm`、`engine/ending.asm`：場景動畫播放器與結局流程，相關資料在 `data/`。
 - `ram/objects.asm`：`$c180`～`$c37f` 的 32 筆 stage object 儲存區，包含 list terminator 的空間。
 - `text/`、`charmap.inc`：可直接組譯的日文訊息、DEBUG 文字與字碼；descriptor 表在 `data/messages.asm`。
 
 文字 macro、濁音的兩-byte 編碼及場景字形限制，見 [文字格式](text/README.md)。
+場景動畫的時間／翻轉、loop／hold 與結局 cue 格式，見 [場景格式](scene/README.md)。
 
 物件欄位名稱依一般移動／動畫 helper 的讀寫用途定義。部分狀態會把同一個欄位重用為 timer，
 例如 thrown-state 的 byte +2；特殊 actor 的 12-byte 記錄不屬於此 16-byte 儲存區。

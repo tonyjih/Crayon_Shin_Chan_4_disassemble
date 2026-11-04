@@ -31,9 +31,9 @@ MD5 = BCB3D47C291FD0A26B2C7B1082C3AD88
 | --- | ---: | ---: |
 | 0 | 263 | 0 |
 | 1 | 439 | 266 |
-| 2 | 518 | 309 |
+| 2 | 518 | 276 |
 | 3 | 103 | 0 |
-| 合計 | 1,323 | 575 |
+| 合計 | 1,323 | 542 |
 
 ## 容易誤讀的地方
 
@@ -65,17 +65,17 @@ MD5 = BCB3D47C291FD0A26B2C7B1082C3AD88
 
 ## 尚未確認的部分
 
-目前仍有 **575 個自動命名的內部 label**，集中在 bank 1／2。
+目前仍有 **542 個自動命名的內部 label**，集中在 bank 1／2。
 [unresolved_labels.csv](unresolved_labels.csv) 記錄 bank、地址、原始名稱、來源行及前一個具名 symbol。
 `preceding_symbol` 只表示原始碼中的位置，不保證是函式或呼叫關係的邊界。
 
-[unresolved_memory.csv](unresolved_memory.csv) 記錄中性工作區 offset 的 **588 處引用、106 個不同位址**。
+[unresolved_memory.csv](unresolved_memory.csv) 記錄中性工作區 offset 的 **544 處引用、92 個不同位址**。
 同一個位址可能有多個用途，不能把這個數字視為尚未辨識的變數數。
 另有部分資料只確認格式而未確認畫面內容，例如 `ScreenData_*`、以地址命名的音軌；
 音軌播放索引仍可由 `audio/sound_ids.csv` 追查。
 
-這兩份 CSV 是本次來源的快照。後續若更名或移動程式，來源行與統計需要一起更新。
-[symbol_cleanup.json](symbol_cleanup.json) 保存本次統計。
+這兩份 CSV 是目前來源的快照。後續若更名或移動程式，來源行與統計需要一起更新。
+[symbol_cleanup.json](symbol_cleanup.json) 保存目前待查統計；`new_def_symbols` 保留首次整理的新增數量。
 
 ## 驗證
 
@@ -101,15 +101,14 @@ SGB 命令名稱參照 [Pan Docs 原始命令表](https://raw.githubusercontent.
 - 控制流程檢查改為追蹤 `game.asm` 的 INCLUDE，拆檔後仍涵蓋所有原有 2,546 個 symbolic branches。
 
 拆分後原有 3,154 個 symbol 的 bank／地址與完整 ROM bytes 均不變。
-上面的 JSON／CSV 是首次 symbol 整理的快照；本輪尚未細分其餘 575 個 label 的用途，
-兩份 CSV 的來源位置也已核對仍有效。
+模組拆分這一批尚未細分當時其餘 575 個 label 的用途，兩份 CSV 的來源位置也已核對仍有效。
 
 ## 日文字碼與文字來源
 
 - 基礎字型 128 個 tiles 對照到 `charmap.inc`；濁音／半濁音以兩-byte CHARMAP 編碼。
 - 107 筆 descriptor 引用的 105 段訊息、14 段有效代字串，以及 14 段 DEBUG 單行字串，
   改為 `text`／`line`／`done` 可讀來源，實際 bytes 和既有 string alias 均保留。
-- 35 個文字 label 補上依內容確認的名稱。bank 1／2 的 575 個待查自動 label 尚未減少。
+- 35 個文字 label 補上依內容確認的名稱；該批尚未減少 bank 1／2 當時的 575 個待查自動 label。
 - 文字與指標表分別拆到 `text/`、`data/messages.asm`；表的筆數新增組譯期檢查。
 - 五個場景相關 tile ID 尚未確認用途，使用 `<TILE_XX>`；沒有當作已確認字形命名。
 - 加入三項原生組譯測試，涵蓋濁音、控制碼、空行、共用尾端、charmap 還原及非法字元。
@@ -119,3 +118,21 @@ SGB 命令名稱參照 [Pan Docs 原始命令表](https://raw.githubusercontent.
 Windows 與 Ubuntu 均已通過完整編譯、9 個資產測試、3 個文字組譯測試與控制流程檢查；
 另外通過 `DEBUG=1` 組譯及連結。35 個 label 改名對照後，既有 3,156 個 symbol 的 bank／地址不變，
 ROM 與本輪修改前逐 byte 相同；兩份待查 CSV 的 575／588 個來源位置也仍有效。
+
+## 場景動畫與結局
+
+- 73 段場景動畫改用 `scene_frame`／`scene_loop`／`scene_hold`，包含 291 個 frame pairs。
+  翻轉、metasprite ID、保留 opcode 及 loop bank 有組譯期檢查；兩個 hold 後的原版遺留 word 未移除。
+- 共用播放器、結局流程及資料拆檔；33 個結局內部自動 label 依實際 consumer 命名，
+  另補上各個已確認的結局 state 和資料表名稱。
+- 結局專用 RAM 別名明確區分角色 X/hold、cue、credits ID、粒子及不同模式共用 `$d956` 的用途。
+  44 處中性記憶體引用改成用途名稱，未全域套用到其他畫面。
+- 待查 label 由 575 減至 542；中性記憶體引用由 588 減至 544，涉及 92 個不同位址。
+  JSON 和兩份 CSV 已一起更新，來源掃描涵蓋 INCLUDE 模組。
+
+詳細格式與仍未確認的欄位，見 [場景格式](../scene/README.md)。
+
+Windows／Ubuntu 的完整 `check-original` 均通過：9 個資產測試、6 個 macro 組譯測試，
+以及控制流程與 symbolic-memory 檢查。`DEBUG=1` 亦可組譯及連結。
+55 個用途名稱的改名對照後，既有 3,156 個 symbol 的 bank／地址不變，完整 ROM bytes 相同；
+542 個待查 label 和 544 個記憶體引用的 CSV 來源位置已核對。
