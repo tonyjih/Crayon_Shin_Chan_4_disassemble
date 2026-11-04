@@ -89,3 +89,17 @@ python -B tools/check_control_flow.py --self-test
 尚未逐段使用模擬器追蹤待查 label；MD5 證明 ROM bytes 一致，不能單獨證明用途註解正確。
 
 SGB 命令名稱參照 [Pan Docs 原始命令表](https://raw.githubusercontent.com/gbdev/pandocs/master/src/SGB_Command_Summary.md)。
+
+## 後續模組化與建置護欄
+
+- `.rgbds-version` 固定已驗證的 RGBDS 1.0.1，四個工具均須通過版本核對才會開始產生資產。
+  原版 CI 使用同版官方套件及 SHA-256，執行完整 `check-original`。
+- 音效、訊息與 SGB 程式拆入 `engine/`，其波形、查表及傳輸資料拆入 `data/`。
+  INCLUDE 仍位於原版資料順序中的相同位置，未重新安排 ROM。
+- `ram/objects.asm` 明確配置 stage object 的 512-byte WRAM 區，並為確認過的欄位提供 offset 名稱。
+  組譯期檢查記錄長度及儲存區終點；type/state 共用的工作欄位仍註明用途限制。
+- 控制流程檢查改為追蹤 `game.asm` 的 INCLUDE，拆檔後仍涵蓋所有原有 2,546 個 symbolic branches。
+
+拆分後原有 3,154 個 symbol 的 bank／地址與完整 ROM bytes 均不變。
+上面的 JSON／CSV 是首次 symbol 整理的快照；本輪尚未細分其餘 575 個 label 的用途，
+兩份 CSV 的來源位置也已核對仍有效。

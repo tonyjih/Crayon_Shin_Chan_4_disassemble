@@ -11,7 +11,21 @@ MD5  = BCB3D47C291FD0A26B2C7B1082C3AD88
 `original/` 是來源；`build/original/` 全部都是可刪除、可重新產生的輸出。
 
 程式用途、共用記憶體與尚未確認的 label，見 [symbol 整理紀錄](notes/symbol_cleanup.md)。
-硬體、WRAM／HRAM、畫面及音效引擎的常數集中在 `constants.inc`。
+硬體、WRAM／HRAM、畫面及音效引擎的共用常數在 `constants.inc`；
+stage object 的儲存區與欄位定義在 `ram/objects.asm`。
+
+## 程式結構
+
+bank 檔保留 ROM 配置順序，已確認的系統透過 INCLUDE 拆出：
+
+- `engine/audio.asm`：音效 sequencer；查表與波形宣告在 `data/audio/`。
+- `engine/messages.asm`：訊息解碼、換行與動態代字；目前訊息內容仍保留原生 byte 編碼。
+- `engine/sgb.asm`：SGB 畫面調色盤與邊框傳輸；相關資料在 `data/sgb/`。
+- `ram/objects.asm`：`$c180`～`$c37f` 的 32 筆 stage object 儲存區，包含 list terminator 的空間。
+
+物件欄位名稱依一般移動／動畫 helper 的讀寫用途定義。部分狀態會把同一個欄位重用為 timer，
+例如 thrown-state 的 byte +2；特殊 actor 的 12-byte 記錄不屬於此 16-byte 儲存區。
+控制流程檢查會從 `game.asm` 追蹤 INCLUDE，涵蓋拆出的組譯檔。
 
 ## 圖片
 

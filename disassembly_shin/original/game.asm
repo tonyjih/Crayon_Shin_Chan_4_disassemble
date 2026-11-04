@@ -5,6 +5,7 @@
 
 INCLUDE "hardware.inc"
 INCLUDE "constants.inc"
+INCLUDE "ram/objects.asm"
 INCLUDE "audio/macros.inc"
 INCLUDE "bank_000.asm"
 INCLUDE "bank_001.asm"

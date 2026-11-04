@@ -6,6 +6,7 @@ import argparse
 from collections import Counter
 from pathlib import Path
 import re
+import tempfile
 
 
 BRANCH = re.compile(r"^(jp|jr|call)\s+(?:(?:nz|z|nc|c)\s*,\s*)?(.+)$", re.I)
@@ -16,6 +17,30 @@ INSTRUCTION = re.compile(
     r"nop|or|pop|push|res|ret|reti|rl|rla|rlc|rlca|rr|rra|rrc|rrca|rst|sbc|scf|"
     r"set|sla|sra|srl|stop|sub|swap|xor)\b", re.I
 )
+
+
+def source_paths(directory: Path) -> list[Path]:
+    """Follow literal INCLUDE paths relative to the assembler's working directory."""
+    root = directory.resolve()
+    entry = root / "game.asm"
+    if not entry.is_file():
+        return sorted(directory.glob("bank_*.asm"))
+    paths: list[Path] = []
+    visited: set[Path] = set()
+
+    def visit(path: Path) -> None:
+        path = path.resolve()
+        if path in visited:
+            return
+        visited.add(path)
+        source = path.read_text(encoding="utf-8-sig")
+        if path.suffix.lower() == ".asm":
+            paths.append(path)
+        for name in re.findall(r'^\s*INCLUDE\s+"([^"\n]+)"', source, re.I | re.M):
+            visit(root / name)
+
+    visit(entry)
+    return paths
 
 
 def audit(path: Path, source: str, *, symbolic_memory: bool = False) -> tuple[list[str], Counter]:
@@ -106,6 +131,23 @@ Handler::
     assert not audit(Path("bank_002.asm"), "ld a, [$d940]")[0]
     for code in ("ld a, [wSharedWork + $140]", "ld hl, -$0100", "db $ea, $40, $d9"):
         assert not audit(Path("bank_002.asm"), code, symbolic_memory=True)[0], code
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory)
+        (root / "engine").mkdir()
+        (root / "game.asm").write_text('INCLUDE "defs.inc"\nINCLUDE "bank_000.asm"\n')
+        (root / "defs.inc").write_text('INCLUDE "engine/helper.asm"\n')
+        (root / "bank_000.asm").write_text('INCLUDE "engine/helper.asm"\n')
+        (root / "engine/helper.asm").write_text("call $1234\n")
+        paths = source_paths(root)
+        assert len(paths) == 3 and root / "engine/helper.asm" in paths
+        assert any(audit(path, path.read_text())[0] for path in paths)
+        (root / "bank_000.asm").write_text('INCLUDE "engine/missing.asm"\n')
+        try:
+            source_paths(root)
+        except FileNotFoundError:
+            pass
+        else:
+            raise AssertionError("missing assembly includes must fail the audit")
 
 
 def main() -> int:
@@ -122,9 +164,12 @@ def main() -> int:
         return 0
     errors: list[str] = []
     totals: Counter = Counter()
-    paths = sorted(args.asm_dir.glob("bank_*.asm"))
+    try:
+        paths = source_paths(args.asm_dir)
+    except OSError as error:
+        parser.error(str(error))
     if not paths:
-        parser.error("no bank_*.asm source files found")
+        parser.error("no assembly source files found")
     for path in paths:
         found, counts = audit(path, path.read_text(encoding="utf-8-sig"),
                               symbolic_memory=args.require_symbolic_memory)

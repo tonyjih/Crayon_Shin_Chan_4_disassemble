@@ -32,7 +32,10 @@ PR 或手動執行時，以 Python 3.12 和同版官方 RGBDS Linux 套件執行
 
 ## 原版來源
 
-- `original/bank_000.asm`～`bank_007.asm`：彩色化前的原版程式，已補齊直接分支與 dispatch table 的 symbol。
+- `original/bank_000.asm`～`bank_007.asm`：原版 ROM 配置及尚未拆分的程式／資料；已補齊直接分支與 dispatch table 的 symbol。
+- `original/engine/`：已確認的音效、訊息與 SGB 系統；bank 檔依原版順序 INCLUDE，維持地址不變。
+- `original/data/`：上述系統的波形、查表與 SGB 傳輸資料。
+- `original/ram/objects.asm`：stage object 的實際 WRAM 配置、16-byte 欄位 offset 及容量／邊界檢查。
 - `original/gfx/`：55 張可編輯 PNG；包含未壓縮 tile、解壓後 tile、1bpp SGB 邊框。
 - `original/levels/`：五個關卡的解壓地圖、metatile、碰撞資料、物件 CSV。
 - `original/maps/`、`original/sgb/`：選單／小遊戲 tilemap、SGB 邊框 tilemap。

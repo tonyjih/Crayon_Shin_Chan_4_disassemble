@@ -89,7 +89,7 @@ DEF wPaletteBGP    EQU $c0a3
 DEF wPaletteOBP0   EQU $c0a4
 DEF wPaletteOBP1   EQU $c0a5
 
-DEF wObjectSlots        EQU $c180
+; wObjectSlots is allocated at $c180 by ram/objects.asm.
 DEF wSpawnCursor        EQU $c380
 DEF wSpawnStateList     EQU $c381
 DEF wPendingVramUpdates EQU $c402

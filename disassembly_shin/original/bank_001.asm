@@ -1505,7 +1505,7 @@ SpawnObjectIntoSlot:: ; Copy a 5-byte spawn record into the selected object slot
     ld d, h
     ld e, l
     ld a, c
-    ld hl, $000f
+    ld hl, OBJECT_OFS_SPAWN_INDEX
     add hl, de
     ld [hl], a
     ld b, d
@@ -1856,7 +1856,7 @@ ProjectObjectToScreenAndCull:: ; Convert object world position to screen positio
     ld d, a
     ldh a, [hSCX]
     ld e, a
-    ld hl, $0003
+    ld hl, OBJECT_OFS_X_LO
     add hl, bc
     ld a, [hl+]
     sub e
@@ -1978,7 +1978,7 @@ jr_001_4bbd::
     ret nz
 
     ld [hl], $00
-    ld hl, $000f
+    ld hl, OBJECT_OFS_SPAWN_INDEX
     add hl, bc
     ld a, [hl]
     ld de, wSpawnStateList
@@ -1990,12 +1990,12 @@ jr_001_4bbd::
 
 
 MoveObjectXBySpeed:: ; Load object speed from +8/+9, then apply signed X movement.
-    ld hl, $0008
+    ld hl, OBJECT_OFS_SPEED_LO
     add hl, bc
     ld a, [hl+]
     ld d, [hl]
     ld e, a
-    ld hl, $0002
+    ld hl, OBJECT_OFS_X_SUBPIXEL
     add hl, bc
 
 ApplyObjectXVelocity:: ; Apply DE as signed fixed-point X velocity based on object facing flag.
@@ -6257,19 +6257,19 @@ EnemyWalkerA_State00::
     call MoveObjectXBySpeed
 
 UpdateObjectPatrolTurnTimer::
-    ld hl, $000d
+    ld hl, OBJECT_OFS_TIMER
     add hl, bc
     dec [hl]
     ret nz
 
     ld d, h
     ld e, l
-    ld hl, $000a
+    ld hl, OBJECT_OFS_TYPE_WORK_A
     add hl, bc
     ld a, [hl]
     ld [de], a
     ld a, [bc]
-    xor $80
+    xor OBJECT_DIRECTION_MASK
     ld [bc], a
     ret
 
@@ -6279,11 +6279,11 @@ AnimateObjectFromTableFast::
 
 AnimateObjectFromTable::
     push hl
-    ld hl, $000c
+    ld hl, OBJECT_OFS_ANIM_COUNTER
     add hl, bc
     ld e, $04
     call AdvanceObjectAnimCounter
-    ld hl, $000b
+    ld hl, OBJECT_OFS_ANIM_FRAME
     add hl, bc
     ld a, [hl]
     pop hl
@@ -6364,7 +6364,7 @@ AccelerateObjectYAtHL::
     ld [hl], a
 
 ApplyObjectYVelocity::
-    ld hl, $0005
+    ld hl, OBJECT_OFS_Y_SUBPIXEL
     add hl, bc
     bit 7, d
     jp z, AddSignedVelocityToPosition24
