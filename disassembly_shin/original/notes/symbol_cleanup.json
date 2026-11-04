@@ -1,0 +1,45 @@
+{
+  "original_md5": "BCB3D47C291FD0A26B2C7B1082C3AD88",
+  "size": 131072,
+  "numeric_direct_branches": 0,
+  "raw_memory_operands": 0,
+  "generic_labels_before": 1323,
+  "generic_labels_remaining": 575,
+  "new_def_symbols": 154,
+  "unresolved_memory_references": 588,
+  "unresolved_memory_addresses": 106,
+  "bank_label_counts": {
+    "0": [
+      263,
+      0
+    ],
+    "1": [
+      439,
+      266
+    ],
+    "2": [
+      518,
+      309
+    ],
+    "3": [
+      103,
+      0
+    ],
+    "4": [
+      0,
+      0
+    ],
+    "5": [
+      0,
+      0
+    ],
+    "6": [
+      0,
+      0
+    ],
+    "7": [
+      0,
+      0
+    ]
+  }
+}
