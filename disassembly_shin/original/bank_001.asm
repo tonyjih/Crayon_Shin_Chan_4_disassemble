@@ -1799,7 +1799,7 @@ SpawnParamBlockC::
 
 InitSpawnedObjectParamBlockD:: ; Initialize params from block D and clear event substate.
     xor a
-    ld [wRuntimeWork + $1a], a
+    ld [wStage3BossNormalHitEnabled], a
     ld de, SpawnParamBlockD
     jp Spawn_ApplyModeMotionBlock
 
@@ -7015,13 +7015,13 @@ UpdateObjStage0BossProjectile:: ; Object type $05: Stage 0 boss hat projectile.
     call ProjectObjectToScreenAndCull
     ldh a, [hObjectOffscreen]
     or a
-    jr nz, jr_001_6661
+    jr nz, ClearOffscreenStage0BossHat
 
     call CheckStage0BossProjectileBodyCollision
     jp DrawCurrentStageObject
 
 
-jr_001_6661::
+ClearOffscreenStage0BossHat::
     xor a
     ld [bc], a
     ret
@@ -7033,11 +7033,10 @@ DispatchStage0BossProjectileState::
     rst $00
 
     ; rst $00 jump table (2 entries)
-    dw Stage0BossProjectile_State00, Stage0BossProjectile_State01
+    dw Stage0BossHat_FlyHorizontally, Stage0BossHat_FlyUpward
 
 
-Stage0BossProjectile_State00::
-; UpdateObjStage0BossProjectile dispatch index $00; behavior name can be refined after tracing.
+Stage0BossHat_FlyHorizontally::
     ld a, $80
     ld hl, $0008
     add hl, bc
@@ -7045,7 +7044,7 @@ Stage0BossProjectile_State00::
     ld [hl], $01
     call MoveStage0BossProjectileAndTickState
 
-jr_001_6678::
+Stage0BossHat_AnimateSpin::
     ld d, $10
     ld hl, $000c
     add hl, bc
@@ -7082,14 +7081,13 @@ MoveStage0BossProjectileAndTickState::
     ret
 
 
-Stage0BossProjectile_State01::
-; UpdateObjStage0BossProjectile dispatch index $01; behavior name can be refined after tracing.
+Stage0BossHat_FlyUpward::
     call MoveObjectXBySpeed
     ld hl, $0005
     add hl, bc
     ld de, $00c0
     call SubtractSignedVelocityFromPosition24
-    jr jr_001_6678
+    jr Stage0BossHat_AnimateSpin
 
 CheckStage0BossProjectileBodyCollision::
 ; Skip collision after boss clear; use body probe 4.
@@ -7144,11 +7142,11 @@ EnemyToughKid_State01::
     pop af
     ld hl, EnemyToughKidAnimIdsB
 
-AnimateAndDrawBossClearActor::
-; Animate with period 15, tick the clear actor, project and draw when visible.
+AnimateAndDrawStunnedObject::
+; Animate with period 15 and return to patrol when the hit delay expires.
     ld d, $0f
     call AnimateObjectFromTable
-    call TickBossClearActorState
+    call TickObjectStunTimer
     call ProjectObjectToScreenAndCull
     ldh a, [hObjectOffscreen]
     or a
@@ -7157,8 +7155,8 @@ AnimateAndDrawBossClearActor::
     jp DrawCurrentStageObject
 
 
-TickBossClearActorState::
-; Advance the object state every 180 counts.
+TickObjectStunTimer::
+; Clear the timer and decrement the state once it reaches 180.
     ld hl, $0002
     add hl, bc
     inc [hl]
@@ -7197,22 +7195,22 @@ UpdateObjStage0Boss:: ; Object type $01: Stage 0 boss / stage-clear actor.
     call DispatchStage0BossState
     ld a, [wBossHitFlashTimer]
     or a
-    jr nz, jr_001_6741
+    jr nz, Stage0Boss_TickHitFlash
 
     call CheckStage0BossActionHitbox
     call CheckStage0BossBodyCollision
 
-jr_001_6741::
+Stage0Boss_TickHitFlash::
     ld a, [wBossHitFlashTimer]
     or a
-    jr z, jr_001_674e
+    jr z, Stage0Boss_Draw
 
     dec a
     ld [wBossHitFlashTimer], a
     and $08
     ret nz
 
-jr_001_674e::
+Stage0Boss_Draw::
     jp DrawCurrentStageObject
 
 
@@ -7223,12 +7221,11 @@ DispatchStage0BossState::
     rst $00
 
     ; rst $00 jump table (5 entries)
-    dw Stage0Boss_State00, Stage0Boss_State01, Stage0Boss_State02, Stage0Boss_State03
+    dw Stage0Boss_Patrol, Stage0Boss_UpdateHitStun, Stage0Boss_FallAfterDefeat, Stage0Boss_UpdateThrowSequence
     dw BossClear_WalkPlayerOffscreen
 
 
-Stage0Boss_State03::
-; UpdateObjStage0Boss dispatch index $03; behavior name can be refined after tracing.
+Stage0Boss_UpdateThrowSequence::
     ld a, $10
     ldh [hObjectAnimId], a
     ld hl, $000d
@@ -7238,7 +7235,7 @@ Stage0Boss_State03::
     cp $3f
     ret c
 
-    jr z, jr_001_677e
+    jr z, Stage0Boss_BeginHatSlotSearch
 
     cp $a0
     ld a, $11
@@ -7253,28 +7250,28 @@ Stage0Boss_State03::
     ret
 
 
-jr_001_677e::
+Stage0Boss_BeginHatSlotSearch::
     ld hl, wObjectSlots
 
-jr_001_6781::
+Stage0Boss_CheckNextHatSlot::
     ld a, [hl]
     or a
-    jr z, jr_001_6795
+    jr z, Stage0Boss_InitHatProjectile
 
     cp $ff
-    jr z, jr_001_678f
+    jr z, Stage0Boss_AppendHatBeforeTerminator
 
     ld de, $0010
     add hl, de
-    jr jr_001_6781
+    jr Stage0Boss_CheckNextHatSlot
 
-jr_001_678f::
-    call jr_001_6795
+Stage0Boss_AppendHatBeforeTerminator::
+    call Stage0Boss_InitHatProjectile
     ld [hl], $ff
     ret
 
 
-jr_001_6795::
+Stage0Boss_InitHatProjectile::
     ld a, [bc]
     and $80
     or $05
@@ -7315,8 +7312,7 @@ BossClear_WalkPlayerOffscreen::
     ret
 
 
-Stage0Boss_State02::
-; UpdateObjStage0Boss dispatch index $02; behavior name can be refined after tracing.
+Stage0Boss_FallAfterDefeat::
     pop af
     ld a, STAGE_BOSS_STATE_CLEAR
     ld [wStageBossStateFlag], a
@@ -7336,21 +7332,19 @@ Stage0Boss_State02::
     ret
 
 
-Stage0Boss_State01::
-; UpdateObjStage0Boss dispatch index $01; behavior name can be refined after tracing.
+Stage0Boss_UpdateHitStun::
     pop af
     ld a, $84
     ld [wBossHitFlashTimer], a
     ld hl, Stage0BossAnimIdsA
-    jp AnimateAndDrawBossClearActor
+    jp AnimateAndDrawStunnedObject
 
 
 
 Stage0BossAnimIdsA::
     db $15, $16, $15, $16
 
-Stage0Boss_State00::
-; UpdateObjStage0Boss dispatch index $00; behavior name can be refined after tracing.
+Stage0Boss_Patrol::
     call CheckStage0BossHorizontalBounds
     ld hl, Stage0BossAnimIdsB
     call AnimateObjectFromTableFast
@@ -7366,19 +7360,19 @@ CheckStage0BossHorizontalBounds::
     ldh a, [hObjectScreenX]
     and $fe
     cp $94
-    jr z, jr_001_6821
+    jr z, Stage0Boss_BeginRightEdgeAttack
 
-    jr nc, jr_001_683c
+    jr nc, SetCurrentObjectFacingLeft
 
     cp $0c
-    jr z, jr_001_6841
+    jr z, Stage0Boss_BeginLeftEdgeAttack
 
-    jr c, jr_001_6846
+    jr c, SetCurrentObjectFacingRight
 
     ret
 
 
-jr_001_6821::
+Stage0Boss_BeginRightEdgeAttack::
     ld a, $94
     ld hl, $0002
     add hl, bc
@@ -7386,9 +7380,9 @@ jr_001_6821::
     inc hl
     ld a, $f4
     ld [hl], a
-    call jr_001_683c
+    call SetCurrentObjectFacingLeft
 
-jr_001_6830::
+Stage0Boss_ResetThrowTimer::
     ld h, b
     ld l, c
     inc hl
@@ -7400,18 +7394,18 @@ jr_001_6830::
     ret
 
 
-jr_001_683c::
+SetCurrentObjectFacingLeft::
     ld a, [bc]
     set 7, a
     ld [bc], a
     ret
 
 
-jr_001_6841::
-    call jr_001_6846
-    jr jr_001_6830
+Stage0Boss_BeginLeftEdgeAttack::
+    call SetCurrentObjectFacingRight
+    jr Stage0Boss_ResetThrowTimer
 
-jr_001_6846::
+SetCurrentObjectFacingRight::
     ld a, [bc]
     res 7, a
     ld [bc], a
@@ -7435,22 +7429,22 @@ UpdateObjStage1Boss:: ; Object type $02: Stage 1 boss / stage-clear actor.
     call DispatchStage1BossState
     ld a, [wBossHitFlashTimer]
     or a
-    jr nz, jr_001_6868
+    jr nz, Stage1Boss_TickHitFlash
 
     call CheckStage0BossActionHitbox
     call CheckStage0BossBodyCollision
 
-jr_001_6868::
+Stage1Boss_TickHitFlash::
     ld a, [wBossHitFlashTimer]
     or a
-    jr z, jr_001_6875
+    jr z, Stage1Boss_Draw
 
     dec a
     ld [wBossHitFlashTimer], a
     and $08
     ret nz
 
-jr_001_6875::
+Stage1Boss_Draw::
     jp DrawCurrentStageObject
 
 
@@ -7461,25 +7455,23 @@ DispatchStage1BossState::
     rst $00
 
     ; rst $00 jump table (5 entries)
-    dw Stage1Boss_State00, Stage1Boss_State01, Stage1Boss_State02, Stage1Boss_State00
+    dw Stage1Boss_DispatchAttackPhase, Stage1Boss_UpdateHitStun, Stage1Boss_FallAfterDefeat, Stage1Boss_DispatchAttackPhase
     dw BossClear_WalkPlayerOffscreen
 
 
-Stage1Boss_State01::
-; UpdateObjStage1Boss dispatch index $01; behavior name can be refined after tracing.
+Stage1Boss_UpdateHitStun::
     pop af
     ld a, $84
     ld [wBossHitFlashTimer], a
     ld hl, Stage1BossAnimIdsA
-    jp AnimateAndDrawBossClearActor
+    jp AnimateAndDrawStunnedObject
 
 
 
 Stage1BossAnimIdsA::
     db $17, $18, $17, $18
 
-Stage1Boss_State02::
-; UpdateObjStage1Boss dispatch index $02; behavior name can be refined after tracing.
+Stage1Boss_FallAfterDefeat::
     pop af
     ld a, STAGE_BOSS_STATE_CLEAR
     ld [wStageBossStateFlag], a
@@ -7499,44 +7491,43 @@ Stage1Boss_State02::
     ret
 
 
-Stage1Boss_State00::
-; UpdateObjStage1Boss dispatch index $00; behavior name can be refined after tracing.
-    ld a, [wRuntimeWork + $17]
+Stage1Boss_DispatchAttackPhase::
+    ld a, [wStage1BossAttackPhase]
     and $0f
     rst $00
 
     ; rst $00 jump table (5 entries)
-    dw Stage1Boss_WalkAndAnimate, Stage1Boss_WalkAndAnimate, Stage1BossAttack_State02, Stage1BossAttack_State03
-    dw Stage1BossAttack_State04
+    dw Stage1Boss_WalkAndAnimate, Stage1Boss_WalkAndAnimate, Stage1Boss_WindUpJump, Stage1Boss_MoveThroughJump
+    dw Stage1Boss_ResumePatrol
 
 
 CheckStage1BossHorizontalBounds::
 ; React outside screen X $0c..$93.
     ldh a, [hObjectScreenX]
     cp $94
-    jr nc, jr_001_68d2
+    jr nc, Stage1Boss_TurnAtRightEdge
 
     cp $0c
-    jr c, jr_001_68db
+    jr c, Stage1Boss_TurnAtLeftEdge
 
     ret
 
 
-jr_001_68d2::
+Stage1Boss_TurnAtRightEdge::
     ld a, [bc]
     bit 7, a
     ret nz
 
-    call jr_001_683c
-    jr jr_001_6911
+    call SetCurrentObjectFacingLeft
+    jr Stage1Boss_AdvanceAttackPhase
 
-jr_001_68db::
+Stage1Boss_TurnAtLeftEdge::
     ld a, [bc]
     bit 7, a
     ret z
 
-    call jr_001_6846
-    jr jr_001_6911
+    call SetCurrentObjectFacingRight
+    jr Stage1Boss_AdvanceAttackPhase
 
 Stage1Boss_WalkAndAnimate::
 ; Check bounds, animate with table B, then move in X.
@@ -7550,51 +7541,50 @@ Stage1Boss_WalkAndAnimate::
 Stage1BossAnimIdsB::
     db $14, $15, $14, $16
 
-Stage1BossAttack_State02::
-; Stage1BossAnimIdsA dispatch index $02; behavior name can be refined after tracing.
+Stage1Boss_WindUpJump::
     ld a, $19
     ldh [hObjectAnimId], a
-    ld a, [wRuntimeWork + $18]
+    ld a, [wStage1BossWindupTimer]
     inc a
-    ld [wRuntimeWork + $18], a
+    ld [wStage1BossWindupTimer], a
     cp $30
     ret c
 
     ld hl, -$0200 ; Signed 8.8 velocity, not an OAM pointer.
     ld a, l
-    ld [wRuntimeWork + $19], a
+    ld [wStage1BossJumpVelocityLo], a
     ld a, h
-    ld [wRuntimeWork + $1a], a
+    ld [wStage1BossJumpVelocityHi], a
     xor a
-    ld [wRuntimeWork + $18], a
+    ld [wStage1BossWindupTimer], a
 
-jr_001_6911::
-    ld a, [wRuntimeWork + $17]
+Stage1Boss_AdvanceAttackPhase::
+; Low nibble dispatches the attack. Bit 7 alternates the next walking phase.
+    ld a, [wStage1BossAttackPhase]
     inc a
-    ld [wRuntimeWork + $17], a
+    ld [wStage1BossAttackPhase], a
     and $0f
     cp $05
     ret nz
 
-    ld a, [wRuntimeWork + $17]
+    ld a, [wStage1BossAttackPhase]
     and $80
     xor $80
-    jr z, jr_001_6927
+    jr z, Stage1Boss_StoreAlternatingWalkPhase
 
     inc a
 
-jr_001_6927::
-    ld [wRuntimeWork + $17], a
+Stage1Boss_StoreAlternatingWalkPhase::
+    ld [wStage1BossAttackPhase], a
     ret
 
 
-Stage1BossAttack_State03::
-; Stage1BossAnimIdsA dispatch index $03; behavior name can be refined after tracing.
+Stage1Boss_MoveThroughJump::
     call MoveObjectXBySpeed
-    call Call_001_6940
+    call Stage1Boss_UpdateJumpVelocity
     ld a, $1a
     ldh [hObjectAnimId], a
-    ld a, [wRuntimeWork + $1a]
+    ld a, [wStage1BossJumpVelocityHi]
     bit 7, a
     ret nz
 
@@ -7603,24 +7593,24 @@ Stage1BossAttack_State03::
     ret
 
 
-Call_001_6940::
-    ld hl, wRuntimeWork + $19
+Stage1Boss_UpdateJumpVelocity::
+    ld hl, wStage1BossJumpVelocityLo
     ld a, [hl+]
     ld h, [hl]
     ld l, a
     ld de, $0008
     ld a, [wAlternateModeFlags]
     or a
-    jr z, jr_001_6952
+    jr z, Stage1Boss_ApplyJumpAcceleration
 
     ld de, $000c
 
-jr_001_6952::
+Stage1Boss_ApplyJumpAcceleration::
     add hl, de
     ld a, l
-    ld [wRuntimeWork + $19], a
+    ld [wStage1BossJumpVelocityLo], a
     ld a, h
-    ld [wRuntimeWork + $1a], a
+    ld [wStage1BossJumpVelocityHi], a
     ld d, h
     ld e, l
     call ApplyObjectYVelocity
@@ -7634,10 +7624,9 @@ jr_001_6952::
     ld [hl+], a
     ld a, $c0
     ld [hl], a
-    jr jr_001_6911
+    jr Stage1Boss_AdvanceAttackPhase
 
-Stage1BossAttack_State04::
-; Stage1BossAnimIdsA dispatch index $04; behavior name can be refined after tracing.
+Stage1Boss_ResumePatrol::
     jp Stage1Boss_WalkAndAnimate
 
 
@@ -7646,22 +7635,22 @@ UpdateObjStage2Boss:: ; Object type $03: Stage 2 boss / stage-clear actor; can s
     call DispatchStage2BossState
     ld a, [wBossHitFlashTimer]
     or a
-    jr nz, jr_001_6985
+    jr nz, Stage2Boss_TickHitFlash
 
     call CheckStage1BossActionHitbox
     call CheckStage1BossBodyCollision
 
-jr_001_6985::
+Stage2Boss_TickHitFlash::
     ld a, [wBossHitFlashTimer]
     or a
-    jr z, jr_001_6992
+    jr z, Stage2Boss_Draw
 
     dec a
     ld [wBossHitFlashTimer], a
     and $08
     ret nz
 
-jr_001_6992::
+Stage2Boss_Draw::
     jp DrawCurrentStageObject
 
 
@@ -7688,25 +7677,23 @@ DispatchStage2BossState::
     rst $00
 
     ; rst $00 jump table (5 entries)
-    dw UpdateObjStage2BossScriptController, Stage2Boss_State01, Stage2Boss_State02, Stage2Boss_State03
+    dw UpdateObjStage2BossScriptController, Stage2Boss_UpdateHitStun, Stage2Boss_FallAfterDefeat, Stage2Boss_HoldThrowPose
     dw BossClear_WalkPlayerOffscreen
 
 
-Stage2Boss_State01::
-; UpdateObjStage2Boss dispatch index $01; behavior name can be refined after tracing.
+Stage2Boss_UpdateHitStun::
     pop af
     ld a, $84
     ld [wBossHitFlashTimer], a
     ld hl, Stage2BossAnimIds
-    jp AnimateAndDrawBossClearActor
+    jp AnimateAndDrawStunnedObject
 
 
 
 Stage2BossAnimIds::
     db $19, $1a, $19, $1a
 
-Stage2Boss_State02::
-; UpdateObjStage2Boss dispatch index $02; behavior name can be refined after tracing.
+Stage2Boss_FallAfterDefeat::
     pop af
     ld a, STAGE_BOSS_STATE_CLEAR
     ld [wStageBossStateFlag], a
@@ -7729,28 +7716,28 @@ Stage2Boss_State02::
 UpdateObjStage2BossScriptController:: ; Stage 2 boss script/controller routine at $69e3.
     call SelectStage2BossAnimByYVelocity
     call MoveObjectXBySpeed
-    call Call_001_6a6e
+    call Stage2Boss_TrySpawnAtJumpApex
     call ApplyStage2BossVerticalAcceleration
     ret nz
 
     ld hl, -$0440
     ld a, l
-    ld [wRuntimeWork + $19], a
+    ld [wStage2BossBounceVelocityLo], a
     ld a, h
-    ld [wRuntimeWork + $1a], a
-    ld a, [wRuntimeWork + $17]
+    ld [wStage2BossBounceVelocityHi], a
+    ld a, [wStage2BossBouncePhase]
     rst $00
 
     ; rst $00 jump table (5 entries)
-    dw Stage2BossAttack_State00, Stage2BossAttack_State01, Stage2BossAttack_State02, Stage2BossAttack_State03
-    dw Stage2BossAttack_State04
+    dw Stage2Boss_BounceFacingLeft, Stage2Boss_AdvanceLeftBounce, Stage2Boss_BounceFacingRight, Stage2Boss_AdvanceRightBounce
+    dw Stage2Boss_RestartBounceCycle
 
 
 SelectStage2BossAnimByYVelocity::
 ; Use frame $15 while moving upward, $16 otherwise.
     ld a, $15
     ldh [hObjectAnimId], a
-    ld a, [wRuntimeWork + $1a]
+    ld a, [wStage2BossBounceVelocityHi]
     bit 7, a
     ret nz
 
@@ -7759,57 +7746,52 @@ SelectStage2BossAnimByYVelocity::
     ret
 
 
-Stage2BossAttack_State00::
-; UpdateObjStage2BossScriptController dispatch index $00; behavior name can be refined after tracing.
+Stage2Boss_BounceFacingLeft::
     ld a, $01
-    ld [wRuntimeWork + $17], a
+    ld [wStage2BossBouncePhase], a
     ld a, [bc]
     or $80
     ld [bc], a
     ret
 
 
-Stage2BossAttack_State01::
-; UpdateObjStage2BossScriptController dispatch index $01; behavior name can be refined after tracing.
+Stage2Boss_AdvanceLeftBounce::
     ld a, $02
-    ld [wRuntimeWork + $17], a
+    ld [wStage2BossBouncePhase], a
     ret
 
 
-Stage2BossAttack_State02::
-; UpdateObjStage2BossScriptController dispatch index $02; behavior name can be refined after tracing.
+Stage2Boss_BounceFacingRight::
     ld a, $03
-    ld [wRuntimeWork + $17], a
+    ld [wStage2BossBouncePhase], a
     ld a, [bc]
     res 7, a
     ld [bc], a
     ret
 
 
-Stage2BossAttack_State03::
-; UpdateObjStage2BossScriptController dispatch index $03; behavior name can be refined after tracing.
+Stage2Boss_AdvanceRightBounce::
     ld a, $04
-    ld [wRuntimeWork + $17], a
+    ld [wStage2BossBouncePhase], a
     ret
 
 
-Stage2BossAttack_State04::
-; UpdateObjStage2BossScriptController dispatch index $04; behavior name can be refined after tracing.
-    jp Stage2BossAttack_State00
+Stage2Boss_RestartBounceCycle::
+    jp Stage2Boss_BounceFacingLeft
 
 
 ApplyStage2BossVerticalAcceleration::
 ; Add $0040 to the shared boss Y velocity and move the object.
-    ld hl, wRuntimeWork + $19
+    ld hl, wStage2BossBounceVelocityLo
     ld a, [hl+]
     ld h, [hl]
     ld l, a
     ld de, $0040
     add hl, de
     ld a, l
-    ld [wRuntimeWork + $19], a
+    ld [wStage2BossBounceVelocityLo], a
     ld a, h
-    ld [wRuntimeWork + $1a], a
+    ld [wStage2BossBounceVelocityHi], a
     ld d, h
     ld e, l
     call ApplyObjectYVelocity
@@ -7820,8 +7802,7 @@ ApplyStage2BossVerticalAcceleration::
     ret
 
 
-Stage2Boss_State03::
-; UpdateObjStage2Boss dispatch index $03; behavior name can be refined after tracing.
+Stage2Boss_HoldThrowPose::
     ld a, $17
     ldh [hObjectAnimId], a
     ld hl, $000d
@@ -7839,12 +7820,13 @@ Stage2Boss_State03::
     ret
 
 
-Call_001_6a6e::
-    ld a, [wRuntimeWork + $17]
+Stage2Boss_TrySpawnAtJumpApex::
+; Only spawn when the bounce phase is active, Y velocity is zero, and no existing ball occupies a slot.
+    ld a, [wStage2BossBouncePhase]
     or a
     ret z
 
-    ld hl, wRuntimeWork + $19
+    ld hl, wStage2BossBounceVelocityLo
     ld a, [hl+]
     or [hl]
     ret nz
@@ -7852,7 +7834,7 @@ Call_001_6a6e::
     ld hl, wObjectSlots
     ld e, $20
 
-jr_001_6a7e::
+Stage2Boss_CheckForExistingProjectile::
     ld a, [hl]
     and $7f
     cp OBJ_STAGE2_BOSS_PROJECTILE
@@ -7861,7 +7843,7 @@ jr_001_6a7e::
     ld a, $10
     rst $38
     dec e
-    jr nz, jr_001_6a7e
+    jr nz, Stage2Boss_CheckForExistingProjectile
 
     ld h, b
     ld l, c
@@ -7873,19 +7855,19 @@ jr_001_6a7e::
     ld [hl], a
     ld hl, wObjectSlots
 
-jr_001_6a98::
+Stage2Boss_FindProjectileSlot::
     ld a, [hl]
     or a
     jr z, SpawnStage2BossProjectile
 
     cp $ff
-    jr z, jr_001_6aa6
+    jr z, Stage2Boss_AppendProjectileBeforeTerminator
 
     ld de, $0010
     add hl, de
-    jr jr_001_6a98
+    jr Stage2Boss_FindProjectileSlot
 
-jr_001_6aa6::
+Stage2Boss_AppendProjectileBeforeTerminator::
     call SpawnStage2BossProjectile
     ld [hl], $ff
     ret
@@ -7896,8 +7878,8 @@ SpawnStage2BossProjectile:: ; Spawn the Stage 2 boss small-ball projectile ($21)
     ld [hl+], a
     xor a
     ld [hl+], a
-    call Call_001_6ac5
-    call Call_001_6add
+    call Stage2BossProjectile_CopyXPlus8
+    call Stage2BossProjectile_CopyYMinus32
     call CopyParentProjectileSpeedPlus40
     xor a
     ld [hl+], a
@@ -7911,7 +7893,7 @@ SpawnStage2BossProjectile:: ; Spawn the Stage 2 boss small-ball projectile ($21)
     ret
 
 
-Call_001_6ac5::
+Stage2BossProjectile_CopyXPlus8::
     push hl
     ld hl, $0003
     add hl, bc
@@ -7932,7 +7914,7 @@ Call_001_6ac5::
     ret
 
 
-Call_001_6add::
+Stage2BossProjectile_CopyYMinus32::
     push hl
     ld hl, $0006
     add hl, bc
@@ -7958,13 +7940,13 @@ UpdateObjStage2BossProjectile:: ; Object type $21: Stage 2 boss small-ball proje
     call ProjectObjectToScreenAndCull
     ldh a, [hObjectOffscreen]
     or a
-    jr nz, jr_001_6b04
+    jr nz, ClearOffscreenStage2BossBall
 
     call CheckStage2BossProjectileBodyCollision
     jp DrawCurrentStageObject
 
 
-jr_001_6b04::
+ClearOffscreenStage2BossBall::
     xor a
     ld [bc], a
     ret
@@ -7979,11 +7961,10 @@ DispatchStage2BossProjectileState::
     rst $00
 
     ; rst $00 jump table (2 entries)
-    dw Stage2BossProjectile_State00, Stage2BossProjectile_State01
+    dw Stage2BossBall_FlyHorizontally, Stage2BossBall_FlyDownward
 
 
-Stage2BossProjectile_State00::
-; UpdateObjStage2BossProjectile dispatch index $00; behavior name can be refined after tracing.
+Stage2BossBall_FlyHorizontally::
     ld a, $80
     ld hl, $0008
     add hl, bc
@@ -8004,8 +7985,7 @@ Stage2BossProjectile_State00::
     ret
 
 
-Stage2BossProjectile_State01::
-; UpdateObjStage2BossProjectile dispatch index $01; behavior name can be refined after tracing.
+Stage2BossBall_FlyDownward::
     call MoveObjectXBySpeed
     ld hl, $0005
     add hl, bc
@@ -8028,26 +8008,26 @@ UpdateObjStage3Boss:: ; Object type $04: Stage 3 boss / stage-clear actor with c
     call DispatchStage3BossState
     ld a, [wBossHitFlashTimer]
     or a
-    jr nz, jr_001_6b59
+    jr nz, Stage3Boss_TickHitFlash
 
-    call CheckStage2BossActionHitbox
-    call CheckStage2BossBodyCollision
+    call CheckStage3BossActionHitboxes
+    call CheckStage3BossBodyAndStomp
 
-jr_001_6b59::
+Stage3Boss_TickHitFlash::
     ld a, [wBossHitFlashTimer]
     or a
-    jr z, jr_001_6b66
+    jr z, Stage3Boss_Draw
 
     dec a
     ld [wBossHitFlashTimer], a
     and $08
     ret nz
 
-jr_001_6b66::
+Stage3Boss_Draw::
     jp DrawCurrentStageObject
 
 
-CheckStage2BossActionHitbox::
+CheckStage3BossActionHitboxes::
 ; Test active player action hitboxes against a 7x18-half-size boss hitbox.
     ld de, $0712
     ldh a, [hPlayerActionLock]
@@ -8057,16 +8037,16 @@ CheckStage2BossActionHitbox::
     rrca
     push af
     push de
-    call c, CheckStage2BossAgainstActionHitbox
+    call c, CheckStage3BossPrimaryActionHitbox
     pop de
     pop af
     rrca
-    jr c, jr_001_6ba6
+    jr c, CheckStage3BossSecondaryActionHitbox
 
     ret
 
 
-CheckStage2BossAgainstActionHitbox::
+CheckStage3BossPrimaryActionHitbox::
 ; Shared per-action-hitbox rectangle comparison.
     ld hl, wPlayerActionHitbox0X
     ldh a, [hActionHitboxHalfWidth]
@@ -8086,15 +8066,15 @@ CheckStage2BossAgainstActionHitbox::
     jp z, LaunchObjectFromActionKamenHit
 
     cp PLAYER_FORM_COCKROACH
-    jr z, jr_001_6bce
+    jr z, Stage3Boss_ApplyHitDuringReturn
 
     xor a
     ld [wPlayerSpecialActor0], a
     ld hl, hPlayerActionLock
     res 0, [hl]
-    jr jr_001_6bce
+    jr Stage3Boss_ApplyHitDuringReturn
 
-jr_001_6ba6::
+CheckStage3BossSecondaryActionHitbox::
     ld hl, wPlayerActionHitbox1X
     ldh a, [hActionHitboxHalfWidth]
     add d
@@ -8112,17 +8092,17 @@ jr_001_6ba6::
     ld [wPlayerSpecialActor1], a
     ld hl, hPlayerActionLock
     res 1, [hl]
-    jr jr_001_6bce
+    jr Stage3Boss_ApplyHitDuringReturn
 
-CheckStage2BossBodyCollision::
+CheckStage3BossBodyAndStomp::
 ; Use body probe 8 before checking the boss reaction fields.
     ld d, $08
     call LoadPlayerObjectCollisionProbe
     call CheckPlayerAgainstCurrentObject
     ret nc
 
-jr_001_6bce::
-    ld a, [wRuntimeWork + $1a]
+Stage3Boss_ApplyHitDuringReturn::
+    ld a, [wStage3BossNormalHitEnabled]
     or a
     ret z
 
@@ -8136,25 +8116,23 @@ DispatchStage3BossState::
     rst $00
 
     ; rst $00 jump table (5 entries)
-    dw Stage3Boss_State00, Stage3Boss_State01, Stage3Boss_State02, Stage3Boss_State00
+    dw Stage3Boss_DispatchAttackPhase, Stage3Boss_UpdateHitStun, Stage3Boss_FallAfterDefeat, Stage3Boss_DispatchAttackPhase
     dw BossClear_WalkPlayerOffscreen
 
 
-Stage3Boss_State01::
-; UpdateObjStage3Boss dispatch index $01; behavior name can be refined after tracing.
+Stage3Boss_UpdateHitStun::
     pop af
     ld a, $84
     ld [wBossHitFlashTimer], a
     ld hl, Stage3BossAnimIdsA
-    jp AnimateAndDrawBossClearActor
+    jp AnimateAndDrawStunnedObject
 
 
 
 Stage3BossAnimIdsA::
     db $18, $19, $18, $19
 
-Stage3Boss_State02::
-; UpdateObjStage3Boss dispatch index $02; behavior name can be refined after tracing.
+Stage3Boss_FallAfterDefeat::
     pop af
     ld a, STAGE_BOSS_STATE_CLEAR
     ld [wStageBossStateFlag], a
@@ -8174,27 +8152,25 @@ Stage3Boss_State02::
     ret
 
 
-Stage3Boss_State00::
-; UpdateObjStage3Boss dispatch index $00; behavior name can be refined after tracing.
-    ld a, [wRuntimeWork + $17]
+Stage3Boss_DispatchAttackPhase::
+    ld a, [wStage3BossAttackPhase]
     rst $00
 
     ; rst $00 jump table (14 entries)
-    dw Stage3BossAttack_State00, Stage3BossAttack_State01, Stage3BossAttack_State02, Stage3BossAttack_State03
-    dw Stage3BossAttack_State04, Stage3BossAttack_State03, Stage3BossAttack_State06, Stage3BossAttack_State03
-    dw Stage3BossAttack_State08, Stage3BossAttack_State03, Stage3BossAttack_State0A, Stage3BossAttack_State0B
-    dw Stage3BossAttack_State0C, Stage3BossAttack_State0D
+    dw Stage3Boss_WalkToClimbPoint, Stage3Boss_Climb, Stage3Boss_WalkToThrowX70, Stage3Boss_UpdateCoconutThrow
+    dw Stage3Boss_WalkToThrowX58, Stage3Boss_UpdateCoconutThrow, Stage3Boss_WalkToThrowX38, Stage3Boss_UpdateCoconutThrow
+    dw Stage3Boss_WalkToThrowX18, Stage3Boss_UpdateCoconutThrow, Stage3Boss_WalkToDropPoint, Stage3Boss_DropToGround
+    dw Stage3Boss_UpdateCameraShake, Stage3Boss_WalkBackRight
 
 
-Stage3BossAttack_State00::
-; Stage3BossAnimIdsA dispatch index $00; behavior name can be refined after tracing.
+Stage3Boss_WalkToClimbPoint::
     call AnimateStage3BossFramesB
     ldh a, [hObjectScreenX]
     cp $8d
     jp nc, MoveObjectXBySpeed
 
     ld a, $01
-    ld [wRuntimeWork + $17], a
+    ld [wStage3BossAttackPhase], a
     ret
 
 
@@ -8208,14 +8184,13 @@ AnimateStage3BossFramesB::
 Stage3BossAnimIdsB::
     db $15, $16, $15, $17
 
-Stage3BossAttack_State01::
-; Stage3BossAnimIdsA dispatch index $01; behavior name can be refined after tracing.
+Stage3Boss_Climb::
     ldh a, [hObjectScreenY]
     cp $21
-    jr c, jr_001_6c65
+    jr c, Stage3Boss_BeginWalkToFirstThrow
 
     ld de, $0100
-    call SubtractVelocityFromStage3BossX
+    call MoveStage3BossUpByDE
     ld hl, Stage3BossAnimIdsC
     jp AnimateObjectFromTableFast
 
@@ -8224,57 +8199,55 @@ Stage3BossAttack_State01::
 Stage3BossAnimIdsC::
     db $1d, $1e, $1d, $1e
 
-jr_001_6c65::
+Stage3Boss_BeginWalkToFirstThrow::
     ld a, $02
-    ld [wRuntimeWork + $17], a
+    ld [wStage3BossAttackPhase], a
     ret
 
 
-SubtractVelocityFromStage3BossX::
-; Apply the signed velocity to the 24-bit X field in reverse.
+MoveStage3BossUpByDE::
+; Subtract DE from the three-byte Y position.
     ld hl, $0005
     add hl, bc
     jp SubtractSignedVelocityFromPosition24
 
 
-Stage3BossAttack_State02::
-; Stage3BossAnimIdsA dispatch index $02; behavior name can be refined after tracing.
+Stage3Boss_WalkToThrowX70::
     call AnimateStage3BossFramesB
     ldh a, [hObjectScreenX]
     cp $70
     jp nc, MoveObjectXBySpeed
 
     ld a, $03
-    ld [wRuntimeWork + $17], a
+    ld [wStage3BossAttackPhase], a
     ret
 
 
-jr_001_6c82::
+Stage3Boss_FinishThrowAndFaceLeft::
     ld a, [bc]
     set 7, a
     ld [bc], a
     xor a
-    ld [wRuntimeWork + $18], a
-    ld a, [wRuntimeWork + $17]
+    ld [wStage3BossAttackTimer], a
+    ld a, [wStage3BossAttackPhase]
     inc a
-    ld [wRuntimeWork + $17], a
+    ld [wStage3BossAttackPhase], a
     ret
 
 
-Stage3BossAttack_State03::
-; Stage3BossAnimIdsA dispatch index $03; behavior name can be refined after tracing.
+Stage3Boss_UpdateCoconutThrow::
     ld a, [bc]
     res 7, a
     ld [bc], a
     xor a
-    ld [wRuntimeWork + $19], a
+    ld [wStage3BossCoconutFallEnabled], a
     ld a, $1b
     ldh [hObjectAnimId], a
-    ld a, [wRuntimeWork + $18]
+    ld a, [wStage3BossAttackTimer]
     inc a
-    ld [wRuntimeWork + $18], a
+    ld [wStage3BossAttackTimer], a
     cp $30
-    jr nc, jr_001_6c82
+    jr nc, Stage3Boss_FinishThrowAndFaceLeft
 
     cp $10
     ret c
@@ -8295,31 +8268,31 @@ SpawnStage3BossProjectile:: ; Spawn Stage 3 boss coconut projectile/dropped haza
     ldh [hObjectAnimId], a
     ld hl, wObjectSlots
 
-jr_001_6cbf::
+Stage3Boss_FindCoconutSlot::
     ld a, [hl]
     or a
-    jr z, jr_001_6cd3
+    jr z, Stage3Boss_InitCoconutSlot
 
     cp $ff
-    jr z, jr_001_6ccd
+    jr z, Stage3Boss_AppendCoconutBeforeTerminator
 
     ld de, $0010
     add hl, de
-    jr jr_001_6cbf
+    jr Stage3Boss_FindCoconutSlot
 
-jr_001_6ccd::
-    call jr_001_6cd3
+Stage3Boss_AppendCoconutBeforeTerminator::
+    call Stage3Boss_InitCoconutSlot
     ld [hl], $ff
     ret
 
 
-jr_001_6cd3::
+Stage3Boss_InitCoconutSlot::
     ld a, OBJ_STAGE3_BOSS_PROJECTILE
     ld [hl+], a
     xor a
     ld [hl+], a
-    call Call_001_6cec
-    call Call_001_6d04
+    call Stage3BossCoconut_CopyXPlus18
+    call Stage3BossCoconut_CopyY
     call CopyParentProjectileSpeedPlus40
     xor a
     ld [hl+], a
@@ -8333,7 +8306,7 @@ jr_001_6cd3::
     ret
 
 
-Call_001_6cec::
+Stage3BossCoconut_CopyXPlus18::
     push hl
     ld hl, $0003
     add hl, bc
@@ -8354,7 +8327,7 @@ Call_001_6cec::
     ret
 
 
-Call_001_6d04::
+Stage3BossCoconut_CopyY::
     push hl
     ld hl, $0006
     add hl, bc
@@ -8371,56 +8344,51 @@ Call_001_6d04::
     ret
 
 
-Stage3BossAttack_State04::
-; Stage3BossAnimIdsA dispatch index $04; behavior name can be refined after tracing.
+Stage3Boss_WalkToThrowX58::
     call AnimateStage3BossFramesB
     ldh a, [hObjectScreenX]
     cp $58
     jp nc, MoveObjectXBySpeed
 
     ld a, $05
-    ld [wRuntimeWork + $17], a
+    ld [wStage3BossAttackPhase], a
     ret
 
 
-Stage3BossAttack_State06::
-; Stage3BossAnimIdsA dispatch index $06; behavior name can be refined after tracing.
+Stage3Boss_WalkToThrowX38::
     call AnimateStage3BossFramesB
     ldh a, [hObjectScreenX]
     cp $38
     jp nc, MoveObjectXBySpeed
 
     ld a, $07
-    ld [wRuntimeWork + $17], a
+    ld [wStage3BossAttackPhase], a
     ret
 
 
-Stage3BossAttack_State08::
-; Stage3BossAnimIdsA dispatch index $08; behavior name can be refined after tracing.
+Stage3Boss_WalkToThrowX18::
     call AnimateStage3BossFramesB
     ldh a, [hObjectScreenX]
     cp $18
     jp nc, MoveObjectXBySpeed
 
     ld a, $09
-    ld [wRuntimeWork + $17], a
+    ld [wStage3BossAttackPhase], a
     ret
 
 
-Stage3BossAttack_State0A::
-; Stage3BossAnimIdsA dispatch index $0a; behavior name can be refined after tracing.
+Stage3Boss_WalkToDropPoint::
     call AnimateStage3BossFramesB
     ldh a, [hObjectScreenX]
     cp $14
     jp nc, MoveObjectXBySpeed
 
     ld a, $0b
-    ld [wRuntimeWork + $17], a
+    ld [wStage3BossAttackPhase], a
     ret
 
 
-Stage3BossAttack_State0B::
-; Stage3BossAnimIdsA dispatch index $0b; behavior name can be refined after tracing.
+Stage3Boss_DropToGround::
     ld a, [bc]
     res 7, a
     ld [bc], a
@@ -8428,7 +8396,7 @@ Stage3BossAttack_State0B::
     ldh [hObjectAnimId], a
     ldh a, [hObjectScreenY]
     cp $70
-    jr nc, jr_001_6d71
+    jr nc, Stage3Boss_BeginCameraShake
 
     cp $6e
     call nc, PlayStage3BossAttackSound
@@ -8438,9 +8406,9 @@ Stage3BossAttack_State0B::
     jp AddSignedVelocityToPosition24
 
 
-jr_001_6d71::
+Stage3Boss_BeginCameraShake::
     ld a, $0c
-    ld [wRuntimeWork + $17], a
+    ld [wStage3BossAttackPhase], a
     ld hl, hSCY
     ld a, [hl+]
     ld h, [hl]
@@ -8459,26 +8427,25 @@ PlayStage3BossAttackSound::
     ret
 
 
-Stage3BossAttack_State0C::
-; Stage3BossAnimIdsA dispatch index $0c; behavior name can be refined after tracing.
+Stage3Boss_UpdateCameraShake::
     ld a, $1a
     ldh [hObjectAnimId], a
-    ld a, [wRuntimeWork + $18]
+    ld a, [wStage3BossAttackTimer]
     inc a
-    ld [wRuntimeWork + $18], a
+    ld [wStage3BossAttackTimer], a
     cp $40
-    jr nc, jr_001_6dbd
+    jr nc, Stage3Boss_EndShakeAndRestoreCamera
 
     and $07
-    jr z, jr_001_6da3
+    jr z, Stage3Boss_ShakeCameraUp
 
     cp $04
-    jr z, jr_001_6db0
+    jr z, Stage3Boss_ShakeCameraDown
 
     ret
 
 
-jr_001_6da3::
+Stage3Boss_ShakeCameraUp::
     ldh a, [hSCY]
     sub $01
     ldh [hSCY], a
@@ -8488,7 +8455,7 @@ jr_001_6da3::
     ret
 
 
-jr_001_6db0::
+Stage3Boss_ShakeCameraDown::
     ldh a, [hSCY]
     add $01
     ldh [hSCY], a
@@ -8498,11 +8465,11 @@ jr_001_6db0::
     ret
 
 
-jr_001_6dbd::
+Stage3Boss_EndShakeAndRestoreCamera::
     xor a
-    ld [wRuntimeWork + $18], a
+    ld [wStage3BossAttackTimer], a
     ld a, $0d
-    ld [wRuntimeWork + $17], a
+    ld [wStage3BossAttackPhase], a
     ld hl, wStage3BossSavedScrollYLo
     ld a, [hl+]
     ld h, [hl]
@@ -8514,21 +8481,20 @@ jr_001_6dbd::
     ret
 
 
-Stage3BossAttack_State0D::
-; Stage3BossAnimIdsA dispatch index $0d; behavior name can be refined after tracing.
+Stage3Boss_WalkBackRight::
     ld a, $01
-    ld [wRuntimeWork + $1a], a
+    ld [wStage3BossNormalHitEnabled], a
     ld a, $01
-    ld [wRuntimeWork + $19], a
+    ld [wStage3BossCoconutFallEnabled], a
     call AnimateStage3BossFramesB
     ldh a, [hObjectScreenX]
     cp $8c
     jp c, MoveObjectXBySpeed
 
     xor a
-    ld [wRuntimeWork + $1a], a
+    ld [wStage3BossNormalHitEnabled], a
     ld a, $01
-    ld [wRuntimeWork + $17], a
+    ld [wStage3BossAttackPhase], a
     ld a, [bc]
     set 7, a
     ld [bc], a
@@ -8536,28 +8502,28 @@ Stage3BossAttack_State0D::
 
 
 UpdateObjStage3BossProjectile:: ; Object type $24: Stage 3 boss coconut projectile/dropped hazard.
-    call Call_001_6e0c
+    call Stage3BossCoconut_UpdateFall
     call ProjectObjectToScreenAndCull
     ldh a, [hObjectOffscreen]
     or a
-    jr nz, jr_001_6e09
+    jr nz, ClearOffscreenStage3BossCoconut
 
-    call CheckStage3BossBodyCollision
+    call CheckStage3BossProjectileBodyCollision
     xor a
     ldh [hSpriteFlags], a
     jp DrawCurrentStageObject
 
 
-jr_001_6e09::
+ClearOffscreenStage3BossCoconut::
     xor a
     ld [bc], a
     ret
 
 
-Call_001_6e0c::
+Stage3BossCoconut_UpdateFall::
     ld a, $1f
     ldh [hObjectAnimId], a
-    ld a, [wRuntimeWork + $19]
+    ld a, [wStage3BossCoconutFallEnabled]
     or a
     ret z
 
@@ -8567,7 +8533,7 @@ Call_001_6e0c::
     jp AddSignedVelocityToPosition24
 
 
-CheckStage3BossBodyCollision::
+CheckStage3BossProjectileBodyCollision::
 ; Skip collision after boss clear; use body probe 3.
     ld a, [wStageBossStateFlag]
     cp STAGE_BOSS_STATE_CLEAR

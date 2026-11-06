@@ -573,3 +573,16 @@ DEF hCockroachActionFramePtrLo   EQU $ffc5 ; Selected animation frame table, rea
 DEF hCockroachActionFramePtrHi   EQU $ffc6
 
 DEF hPartyHornReachBonus EQU $ffce ; Added to the forward offset and half-width when the horn extends.
+
+; Different boss phases overlay the same four runtime bytes.
+DEF wStage1BossAttackPhase        EQU $c0b7 ; Low nibble is the phase, bit 7 alternates the patrol entry.
+DEF wStage1BossWindupTimer        EQU $c0b8
+DEF wStage1BossJumpVelocityLo    EQU $c0b9
+DEF wStage1BossJumpVelocityHi    EQU $c0ba
+DEF wStage2BossBouncePhase        EQU $c0b7
+DEF wStage2BossBounceVelocityLo   EQU $c0b9
+DEF wStage2BossBounceVelocityHi   EQU $c0ba
+DEF wStage3BossAttackPhase        EQU $c0b7
+DEF wStage3BossAttackTimer        EQU $c0b8 ; Used for both the throw pose and the camera shake.
+DEF wStage3BossCoconutFallEnabled EQU $c0b9 ; Set on the return walk, cleared in the throw sequence.
+DEF wStage3BossNormalHitEnabled  EQU $c0ba ; Stomp and ordinary action hits register on the return walk.
