@@ -5640,7 +5640,7 @@ UpdateObjPickupChocobi:: ; Object type $10: Chocobi pickup; 30 awards an extra l
 
     call CheckPlayerPickupChocobi
 
-jr_001_5f7f::
+DrawChocobiPickup::
     ld hl, SpriteFrameData_2c85
     ldh a, [hObjectScreenX]
     ld c, a
@@ -5692,7 +5692,7 @@ UpdateObjPickupHiddenChocobi:: ; Object type $11: hidden Chocobi; appears/effect
     inc hl
     ld a, [hl]
     or a
-    jr nz, jr_001_5fda
+    jr nz, UpdateRevealedChocobi
 
     call CullObjectAndReleaseSpawn
     ret nz
@@ -5715,14 +5715,14 @@ UpdateObjPickupHiddenChocobi:: ; Object type $11: hidden Chocobi; appears/effect
     ret
 
 
-jr_001_5fda::
+UpdateRevealedChocobi::
     call FinishHiddenChocobiPickup
     call ProjectObjectToScreenAndCull
     ldh a, [hObjectOffscreen]
     or a
     ret nz
 
-    jr jr_001_5f7f
+    jr DrawChocobiPickup
 
 FinishHiddenChocobiPickup::
     call UpdateAnimatedPickupMotion
@@ -5749,36 +5749,37 @@ UpdateAnimatedPickupMotion::
     ld a, [hl]
     inc [hl]
     push af
-    ld hl, PickupAnimOrSpriteTable
+    ld hl, AnimatedPickupXSteps
     rst $38
     ld a, [hl]
     or a
-    jr z, jr_001_601e
+    jr z, AnimatedPickup_CheckRiseTimer
 
     rlca
-    jr c, jr_001_6016
+    jr c, AnimatedPickup_NudgeXLeft
 
     inc de
-    jr jr_001_6017
+    jr AnimatedPickup_StoreNudgedX
 
-jr_001_6016::
+AnimatedPickup_NudgeXLeft::
     dec de
 
-jr_001_6017::
+AnimatedPickup_StoreNudgedX::
     ld hl, $0003
     add hl, bc
     ld a, e
     ld [hl+], a
     ld [hl], d
 
-jr_001_601e::
+AnimatedPickup_CheckRiseTimer::
     pop af
     cp $20
     ret
 
 
 
-PickupAnimOrSpriteTable::
+AnimatedPickupXSteps::
+; Signed one-pixel offsets applied during the 32-frame rise.
     db $01, $01, $01, $00, $00, $00, $00, $00, $ff, $00, $00, $00, $01, $00, $00, $00
     db $ff, $00, $00, $00, $01, $00, $00, $00, $ff, $00, $00, $00, $01, $00, $00, $00
 UpdateObjPickupExtraLife:: ; Object type $12: immediate extra-life pickup.
@@ -5791,7 +5792,7 @@ UpdateObjPickupExtraLife:: ; Object type $12: immediate extra-life pickup.
 
     call CheckPlayerPickupExtraLife
 
-jr_001_604f::
+DrawExtraLifePickup::
     ld hl, SpriteFrameData_2c9f
     ldh a, [hObjectScreenX]
     ld c, a
@@ -5817,7 +5818,7 @@ UpdateObjPickupHiddenExtraLife:: ; Object type $13: hidden extra-life pickup; ap
     inc hl
     ld a, [hl]
     or a
-    jr nz, jr_001_608b
+    jr nz, UpdateRevealedExtraLife
 
     call CullObjectAndReleaseSpawn
     ret nz
@@ -5840,14 +5841,14 @@ UpdateObjPickupHiddenExtraLife:: ; Object type $13: hidden extra-life pickup; ap
     ret
 
 
-jr_001_608b::
+UpdateRevealedExtraLife::
     call FinishAnimatedExtraLifePickup
     call ProjectObjectToScreenAndCull
     ldh a, [hObjectOffscreen]
     or a
     ret nz
 
-    jr jr_001_604f
+    jr DrawExtraLifePickup
 
 FinishAnimatedExtraLifePickup::
     call UpdateAnimatedPickupMotion
@@ -5868,7 +5869,7 @@ UpdateObjPickupHealth:: ; Object type $14: add hPlayerHealth by 1, max 3.
 
     call CheckPlayerPickupHealth
 
-jr_001_60ab::
+DrawHealthPickup::
     ld hl, SpriteFrameData_2c8e
     ldh a, [hObjectScreenX]
     ld c, a
@@ -5897,7 +5898,7 @@ UpdateObjPickupHiddenHealth:: ; Object type $15: hidden health pickup; appears/e
     inc hl
     ld a, [hl]
     or a
-    jr nz, jr_001_60ed
+    jr nz, UpdateRevealedHealth
 
     call CullObjectAndReleaseSpawn
     ret nz
@@ -5920,14 +5921,14 @@ UpdateObjPickupHiddenHealth:: ; Object type $15: hidden health pickup; appears/e
     ret
 
 
-jr_001_60ed::
+UpdateRevealedHealth::
     call FinishAnimatedHealthPickup
     call ProjectObjectToScreenAndCull
     ldh a, [hObjectOffscreen]
     or a
     ret nz
 
-    jr jr_001_60ab
+    jr DrawHealthPickup
 
 FinishAnimatedHealthPickup::
     call UpdateAnimatedPickupMotion
@@ -5971,7 +5972,8 @@ CheckPlayerPickupFormFlyingSquirrel::
     ld a, PLAYER_FORM_FLYING_SQUIRREL
     ldh [hPlayerForm], a
 
-jr_001_6135::
+ApplyPickedUpPlayerForm::
+; Remove the pickup and start the existing form-change animation state.
     xor a
     ld [bc], a
     jp EnterPlayerHurtState
@@ -6008,7 +6010,7 @@ CheckPlayerPickupFormCockroach::
     res 2, [hl]
     ld a, PLAYER_FORM_COCKROACH
     ldh [hPlayerForm], a
-    jr jr_001_6135
+    jr ApplyPickedUpPlayerForm
 
 UpdateObjFormChicken:: ; Object type $18: Chicken form pickup.
     call CullObjectAndReleaseSpawn
@@ -6041,7 +6043,7 @@ CheckPlayerPickupFormChicken::
     res 2, [hl]
     ld a, PLAYER_FORM_CHICKEN
     ldh [hPlayerForm], a
-    jp jr_001_6135
+    jp ApplyPickedUpPlayerForm
 
 
 UpdateObjFormActionKamen:: ; Object type $19: timed Action Kamen form pickup.
@@ -6078,7 +6080,7 @@ CheckPlayerPickupFormActionKamen::
     ld [wFormTimerLo], a
     ld a, h
     ld [wFormTimerHi], a
-    jp jr_001_6135
+    jp ApplyPickedUpPlayerForm
 
 
 UpdateObjBouncingBall:: ; Object type $06: Stage 2 bouncing ball; hurts on contact, stompable.
@@ -6108,11 +6110,10 @@ UpdateBouncingBallState:: ; Update state/animation for Stage 2 bouncing ball.
     rst $00
 
     ; rst $00 jump table (4 entries)
-    dw BouncingBall_State00, BouncingBall_State01, BouncingBall_State01, BouncingBall_State03
+    dw BouncingBall_WaitAndLaunchBounce, BouncingBall_ApplyThrownFall, BouncingBall_ApplyThrownFall, BouncingBall_UpdateBounceArc
 
 
-BouncingBall_State00::
-; UpdateBouncingBallState dispatch index $00; behavior name can be refined after tracing.
+BouncingBall_WaitAndLaunchBounce::
     ld a, $13
     ldh [hObjectAnimId], a
     ld hl, $000d
@@ -6143,11 +6144,11 @@ BouncingBall_State00::
     ld de, $00b0
     ld a, [wAlternateModeFlags]
     or a
-    jr z, jr_001_623a
+    jr z, BouncingBall_StoreHorizontalSpeed
 
     ld de, $0100
 
-jr_001_623a::
+BouncingBall_StoreHorizontalSpeed::
     ld hl, $0008
     add hl, bc
     ld a, e
@@ -6156,8 +6157,7 @@ jr_001_623a::
     ret
 
 
-BouncingBall_State01::
-; UpdateBouncingBallState dispatch index $01; behavior name can be refined after tracing.
+BouncingBall_ApplyThrownFall::
     pop af
     ld a, $12
     ldh [hObjectAnimId], a
@@ -6169,8 +6169,7 @@ BouncingBall_State01::
     jp UpdateObjectThrownStateB
 
 
-BouncingBall_State03::
-; UpdateBouncingBallState dispatch index $03; behavior name can be refined after tracing.
+BouncingBall_UpdateBounceArc::
     ld a, $12
     ldh [hObjectAnimId], a
     call MoveObjectXBySpeed
@@ -6223,7 +6222,7 @@ UpdateEnemyWalkerAState::
     rst $00
 
     ; rst $00 jump table (4 entries)
-    dw EnemyWalkerA_State00, EnemyWalkerA_State01, EnemyWalkerA_State02, EnemyWalkerA_State02
+    dw WalkingKid_Patrol, WalkingKid_UpdateHitDelay, WalkingKid_UpdateThrownFall, WalkingKid_UpdateThrownFall
 
 
 GetObjectStateAndDirectionFlags::
@@ -6233,19 +6232,18 @@ GetObjectStateAndDirectionFlags::
     ld l, c
     ld a, [hl+]
     rlca
-    jr nc, jr_001_62ab
+    jr nc, ReadObjectStateLowBits
 
     ld a, $01
     ldh [hSpriteFlags], a
 
-jr_001_62ab::
+ReadObjectStateLowBits::
     ld a, [hl]
     and $03
     ret
 
 
-EnemyWalkerA_State00::
-; UpdateEnemyWalkerAState dispatch index $00; behavior name can be refined after tracing.
+WalkingKid_Patrol::
     ld hl, ObjectPatrolAnimIds
     call AnimateObjectFromTableFast
     call MoveObjectXBySpeed
@@ -6291,8 +6289,7 @@ AnimateObjectFromTable::
 ObjectPatrolAnimIds::
     db $00, $01, $00, $02
 
-EnemyWalkerA_State01::
-; UpdateEnemyWalkerAState dispatch index $01; behavior name can be refined after tracing.
+WalkingKid_UpdateHitDelay::
     pop af
     ld a, $03
     ldh [hObjectAnimId], a
@@ -6320,13 +6317,12 @@ UpdateObjectThrownStateATimer::
     ld hl, $000e
     add hl, bc
     bit 6, [hl]
-    jp nz, Jump_001_6444
+    jp nz, EnemyAttack_RestorePatrolAndFacing
 
     ret
 
 
-EnemyWalkerA_State02::
-; UpdateEnemyWalkerAState dispatch index $02; behavior name can be refined after tracing.
+WalkingKid_UpdateThrownFall::
     pop af
     ld a, $03
     ldh [hObjectAnimId], a
@@ -6413,12 +6409,12 @@ CheckActionHitbox0Collision:: ; Check primary action/projectile hitbox at wPlaye
     and $7f
     cp $05
     ldh a, [hPlayerForm]
-    jr nc, jr_001_6376
+    jr nc, ActionHitbox0_ResolveHitByForm
 
     cp PLAYER_FORM_ACTION_KAMEN
     jr z, ApplyObjectHitFromPlayerAction
 
-jr_001_6376::
+ActionHitbox0_ResolveHitByForm::
     cp PLAYER_FORM_ACTION_KAMEN
     jr z, LaunchObjectFromActionKamenHit
 
@@ -6501,7 +6497,7 @@ SetObjectActionHitStun:: ; Put object into short hit-stun after a non-launching 
 
 UpdateObjEnemyPartyHornKid:: ; Object type $0b: party-horn kid that reacts when the player approaches.
     xor a
-    ldh [hSharedScratch + $0e], a
+    ldh [hPartyHornReachBonus], a
     call UpdateEnemyReactiveAState
     call CullObjectAndReleaseSpawn
     ret nz
@@ -6522,11 +6518,10 @@ UpdateEnemyReactiveAState::
     rst $00
 
     ; rst $00 jump table (4 entries)
-    dw EnemyReactiveA_State00, EnemyReactiveA_State01, EnemyReactiveA_State02, EnemyReactiveA_State03
+    dw PartyHornKid_Patrol, PartyHornKid_UpdateHitDelay, PartyHornKid_UpdateThrownFall, PartyHornKid_UpdateHornAttack
 
 
-EnemyReactiveA_State00::
-; UpdateEnemyReactiveAState dispatch index $00; behavior name can be refined after tracing.
+PartyHornKid_Patrol::
     ld hl, EnemyWalkerAnimIdsA
     call AnimateObjectFromTableFast
     call MoveObjectXBySpeed
@@ -6537,24 +6532,21 @@ EnemyReactiveA_State00::
 EnemyWalkerAnimIdsA::
     db $06, $07, $06, $08
 
-EnemyReactiveA_State01::
-; UpdateEnemyReactiveAState dispatch index $01; behavior name can be refined after tracing.
+PartyHornKid_UpdateHitDelay::
     pop af
     ld a, $0b
     ldh [hObjectAnimId], a
     jp UpdateObjectThrownStateA
 
 
-EnemyReactiveA_State02::
-; UpdateEnemyReactiveAState dispatch index $02; behavior name can be refined after tracing.
+PartyHornKid_UpdateThrownFall::
     pop af
     ld a, $0b
     ldh [hObjectAnimId], a
     jp UpdateObjectThrownStateB
 
 
-EnemyReactiveA_State03::
-; UpdateEnemyReactiveAState dispatch index $03; behavior name can be refined after tracing.
+PartyHornKid_UpdateHornAttack::
     ld a, $09
     ldh [hObjectAnimId], a
     ld hl, $0005
@@ -6568,12 +6560,13 @@ EnemyReactiveA_State03::
     ld a, $0a
     ldh [hObjectAnimId], a
     ld a, $04
-    ldh [hSharedScratch + $0e], a
+    ldh [hPartyHornReachBonus], a
     ld a, d
     cp $b4
     ret c
 
-Jump_001_6444::
+EnemyAttack_RestorePatrolAndFacing::
+; Restore the saved facing bit and clear the attack latch in object byte +$0e.
     ld hl, $000e
     add hl, bc
     ld a, [hl]
@@ -6603,7 +6596,7 @@ CheckEnemyReactiveSpecialBodyCollision::
     ret nc
 
     ld d, $0c
-    ldh a, [hSharedScratch + $0e]
+    ldh a, [hPartyHornReachBonus]
     add d
     ld d, a
     call GetObjectLeadingEdgeScreenX
@@ -6621,20 +6614,20 @@ GetObjectLeadingEdgeScreenX::
 ; Apply the signed/facing-dependent horizontal offset D to object screen X.
     ld a, [bc]
     rlca
-    jr c, jr_001_6480
+    jr c, ObjectLeadingEdge_OffsetLeft
 
     ldh a, [hObjectScreenX]
     add d
     ret
 
 
-jr_001_6480::
+ObjectLeadingEdge_OffsetLeft::
     ldh a, [hObjectScreenX]
     sub d
     ret
 
 
-jr_001_6484::
+EnemyProximity_TickAttackCooldown::
     dec [hl]
     ret
 
@@ -6654,7 +6647,7 @@ CheckEnemyPlayerProximityWithRange::
     add hl, bc
     ld a, [hl]
     or a
-    jr nz, jr_001_6484
+    jr nz, EnemyProximity_TickAttackCooldown
 
     ldh a, [hPlayerScreenY]
     ld d, a
@@ -6685,11 +6678,11 @@ CheckEnemyPlayerProximityWithRange::
     ldh a, [hPlayerScreenX]
     sub d
     ld a, $00
-    jr nc, jr_001_64be
+    jr nc, EnemyProximity_TriggerIfFacingPlayer
 
     set 7, a
 
-jr_001_64be::
+EnemyProximity_TriggerIfFacingPlayer::
     cp e
     ret nz
 
@@ -6724,11 +6717,10 @@ UpdateEnemyWalkerBState::
     rst $00
 
     ; rst $00 jump table (4 entries)
-    dw EnemyWalkerB_State00, EnemyWalkerB_State01, EnemyWalkerB_State02, EnemyWalkerB_State02
+    dw UmbrellaKid_Patrol, UmbrellaKid_UpdateHitDelay, UmbrellaKid_UpdateThrownFall, UmbrellaKid_UpdateThrownFall
 
 
-EnemyWalkerB_State00::
-; UpdateEnemyWalkerBState dispatch index $00; behavior name can be refined after tracing.
+UmbrellaKid_Patrol::
     ld hl, EnemyWalkerAnimIdsB
     call AnimateObjectFromTableFast
     call MoveObjectXBySpeed
@@ -6739,16 +6731,14 @@ EnemyWalkerB_State00::
 EnemyWalkerAnimIdsB::
     db $0c, $0d, $0c, $0e
 
-EnemyWalkerB_State01::
-; UpdateEnemyWalkerBState dispatch index $01; behavior name can be refined after tracing.
+UmbrellaKid_UpdateHitDelay::
     pop af
     ld a, $0f
     ldh [hObjectAnimId], a
     jp UpdateObjectThrownStateA
 
 
-EnemyWalkerB_State02::
-; UpdateEnemyWalkerBState dispatch index $02; behavior name can be refined after tracing.
+UmbrellaKid_UpdateThrownFall::
     pop af
     ld a, $0f
     ldh [hObjectAnimId], a
@@ -6791,11 +6781,10 @@ UpdateEnemySpawnerAState::
     rst $00
 
     ; rst $00 jump table (4 entries)
-    dw EnemySpawnerA_State00, EnemySpawnerA_State01, EnemySpawnerA_State02, EnemySpawnerA_State03
+    dw PaperAirplaneKid_Patrol, PaperAirplaneKid_UpdateHitDelay, PaperAirplaneKid_UpdateThrownFall, PaperAirplaneKid_UpdateThrowSequence
 
 
-EnemySpawnerA_State00::
-; UpdateEnemySpawnerAState dispatch index $00; behavior name can be refined after tracing.
+PaperAirplaneKid_Patrol::
     ld hl, EnemySpawnerAnimIds
     call AnimateObjectFromTableFast
     call MoveObjectXBySpeed
@@ -6806,24 +6795,21 @@ EnemySpawnerA_State00::
 EnemySpawnerAnimIds::
     db $00, $01, $00, $02
 
-EnemySpawnerA_State01::
-; UpdateEnemySpawnerAState dispatch index $01; behavior name can be refined after tracing.
+PaperAirplaneKid_UpdateHitDelay::
     pop af
     ld a, $05
     ldh [hObjectAnimId], a
     jp UpdateObjectThrownStateA
 
 
-EnemySpawnerA_State02::
-; UpdateEnemySpawnerAState dispatch index $02; behavior name can be refined after tracing.
+PaperAirplaneKid_UpdateThrownFall::
     pop af
     ld a, $05
     ldh [hObjectAnimId], a
     jp UpdateObjectThrownStateB
 
 
-EnemySpawnerA_State03::
-; UpdateEnemySpawnerAState dispatch index $03; behavior name can be refined after tracing.
+PaperAirplaneKid_UpdateThrowSequence::
     ld a, $03
     ldh [hObjectAnimId], a
     ld hl, $0005
@@ -6836,31 +6822,31 @@ EnemySpawnerA_State03::
     cp $78
     ret c
 
-    jp Jump_001_6444
+    jp EnemyAttack_RestorePatrolAndFacing
 
 
 SpawnEnemyPaperAirplane::
     ld hl, wObjectSlots
 
-jr_001_657e::
+PaperAirplane_FindFreeSlot::
     ld a, [hl]
     or a
-    jr z, jr_001_6592
+    jr z, PaperAirplane_InitChildSlot
 
     cp $ff
-    jr z, jr_001_658c
+    jr z, PaperAirplane_AppendBeforeTerminator
 
     ld de, $0010
     add hl, de
-    jr jr_001_657e
+    jr PaperAirplane_FindFreeSlot
 
-jr_001_658c::
-    call jr_001_6592
+PaperAirplane_AppendBeforeTerminator::
+    call PaperAirplane_InitChildSlot
     ld [hl], $ff
     ret
 
 
-jr_001_6592::
+PaperAirplane_InitChildSlot::
     ld a, [bc]
     and $80
     or OBJ_ENEMY_PAPER_AIRPLANE
@@ -6957,25 +6943,25 @@ UpdateObjEnemyPaperAirplane:: ; Object type $0e: paper airplane projectile spawn
     call ProjectObjectToScreenAndCull
     ldh a, [hObjectOffscreen]
     or a
-    jr nz, jr_001_6618
+    jr nz, ClearOffscreenPaperAirplane
 
     ld h, b
     ld l, c
     inc hl
     ld a, [hl]
     and $02
-    jr nz, jr_001_6611
+    jr nz, DrawEnemyPaperAirplane
 
     call CheckEnemyProjectileAActionHitbox
     call CheckEnemyProjectileABodyCollision
 
-jr_001_6611::
+DrawEnemyPaperAirplane::
     ld a, $04
     ldh [hObjectAnimId], a
     jp DrawCurrentStageObject
 
 
-jr_001_6618::
+ClearOffscreenPaperAirplane::
     xor a
     ld [bc], a
     ret
@@ -6986,11 +6972,10 @@ UpdateEnemyProjectileAState::
     rst $00
 
     ; rst $00 jump table (4 entries)
-    dw EnemyProjectileA_State00, EnemyProjectileA_State01, EnemyProjectileA_State02, EnemyProjectileA_State02
+    dw PaperAirplane_FlyHorizontally, PaperAirplane_FlyAndDescend, PaperAirplane_Descend, PaperAirplane_Descend
 
 
-EnemyProjectileA_State00::
-; UpdateEnemyProjectileAState dispatch index $00; behavior name can be refined after tracing.
+PaperAirplane_FlyHorizontally::
     call MoveObjectXBySpeed
     ld hl, $000a
     add hl, bc
@@ -7006,11 +6991,9 @@ EnemyProjectileA_State00::
     ret
 
 
-EnemyProjectileA_State01::
-; UpdateEnemyProjectileAState dispatch index $01; behavior name can be refined after tracing.
+PaperAirplane_FlyAndDescend::
     call MoveObjectXBySpeed
-EnemyProjectileA_State02::
-; UpdateEnemyProjectileAState dispatch index $02; behavior name can be refined after tracing.
+PaperAirplane_Descend::
     ld de, $0100
     ld hl, $0005
     add hl, bc

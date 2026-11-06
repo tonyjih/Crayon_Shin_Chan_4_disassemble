@@ -571,3 +571,5 @@ DEF wDropPlatformMinXDistance  EQU $c403 ; Reset each frame. X candidates update
 DEF hPlayerGroundProbeY          EQU $ffca ; Low byte of world Y for the two-foot probe.
 DEF hCockroachActionFramePtrLo   EQU $ffc5 ; Selected animation frame table, read by all three action steps.
 DEF hCockroachActionFramePtrHi   EQU $ffc6
+
+DEF hPartyHornReachBonus EQU $ffce ; Added to the forward offset and half-width when the horn extends.
