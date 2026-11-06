@@ -31,9 +31,9 @@ MD5 = BCB3D47C291FD0A26B2C7B1082C3AD88
 | --- | ---: | ---: |
 | 0 | 263 | 0 |
 | 1 | 439 | 266 |
-| 2 | 518 | 276 |
+| 2 | 518 | 229 |
 | 3 | 103 | 0 |
-| 合計 | 1,323 | 542 |
+| 合計 | 1,323 | 495 |
 
 ## 容易誤讀的地方
 
@@ -65,11 +65,11 @@ MD5 = BCB3D47C291FD0A26B2C7B1082C3AD88
 
 ## 尚未確認的部分
 
-目前仍有 **542 個自動命名的內部 label**，集中在 bank 1／2。
+目前仍有 **495 個自動命名的內部 label**。
 [unresolved_labels.csv](unresolved_labels.csv) 記錄 bank、地址、原始名稱、來源行及前一個具名 symbol。
 `preceding_symbol` 只表示原始碼中的位置，不保證是函式或呼叫關係的邊界。
 
-[unresolved_memory.csv](unresolved_memory.csv) 記錄中性工作區 offset 的 **544 處引用、92 個不同位址**。
+[unresolved_memory.csv](unresolved_memory.csv) 記錄中性工作區 offset 的 **483 處引用、80 個不同位址**。
 同一個位址可能有多個用途，不能把這個數字視為尚未辨識的變數數。
 另有部分資料只確認格式而未確認畫面內容，例如 `ScreenData_*`、以地址命名的音軌；
 音軌播放索引仍可由 `audio/sound_ids.csv` 追查。
@@ -136,3 +136,7 @@ Windows／Ubuntu 的完整 `check-original` 均通過：9 個資產測試、6 �
 以及控制流程與 symbolic-memory 檢查。`DEBUG=1` 亦可組譯及連結。
 55 個用途名稱的改名對照後，既有 3,156 個 symbol 的 bank／地址不變，完整 ROM bytes 相同；
 542 個待查 label 和 544 個記憶體引用的 CSV 來源位置已核對。
+
+## 後續用途追查
+
+- 關卡過場、接關與對話已補上 47 個自動 label 和 61 處 RAM 引用的用途。接關朝向與 X 小數共用 $d93b，對話遮罩與 SGB 封包欄位只在各自的讀寫範圍套用。

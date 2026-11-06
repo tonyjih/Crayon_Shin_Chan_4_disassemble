@@ -1132,12 +1132,11 @@ PasswordErrorTiles::
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
     db $92, $92, $9a, $92, $92, $92, $9a, $92, $92, $92, $20, $44
 
-ScreenData_46f1::
-; Indexed screen data; scene-specific interpretation is documented at its consumer.
+PasswordErrorTilesTail::
+; Part of the error text row. The dialogue lookup starts one password record before PasswordCodeTable.
     db $15, $44, $12, $44, $59, $7e, $00, $00
 
-ScreenData_46f9::
-; Indexed screen data; scene-specific interpretation is documented at its consumer.
+PasswordCodeLengths::
     db $07, $08, $0a, $06, $08, $08, $08, $08, $08, $07, $09, $05
 
 PasswordCodeTable::
@@ -6325,10 +6324,10 @@ InitStageIntroScreen::
     call PlaySound_Queue3
     ld a, [wSgbEnabled]
     or a
-    jr z, jr_002_68ae
+    jr z, StageIntro_LoadScreenGraphics
 
     call DelayFramesOrCycles
-    ld hl, ScreenData_6947
+    ld hl, SgbPacket_StageIntroSetAttributeFile
     call SendSgbPacket
     call DelayFramesOrCycles
     call UpdateSgbBorderColorModeFar
@@ -6336,7 +6335,7 @@ InitStageIntroScreen::
     ldh [rBGP], a
     call DisableLCD
 
-jr_002_68ae::
+StageIntro_LoadScreenGraphics::
     ld a, $83
     ld [wLCDCShadow], a
     ld a, $e4
@@ -6365,7 +6364,7 @@ jr_002_68ae::
     ld hl, _SCRN0 + $023
     ld bc, $0c04
     call DrawTilemapBox
-    ld de, ScreenData_6a13
+    ld de, StageIntroBackgroundStencil
     ld hl, _SCRN0 + $164
     call ClearSgbTilemapStencil16x7
     xor a
@@ -6395,19 +6394,17 @@ jr_002_68ae::
     call ApplyLCDC
     call DelayFramesOrCycles
     call DisableLCD
-    ld hl, ScreenData_6957
+    ld hl, SgbPacket_StageIntroResetAttributeFile
     call SendSgbPacket
     call DelayFramesOrCycles
     ret
 
 
 
-ScreenData_6947::
-; Indexed screen data; scene-specific interpretation is documented at its consumer.
+SgbPacket_StageIntroSetAttributeFile::
     db $b9, $01, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 
-ScreenData_6957::
-; Indexed screen data; scene-specific interpretation is documented at its consumer.
+SgbPacket_StageIntroResetAttributeFile::
     db $b9, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 
 InitStoryScreen::
@@ -6459,12 +6456,12 @@ UpdateStoryScreen::
 
     ldh a, [hJoyPressed]
     bit 0, a
-    jr z, jr_002_69ca
+    jr z, Story_WaitForMessageCompletion
 
     ld a, $02
     ld [wMessageCharPeriod], a
 
-jr_002_69ca::
+Story_WaitForMessageCompletion::
     ld a, [wMessageState]
     or a
     ret nz
@@ -6475,11 +6472,11 @@ jr_002_69ca::
     ld [wScreenFrameCounter], a
     bit 4, a
     ld a, $00
-    jr z, jr_002_69e1
+    jr z, Story_DrawBlinkingContinueMarker
 
     ld a, $81
 
-jr_002_69e1::
+Story_DrawBlinkingContinueMarker::
     call QueueTilemapByte
     ldh a, [hJoyPressed]
     bit 0, a
@@ -6497,13 +6494,13 @@ UpdateStageIntroScreen::
     inc a
     ld [wScreenPhaseCounter], a
     cp $ff
-    jr z, jr_002_6a04
+    jr z, StageIntro_RequestStoryScreen
 
     ldh a, [hJoyPressed]
     bit 0, a
     ret z
 
-jr_002_6a04::
+StageIntro_RequestStoryScreen::
     xor a
     ld [wMessageState], a
     ld [wVramQueue], a
@@ -6514,8 +6511,7 @@ jr_002_6a04::
 
 
 
-ScreenData_6a13::
-; Indexed screen data; scene-specific interpretation is documented at its consumer.
+StageIntroBackgroundStencil::
     db $0e, $00, $df, $00, $ff, $00, $3f, $00, $3e, $00, $3e, $00, $1e, $00
 InitContinueScreen::
 ; State 4, substate 1; game over when no continues remain.
@@ -6552,7 +6548,7 @@ InitContinueScreen::
     call PlaySound_Queue3
     ld a, [wContinuesRemaining]
     or a
-    jr z, jr_002_6a90
+    jr z, Continue_InitRemainingCount
 
     ld a, $02
     ld [wMessageFlags], a
@@ -6563,7 +6559,7 @@ InitContinueScreen::
     ld a, $6a
     call StartMessageFar
 
-jr_002_6a90::
+Continue_InitRemainingCount::
     ld a, [wContinuesRemaining]
     ld [wMsgSubstitutionId], a
     ld a, $02
@@ -6577,14 +6573,14 @@ jr_002_6a90::
     ld [wSceneAnim0PtrHi], a
     xor a
     ld [wSceneAnim0Timer], a
-    ld [wSharedWork + $13c], a
-    ld [wSharedWork + $13f], a
+    ld [wContinueChoice], a
+    ld [wContinuePhase], a
     ld [wScreenPhaseCounter], a
-    ld [wSharedWork + $156], a
+    ld [wContinueGameOverDelay], a
     cpl
-    ld [wSharedWork + $13b], a
+    ld [wContinueFacingCache], a
     ld a, $50
-    ld [wSharedWork + $13a], a
+    ld [wContinueActorX], a
     ret
 
 
@@ -6594,80 +6590,79 @@ UpdateContinueScreen::
     inc a
     ld [wScreenPhaseCounter], a
     and $0f
-    jr nz, jr_002_6b07
+    jr nz, Continue_DrawActorAndDispatchPhase
 
     ld a, [wSgbEnabled]
     or a
-    jr z, jr_002_6b07
+    jr z, Continue_DrawActorAndDispatchPhase
 
     ld hl, wSgbPalSetPacket
-    ld de, ScreenData_6cd8
+    ld de, ContinuePalettePacketTemplate
     ld b, $10
 
-jr_002_6ade::
+Continue_CopyPalettePacket::
     ld a, [de]
     ld [hl+], a
     inc de
     dec b
-    jr nz, jr_002_6ade
+    jr nz, Continue_CopyPalettePacket
 
     ld a, [wScreenPhaseCounter]
     swap a
     and $03
     add a
     add a
-    ld hl, ScreenData_6ce8
+    ld hl, ContinuePaletteColorPairs
     rst $38
     ld a, [hl+]
-    ld [wSharedWork + $188], a
+    ld [wSgbPalSetPacket + 3], a
     ld a, [hl+]
-    ld [wSharedWork + $189], a
+    ld [wSgbPalSetPacket + 4], a
     ld a, [hl+]
-    ld [wSharedWork + $18a], a
+    ld [wSgbPalSetPacket + 5], a
     ld a, [hl+]
-    ld [wSharedWork + $18b], a
+    ld [wSgbPalSetPacket + 6], a
     ld hl, wSgbPalSetPacket
     call SendSgbPacket
 
-jr_002_6b07::
-    ld a, [wSharedWork + $13a]
+Continue_DrawActorAndDispatchPhase::
+    ld a, [wContinueActorX]
     ld c, a
     ld b, $58
     ld de, wSceneAnim0PtrLo
     call AnimateSceneMetasprite
     call UpdateMessageFar
-    ld a, [wSharedWork + $13f]
+    ld a, [wContinuePhase]
     rst $00
 ContinueMenuPhaseHandlers::
-    dw ContinueMenu_State00 ; $00
-    dw ContinueMenu_State01 ; $01
-    dw ContinueMenu_State02 ; $02
-ContinueMenu_State00::
-; ContinueMenuPhaseHandlers index $00; detailed phase behavior remains to be named.
+    dw ContinueMenu_WaitForChoice ; $00
+    dw ContinueMenu_UpdateAcceptedMotion ; $01
+    dw ContinueMenu_UpdateExitMotion ; $02
+ContinueMenu_WaitForChoice::
     ld a, [wContinuesRemaining]
     or a
-    jr nz, jr_002_6b34
+    jr nz, Continue_CheckChoiceConfirm
 
-    ld a, [wSharedWork + $156]
+    ld a, [wContinueGameOverDelay]
     inc a
-    ld [wSharedWork + $156], a
+    ld [wContinueGameOverDelay], a
     cp $a0
-    jr z, jr_002_6b95
+    jr z, Continue_BeginExitAnimation
 
     jp ContinueMenu_UpdateFacingIndicator
 
 
-jr_002_6b34::
+Continue_CheckChoiceConfirm::
     ldh a, [hJoyPressed]
     and $09
-    jr z, jr_002_6bb2
+    jr z, Continue_UpdateChoiceCursor
 
-    ld a, [wSharedWork + $13c]
+    ld a, [wContinueChoice]
     bit 0, a
-    jr nz, jr_002_6b95
+    jr nz, Continue_BeginExitAnimation
 
     ld a, $01
-    ld [wSharedWork + $13f], a
+    ld [wContinuePhase], a
     ld hl, SceneAnim_ContinueAccepted
     ld a, l
     ld [wSceneAnim0PtrLo], a
@@ -6677,16 +6672,16 @@ jr_002_6b34::
     ld [wSceneAnim0Timer], a
     ld hl, $00e0
     ld a, l
-    ld [wSharedWork + $167], a
+    ld [wContinueAcceptedVelocityLo], a
     ld a, h
-    ld [wSharedWork + $168], a
-    ld hl, ScreenData_6ccd
+    ld [wContinueAcceptedVelocityHi], a
+    ld hl, ContinueAcceptedMotionScript
     ld a, [hl+]
     ld [wScreenFrameCounter], a
     ld a, l
-    ld [wSharedWork + $17d], a
+    ld [wContinueMotionPtrLo], a
     ld a, h
-    ld [wSharedWork + $17e], a
+    ld [wContinueMotionPtrHi], a
     ld a, [wContinuesRemaining]
     dec a
     ld [wContinuesRemaining], a
@@ -6706,14 +6701,14 @@ ContinueMenu_ClearChoiceText::
     ret
 
 
-jr_002_6b95::
+Continue_BeginExitAnimation::
     ld a, $02
-    ld [wSharedWork + $13f], a
+    ld [wContinuePhase], a
     xor a
     ld [wSceneAnim1Timer], a
-    ld [wSharedWork + $17c], a
+    ld [wContinueExitActorXSubpixel], a
     ld a, $b0
-    ld [wSharedWork + $17b], a
+    ld [wContinueExitActorX], a
     ld hl, SceneAnim_ContinueExit
     ld a, l
     ld [wSceneAnim1PtrLo], a
@@ -6722,86 +6717,85 @@ jr_002_6b95::
     ret
 
 
-jr_002_6bb2::
-    ld a, [wSharedWork + $13c]
+Continue_UpdateChoiceCursor::
+    ld a, [wContinueChoice]
     ld hl, _SCRN0 + $187
     bit 0, a
-    jr z, jr_002_6bbf
+    jr z, Continue_ErasePreviousCursor
 
     ld hl, _SCRN0 + $1c7
 
-jr_002_6bbf::
+Continue_ErasePreviousCursor::
     xor a
     call QueueTilemapByte
     ldh a, [hJoyPressed]
     and $c4
-    jr z, jr_002_6bd5
+    jr z, Continue_SelectCursorDestination
 
-    ld a, [wSharedWork + $13c]
+    ld a, [wContinueChoice]
     cpl
-    ld [wSharedWork + $13c], a
+    ld [wContinueChoice], a
     ld a, $40
     call PlaySound
 
-jr_002_6bd5::
-    ld a, [wSharedWork + $13c]
+Continue_SelectCursorDestination::
+    ld a, [wContinueChoice]
     ld hl, _SCRN0 + $187
     bit 0, a
-    jr z, jr_002_6be2
+    jr z, Continue_DrawChoiceCursor
 
     ld hl, _SCRN0 + $1c7
 
-jr_002_6be2::
+Continue_DrawChoiceCursor::
     ld a, $0e
     call QueueTilemapByte
 
 ContinueMenu_UpdateFacingIndicator::
-    ld a, [wSharedWork + $13b]
+    ld a, [wContinueFacingCache]
     and $80
     ld b, a
     ld a, [wSceneAnim0Timer]
     and $80
     cp b
-    jr z, jr_002_6c13
+    jr z, Continue_FacingUnchanged
 
     xor a
     ld [wMessageFlags], a
     ld a, [wSceneAnim0Timer]
-    ld [wSharedWork + $13b], a
+    ld [wContinueFacingCache], a
     bit 7, a
     ld a, $1a
-    jr z, jr_002_6c07
+    jr z, Continue_ShowFacingMessage
 
     ld a, $1b
 
-jr_002_6c07::
+Continue_ShowFacingMessage::
     call StartMessageFar
     ld bc, _SCRN0 + $0c7
     ld de, $0006
     call QueueVramFill
 
-jr_002_6c13::
+Continue_FacingUnchanged::
     ret
 
 
-ContinueMenu_State01::
-; ContinueMenuPhaseHandlers index $01; detailed phase behavior remains to be named.
-    ld hl, wSharedWork + $17d
+ContinueMenu_UpdateAcceptedMotion::
+    ld hl, wContinueMotionPtrLo
     ld a, [hl+]
     ld h, [hl]
     ld l, a
-    ld a, [wSharedWork + $167]
+    ld a, [wContinueAcceptedVelocityLo]
     ld c, a
-    ld a, [wSharedWork + $168]
+    ld a, [wContinueAcceptedVelocityHi]
     ld b, a
     ld e, [hl]
     ld d, $00
     bit 7, e
-    jr z, jr_002_6c2b
+    jr z, Continue_AccumulateAcceptedVelocity
 
     ld d, $ff
 
-jr_002_6c2b::
+Continue_AccumulateAcceptedVelocity::
     ld a, c
     add e
     ld c, a
@@ -6809,9 +6803,9 @@ jr_002_6c2b::
     adc d
     ld b, a
     ld a, c
-    ld [wSharedWork + $167], a
+    ld [wContinueAcceptedVelocityLo], a
     ld a, b
-    ld [wSharedWork + $168], a
+    ld [wContinueAcceptedVelocityHi], a
     call ContinueMenu_AddSignedMotionDelta
     ld a, [wScreenFrameCounter]
     dec a
@@ -6823,16 +6817,16 @@ jr_002_6c2b::
     ld a, [hl+]
     ld [wScreenFrameCounter], a
     cp $ff
-    jr z, jr_002_6c57
+    jr z, Continue_RequestGameplay
 
     ld a, l
-    ld [wSharedWork + $17d], a
+    ld [wContinueMotionPtrLo], a
     ld a, h
-    ld [wSharedWork + $17e], a
+    ld [wContinueMotionPtrHi], a
     ret
 
 
-jr_002_6c57::
+Continue_RequestGameplay::
     ld a, $02
     ldh [hGameState], a
     ldh [hNeedsReset], a
@@ -6840,45 +6834,44 @@ jr_002_6c57::
 
 
 ContinueMenu_AddSignedMotionDelta::
-    ld a, [wSharedWork + $13b]
+    ld a, [wContinueActorXSubpixel]
     add c
-    ld [wSharedWork + $13b], a
-    ld a, [wSharedWork + $13a]
+    ld [wContinueActorXSubpixel], a
+    ld a, [wContinueActorX]
     adc b
-    ld [wSharedWork + $13a], a
+    ld [wContinueActorX], a
     ret
 
 
-ContinueMenu_State02::
-; ContinueMenuPhaseHandlers index $02; detailed phase behavior remains to be named.
-    ld a, [wSharedWork + $17b]
+ContinueMenu_UpdateExitMotion::
+    ld a, [wContinueExitActorX]
     and $1f
     cp $01
-    jr nz, jr_002_6c7b
+    jr nz, Continue_MoveExitActor
 
     ld a, $5b
     call PlaySound
 
-jr_002_6c7b::
+Continue_MoveExitActor::
     ld bc, -$00e0 ; Signed scene motion delta, not a hardware register.
-    ld a, [wSharedWork + $17c]
+    ld a, [wContinueExitActorXSubpixel]
     add c
-    ld [wSharedWork + $17c], a
-    ld a, [wSharedWork + $17b]
+    ld [wContinueExitActorXSubpixel], a
+    ld a, [wContinueExitActorX]
     or a
     ; Original zero-count path enters the high byte of the JP operand below.
-    jr z, jr_002_6cb4 + 2
+    jr z, Continue_CheckExitActorPassed + 2
 
     adc b
-    ld [wSharedWork + $17b], a
-    ld a, [wSharedWork + $17b]
+    ld [wContinueExitActorX], a
+    ld a, [wContinueExitActorX]
     ld c, a
     ld b, $58
     ld de, wSceneAnim1PtrLo
     call AnimateSceneMetasprite
-    ld a, [wSharedWork + $17b]
+    ld a, [wContinueExitActorX]
     cp $40
-    jr nz, jr_002_6cb4
+    jr nz, Continue_CheckExitActorPassed
 
     ld hl, SceneAnim_ContinueExitReaction
     ld a, l
@@ -6890,12 +6883,13 @@ jr_002_6c7b::
     jp ContinueMenu_ClearChoiceText
 
 
-jr_002_6cb4::
+Continue_CheckExitActorPassed::
+; Entry + 2 is the original jump into the JP operand when the exit actor X is zero.
     jp nc, ContinueMenu_UpdateFacingIndicator
 
     ld bc, -$00e0 ; Signed scene motion delta, not a hardware register.
     call ContinueMenu_AddSignedMotionDelta
-    ld a, [wSharedWork + $13a]
+    ld a, [wContinueActorX]
     cp $b0
     ret nz
 
@@ -6908,16 +6902,15 @@ jr_002_6cb4::
 
 
 
-ScreenData_6ccd::
-; Indexed screen data; scene-specific interpretation is documented at its consumer.
+ContinueAcceptedMotionScript::
+; Duration and signed velocity delta pairs. The last duration is $ff.
     db $30, $00, $1a, $f0, $30, $00, $2a, $10, $47, $00, $ff
 
-ScreenData_6cd8::
-; Indexed screen data; scene-specific interpretation is documented at its consumer.
+ContinuePalettePacketTemplate::
     db $01, $bd, $77, $f1, $7a, $8a, $4d, $00, $00, $3f, $33, $d3, $36, $00, $00, $00
 
-ScreenData_6ce8::
-; Indexed screen data; scene-specific interpretation is documented at its consumer.
+ContinuePaletteColorPairs::
+; Four pairs of little-endian colors copied to bytes 3 through 6 of the packet.
     db $f1, $7a, $4d, $8a, $bf, $5a, $3f, $01, $f3, $4f, $a1, $21, $bf, $5a, $3f, $01
 
 InitStageDialogueScreen::
@@ -6929,21 +6922,21 @@ InitStageDialogueScreen::
     ld [wVramQueue], a
     ld [wScreenFrameCounter], a
     ld [wScreenPhaseCounter], a
-    ld [wSharedWork + $156], a
+    ld [wStageDialogueHighlightApplied], a
     ld a, [wStageSceneIndex]
     bit 0, a
-    jr z, jr_002_6d1b
+    jr z, StageDialogue_LoadSceneGraphics
 
     call InitSound
     ld a, $20
     call PlaySound_Queue3
 
-jr_002_6d1b::
+StageDialogue_LoadSceneGraphics::
     ld a, BANK(GfxRle_b06_7700)
     ld hl, GfxRle_b06_7700
     ld de, _VRAM
     call LoadMaskedGfx
-    ld hl, EndingGfxPointers
+    ld hl, StageDialogueSceneGfxPointers
     ld a, [wStageSceneIndex]
     srl a
     rst $20
@@ -6970,7 +6963,7 @@ jr_002_6d1b::
     ld a, [wStageSceneIndex]
     ld c, $0e
     call MultiplyBCByA8bit
-    ld bc, ScreenData_729c
+    ld bc, StageDialogueBackgroundStencils
     add hl, bc
     ld d, h
     ld e, l
@@ -6997,11 +6990,11 @@ jr_002_6d1b::
     ld [wPaletteOBP1], a
     ld a, [wStageSceneIndex]
     srl a
-    jr nc, jr_002_6dae
+    jr nc, StageDialogue_StoreScenePalette
 
     add $08
 
-jr_002_6dae::
+StageDialogue_StoreScenePalette::
     add $08
     ld [wScreenPaletteId], a
     ret
@@ -7012,38 +7005,38 @@ UpdateStageDialogueScreen::
     call UpdateStageDialogueHighlights
     ld a, [wStageSceneIndex]
     cp $07
-    jr z, jr_002_6dc5
+    jr z, StageDialogue_DrawActors
 
     ldh a, [hJoyPressed]
     bit 3, a
     jp nz, StageScene_AdvanceOrResumeGameplay
 
-jr_002_6dc5::
+StageDialogue_DrawActors::
     ld de, wStageDialogueAnimSelectors
     ld b, $03
 
-jr_002_6dca::
+StageDialogue_DrawNextActor::
     push bc
     ld a, b
     dec a
-    ld hl, ScreenData_71d6
+    ld hl, StageDialogueActorXPositions
     rst $38
     ld c, [hl]
     ld a, [de]
     inc de
     push de
     cp $40
-    jr c, jr_002_6de5
+    jr c, StageDialogue_DrawAnimatedActor
 
     cp $7f
-    jr z, jr_002_6df9
+    jr z, StageDialogue_AdvanceDrawSlot
 
     ld d, a
     ld b, $88
     call DrawBank3MetaspriteNormal
-    jr jr_002_6df9
+    jr StageDialogue_AdvanceDrawSlot
 
-jr_002_6de5::
+StageDialogue_DrawAnimatedActor::
     ld de, wSceneAnim0PtrLo
     ld a, b
     sla a
@@ -7057,15 +7050,15 @@ jr_002_6de5::
     ld b, $88
     call AnimateSceneMetasprite
 
-jr_002_6df9::
+StageDialogue_AdvanceDrawSlot::
     pop de
     pop bc
     dec b
-    jr nz, jr_002_6dca
+    jr nz, StageDialogue_DrawNextActor
 
     ld a, [wScreenPhaseCounter]
     cp $ff
-    jr nz, jr_002_6e11
+    jr nz, StageDialogue_CheckFlashSound
 
     call InitSound
     ld a, $18
@@ -7073,27 +7066,27 @@ jr_002_6df9::
     xor a
     ld [wScreenPhaseCounter], a
 
-jr_002_6e11::
+StageDialogue_CheckFlashSound::
     ld a, [wScreenPhaseCounter]
     cp $30
-    jr nz, jr_002_6e1d
+    jr nz, StageDialogue_CheckPaletteFlash
 
     ld a, $49
     call PlaySound_Queue1
 
-jr_002_6e1d::
+StageDialogue_CheckPaletteFlash::
     ld a, [wScreenPhaseCounter]
     or a
-    jr z, jr_002_6e38
+    jr z, StageDialogue_UpdateMessage
 
     ld a, [wScreenPhaseCounter]
     bit 3, a
     ld a, $e4
-    jr z, jr_002_6e2d
+    jr z, StageDialogue_ApplyPaletteFlash
 
     cpl
 
-jr_002_6e2d::
+StageDialogue_ApplyPaletteFlash::
     ld [wPaletteBGP], a
     ld a, [wScreenPhaseCounter]
     dec a
@@ -7101,30 +7094,30 @@ jr_002_6e2d::
     ret
 
 
-jr_002_6e38::
+StageDialogue_UpdateMessage::
     call UpdateMessageFar
     ld hl, _SCRN0 + $111
     ld a, [wScreenFrameCounter]
     bit 4, a
     ld a, $00
-    jr z, jr_002_6e49
+    jr z, StageDialogue_DrawAdvanceMarker
 
     ld a, $e1
 
-jr_002_6e49::
+StageDialogue_DrawAdvanceMarker::
     call QueueTilemapByte
     ld a, [wStageSceneIndex]
     cp $07
-    jr z, jr_002_6e5e
+    jr z, StageDialogue_WaitForMessageEnd
 
     ldh a, [hJoyPressed]
     bit 0, a
-    jr z, jr_002_6e5e
+    jr z, StageDialogue_WaitForMessageEnd
 
     ld a, $02
     ld [wMessageCharPeriod], a
 
-jr_002_6e5e::
+StageDialogue_WaitForMessageEnd::
     ld a, [wMessageState]
     or a
     ret nz
@@ -7134,41 +7127,41 @@ jr_002_6e5e::
     ld [wScreenFrameCounter], a
     ldh a, [hJoyPressed]
     bit 0, a
-    jr nz, jr_002_6e75
+    jr nz, StageDialogue_AdvanceAfterInput
 
-    ld a, [wSharedWork + $13c]
+    ld a, [wStageDialogueAdvanceStep]
     or a
     ret z
 
-jr_002_6e75::
-    ld a, [wSharedWork + $13c]
+StageDialogue_AdvanceAfterInput::
+    ld a, [wStageDialogueAdvanceStep]
     inc a
-    ld [wSharedWork + $13c], a
+    ld [wStageDialogueAdvanceStep], a
     ldh [hTileStreamCount], a
     cp $05
     jp z, StartNextStageDialogueMessage
 
-    jr c, jr_002_6e86
+    jr c, StageDialogue_PrepareTextEraseRows
 
     ret
 
 
-jr_002_6e86::
+StageDialogue_PrepareTextEraseRows::
     dec a
     add a
     ld h, a
     ld l, $02
 
-jr_002_6e8b::
+StageDialogue_EraseNextTextRow::
     ld bc, _SCRN0 + $022
     ld de, $e210
     ld a, h
     or a
-    jr z, jr_002_6e97
+    jr z, StageDialogue_QueueTextEraseRow
 
     ld d, $00
 
-jr_002_6e97::
+StageDialogue_QueueTextEraseRow::
     swap a
     and $f0
     add a
@@ -7182,7 +7175,7 @@ jr_002_6e97::
     pop hl
     inc h
     dec l
-    jr nz, jr_002_6e8b
+    jr nz, StageDialogue_EraseNextTextRow
 
     xor a
     ret
@@ -7193,41 +7186,41 @@ UpdateStageDialogueHighlights::
     or a
     ret z
 
-    ld a, [wSharedWork + $156]
+    ld a, [wStageDialogueHighlightApplied]
     or a
     ret nz
 
     ld a, [wStageSceneIndex]
     cp $07
-    jr nz, jr_002_6ee5
+    jr nz, StageDialogue_CheckHiddenActorHighlight
 
     ld a, [wStageDialogueAnimSelectors]
     cp $7f
-    jr z, jr_002_6ee5
+    jr z, StageDialogue_CheckHiddenActorHighlight
 
-    ld hl, ScreenData_727c
+    ld hl, SgbPacket_DialogueFinalSceneHighlight
     call SendSgbPacket
-    ld hl, ScreenData_724f
+    ld hl, StageDialogueFinalSceneVramQueue
     call GetVramQueueTailDE
     ld b, $0d
 
-jr_002_6ed3::
+StageDialogue_CopyFinalSceneQueue::
     ld a, [hl+]
     ld [de], a
     inc de
     dec b
-    jr nz, jr_002_6ed3
+    jr nz, StageDialogue_CopyFinalSceneQueue
 
     ldh a, [hVramQueuePos]
     add $0c
     ldh [hVramQueuePos], a
     ld a, $01
-    ld [wSharedWork + $156], a
+    ld [wStageDialogueHighlightApplied], a
     ret
 
 
-jr_002_6ee5::
-    ld hl, ScreenData_720c
+StageDialogue_CheckHiddenActorHighlight::
+    ld hl, StageDialogueHiddenActorSlots
     ld a, [wStageSceneIndex]
     rst $38
     ld a, [hl]
@@ -7253,26 +7246,26 @@ jr_002_6ee5::
     ldh a, [hVramQueuePos]
     ld b, a
 
-jr_002_6f0d::
+StageDialogue_CopyActorHighlightQueue::
     ld a, [hl+]
     ld [de], a
     inc de
     inc b
     or a
-    jr nz, jr_002_6f0d
+    jr nz, StageDialogue_CopyActorHighlightQueue
 
     dec b
     ld a, b
     ldh [hVramQueuePos], a
     ld a, $01
-    ld [wSharedWork + $156], a
+    ld [wStageDialogueHighlightApplied], a
     ret
 
 
 StartNextStageDialogueMessage::
 ; Consume one five-byte dialogue record and optional FE control-write descriptor.
     xor a
-    ld [wSharedWork + $13c], a
+    ld [wStageDialogueAdvanceStep], a
     ld [wScreenFrameCounter], a
     ld a, $08
     ld [wMessageCharPeriod], a
@@ -7296,18 +7289,18 @@ StartNextStageDialogueMessage::
     ld b, a
     push hl
     cp $29
-    jr nz, jr_002_6fa2
+    jr nz, StageDialogue_StartSelectedMessage
 
     ld a, [wSpecialModeFlags]
     or a
-    jr z, jr_002_6f57
+    jr z, StageDialogue_PreparePasswordLine
 
     ld b, $3c
 
-jr_002_6f57::
+StageDialogue_PreparePasswordLine::
     ld a, $e0
     ld [wMessageFlags], a
-    ld hl, ScreenData_46f1
+    ld hl, PasswordCodeTable - $14
     ld a, [wStageSceneIndex]
     srl a
     inc a
@@ -7318,23 +7311,23 @@ jr_002_6f57::
     ld a, [wSpecialModeFlags]
     or a
     ld a, $00
-    jr z, jr_002_6f75
+    jr z, StageDialogue_ApplyPasswordGroupOffset
 
     ld a, $04
 
-jr_002_6f75::
+StageDialogue_ApplyPasswordGroupOffset::
     add d
     ld de, $0014
 
-jr_002_6f79::
+StageDialogue_AdvancePasswordRecord::
     add hl, de
     dec a
-    jr nz, jr_002_6f79
+    jr nz, StageDialogue_AdvancePasswordRecord
 
     push bc
     ld e, l
     ld d, h
-    ld hl, ScreenData_46f9
+    ld hl, PasswordCodeLengths
     ld a, [wStageSceneIndex]
     srl a
     rst $38
@@ -7352,12 +7345,12 @@ jr_002_6f79::
     call PlaySound_Queue3
     pop bc
 
-jr_002_6fa2::
+StageDialogue_StartSelectedMessage::
     ld a, b
     call StartMessageFar
     pop hl
     ld a, [hl+]
-    ldh [hSharedScratch + $0a], a
+    ldh [hStageDialogueSpeakerMask], a
     ld b, $03
     ld de, wStageDialogueAnimSelectors
 
@@ -7423,7 +7416,7 @@ StageDialogue_SaveScriptPointer::
     or a
     jr z, StageDialogue_BuildActorHighlightBoxes
 
-    ld hl, ScreenData_728c
+    ld hl, SgbPacket_DialogueSpeakerTemplate
     ld de, wSgbPalSetPacket
     ld b, $10
 
@@ -7434,31 +7427,31 @@ StageDialogue_CopyPalettePacketTemplate::
     dec b
     jr nz, StageDialogue_CopyPalettePacketTemplate
 
-    ldh a, [hSharedScratch + $0a]
+    ldh a, [hStageDialogueSpeakerMask]
     ld b, a
     add a
     add b
-    ld hl, ScreenData_71f7
+    ld hl, StageDialogueSpeakerAttributes
     rst $38
     ld a, [hl+]
-    ld [wSharedWork + $18c], a
+    ld [wSgbPalSetPacket + 7], a
     ld a, [hl+]
-    ld [wSharedWork + $18d], a
+    ld [wSgbPalSetPacket + 8], a
     ld a, [hl+]
-    ld [wSharedWork + $18e], a
+    ld [wSgbPalSetPacket + 9], a
     ld hl, wSgbPalSetPacket
     call SendSgbPacket
 
 StageDialogue_BuildActorHighlightBoxes::
     ld b, $03
     ld hl, _SCRN0 + $124
-    ldh a, [hSharedScratch + $0a]
+    ldh a, [hStageDialogueSpeakerMask]
     ld c, a
 
 StageDialogue_NextActorHighlightBox::
-    ld de, ScreenData_71ce
+    ld de, StageDialogueSpeakerMarkerTiles
     rr c
-    jr c, jr_002_703d
+    jr c, StageDialogue_WriteSpeakerMarker
 
     ld a, b
     add a
@@ -7468,7 +7461,7 @@ StageDialogue_NextActorHighlightBox::
     adc d
     ld d, a
 
-jr_002_703d::
+StageDialogue_WriteSpeakerMarker::
     push bc
     push hl
     ld bc, $0102
@@ -7484,11 +7477,11 @@ jr_002_703d::
     add hl, de
     ld a, b
     cp $02
-    jr nz, jr_002_705a
+    jr nz, StageDialogue_AdvanceSpeakerMarker
 
     dec hl
 
-jr_002_705a::
+StageDialogue_AdvanceSpeakerMarker::
     dec b
     jr nz, StageDialogue_NextActorHighlightBox
 
@@ -7510,7 +7503,7 @@ StageScene_AdvanceOrResumeGameplay::
 
     ld a, [wStageSceneIndex]
     bit 0, a
-    jr nz, jr_002_709c
+    jr nz, StageScene_AdvanceAfterStageClear
 
     srl a
     ldh [hStageIndex], a
@@ -7533,11 +7526,11 @@ StageScene_AdvanceOrResumeGameplay::
     ret
 
 
-jr_002_709c::
+StageScene_AdvanceAfterStageClear::
     inc a
     ld [wStageSceneIndex], a
     cp $08
-    jr z, jr_002_70ad
+    jr z, StageScene_SelectEndingMode
 
     ld e, a
     ld d, $08
@@ -7545,16 +7538,16 @@ jr_002_709c::
     jp RequestStateChange_Menu
 
 
-jr_002_70ad::
+StageScene_SelectEndingMode::
     ld b, $09
     ld a, [wAlternateModeFlags]
     ld c, $00
     or a
-    jr z, jr_002_70b9
+    jr z, StageScene_RequestEnding
 
     ld c, $01
 
-jr_002_70b9::
+StageScene_RequestEnding::
     ld de, $0400
     jp RequestStateChange_Menu
 
@@ -7655,12 +7648,11 @@ StageDialogue_Stage3Clear::
     db $4a, $02, $7b, $9a, $9b ; message, palette mask, actor selectors 0-2
     db $ff ; End dialogue script.
 
-ScreenData_71ce::
-; Indexed screen data; scene-specific interpretation is documented at its consumer.
+StageDialogueSpeakerMarkerTiles::
+; Two vertical tiles per marker. The first pair is used for the speaking actor.
     db $ff, $e0, $e5, $fd, $e5, $f0, $e5, $f0
 
-ScreenData_71d6::
-; Indexed screen data; scene-specific interpretation is documented at its consumer.
+StageDialogueActorXPositions::
     db $7c, $54, $24
 
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
@@ -7678,19 +7670,19 @@ StageDialogueAnimationPointers::
     dw SceneAnim_7a28
     dw SceneAnim_7a2f
 
-EndingGfxPointers::
+StageDialogueSceneGfxPointers::
     dw GfxRle_b06_7a71
     dw GfxRle_b06_7b22
     dw GfxRle_b06_7c0e
     dw GfxRle_b06_7e13
 
-ScreenData_71f7::
-; Indexed screen data; scene-specific interpretation is documented at its consumer.
+StageDialogueSpeakerAttributes::
+; Three ATTR_CHR data bytes per speaker mask used by the scripts.
     db $00, $00, $00, $c0, $00, $00, $00, $0c, $00, $c0, $0c, $00, $00, $00, $03, $c0
     db $00, $03, $00, $0c, $03
 
-ScreenData_720c::
-; Indexed screen data; scene-specific interpretation is documented at its consumer.
+StageDialogueHiddenActorSlots::
+; Eight scene-indexed actor selectors, with $ff disabling the highlight. Three trailing bytes are preserved.
     db $02, $ff, $02, $ff, $ff, $ff, $00, $ff, $c0, $0c, $03
 
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
@@ -7713,7 +7705,7 @@ StageDialogueVramQueue_01::
     db $99, $ae, $03, $fd, $f0, $f3, $99, $ce, $03, $ef, $f1, $f2, $99, $ee, $03, $ee
     db $f5, $f6, $9a, $0e, $03, $f0, $f3, $f4, $00
 
-ScreenData_724f::
+StageDialogueFinalSceneVramQueue::
     db $99, $c3, $43, $00, $99, $e3, $43, $00, $9a, $03, $43, $00, $00
 
 SgbPacket_DialogueHighlight_00::
@@ -7722,16 +7714,14 @@ SgbPacket_DialogueHighlight_00::
 SgbPacket_DialogueHighlight_01::
     db $21, $02, $03, $00, $0e, $0d, $10, $10, $00, $00, $00, $00, $00, $00, $00, $00
 
-ScreenData_727c::
-; Indexed screen data; scene-specific interpretation is documented at its consumer.
+SgbPacket_DialogueFinalSceneHighlight::
     db $21, $02, $03, $0a, $03, $0e, $05, $10, $00, $00, $00, $00, $00, $00, $00, $00
 
-ScreenData_728c::
-; Indexed screen data; scene-specific interpretation is documented at its consumer.
+SgbPacket_DialogueSpeakerTemplate::
     db $39, $00, $0a, $10, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 
-ScreenData_729c::
-; Indexed screen data; scene-specific interpretation is documented at its consumer.
+StageDialogueBackgroundStencils::
+; Seven 16-bit masks per scene.
     db $00, $00, $00, $00, $06, $00, $0e, $78, $0e, $70, $04, $70, $00, $00, $00, $00
     db $00, $00, $06, $00, $0e, $78, $0e, $70, $04, $70, $00, $00, $00, $00, $00, $00
     db $0e, $00, $0e, $70, $0e, $70, $04, $70, $00, $00, $00, $00, $00, $00, $00, $00

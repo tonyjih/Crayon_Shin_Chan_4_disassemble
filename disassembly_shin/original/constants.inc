@@ -435,3 +435,20 @@ DEF hSharedScratch             EQU $ffc0 ; Shared temporary HRAM bytes; interpre
 DEF wStageDialogueScriptPtrLo EQU $d80c
 DEF wStageDialogueScriptPtrHi EQU $d80d
 DEF wStageDialogueAnimSelectors EQU $d80e ; Three animation selectors, one per dialogue actor slot.
+
+; State-4 continue and dialogue overlays. Other screens reuse these addresses.
+DEF wContinueActorX                   EQU $d93a
+DEF wContinueFacingCache              EQU $d93b ; Idle phase compares bit 7 with the current animation facing.
+DEF wContinueActorXSubpixel           EQU $d93b ; Once moving, the same byte is the fractional X accumulator.
+DEF wContinueChoice                   EQU $d93c ; Bit 0 selects the continue or exit row.
+DEF wContinuePhase                    EQU $d93f ; Choice, accepted motion, or exit motion.
+DEF wContinueGameOverDelay            EQU $d956 ; Starts the exit animation when no continues remain.
+DEF wContinueAcceptedVelocityLo      EQU $d967 ; Signed 8.8 X velocity, adjusted by the motion script.
+DEF wContinueAcceptedVelocityHi      EQU $d968
+DEF wContinueExitActorX               EQU $d97b
+DEF wContinueExitActorXSubpixel       EQU $d97c
+DEF wContinueMotionPtrLo              EQU $d97d ; Pointer to the active velocity delta byte.
+DEF wContinueMotionPtrHi              EQU $d97e
+DEF wStageDialogueAdvanceStep         EQU $d93c ; Nonzero while erasing text rows before the next message.
+DEF wStageDialogueHighlightApplied    EQU $d956 ; SGB scene patch has been applied once.
+DEF hStageDialogueSpeakerMask         EQU $ffca ; Speaker marker bits also index the SGB attribute data.
