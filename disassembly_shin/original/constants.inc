@@ -452,3 +452,19 @@ DEF wContinueMotionPtrHi              EQU $d97e
 DEF wStageDialogueAdvanceStep         EQU $d93c ; Nonzero while erasing text rows before the next message.
 DEF wStageDialogueHighlightApplied    EQU $d956 ; SGB scene patch has been applied once.
 DEF hStageDialogueSpeakerMask         EQU $ffca ; Speaker marker bits also index the SGB attribute data.
+
+; Title, scene-test, and bonus overlays. These aliases describe only these consumers.
+DEF hMenuCursorOptionCount   EQU $ffc9
+DEF hMenuCursorDestLo        EQU $ffca
+DEF hMenuCursorDestHi        EQU $ffcb
+DEF hMinigameTimerTiles      EQU $ffc9 ; Three digit tiles assembled for the countdown HUD.
+DEF wSceneTestValues         EQU $d940 ; Dialogue, scene, ending, and bonus health test values.
+DEF wSceneTestLastEditedValue EQU $d93a ; Copy of the displayed value. No scene-test reader confirmed.
+DEF wBonusActorX             EQU $d93a
+DEF wBonusDestination        EQU $d93b ; Station selector, also passed to the instruction/hint screen.
+DEF wBonusBlinkCounter       EQU $d93c ; Border sprite offsets or instruction advance marker.
+DEF wBonusRewardChoiceDelay  EQU $d956
+DEF wBonusReturnRequest      EQU $d960 ; Saved request type, compared with the scene-test return selector.
+DEF wBonusMinigameRounds     EQU $d961 ; Three per-station round numbers for bonus play.
+DEF wBonusInstructionPending EQU $d964 ; Three flags cleared the first time each instruction is shown.
+DEF wBonusWalkDeltaX         EQU $d967 ; Signed pixels per update, +1 or -1.

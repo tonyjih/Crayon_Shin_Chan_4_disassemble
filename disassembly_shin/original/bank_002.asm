@@ -99,11 +99,11 @@ InitTitleMenuPresentation::
 
 InitTitleMenu_ResetMinigameStats::
     ld a, $01
-    ld hl, wSharedWork + $161
+    ld hl, wBonusMinigameRounds
     ld [hl+], a
     ld [hl+], a
     ld [hl], a
-    ld hl, wSharedWork + $164
+    ld hl, wBonusInstructionPending
     ld [hl+], a
     ld [hl+], a
     ld [hl], a
@@ -286,18 +286,18 @@ TitleMenu_HandleMinigameSelection::
 
 UpdateMenuCursor:: ; Move menu cursor using hJoyPressed, wrapping through options.
     ld a, $03
-    ldh [hTileStreamWritePos], a
+    ldh [hMenuCursorOptionCount], a
     ld hl, _SCRN0 + $1a5
     ld a, l
-    ldh [hSharedScratch + $0a], a
+    ldh [hMenuCursorDestLo], a
     ld a, h
-    ldh [hTileStreamCount], a
+    ldh [hMenuCursorDestHi], a
 
 UpdateMenuCursorAtCurrentPosition::
-; Cursor base pointer is in $ffca/$ffcb; option count is in hTileStreamWritePos.
+; Cursor base pointer is in $ffca/$ffcb; option count is in hMenuCursorOptionCount.
     ld a, [wMenuCursorRow]
     ld d, a
-    ld hl, hSharedScratch + $0a
+    ld hl, hMenuCursorDestLo
     ld a, [hl+]
     ld h, [hl]
     ld l, a
@@ -323,7 +323,7 @@ UpdateMenuCursorAtCurrentPosition::
     ld a, $40
     call PlaySound
     inc d
-    ldh a, [hTileStreamWritePos]
+    ldh a, [hMenuCursorOptionCount]
     dec a
     cp d
     jr nc, MenuCursor_DrawSelection
@@ -338,7 +338,7 @@ MenuCursor_MoveUp::
     bit 7, d
     jr z, MenuCursor_DrawSelection
 
-    ldh a, [hTileStreamWritePos]
+    ldh a, [hMenuCursorOptionCount]
     dec a
     ld d, a
 
@@ -520,7 +520,7 @@ RequestState_GotoScreenState3Submode::
     xor a
     ld [wMinigameMode], a
     ld a, c
-    ld [wSharedWork + $13b], a
+    ld [wBonusDestination], a
     ld a, $03
     ld [wScreenSubstate], a
     ldh [hGameState], a
@@ -1219,7 +1219,7 @@ SceneTest_InitScreenAfterValueReset::
     ld [wScreenPaletteId], a
     xor a
     ld b, $04
-    ld hl, wSharedWork + $140
+    ld hl, wSceneTestValues
 
 SceneTest_ClearSelectorValues::
     xor a
@@ -1232,7 +1232,7 @@ SceneTest_ClearSelectorValues::
 
 UpdateSceneTestMenu::
 ; Move between the four selectors; A or START invokes the selected request.
-    ld hl, wSharedWork + $140
+    ld hl, wSceneTestValues
     ld a, [wMenuCursorRow]
     rst $38
     ld a, [hl]
@@ -1277,7 +1277,7 @@ SceneTest_StoreAndDrawValue::
     pop hl
     ld [hl], d
     ld a, d
-    ld [wSharedWork + $13a], a
+    ld [wSceneTestLastEditedValue], a
     ld hl, _SCRN0 + $0ad
     ld a, [wMenuCursorRow]
     swap a
@@ -1288,12 +1288,12 @@ SceneTest_StoreAndDrawValue::
     add $05
     call QueueTilemapByte
     ld a, $04
-    ldh [hTileStreamWritePos], a
+    ldh [hMenuCursorOptionCount], a
     ld hl, _SCRN0 + $0a5
     ld a, l
-    ldh [hSharedScratch + $0a], a
+    ldh [hMenuCursorDestLo], a
     ld a, h
-    ldh [hTileStreamCount], a
+    ldh [hMenuCursorDestHi], a
     call UpdateMenuCursorAtCurrentPosition
     ret
 
@@ -1311,7 +1311,7 @@ SceneTestConfirmHandlers::
 SceneTest_OpenPasswordResult::
 ; Request selector 6: password/result menu with row 1 argument.
     ld b, $06
-    ld a, [wSharedWork + $141]
+    ld a, [wSceneTestValues + 1]
 
 
     ld c, a
@@ -1321,7 +1321,7 @@ SceneTest_OpenPasswordResult::
 
 SceneTest_OpenStageScene::
 ; Request selector 8: state 4 submode from row 0.
-    ld a, [wSharedWork + $140]
+    ld a, [wSceneTestValues]
     ld c, a
     ld b, $08
     ld de, $0400
@@ -1331,7 +1331,7 @@ SceneTest_OpenStageScene::
 SceneTest_OpenEnding::
 ; Request selector 9: state 5 submode from row 2.
     ld b, $09
-    ld a, [wSharedWork + $142]
+    ld a, [wSceneTestValues + 2]
     ld c, a
     ld de, $0400
     jp RequestStateChange_Menu
@@ -1339,7 +1339,7 @@ SceneTest_OpenEnding::
 
 SceneTest_StartBonusWithHealth::
 ; Set health to row 3 + 1 and request state 3.
-    ld a, [wSharedWork + $143]
+    ld a, [wSceneTestValues + 3]
     inc a
     ldh [hPlayerHealth], a
     ld bc, $0100
@@ -1500,14 +1500,14 @@ MinigameCountdown_BuildDigitTiles::
     ld hl, wMinigameTimerHundreds
     ld a, [hl+]
     add $04
-    ldh [hTileStreamWritePos], a
+    ldh [hMinigameTimerTiles], a
     ld a, [hl+]
     add $04
-    ldh [hSharedScratch + $0a], a
+    ldh [hMinigameTimerTiles + 1], a
     ld a, [hl+]
     add $04
-    ldh [hTileStreamCount], a
-    ld hl, hTileStreamWritePos
+    ldh [hMinigameTimerTiles + 2], a
+    ld hl, hMinigameTimerTiles
     ld a, [hl]
     cp $04
     jr nz, MinigameCountdown_QueueDigits
@@ -1522,7 +1522,7 @@ MinigameCountdown_BuildDigitTiles::
     ld [hl], a
 
 MinigameCountdown_QueueDigits::
-    ld de, hTileStreamWritePos
+    ld de, hMinigameTimerTiles
     ld hl, _SCRN0 + $228
     ld bc, $0301
     call QueueTilemapRect
@@ -1668,21 +1668,21 @@ InitBonusStage::
 ; Mode 0 initialization.
     ld a, [wScreenSubstate]
     or a
-    jr nz, jr_002_4a8f
+    jr nz, Bonus_InitPaletteAndTiles
 
     xor a
-    ld [wSharedWork + $13b], a
+    ld [wBonusDestination], a
     ld a, $01
-    ld [wSharedWork + $167], a
+    ld [wBonusWalkDeltaX], a
     ld a, $e8
-    ld [wSharedWork + $13a], a
+    ld [wBonusActorX], a
     ld a, BANK(Gfx_b05_5701)
     ld hl, Gfx_b05_5701
     ld de, _VRAM + $d00
     ld bc, $0300
     call BankedMemcpy
 
-jr_002_4a8f::
+Bonus_InitPaletteAndTiles::
     ld a, $e4
     ld hl, wPaletteBGP
     ld [hl+], a
@@ -1691,7 +1691,7 @@ jr_002_4a8f::
     ld a, $e4
     ld [hl], a
     ld a, [wStateChangeParamHi]
-    ld [wSharedWork + $160], a
+    ld [wBonusReturnRequest], a
     call InitGameplayHudAndWindow
     ld a, BANK(GfxRle_b06_5334)
     ld hl, GfxRle_b06_5334
@@ -1712,7 +1712,7 @@ jr_002_4a8f::
     call LoadMaskedGfx
     ld a, [wScreenSubstate]
     cp $03
-    jr z, jr_002_4b08
+    jr z, Bonus_InitInstructionBackground
 
     ld a, $e3
     ld [wLCDCShadow], a
@@ -1730,9 +1730,9 @@ jr_002_4a8f::
     call InitSound
     ld a, $00
     call PlaySound_Queue3
-    jr jr_002_4b40
+    jr Bonus_InitActorAndMessageState
 
-jr_002_4b08::
+Bonus_InitInstructionBackground::
     ld a, $83
     ld [wLCDCShadow], a
     xor a
@@ -1745,7 +1745,7 @@ jr_002_4b08::
     call DrawTilemapBox
     ld a, [wSgbEnabled]
     or a
-    jr z, jr_002_4b3b
+    jr z, Bonus_SetInstructionPalette
 
     ld hl, wStageLayoutMap
     ld bc, $0010
@@ -1755,11 +1755,11 @@ jr_002_4b08::
     ld de, wStageLayoutMap
     call CopyTilemapRectToVram
 
-jr_002_4b3b::
+Bonus_SetInstructionPalette::
     ld a, $14
     ld [wScreenPaletteId], a
 
-jr_002_4b40::
+Bonus_InitActorAndMessageState::
     ld hl, SceneAnim_Scene3Mode0Primary
     ld a, l
     ld [wSceneAnim0PtrLo], a
@@ -1770,35 +1770,35 @@ jr_002_4b40::
     ld [wMessageState], a
     ld [wScreenFrameCounter], a
     ld [wScreenPhaseCounter], a
-    ld [wSharedWork + $156], a
+    ld [wBonusRewardChoiceDelay], a
     ld a, [wScreenSubstate]
     cp $03
-    jr nz, jr_002_4ba2
+    jr nz, Bonus_DrawInitialRoundNumbers
 
     ld a, $82
     ld [wMessageFlags], a
-    ld a, [wSharedWork + $13b]
+    ld a, [wBonusDestination]
     add $09
     cp $0c
-    jr c, jr_002_4b84
+    jr c, Bonus_PlayInstructionMusic
 
     ld a, BANK(GfxRle_b06_4bc0)
     ld hl, GfxRle_b06_4bc0
     ld de, _VRAM + $1000
     call LoadMaskedGfx
-    ld a, [wSharedWork + $13b]
+    ld a, [wBonusDestination]
     sub $03
     add $5a
-    jr jr_002_4b8e
+    jr Bonus_StartInstructionMessage
 
-jr_002_4b84::
+Bonus_PlayInstructionMusic::
     push af
     call InitSound
     ld a, $00
     call PlaySound_Queue3
     pop af
 
-jr_002_4b8e::
+Bonus_StartInstructionMessage::
     call StartMessageFar
     ld hl, SceneAnim_Scene3Mode0State1
     ld a, l
@@ -1810,13 +1810,13 @@ jr_002_4b8e::
     ret
 
 
-jr_002_4ba2::
-    call Call_002_4fb1
+Bonus_DrawInitialRoundNumbers::
+    call Bonus_DrawRoundNumbers
     ld a, [wScreenSubstate]
     cp $06
     ret z
 
-Jump_002_4bab::
+Bonus_ShowNoHealthMessage::
     ldh a, [hPlayerHealth]
     or a
     ret nz
@@ -1833,7 +1833,7 @@ Jump_002_4bab::
     xor a
     ld [wSceneAnim0Timer], a
     ld a, $01
-    ld [wSharedWork + $167], a
+    ld [wBonusWalkDeltaX], a
     xor a
     ld [wScreenSubstate], a
     ret
@@ -1846,68 +1846,68 @@ UpdateBonusStage::
     rst $00
 
 BonusStageStateHandlers::
-    dw BonusStage_State00 ; $00
-    dw BonusStage_State01 ; $01
-    dw BonusStage_State02 ; $02
-    dw BonusStage_State03 ; $03
-    dw BonusStage_State04 ; $04
-    dw BonusStage_State05 ; $05
-    dw BonusStage_State06 ; $06
-    dw BonusStage_State07 ; $07
+    dw Bonus_WalkBetweenStations ; $00
+    dw Bonus_WaitAtStation ; $01
+    dw Bonus_EnterMinigameAfterAnimation ; $02
+    dw Bonus_ShowInstructionsOrPasswordHint ; $03
+    dw Bonus_LeaveAfterFade ; $04
+    dw Bonus_LaunchAfterInstructionFade ; $05
+    dw Bonus_ShowResultAndApplyReward ; $06
+    dw Bonus_SelectRewardByRoundTier ; $07
 
-BonusStage_State00::
-; BonusStageStateHandlers index $00; detailed phase behavior remains to be named.
+Bonus_WalkBetweenStations::
     call UpdateMessageFar
-    call Call_002_4d91
-    ld a, [wSharedWork + $167]
+    call Bonus_DrawMovingBorderSprites
+    ld a, [wBonusWalkDeltaX]
     ld b, a
     ldh a, [hPlayerHealth]
     or a
-    jr nz, jr_002_4c04
+    jr nz, Bonus_MoveActor
 
     ld a, [wScreenPhaseCounter]
     inc a
     ld [wScreenPhaseCounter], a
     and $03
-    jr nz, jr_002_4c04
+    jr nz, Bonus_MoveActor
 
     ld b, $00
 
-jr_002_4c04::
-    ld a, [wSharedWork + $13a]
+Bonus_MoveActor::
+    ld a, [wBonusActorX]
     add b
-    ld [wSharedWork + $13a], a
+    ld [wBonusActorX], a
     ld c, a
     ld b, $7f
     ld de, wSceneAnim0PtrLo
     call AnimateSceneMetasprite
-    ld hl, Scene3Mode0MetaspriteData
+    ld hl, BonusDestinationExitX
     ld b, $05
 
-jr_002_4c19::
-    ld a, [wSharedWork + $13a]
+Bonus_CheckNextDestinationX::
+; Scan the five destination positions in reverse order.
+    ld a, [wBonusActorX]
     cp [hl]
-    jr z, jr_002_4c24
+    jr z, Bonus_HandleReachedDestination
 
     dec hl
     dec b
-    jr nz, jr_002_4c19
+    jr nz, Bonus_CheckNextDestinationX
 
     ret
 
 
-jr_002_4c24::
+Bonus_HandleReachedDestination::
     dec b
     ld a, b
     cp $04
-    jr z, jr_002_4c47
+    jr z, Bonus_BeginExitFade
 
     ldh a, [hPlayerHealth]
     or a
     ret z
 
     ld a, b
-    ld [wSharedWork + $13b], a
+    ld [wBonusDestination], a
     ld a, $01
     ld [wScreenSubstate], a
     ld a, $10
@@ -1920,7 +1920,7 @@ jr_002_4c24::
     ret
 
 
-jr_002_4c47::
+Bonus_BeginExitFade::
     ld a, $3f
     ld [wFadeTransitionTimer], a
     ld a, $04
@@ -1928,9 +1928,8 @@ jr_002_4c47::
     ret
 
 
-BonusStage_State04::
-; BonusStageStateHandlers index $04; detailed phase behavior remains to be named.
-    call Call_002_4d91
+Bonus_LeaveAfterFade::
+    call Bonus_DrawMovingBorderSprites
     call UpdateTransitionFade
     ld a, [wFadeTransitionTimer]
     or a
@@ -1938,7 +1937,7 @@ BonusStage_State04::
 
     ld bc, $0400
     ld de, $0000
-    ld a, [wSharedWork + $160]
+    ld a, [wBonusReturnRequest]
     cp $04
     jp z, RequestStateChange_Menu
 
@@ -1954,26 +1953,25 @@ BonusStage_State04::
     ret
 
 
-BonusStage_State01::
-; BonusStageStateHandlers index $01; detailed phase behavior remains to be named.
+Bonus_WaitAtStation::
     call UpdateMessageFar
-    call Call_002_4d91
-    ld a, [wSharedWork + $13a]
+    call Bonus_DrawMovingBorderSprites
+    ld a, [wBonusActorX]
     ld c, a
     ld b, $7f
     ld d, $0e
     call DrawBank3MetaspriteNormal
     ldh a, [hJoyPressed]
     bit 0, a
-    jr z, jr_002_4cc8
+    jr z, Bonus_CheckResumeWalking
 
     ld a, [wMessageState]
     or a
-    jr nz, jr_002_4cc8
+    jr nz, Bonus_CheckResumeWalking
 
-    ld a, [wSharedWork + $13b]
+    ld a, [wBonusDestination]
     cp $03
-    jr z, jr_002_4cc8
+    jr z, Bonus_CheckResumeWalking
 
     ld hl, SceneAnim_Scene3Mode0Secondary
     ld a, l
@@ -1998,7 +1996,7 @@ BonusStage_State01::
     ret
 
 
-jr_002_4cc8::
+Bonus_CheckResumeWalking::
     ld a, [wScreenFrameCounter]
     dec a
     ld [wScreenFrameCounter], a
@@ -2009,20 +2007,19 @@ jr_002_4cc8::
     ld [wScreenFrameCounter], a
     ldh a, [hJoyHeld]
     bit 4, a
-    call nz, Call_002_4d47
+    call nz, Bonus_StartWalkingRight
     ldh a, [hJoyHeld]
     bit 5, a
-    call nz, Call_002_4d51
+    call nz, Bonus_StartWalkingLeft
     ret
 
 
-BonusStage_State02::
-; BonusStageStateHandlers index $02; detailed phase behavior remains to be named.
+Bonus_EnterMinigameAfterAnimation::
     call UpdateMessageFar
-    call Call_002_4d91
+    call Bonus_DrawMovingBorderSprites
     ld a, [wSceneAnim0Timer]
     cp $01
-    jr nz, jr_002_4d03
+    jr nz, Bonus_PlayEntryAnimation
 
     ld hl, wSceneAnim0PtrLo
     ld a, [hl+]
@@ -2031,13 +2028,13 @@ BonusStage_State02::
     dec hl
     ld a, [hl]
     cp $12
-    jr nz, jr_002_4d03
+    jr nz, Bonus_PlayEntryAnimation
 
     ld a, $54
     call PlaySound
 
-jr_002_4d03::
-    ld a, [wSharedWork + $13a]
+Bonus_PlayEntryAnimation::
+    ld a, [wBonusActorX]
     ld c, a
     ld b, $7f
     ld de, wSceneAnim0PtrLo
@@ -2050,16 +2047,16 @@ jr_002_4d03::
     or a
     ret nz
 
-    ld hl, wSharedWork + $161
-    ld a, [wSharedWork + $13b]
+    ld hl, wBonusMinigameRounds
+    ld a, [wBonusDestination]
     rst $38
     ld a, [hl]
     ld [wMinigameRound], a
-    ld hl, wSharedWork + $164
-    ld a, [wSharedWork + $13b]
+    ld hl, wBonusInstructionPending
+    ld a, [wBonusDestination]
     rst $38
     ld b, $03
-    ld a, [wSharedWork + $13b]
+    ld a, [wBonusDestination]
     ld c, a
     ld de, $0106
     ld a, [hl]
@@ -2069,28 +2066,28 @@ jr_002_4d03::
     xor a
     ld [hl], a
     ld b, $02
-    ld a, [wSharedWork + $13b]
+    ld a, [wBonusDestination]
     ld c, a
     ld de, $0106
     jp RequestStateChange_Menu
 
 
-Call_002_4d47::
+Bonus_StartWalkingRight::
     ld a, $01
-    ld [wSharedWork + $167], a
+    ld [wBonusWalkDeltaX], a
     ld hl, SceneAnim_Scene3Mode0Primary
-    jr jr_002_4d5e
+    jr Bonus_SetWalkingAnimation
 
-Call_002_4d51::
-    ld a, [wSharedWork + $13b]
+Bonus_StartWalkingLeft::
+    ld a, [wBonusDestination]
     or a
     ret z
 
     ld a, $ff
-    ld [wSharedWork + $167], a
+    ld [wBonusWalkDeltaX], a
     ld hl, SceneAnim_Scene3Mode0Variant
 
-jr_002_4d5e::
+Bonus_SetWalkingAnimation::
     ld a, l
     ld [wSceneAnim0PtrLo], a
     ld a, h
@@ -2098,17 +2095,17 @@ jr_002_4d5e::
     xor a
     ld [wSceneAnim0Timer], a
     ld [wScreenSubstate], a
-    call Call_002_4d71
+    call Bonus_ClearMessageBox
     ret
 
 
-Call_002_4d71::
+Bonus_ClearMessageBox::
     xor a
     ld [wMessageState], a
     ld d, $82
     ld bc, _SCRN0 + $083
 
-jr_002_4d7a::
+Bonus_ClearNextMessageRow::
     ld e, $0e
     push bc
     call QueueVramFill
@@ -2122,57 +2119,56 @@ jr_002_4d7a::
     ld b, a
     ld a, c
     cp $03
-    jr nz, jr_002_4d7a
+    jr nz, Bonus_ClearNextMessageRow
 
     ret
 
 
-Call_002_4d91::
-    ld a, [wSharedWork + $13c]
+Bonus_DrawMovingBorderSprites::
+    ld a, [wBonusBlinkCounter]
     inc a
-    ld [wSharedWork + $13c], a
+    ld [wBonusBlinkCounter], a
     ld c, $00
     and $10
-    jr z, jr_002_4da0
+    jr z, Bonus_DrawHorizontalBorderSprites
 
     ld c, $08
 
-jr_002_4da0::
+Bonus_DrawHorizontalBorderSprites::
     ld b, $00
     push bc
-    ld hl, Scene3Mode0MetaspriteA
+    ld hl, BonusHorizontalBorderMetasprite
     call DrawMetaspriteNormal
     pop bc
     ld a, c
     xor $08
     ld c, a
     ld b, $18
-    ld hl, Scene3Mode0MetaspriteA
+    ld hl, BonusHorizontalBorderMetasprite
     call DrawMetaspriteNormal
-    ld a, [wSharedWork + $13c]
+    ld a, [wBonusBlinkCounter]
     ld b, $00
     and $10
-    jr nz, jr_002_4dc1
+    jr nz, Bonus_DrawVerticalBorderSprites
 
     ld b, $08
 
-jr_002_4dc1::
+Bonus_DrawVerticalBorderSprites::
     ld c, $00
     push bc
-    ld hl, Scene3Mode0MetaspriteB
+    ld hl, BonusVerticalBorderMetasprite
     call DrawMetaspriteNormal
     pop bc
     ld a, b
     xor $08
     ld b, a
     ld c, $78
-    ld hl, Scene3Mode0MetaspriteB
+    ld hl, BonusVerticalBorderMetasprite
     call DrawMetaspriteNormal
     ret
 
 
-BonusStage_State03::
-; BonusStageStateHandlers index $03; detailed phase behavior remains to be named.
+Bonus_ShowInstructionsOrPasswordHint::
     ld c, $0c
     ld b, $7f
     ld de, wSceneAnim0PtrLo
@@ -2182,28 +2178,28 @@ BonusStage_State03::
     or a
     ret nz
 
-    ld a, [wSharedWork + $13b]
+    ld a, [wBonusDestination]
     cp $03
-    jr nc, jr_002_4e23
+    jr nc, Bonus_WaitBeforePasswordHintConfirm
 
-    ld a, [wSharedWork + $13c]
+    ld a, [wBonusBlinkCounter]
     inc a
-    ld [wSharedWork + $13c], a
+    ld [wBonusBlinkCounter], a
     and $0f
-    jr nz, jr_002_4e0c
+    jr nz, Bonus_CheckInstructionConfirm
 
-    ld a, [wSharedWork + $13c]
+    ld a, [wBonusBlinkCounter]
     and $10
     ld a, $81
-    jr nz, jr_002_4e06
+    jr nz, Bonus_DrawInstructionAdvanceMarker
 
     xor a
 
-jr_002_4e06::
+Bonus_DrawInstructionAdvanceMarker::
     ld hl, _SCRN0 + $1cf
     call QueueTilemapByte
 
-jr_002_4e0c::
+Bonus_CheckInstructionConfirm::
     ldh a, [hJoyPressed]
     bit 0, a
     ret z
@@ -2218,8 +2214,8 @@ jr_002_4e0c::
     ret
 
 
-jr_002_4e23::
-    ld a, [wSharedWork + $13b]
+Bonus_WaitBeforePasswordHintConfirm::
+    ld a, [wBonusDestination]
     cp $05
     ret z
 
@@ -2231,10 +2227,9 @@ jr_002_4e23::
 
     ld a, $e0
     ld [wScreenPhaseCounter], a
-    jr jr_002_4e0c
+    jr Bonus_CheckInstructionConfirm
 
-BonusStage_State05::
-; BonusStageStateHandlers index $05; detailed phase behavior remains to be named.
+Bonus_LaunchAfterInstructionFade::
     ld c, $0c
     ld b, $7f
     ld de, wSceneAnim0PtrLo
@@ -2245,7 +2240,7 @@ BonusStage_State05::
     ret nz
 
     ld b, $03
-    ld a, [wSharedWork + $13b]
+    ld a, [wBonusDestination]
     cp $03
     jp nc, RequestSavedMenuDestination
 
@@ -2257,55 +2252,54 @@ BonusStage_State05::
     jp RequestStateChange_Menu
 
 
-BonusStage_State06::
-; BonusStageStateHandlers index $06; detailed phase behavior remains to be named.
+Bonus_ShowResultAndApplyReward::
     call UpdateMessageFar
-    call Call_002_4d91
-    ld a, [wSharedWork + $13a]
+    call Bonus_DrawMovingBorderSprites
+    ld a, [wBonusActorX]
     ld c, a
     ld b, $7f
     ld d, $14
     call DrawBank3MetaspriteNormal
-    ld a, [wSharedWork + $13b]
+    ld a, [wBonusDestination]
     cp $01
-    jp nz, jr_002_4efe
+    jp nz, Bonus_UpdateResultMessageTimer
 
     ld a, [wMinigameResultFlag]
     or a
-    jr nz, jr_002_4efe
+    jr nz, Bonus_UpdateResultMessageTimer
 
     ld a, [wScreenFrameCounter]
     or a
-    jr nz, jr_002_4efe
+    jr nz, Bonus_UpdateResultMessageTimer
 
-    ld a, [wSharedWork + $156]
+    ld a, [wBonusRewardChoiceDelay]
     cp $01
-    jr nz, jr_002_4e9a
+    jr nz, Bonus_IncrementRewardChoiceDelay
 
     ld hl, _SCRN0 + $0a7
     ld bc, $0501 ; width/height constant, not a ROM0 QueueVramFill pointer
-    ld de, Scene3Mode0StatusTiles
+    ld de, BonusFormRewardHeadingTiles
     call QueueTilemapRect
 
-jr_002_4e9a::
-    ld a, [wSharedWork + $156]
+Bonus_IncrementRewardChoiceDelay::
+    ld a, [wBonusRewardChoiceDelay]
     inc a
     cp $40
-    jr c, jr_002_4ea4
+    jr c, Bonus_StoreRewardChoiceDelay
 
     ld a, $60
 
-jr_002_4ea4::
-    ld [wSharedWork + $156], a
+Bonus_StoreRewardChoiceDelay::
+    ld [wBonusRewardChoiceDelay], a
     ld a, [wScreenPhaseCounter]
     bit 7, a
-    jr nz, jr_002_4eee
+    jr nz, Bonus_WaitAfterFormRewardChoice
 
     ldh a, [hJoyPressed]
     bit 0, a
-    jr z, jr_002_4ec0
+    jr z, Bonus_CycleFormRewardPreview
 
-    ld a, [wSharedWork + $156]
+    ld a, [wBonusRewardChoiceDelay]
     cp $60
     ret nz
 
@@ -2314,15 +2308,15 @@ jr_002_4ea4::
     ret
 
 
-jr_002_4ec0::
+Bonus_CycleFormRewardPreview::
     ld a, [wScreenPhaseCounter]
     inc a
     cp $0c
-    jr c, jr_002_4ec9
+    jr c, Bonus_UpdateFormPreviewTilemap
 
     xor a
 
-jr_002_4ec9::
+Bonus_UpdateFormPreviewTilemap::
     ld [wScreenPhaseCounter], a
     and $03
     ret nz
@@ -2342,7 +2336,7 @@ jr_002_4ec9::
     ret
 
 
-jr_002_4eee::
+Bonus_WaitAfterFormRewardChoice::
     inc a
     ld [wScreenPhaseCounter], a
     cp $e0
@@ -2352,37 +2346,37 @@ jr_002_4eee::
     ld de, $0004
     call QueueVramFill
 
-jr_002_4efe::
+Bonus_UpdateResultMessageTimer::
     ld a, [wScreenFrameCounter]
     inc a
     ld [wScreenFrameCounter], a
     cp $01
-    jr nz, jr_002_4f3e
+    jr nz, Bonus_CheckRewardFrame
 
     ld a, $80
     ld [wMessageFlags], a
     ld a, [wMinigameResultFlag]
     or a
     ld a, $08
-    jr nz, jr_002_4f2a
+    jr nz, Bonus_StartResultMessage
 
-    ld a, [wSharedWork + $13b]
-    ld hl, wSharedWork + $161
+    ld a, [wBonusDestination]
+    ld hl, wBonusMinigameRounds
     rst $38
     inc [hl]
     ld a, [hl]
     cp $0b
-    jr c, jr_002_4f25
+    jr c, Bonus_SelectSuccessMessage
 
     ld [hl], $0a
 
-jr_002_4f25::
-    ld a, [wSharedWork + $13b]
+Bonus_SelectSuccessMessage::
+    ld a, [wBonusDestination]
     add $05
 
-jr_002_4f2a::
+Bonus_StartResultMessage::
     call StartMessageFar
-    ld a, [wSharedWork + $13b]
+    ld a, [wBonusDestination]
     cp $01
     ret nz
 
@@ -2395,70 +2389,70 @@ jr_002_4f2a::
     ret
 
 
-jr_002_4f3e::
+Bonus_CheckRewardFrame::
     ld a, [wScreenFrameCounter]
     cp $60
-    jr nz, jr_002_4fa0
+    jr nz, Bonus_ReturnToStationChoice
 
     ld a, [wMinigameResultFlag]
     or a
-    jr nz, jr_002_4f6f
+    jr nz, Bonus_QueueUpdatedRoundNumber
 
-    ld a, [wSharedWork + $13b]
+    ld a, [wBonusDestination]
     or a
-    jr nz, jr_002_4f58
+    jr nz, Bonus_ApplyFormOrLifeReward
 
     ld a, $0f
     call AddBonusCounter
-    jr jr_002_4f6f
+    jr Bonus_QueueUpdatedRoundNumber
 
-jr_002_4f58::
+Bonus_ApplyFormOrLifeReward::
     dec a
-    jr nz, jr_002_4f67
+    jr nz, Bonus_ApplyExtraLifeReward
 
     ld a, [wMsgSubstitutionId]
     sub $0a
     ldh [hPlayerForm], a
     call QueuePlayerFormHudIcon
-    jr jr_002_4f6f
+    jr Bonus_QueueUpdatedRoundNumber
 
-jr_002_4f67::
+Bonus_ApplyExtraLifeReward::
     call AddExtraLife
     ld a, $46
     call PlaySound_Queue1
 
-jr_002_4f6f::
-    ld a, [wSharedWork + $13b]
-    ld hl, wSharedWork + $161
+Bonus_QueueUpdatedRoundNumber::
+    ld a, [wBonusDestination]
+    ld hl, wBonusMinigameRounds
     rst $38
-    ld a, [wSharedWork + $13b]
+    ld a, [wBonusDestination]
     ld d, a
     ld a, [hl]
     cp $0a
-    jr c, jr_002_4f81
+    jr c, Bonus_EncodeRoundNumberTile
 
     ld a, $c1
 
-jr_002_4f81::
+Bonus_EncodeRoundNumberTile::
     add $04
     inc d
     ld bc, $0005
     ld hl, _SCRN0 + $160
 
-jr_002_4f8a::
+Bonus_AdvanceToRoundNumberColumn::
     add hl, bc
     dec d
-    jr nz, jr_002_4f8a
+    jr nz, Bonus_AdvanceToRoundNumberColumn
 
     call QueueTilemapByte
-    call Call_002_4d71
+    call Bonus_ClearMessageBox
     ld a, $80
     ld [wMessageFlags], a
-    ld a, [wSharedWork + $13b]
+    ld a, [wBonusDestination]
     inc a
     call StartMessageFar
 
-jr_002_4fa0::
+Bonus_ReturnToStationChoice::
     ld a, [wScreenFrameCounter]
     cp $60
     ret c
@@ -2466,23 +2460,23 @@ jr_002_4fa0::
     ld a, $01
     ld [wScreenSubstate], a
     ld [wScreenFrameCounter], a
-    jp Jump_002_4bab
+    jp Bonus_ShowNoHealthMessage
 
 
-Call_002_4fb1::
+Bonus_DrawRoundNumbers::
     ld b, $03
     ld hl, _SCRN0 + $165
-    ld de, wSharedWork + $161
+    ld de, wBonusMinigameRounds
 
-jr_002_4fb9::
+Bonus_ReadNextRoundNumber::
     ld a, [de]
     inc de
     cp $0a
-    jr c, jr_002_4fc1
+    jr c, Bonus_StoreRoundNumberTile
 
     ld a, $c1
 
-jr_002_4fc1::
+Bonus_StoreRoundNumberTile::
     add $04
     ld [hl], a
     push bc
@@ -2490,28 +2484,28 @@ jr_002_4fc1::
     add hl, bc
     pop bc
     dec b
-    jr nz, jr_002_4fb9
+    jr nz, Bonus_ReadNextRoundNumber
 
     ret
 
 
-BonusStage_State07::
-; BonusStageStateHandlers index $07; detailed phase behavior remains to be named.
-    ld a, [wSharedWork + $162]
+Bonus_SelectRewardByRoundTier::
+    ld a, [wBonusMinigameRounds + 1]
     ld c, $0b
     ld d, $02
     cp $04
-    jr c, jr_002_4fe5
+    jr c, Bonus_StoreRoundRewardSelection
 
     ld c, $0c
     ld d, $03
     cp $07
-    jr c, jr_002_4fe5
+    jr c, Bonus_StoreRoundRewardSelection
 
     ld c, $0d
     ld d, $01
 
-jr_002_4fe5::
+Bonus_StoreRoundRewardSelection::
+; C selects the displayed form name. The downstream use of D saved to HRAM is unconfirmed.
     ld a, d
     ldh [hSharedScratch + $0a], a
     ld a, c
@@ -2519,23 +2513,25 @@ jr_002_4fe5::
     ret
 
 
+BonusDestinationXPositions::
+; Three minigames, followed by the exit marker and right screen boundary.
     db $1e, $46, $6e, $8e
 
-Scene3Mode0MetaspriteData::
+BonusDestinationExitX::
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
     db $b0
 
-Scene3Mode0MetaspriteA::
+BonusHorizontalBorderMetasprite::
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
     db $00, $10, $af, $10, $00, $20, $af, $10, $00, $30, $af, $10, $00, $40, $af, $10
     db $00, $50, $af, $10, $00, $60, $af, $10, $00, $70, $af, $10, $00, $80, $af, $10
     db $80
 
-Scene3Mode0MetaspriteB::
+BonusVerticalBorderMetasprite::
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
     db $08, $10, $af, $10, $80
 
-Scene3Mode0StatusTiles::
+BonusFormRewardHeadingTiles::
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
     db $c7, $c8, $c9, $ca, $7d
 
