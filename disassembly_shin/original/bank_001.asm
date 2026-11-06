@@ -11,8 +11,8 @@ RomBankId_Bank1::
 Bank1FarCallTable::
 	dw UpdateGameplayState          ; FARCALL_BANK1_UPDATE_GAMEPLAY ($0100)
 	dw Gameplay_InitEntry           ; FARCALL_BANK1_INIT_GAMEPLAY ($0102)
-	dw UpdateEndingDemoSequence     ; FARCALL_BANK1_UPDATE_ENDING_DEMO ($0104)
-    dw InitEndingDemoSequence       ; FARCALL_BANK1_INIT_ENDING_DEMO ($0106)
+	dw UpdateTutorialDemo     ; FARCALL_BANK1_UPDATE_TUTORIAL ($0104)
+    dw InitTutorialDemo       ; FARCALL_BANK1_INIT_TUTORIAL ($0106)
 
 Bank1ShiftableStart::
 Gameplay_InitEntry::
@@ -1298,7 +1298,7 @@ UpdateObjectSlotByType:: ; Dispatch an object slot behavior by type.
     dw UpdateObjFormChicken ; 18: OBJ_FORM_CHICKEN
     dw UpdateObjFormActionKamen ; 19: OBJ_FORM_ACTION_KAMEN
     dw UpdateObjMovingPlatformVerticalA ; 1a: OBJ_PLATFORM_MOVING_VERTICAL_A
-    dw UpdateObjMovingPlatformVerticalB ; 1b: OBJ_PLATFORM_MOVING_VERTICAL_B
+    dw UpdateObjMovingPlatformHorizontal ; 1b: OBJ_PLATFORM_MOVING_HORIZONTAL
     dw UpdateObjDropPlatformA ; 1c: OBJ_PLATFORM_DROP_A
     dw UpdateObjPlatformBouncePad ; 1d: OBJ_PLATFORM_BOUNCE_PAD
     dw UpdateObjDropPlatformB ; 1e: OBJ_PLATFORM_DROP_B
@@ -8558,11 +8558,11 @@ UpdateObjPlatformBouncePad:: ; Object type $1d: bounce pad / trampoline-style pl
     ld a, [hl]
     ld hl, BouncePadSpriteIdle
     or a
-    jr z, jr_001_6e42
+    jr z, DrawBouncePadSelectedPose
 
     ld hl, BouncePadSpritePressed
 
-jr_001_6e42::
+DrawBouncePadSelectedPose::
     ldh a, [hObjectScreenX]
     ld c, a
     ldh a, [hObjectScreenY]
@@ -8717,7 +8717,7 @@ UpdateMovingPlatformVerticalA::
     rst $00
 
     ; rst $00 jump table (4 entries)
-    dw MovingPlatformA_State00, TickPlatformWaitAndAdvanceState, MovingPlatformA_State02, TickPlatformWaitAndAdvanceState
+    dw VerticalPlatform_MoveUp, TickPlatformWaitAndAdvanceState, VerticalPlatform_MoveDown, TickPlatformWaitAndAdvanceState
 
 
 CheckPlayerStandingOnPlatform::
@@ -8778,14 +8778,13 @@ CheckPlayerPlatformTopOverlap::
     ret
 
 
-MovingPlatformA_State00::
-; UpdateMovingPlatformVerticalA dispatch index $00; behavior name can be refined after tracing.
+VerticalPlatform_MoveUp::
     ld hl, $0005
     add hl, bc
     ld de, $00c0
     call SubtractSignedVelocityFromPosition24
 
-jr_001_6f55::
+MovingPlatform_TickTravelAndBeginWait::
     ld hl, $000d
     add hl, bc
     dec [hl]
@@ -8819,19 +8818,18 @@ TickPlatformWaitAndAdvanceState::
     ret
 
 
-MovingPlatformA_State02::
-; UpdateMovingPlatformVerticalA dispatch index $02; behavior name can be refined after tracing.
+VerticalPlatform_MoveDown::
     ld hl, $0005
     add hl, bc
     ld de, $00c0
     call AddSignedVelocityToPosition24
-    jr jr_001_6f55
+    jr MovingPlatform_TickTravelAndBeginWait
 
-UpdateObjMovingPlatformVerticalB:: ; Object type $1b: vertical moving platform variant B; can carry player X.
+UpdateObjMovingPlatformHorizontal:: ; Object type $1b: horizontal moving platform; carries the player along X.
     call CullObjectAndReleaseSpawn
     ret nz
 
-    call UpdateMovingPlatformVerticalB
+    call UpdateMovingPlatformHorizontal
     ldh a, [hObjectOffscreen]
     or a
     ret nz
@@ -8839,7 +8837,7 @@ UpdateObjMovingPlatformVerticalB:: ; Object type $1b: vertical moving platform v
     jp DrawMovingPlatformMetasprite
 
 
-UpdateMovingPlatformVerticalB::
+UpdateMovingPlatformHorizontal::
     ld h, b
     ld l, c
     inc hl
@@ -8848,24 +8846,24 @@ UpdateMovingPlatformVerticalB::
     rst $00
 
     ; rst $00 jump table (4 entries)
-    dw MovingPlatformB_State00, MovingPlatformB_State01, MovingPlatformB_State02, MovingPlatformB_State01
+    dw HorizontalPlatform_BeginLeftMove, HorizontalPlatform_WaitAtEndpoint, HorizontalPlatform_BeginRightMove, HorizontalPlatform_WaitAtEndpoint
 
 
-MovingPlatformB_State00::
-; UpdateMovingPlatformVerticalB dispatch index $00; behavior name can be refined after tracing.
+HorizontalPlatform_BeginLeftMove::
+; UpdateMovingPlatformHorizontal dispatch index $00; behavior name can be refined after tracing.
     ld hl, $0002
     add hl, bc
     ldh a, [hJoyHeld]
     and $30
-    jr nz, jr_001_6fad
+    jr nz, HorizontalPlatform_MoveLeftAndCarry
 
     ld a, [hl]
     ldh [hPlayerXSubpixel], a
 
-jr_001_6fad::
+HorizontalPlatform_MoveLeftAndCarry::
     ld de, $00c0
     call SubtractSignedVelocityFromPosition24
-    call jr_001_6f55
+    call MovingPlatform_TickTravelAndBeginWait
     ldh a, [hPlayerState]
     cp $06
     ret z
@@ -8884,27 +8882,27 @@ jr_001_6fad::
     jp AttachPlayerToPlatformTop
 
 
-MovingPlatformB_State01::
-; UpdateMovingPlatformVerticalB dispatch index $01; behavior name can be refined after tracing.
+HorizontalPlatform_WaitAtEndpoint::
+; UpdateMovingPlatformHorizontal dispatch index $01; behavior name can be refined after tracing.
     call TickPlatformWaitAndAdvanceState
     jp CheckPlayerStandingOnPlatform
 
 
-MovingPlatformB_State02::
-; UpdateMovingPlatformVerticalB dispatch index $02; behavior name can be refined after tracing.
+HorizontalPlatform_BeginRightMove::
+; UpdateMovingPlatformHorizontal dispatch index $02; behavior name can be refined after tracing.
     ld hl, $0002
     add hl, bc
     ldh a, [hJoyHeld]
     and $30
-    jr nz, jr_001_6fe4
+    jr nz, HorizontalPlatform_MoveRightAndCarry
 
     ld a, [hl]
     ldh [hPlayerXSubpixel], a
 
-jr_001_6fe4::
+HorizontalPlatform_MoveRightAndCarry::
     ld de, $00c0
     call AddSignedVelocityToPosition24
-    call jr_001_6f55
+    call MovingPlatform_TickTravelAndBeginWait
     ldh a, [hPlayerState]
     cp $06
     ret z
@@ -8923,7 +8921,7 @@ UpdateObjDropPlatformA:: ; Object type $09/$1c: drop/moving platform variant A.
     call ProjectObjectToScreenAndCull
     ldh a, [hObjectOffscreen]
     or a
-    jr nz, jr_001_701e
+    jr nz, ClearOffscreenStageObject
 
     call UpdateDropPlatformMotionA
     call CheckPlayerStandingOnDropPlatform
@@ -8935,7 +8933,7 @@ UpdateObjDropPlatformA:: ; Object type $09/$1c: drop/moving platform variant A.
     jp DrawMetaspriteNormal
 
 
-jr_001_701e::
+ClearOffscreenStageObject::
     xor a
     ld [bc], a
     ret
@@ -9022,7 +9020,7 @@ UpdateObjDropPlatformB:: ; Object type $1e: drop/moving platform variant B.
     call ProjectObjectToScreenAndCull
     ldh a, [hObjectOffscreen]
     or a
-    jr nz, jr_001_701e
+    jr nz, ClearOffscreenStageObject
 
     call UpdateDropPlatformMotionB
     call CheckPlayerStandingOnDropPlatform
@@ -9047,12 +9045,12 @@ UpdateDropPlatformMotionB::
     jp z, TickPlatformWaitAndAdvanceState
 
     dec a
-    jr z, jr_001_70ab
+    jr z, DropPlatformB_BlinkBeforeFalling
 
     jp MoveDropPlatformDown
 
 
-jr_001_70ab::
+DropPlatformB_BlinkBeforeFalling::
     ld hl, $000d
     add hl, bc
     bit 3, [hl]
@@ -9085,7 +9083,7 @@ UpdateObjStage2ShoppingCart:: ; Object type $22: Stage 2 shopping cart platform;
 
     ldh a, [hObjectOffscreen]
     or a
-    jr z, jr_001_7126
+    jr z, ShoppingCart_UpdateRide
 
     ld hl, $0008
     add hl, bc
@@ -9098,11 +9096,11 @@ UpdateObjStage2ShoppingCart:: ; Object type $22: Stage 2 shopping cart platform;
     ld de, $00b0
     ld a, [bc]
     sla a
-    jr c, jr_001_711e
+    jr c, ShoppingCart_WrapWorldX
 
     ld de, -$0010
 
-jr_001_711e::
+ShoppingCart_WrapWorldX::
     ldh a, [hSCX]
     add e
     ld [hl+], a
@@ -9110,7 +9108,7 @@ jr_001_711e::
     adc d
     ld [hl], a
 
-jr_001_7126::
+ShoppingCart_UpdateRide::
     call MovePlatformAndCarryPlayer
     call StopPlatformAtEndpoint
     ld a, [bc]
@@ -9126,11 +9124,11 @@ jr_001_7126::
     ld a, [hl]
     ld hl, SpriteFrameData_21ce
     and $04
-    jr z, jr_001_7145
+    jr z, ShoppingCart_DrawWheelFrame
 
     ld hl, SpriteFrameData_21ff
 
-jr_001_7145::
+ShoppingCart_DrawWheelFrame::
     ldh a, [hObjectScreenX]
     ld c, a
     ldh a, [hObjectScreenY]
@@ -9172,7 +9170,7 @@ MovePlatformAndCarryPlayer::
     ret nc
 
     cp $1c
-    jr nc, jr_001_71ac
+    jr nc, ShoppingCart_StartRideAndProbeWall
 
     ld hl, $0003
     add hl, bc
@@ -9185,11 +9183,11 @@ MovePlatformAndCarryPlayer::
     ld h, a
     ldh a, [hPlayerScreenX]
     sub h
-    jr nc, jr_001_7195
+    jr nc, ShoppingCart_PushPlayerToSide
 
     ld de, -$0010
 
-jr_001_7195::
+ShoppingCart_PushPlayerToSide::
     ldh a, [hPlayerX]
     add e
     ldh [hPlayerX], a
@@ -9208,7 +9206,7 @@ jr_001_7195::
     ret
 
 
-jr_001_71ac::
+ShoppingCart_StartRideAndProbeWall::
     ldh a, [hPlayerVelYHigh]
     bit 7, a
     ret nz
@@ -9225,19 +9223,19 @@ jr_001_71ac::
     push bc
     ld a, [bc]
     rlca
-    jr nc, jr_001_71cd
+    jr nc, ShoppingCart_ProbeRightWall
 
     call CheckPlayerLeftTileCollision
-    jr jr_001_71d0
+    jr ShoppingCart_ApplyCarryIfClear
 
-jr_001_71cd::
+ShoppingCart_ProbeRightWall::
     call CheckPlayerRightTileCollision
 
-jr_001_71d0::
+ShoppingCart_ApplyCarryIfClear::
     ldh a, [hPlayerTileCollisionFlag]
     pop bc
     or a
-    jr nz, jr_001_71e3
+    jr nz, ShoppingCart_CheckDropThroughInput
 
     ld hl, $0008
     add hl, bc
@@ -9246,17 +9244,17 @@ jr_001_71d0::
     ld hl, hPlayerXSubpixel
     call ApplyObjectXVelocity
 
-jr_001_71e3::
+ShoppingCart_CheckDropThroughInput::
     ldh a, [hJoyHeld]
     and $81
     cp $81
-    jr nz, jr_001_71f1
+    jr nz, ShoppingCart_MarkPlayerAttached
 
     ldh a, [hJoyHeld]
     res 0, a
     ldh [hJoyHeld], a
 
-jr_001_71f1::
+ShoppingCart_MarkPlayerAttached::
     ld a, $ff
     ldh [hPlayerPlatformAttached], a
     ldh a, [hPlayerState]
@@ -9270,11 +9268,11 @@ StopPlatformAtEndpoint::
     ld de, $0350
     ld a, [bc]
     sla a
-    jr nc, jr_001_7208
+    jr nc, ShoppingCart_CompareWorldXEndpoint
 
     ld de, $00b0
 
-jr_001_7208::
+ShoppingCart_CompareWorldXEndpoint::
     ld hl, $0003
     add hl, bc
     ld a, [hl+]
@@ -9298,19 +9296,19 @@ UpdateObjStage2FallingProduct:: ; Object type $1f: Stage 2 loose shelf product; 
 
     ldh a, [hObjectOffscreen]
     or a
-    jr z, jr_001_722f
+    jr z, FallingProduct_UpdateVisibleObject
 
     ld hl, $000a
     add hl, bc
     ld a, [hl]
     and $40
-    jp nz, jr_001_701e
+    jp nz, ClearOffscreenStageObject
 
     ret
 
 
-jr_001_722f::
-    call Call_001_725f
+FallingProduct_UpdateVisibleObject::
+    call FallingProduct_UpdateMotionAndFramePair
     ld d, $03
     call LoadPlayerObjectCollisionProbe
     call CheckPlayerAgainstCurrentObject
@@ -9319,12 +9317,12 @@ jr_001_722f::
     ldh a, [hTileStreamWritePos]
     ld d, [hl]
     bit 3, d
-    jr z, jr_001_7246
+    jr z, FallingProduct_DrawSelectedFrame
 
     inc a
 
-jr_001_7246::
-    ld hl, Obj1FFramePointerTable
+FallingProduct_DrawSelectedFrame::
+    ld hl, FallingProductFramePointers
     rst $20
     ldh a, [hObjectScreenX]
     ld c, a
@@ -9333,7 +9331,7 @@ jr_001_7246::
     jp DrawMetaspriteNormal
 
 
-Obj1FFramePointerTable::
+FallingProductFramePointers::
     dw SpriteFrameData_2230
     dw SpriteFrameData_2230
     dw SpriteFrameData_2230
@@ -9341,14 +9339,14 @@ Obj1FFramePointerTable::
     dw SpriteFrameData_2235
     dw SpriteFrameData_223a
 
-Call_001_725f::
+FallingProduct_UpdateMotionAndFramePair::
     xor a
     ldh [hTileStreamWritePos], a
     ld hl, $000a
     add hl, bc
     ld a, [hl]
     cp $30
-    jr c, jr_001_7282
+    jr c, FallingProduct_CheckWaitOrShake
 
     inc a
     and $0f
@@ -9359,7 +9357,7 @@ Call_001_725f::
     ld hl, $0006
     add hl, bc
 
-jr_001_7279::
+FallingProduct_AdvanceWorldY::
     ld a, [hl]
     add $01
     ld [hl+], a
@@ -9369,9 +9367,9 @@ jr_001_7279::
     ret
 
 
-jr_001_7282::
+FallingProduct_CheckWaitOrShake::
     or a
-    jr z, jr_001_728c
+    jr z, FallingProduct_ArmWhenPlayerNear
 
     inc a
     ld [hl], a
@@ -9380,7 +9378,7 @@ jr_001_7282::
     ret
 
 
-jr_001_728c::
+FallingProduct_ArmWhenPlayerNear::
     ldh a, [hObjectScreenX]
     ld d, a
     ldh a, [hPlayerScreenX]
@@ -9398,20 +9396,20 @@ UpdateObjStage2SoccerBall:: ; Object type $20: Stage 2 soccer ball; rolls toward
     call CullObjectAndReleaseSpawn
     ret nz
 
-    call Call_001_72e8
+    call SoccerBall_TryMoveNearPlayer
     ldh a, [hTileStreamWritePos]
     or a
-    jr nz, jr_001_72b0
+    jr nz, SoccerBall_CheckCollisionAndAnimate
 
     ld hl, $000a
     add hl, bc
     bit 7, [hl]
-    jp nz, jr_001_701e
+    jp nz, ClearOffscreenStageObject
 
     ret
 
 
-jr_001_72b0::
+SoccerBall_CheckCollisionAndAnimate::
     ldh a, [hObjectOffscreen]
     or a
     ret nz
@@ -9429,24 +9427,24 @@ jr_001_72b0::
     ld hl, SpriteFrameData_2244
     and $78
     cp $08
-    jr nz, jr_001_72d1
+    jr nz, SoccerBall_CheckThirdRollFrame
 
     ld hl, SpriteFrameData_2255
 
-jr_001_72d1::
+SoccerBall_CheckThirdRollFrame::
     cp $10
-    jr nz, jr_001_72d8
+    jr nz, SoccerBall_CheckDespawnThreshold
 
     ld hl, SpriteFrameData_2266
 
-jr_001_72d8::
+SoccerBall_CheckDespawnThreshold::
     cp $18
-    jr c, jr_001_72df
+    jr c, DrawSoccerBall
 
     ld a, $80
     ld [de], a
 
-jr_001_72df::
+DrawSoccerBall::
     ldh a, [hObjectScreenX]
     ld c, a
     ldh a, [hObjectScreenY]
@@ -9454,7 +9452,7 @@ jr_001_72df::
     jp DrawMetaspriteNormal
 
 
-Call_001_72e8::
+SoccerBall_TryMoveNearPlayer::
     xor a
     ldh [hTileStreamWritePos], a
     ld hl, $0003
@@ -9468,12 +9466,12 @@ Call_001_72e8::
     inc hl
     ldh a, [hPlayerXHigh]
     sbc d
-    jr z, jr_001_72ff
+    jr z, SoccerBall_CheckProximityAndRoll
 
     cp $ff
     ret nz
 
-jr_001_72ff::
+SoccerBall_CheckProximityAndRoll::
     xor e
     cp $60
     ret nc
@@ -9505,7 +9503,7 @@ UpdateObjActionKamenHangingDoll:: ; Object type $07: Stage 2 hanging Action Kame
     call CullObjectAndReleaseSpawn
     ret nz
 
-    call Call_001_7339
+    call HangingDoll_UpdateAttachmentAndMotion
     ldh a, [hObjectOffscreen]
     or a
     ret nz
@@ -9518,7 +9516,7 @@ UpdateObjActionKamenHangingDoll:: ; Object type $07: Stage 2 hanging Action Kame
     jp DrawMetaspriteNormal
 
 
-Call_001_7339::
+HangingDoll_UpdateAttachmentAndMotion::
     xor a
     ldh [hTileStreamWritePos], a
     ldh a, [hObjectScreenX]
@@ -9527,51 +9525,51 @@ Call_001_7339::
     sub e
     rst $28
     cp $08
-    jr nc, jr_001_7394
+    jr nc, HangingDoll_TickTravel
 
     ldh a, [hObjectScreenY]
     ld e, a
     ldh a, [hPlayerScreenY]
     sub e
     cp $06
-    jr c, jr_001_7394
+    jr c, HangingDoll_TickTravel
 
     cp $10
-    jr nc, jr_001_735b
+    jr nc, HangingDoll_CheckLowerContactBound
 
     ldh a, [hPlayerVelYHigh]
     bit 7, a
-    jr nz, jr_001_7394
+    jr nz, HangingDoll_TickTravel
 
-jr_001_735b::
+HangingDoll_CheckLowerContactBound::
     cp $14
-    jr nc, jr_001_7394
+    jr nc, HangingDoll_TickTravel
 
     ldh a, [hPlayerState]
     cp $0b
-    jr z, jr_001_7394
+    jr z, HangingDoll_TickTravel
 
     cp $06
-    jr z, jr_001_7394
+    jr z, HangingDoll_TickTravel
 
     ldh a, [hObjectOffscreen]
     or a
-    jr nz, jr_001_7394
+    jr nz, HangingDoll_TickTravel
 
     ldh a, [hJoyPressed]
     ld e, $13
     bit 7, a
-    jr z, jr_001_7377
+    jr z, HangingDoll_CheckJumpOffset
 
     inc e
 
-jr_001_7377::
+HangingDoll_CheckJumpOffset::
     bit 0, a
-    jr z, jr_001_737d
+    jr z, HangingDoll_AttachPlayer
 
     ld e, $0f
 
-jr_001_737d::
+HangingDoll_AttachPlayer::
     ld hl, $0006
     add hl, bc
     ld a, [hl]
@@ -9585,14 +9583,14 @@ jr_001_737d::
     ld a, $01
     ldh [hTileStreamWritePos], a
 
-jr_001_7394::
+HangingDoll_TickTravel::
     ld hl, $000d
     add hl, bc
     ld a, [hl]
     dec a
     ld [hl], a
     cp $d0
-    jr z, jr_001_73ba
+    jr z, HangingDoll_ReloadTimerAndReverse
 
     sla a
     ret c
@@ -9611,7 +9609,7 @@ jr_001_7394::
     ret
 
 
-jr_001_73ba::
+HangingDoll_ReloadTimerAndReverse::
     ld d, h
     ld e, l
     ld hl, $000a
@@ -9636,34 +9634,34 @@ UpdateObjFloatingBeachBall:: ; Object type $08: Stage 3 floating beach ball; sin
     add hl, bc
     ld a, [hl]
     or a
-    jr z, jr_001_73d8
+    jr z, BeachBall_ProjectSinkDepth
 
     dec [hl]
 
-jr_001_73d8::
+BeachBall_ProjectSinkDepth::
     srl a
     ld e, a
     ldh a, [hObjectScreenY]
     add e
     ldh [hObjectScreenY], a
-    call Call_001_7407
+    call BeachBall_CheckAndAttachPlayer
     ld e, $00
     ld hl, $000d
     add hl, bc
     ld a, [hl]
     or a
-    jr nz, jr_001_73f9
+    jr nz, DrawFloatingBeachBall
 
     ld hl, $000a
     add hl, bc
     ld a, [hl]
     inc [hl]
     bit 4, a
-    jr z, jr_001_73f9
+    jr z, DrawFloatingBeachBall
 
     ld e, $02
 
-jr_001_73f9::
+DrawFloatingBeachBall::
     ldh a, [hObjectScreenX]
     ld c, a
     ldh a, [hObjectScreenY]
@@ -9676,7 +9674,7 @@ jr_001_73f9::
     ret
 
 
-Call_001_7407::
+BeachBall_CheckAndAttachPlayer::
     ldh a, [hObjectScreenX]
     ld h, a
     ldh a, [hPlayerScreenX]
@@ -9715,13 +9713,13 @@ Call_001_7407::
     ldh a, [hJoyHeld]
     and $81
     cp $81
-    jr nz, jr_001_7442
+    jr nz, BeachBall_MarkPlayerAttachedAndSink
 
     ldh a, [hJoyHeld]
     res 0, a
     ldh [hJoyHeld], a
 
-jr_001_7442::
+BeachBall_MarkPlayerAttachedAndSink::
     ld a, $ff
     ldh [hPlayerPlatformAttached], a
     ld hl, $000d
@@ -9741,19 +9739,19 @@ UpdateObjStage3FallingCoconut:: ; Object type $23: Stage 3 coconut; shakes, then
 
     ldh a, [hObjectOffscreen]
     or a
-    jr z, jr_001_7468
+    jr z, Coconut_UpdateVisibleObject
 
     ld hl, $000a
     add hl, bc
     ld a, [hl]
     and $40
-    jp nz, jr_001_701e
+    jp nz, ClearOffscreenStageObject
 
     ret
 
 
-jr_001_7468::
-    call Call_001_7489
+Coconut_UpdateVisibleObject::
+    call Coconut_UpdateFallOrShake
     ld d, $05
     call LoadPlayerObjectCollisionProbe
     call CheckPlayerAgainstCurrentObject
@@ -9765,21 +9763,21 @@ jr_001_7468::
     ld b, a
     ld a, [hl]
     bit 3, a
-    jr z, jr_001_7483
+    jr z, DrawFallingCoconut
 
     inc c
 
-jr_001_7483::
+DrawFallingCoconut::
     ld hl, SpriteFrameData_2475
     jp DrawMetaspriteNormal
 
 
-Call_001_7489::
+Coconut_UpdateFallOrShake::
     ld hl, $000a
     add hl, bc
     ld a, [hl]
     cp $30
-    jr c, jr_001_749d
+    jr c, Coconut_CheckWaitOrShake
 
     ld de, $0180
     ld hl, $0005
@@ -9788,16 +9786,16 @@ Call_001_7489::
     ret
 
 
-jr_001_749d::
+Coconut_CheckWaitOrShake::
     or a
-    jr z, jr_001_74a3
+    jr z, Coconut_ArmWhenPlayerNear
 
     inc a
     ld [hl], a
     ret
 
 
-jr_001_74a3::
+Coconut_ArmWhenPlayerNear::
     ldh a, [hObjectScreenX]
     ld d, a
     ldh a, [hPlayerScreenX]
@@ -9844,20 +9842,20 @@ SpawnRecords_Stage4::
 ; Source: levels/stage4/spawns.csv (spawns, 16 decoded bytes).
     INCBIN "../build/original/assets/b01_7b7b.bin"
 
-InitEndingDemoSequence::
-    ld hl, EndingDemoInputScript
+InitTutorialDemo::
+    ld hl, TutorialDemoInputScript
     ld a, l
-    ld [wEndingDemoInputPtrLo], a
+    ld [wTutorialInputPtrLo], a
     ld a, h
-    ld [wEndingDemoInputPtrHi], a
+    ld [wTutorialInputPtrHi], a
     xor a
     ld [wScreenFrameCounter], a
     ldh [hJoyHeld], a
     ld [wScreenPhaseCounter], a
-    ld [wSharedWork + $156], a
-    ld [wSharedWork + $157], a
-    ld [wEndingDemoJoyHeld], a
-    ld [wEndingDemoInputTimer], a
+    ld [wTutorialMessageIndex], a
+    ld [wTutorialMessageDelay], a
+    ld [wTutorialJoyHeld], a
+    ld [wTutorialInputTimer], a
     ld a, $5c
     ldh [hOamMaxY], a
     ld a, $8f
@@ -9885,8 +9883,7 @@ InitEndingDemoSequence::
     call PlaySound_Queue3
     ret
 
-UpdateEndingDemoSequence::
-label_001_7bed:: ; Compatibility alias.
+UpdateTutorialDemo::
     ld hl, $00e0
     ld a, l
     ldh [hPlayerSpeedX], a
@@ -9899,13 +9896,13 @@ label_001_7bed:: ; Compatibility alias.
 
     ldh a, [hJoyHeld]
     and $08
-    jr nz, jr_001_7c08
+    jr nz, TutorialDemo_ReturnToGameplay
 
     ldh a, [hPlayerXHigh]
     or a
-    jr z, jr_001_7c18
+    jr z, TutorialDemo_ReadInputAndUpdateCamera
 
-jr_001_7c08::
+TutorialDemo_ReturnToGameplay::
     xor a
     ld [wPlayerSpecialActor0], a
     ld [wPlayerSpecialActor1], a
@@ -9916,42 +9913,42 @@ jr_001_7c08::
     ret
 
 
-jr_001_7c18::
-    call ReadEndingDemoInput
+TutorialDemo_ReadInputAndUpdateCamera::
+    call ReadTutorialDemoInput
     ldh a, [hSCX]
     ld b, a
     ldh a, [hPlayerX]
     sub b
     cp $38
-    jr nc, jr_001_7c31
+    jr nc, TutorialDemo_CheckRightCameraThreshold
 
     ldh a, [hPlayerX]
     sub $38
-    jr nc, jr_001_7c2c
+    jr nc, TutorialDemo_StoreLeftwardScroll
 
     xor a
 
-jr_001_7c2c::
+TutorialDemo_StoreLeftwardScroll::
     ldh [hSCX], a
     ld b, a
-    jr jr_001_7c42
+    jr TutorialDemo_ProjectXAndUpdateCameraY
 
-jr_001_7c31::
+TutorialDemo_CheckRightCameraThreshold::
     cp $68
-    jr c, jr_001_7c42
+    jr c, TutorialDemo_ProjectXAndUpdateCameraY
 
     ldh a, [hPlayerX]
     sub $68
     cp $60
-    jr c, jr_001_7c3f
+    jr c, TutorialDemo_StoreRightwardScroll
 
     ld a, $60
 
-jr_001_7c3f::
+TutorialDemo_StoreRightwardScroll::
     ldh [hSCX], a
     ld b, a
 
-jr_001_7c42::
+TutorialDemo_ProjectXAndUpdateCameraY::
     ldh a, [hPlayerX]
     sub b
     ldh [hPlayerScreenX], a
@@ -9960,35 +9957,35 @@ jr_001_7c42::
     ldh a, [hPlayerY]
     sub c
     cp $18
-    jr nc, jr_001_7c5d
+    jr nc, TutorialDemo_CheckLowerCameraThreshold
 
     ldh a, [hPlayerY]
     sub $18
-    jr nc, jr_001_7c58
+    jr nc, TutorialDemo_StoreUpwardScroll
 
     xor a
 
-jr_001_7c58::
+TutorialDemo_StoreUpwardScroll::
     ldh [hSCY], a
     ld c, a
-    jr jr_001_7c6e
+    jr TutorialDemo_UpdateActorsAndDrawPlayer
 
-jr_001_7c5d::
+TutorialDemo_CheckLowerCameraThreshold::
     cp $48
-    jr c, jr_001_7c6e
+    jr c, TutorialDemo_UpdateActorsAndDrawPlayer
 
     ldh a, [hPlayerY]
     sub $48
     cp $b0
-    jr c, jr_001_7c6b
+    jr c, TutorialDemo_StoreDownwardScroll
 
     ld a, $b0
 
-jr_001_7c6b::
+TutorialDemo_StoreDownwardScroll::
     ldh [hSCY], a
     ld c, a
 
-jr_001_7c6e::
+TutorialDemo_UpdateActorsAndDrawPlayer::
     ldh a, [hPlayerY]
     sub c
     ldh [hPlayerScreenY], a
@@ -9998,20 +9995,21 @@ jr_001_7c6e::
     call DrawPlayerSprite
     ld hl, wVramQueue
 
-jr_001_7c82::
+TutorialDemo_CheckNextVramCommand::
+; Stop the gameplay queue at its first window tilemap command before updating the tutorial message.
     ld a, [hl]
     or a
-    jp z, jr_001_7c9b
+    jp z, TutorialDemo_CommitQueueAndUpdateText
 
     and $fc
     cp $9c
-    jr nz, jr_001_7c91
+    jr nz, TutorialDemo_SkipVramCommand
 
     xor a
     ld [hl], a
-    jr jr_001_7c9b
+    jr TutorialDemo_CommitQueueAndUpdateText
 
-jr_001_7c91::
+TutorialDemo_SkipVramCommand::
     inc hl
     ld b, [hl]
     inc hl
@@ -10019,9 +10017,9 @@ jr_001_7c91::
     inc hl
     and $3c
     rst $38
-    jr jr_001_7c82
+    jr TutorialDemo_CheckNextVramCommand
 
-jr_001_7c9b::
+TutorialDemo_CommitQueueAndUpdateText::
     ld bc, $3f00 ; constant, not a ROM0 data pointer
     add hl, bc
     ld a, l
@@ -10031,87 +10029,89 @@ jr_001_7c9b::
     inc a
     ld [wScreenPhaseCounter], a
     and $0f
-    jr nz, jr_001_7cd9
+    jr nz, TutorialDemo_TickMessageDelay
 
-    ld a, [wSharedWork + $156]
-    ld hl, EndingDemoStepLengths
+    ld a, [wTutorialMessageIndex]
+    ld hl, TutorialMessageChangeTicks
     rst $38
     ld b, [hl]
     ld a, [wScreenFrameCounter]
     cp b
-    jr nz, jr_001_7cd2
+    jr nz, TutorialDemo_AdvanceMessageClock
 
     xor a
-    ld [wSharedWork + $157], a
+    ld [wTutorialMessageDelay], a
     ld a, $04
     ld [wMessageFlags], a
-    ld a, [wSharedWork + $156]
+    ld a, [wTutorialMessageIndex]
     or a
-    jr z, jr_001_7cd2
+    jr z, TutorialDemo_AdvanceMessageClock
 
     add $5c
     call StartMessageFar
 
-jr_001_7cd2::
+TutorialDemo_AdvanceMessageClock::
     ld a, [wScreenFrameCounter]
     inc a
     ld [wScreenFrameCounter], a
 
-jr_001_7cd9::
-    ld a, [wSharedWork + $157]
+TutorialDemo_TickMessageDelay::
+    ld a, [wTutorialMessageDelay]
     bit 7, a
     ret nz
 
     inc a
-    ld [wSharedWork + $157], a
+    ld [wTutorialMessageDelay], a
     cp $04
     ret nz
 
     xor a
     ld [wMessageFlags], a
-    ld a, [wSharedWork + $156]
+    ld a, [wTutorialMessageIndex]
     add $5d
     call StartMessageFar
-    ld a, [wSharedWork + $156]
+    ld a, [wTutorialMessageIndex]
     inc a
-    ld [wSharedWork + $156], a
+    ld [wTutorialMessageIndex], a
     ret
 
 
-ReadEndingDemoInput::
-    ld a, [wEndingDemoJoyHeld]
+ReadTutorialDemoInput::
+    ld a, [wTutorialJoyHeld]
     ldh [hJoyHeld], a
     xor a
     ldh [hJoyPressed], a
-    ld a, [wEndingDemoInputTimer]
+    ld a, [wTutorialInputTimer]
     dec a
-    ld [wEndingDemoInputTimer], a
+    ld [wTutorialInputTimer], a
     cp $ff
     ret nz
 
-    ld hl, wEndingDemoInputPtrLo
+    ld hl, wTutorialInputPtrLo
     ld a, [hl+]
     ld h, [hl]
     ld l, a
     ld a, [hl+]
     and $f3
-    ld [wEndingDemoJoyHeld], a
+    ld [wTutorialJoyHeld], a
     ldh [hJoyPressed], a
     ld a, [hl+]
-    ld [wEndingDemoInputTimer], a
+    ld [wTutorialInputTimer], a
     ld a, l
-    ld [wEndingDemoInputPtrLo], a
+    ld [wTutorialInputPtrLo], a
     ld a, h
-    ld [wEndingDemoInputPtrHi], a
+    ld [wTutorialInputPtrHi], a
     ret
 
 
 
-EndingDemoStepLengths::
+TutorialMessageChangeTicks::
+; Absolute ticks in units of 16 frames. The index follows the tutorial message sequence.
     db $01, $18, $2b, $49, $5c, $74, $86, $a9, $be, $ca, $ff
 
 
-EndingDemoInputScript::
+TutorialDemoInputScript::
+; Input mask and hold duration pairs for the stage-4 tutorial.
     db $00, $4c, $10, $08, $11, $1e, $10, $1e, $00, $10, $10, $04, $00, $03, $40, $32
     db $00, $19, $80, $36, $00, $15, $10, $16, $00, $0c, $01, $11, $00, $24, $10, $1e
     db $00, $1e, $20, $22, $00, $0e, $10, $04, $00, $0a, $01, $1e, $00, $18, $10, $21

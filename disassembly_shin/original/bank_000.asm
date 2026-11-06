@@ -1846,8 +1846,8 @@ TilemapBoxMaskTable_0902::
 ; per-bank table at ROMX:$4001. These are not ROM addresses.
 DEF FARCALL_BANK1_UPDATE_GAMEPLAY     EQU $0100
 DEF FARCALL_BANK1_INIT_GAMEPLAY       EQU $0102
-DEF FARCALL_BANK1_UPDATE_ENDING_DEMO  EQU $0104
-DEF FARCALL_BANK1_INIT_ENDING_DEMO    EQU $0106
+DEF FARCALL_BANK1_UPDATE_TUTORIAL  EQU $0104
+DEF FARCALL_BANK1_INIT_TUTORIAL    EQU $0106
 
 ; Bank/entry selectors are not CPU addresses.
 DEF FARCALL_BANK2_INIT_TITLE_MENU               EQU $0200
@@ -1886,7 +1886,7 @@ UpdateCurrentGameState:: ; Per-frame state dispatcher, called from VBlank after 
     dw UpdateGameState_Bank2Screen2 ; 05: bank 2 screen/update path
     dw UpdateGameState_Pause ; 06: pause-ish handler
     dw UpdateGameState_FadeReturn ; 07: unused/variant update path
-    dw UpdateGameState_EndingDemo ; 08: ending demo / staff-roll style sequence
+    dw UpdateGameState_Tutorial ; 08: tutorial demo
 
 UpdateGameState_TitleMenu::
 	; hGameState == 00
@@ -1964,9 +1964,9 @@ SelectGameplayMusic:: ; Selects Action Kamen music, stage 3 music, or the shared
 UpdateGameState_FadeReturn::
     jp UpdateFadeReturnToGameplay
 
-UpdateGameState_EndingDemo::
+UpdateGameState_Tutorial::
 	; hGameState == 08
-    ld hl, FARCALL_BANK1_UPDATE_ENDING_DEMO
+    ld hl, FARCALL_BANK1_UPDATE_TUTORIAL
     jp FarCallFromBankTable
 
 
@@ -1992,7 +1992,7 @@ InitCurrentGameState:: ; State init dispatcher, called with LCD off from ReinitC
     dw InitGameState_Bank2Screen2 ; 05: bank 2 screen init
     dw InitGameState_NoInit ; 06: no init
     dw InitGameState_GameplayStage18Variant ; 07: bank 1 gameplay init variant
-    dw InitGameState_EndingDemo ; 08: init stage 4 ending demo sequence
+    dw InitGameState_Tutorial ; 08: init stage-4 tutorial demo
 
 InitGameState_TitleMenu::
     ld hl, FARCALL_BANK2_INIT_TITLE_MENU
@@ -2065,12 +2065,12 @@ UpdateFadeReturnToGameplay_Start::
     ldh [hNeedsReset], a
     ret
 
-InitGameState_EndingDemo::
+InitGameState_Tutorial::
     ld a, $04
     ldh [hStageIndex], a
     ld hl, FARCALL_BANK1_INIT_GAMEPLAY
     call FarCallFromBankTable
-    ld hl, FARCALL_BANK1_INIT_ENDING_DEMO
+    ld hl, FARCALL_BANK1_INIT_TUTORIAL
     jp FarCallFromBankTable
 
 

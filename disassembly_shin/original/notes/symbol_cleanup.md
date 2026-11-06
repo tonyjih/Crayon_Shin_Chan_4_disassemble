@@ -30,10 +30,10 @@ MD5 = BCB3D47C291FD0A26B2C7B1082C3AD88
 | Bank | 整理前 | 目前 |
 | --- | ---: | ---: |
 | 0 | 263 | 0 |
-| 1 | 439 | 59 |
+| 1 | 439 | 0 |
 | 2 | 518 | 0 |
 | 3 | 103 | 0 |
-| 合計 | 1,323 | 59 |
+| 合計 | 1,323 | 0 |
 
 ## 容易誤讀的地方
 
@@ -61,16 +61,23 @@ MD5 = BCB3D47C291FD0A26B2C7B1082C3AD88
 | `wPassword*` | 密碼畫面中的輸入列、cursor、重複按鍵與比對結果 |
 | `hPlayerTileProbeCount`／`hPlayerObjectProbeBelow` | 同為 `$ffcd`，分別是 tile probe 計數與物件碰撞距離門檻 |
 | `wMinigamePhaseCounter` | 開始前倒數、遊戲中的 timer tick、結果動畫 counter，依 substate 切換 |
-| `wRuntimeWork`、`wGameplayWork`、`wSharedWork`、`hSharedScratch` | 已知工作區的中性基底；個別 offset 語意尚待確認 |
+| `wSharedWork`、`hSharedScratch` | 剩餘三處未確認用途的 WRAM／HRAM 中性基底 |
 
 ## 尚未確認的部分
 
-目前仍有 **59 個自動命名的內部 label**。
-[unresolved_labels.csv](unresolved_labels.csv) 記錄 bank、地址、原始名稱、來源行及前一個具名 symbol。
+原先清單中的 **542 個自動 label** 均已追查，其中三個是同址別名。
+[unresolved_labels.csv](unresolved_labels.csv) 目前只有欄位名稱。
 `preceding_symbol` 只表示原始碼中的位置，不保證是函式或呼叫關係的邊界。
 
-[unresolved_memory.csv](unresolved_memory.csv) 記錄中性工作區 offset 的 **13 處引用、5 個不同位址**。
+[unresolved_memory.csv](unresolved_memory.csv) 記錄中性工作區 offset 的 **3 處引用、3 個不同位址**。
 同一個位址可能有多個用途，不能把這個數字視為尚未辨識的變數數。
+
+| 位址 | 仍待確認的讀寫點 |
+| --- | --- |
+| `$ffca` | `Bonus_StoreRoundRewardSelection` 依輪次寫入一個值。其下游讀取點尚未確認。 |
+| `$d8df` | `Mekemeke_NextLaneOrCheckPlayerShot` 讀入 A。計分 helper 在使用 A 前先覆寫它。 |
+| `$d8f2` | `BugHunt_UpdateHazardRespawn` 讀入 B。`ChooseScreenRandomThird` 在比較前先覆寫 B。 |
+
 另有部分資料只確認格式而未確認畫面內容，例如 `ScreenData_*`、以地址命名的音軌；
 音軌播放索引仍可由 `audio/sound_ids.csv` 追查。
 
@@ -156,3 +163,9 @@ Windows／Ubuntu 的完整 `check-original` 均通過：9 個資產測試、6 �
 - 拾取物、巡邏敵人和紙飛機補上 22 個自動 label 與 3 處 HRAM 引用。喇叭伸長的加成會同時調整碰撞中心與半寬。
 
 - 四個頭目與其投射物補上 47 個自動 label 及 53 處 RAM 引用。$c0b7～$c0ba 依頭目分開命名，第三關頭目的升降輔助程式也依實際存取的 Y 欄位改名。
+
+- 平台、場景物件與教學示範已處理最後 59 個自動 label 和 10 處 RAM 引用。第二種移動平台依實際 X 軸移動改名，state 8 依輸入腳本和教學訊息改名。
+
+本輪共處理 542 個自動 label，RAM 待查引用從 544 降至 3。每批皆通過原版重建與 symbol 地址比對。
+最終來源在 Windows 和 Ubuntu 通過 `check-original`，Windows 也通過 `DEBUG=1` 組譯與連結。
+完整 131,072 bytes 與原始 ROM dump 相同。

@@ -1,14 +1,4 @@
 ﻿bank,address,symbol,source,line,preceding_symbol
-01,$d956,wSharedWork + $156,bank_001.asm,9857,InitEndingDemoSequence
-01,$d957,wSharedWork + $157,bank_001.asm,9858,InitEndingDemoSequence
-01,$d956,wSharedWork + $156,bank_001.asm,10036,UpdateEndingDemoSequence
-01,$d957,wSharedWork + $157,bank_001.asm,10045,UpdateEndingDemoSequence
-01,$d956,wSharedWork + $156,bank_001.asm,10048,UpdateEndingDemoSequence
-01,$d957,wSharedWork + $157,bank_001.asm,10061,UpdateEndingDemoSequence
-01,$d957,wSharedWork + $157,bank_001.asm,10066,UpdateEndingDemoSequence
-01,$d956,wSharedWork + $156,bank_001.asm,10072,UpdateEndingDemoSequence
-01,$d956,wSharedWork + $156,bank_001.asm,10075,UpdateEndingDemoSequence
-01,$d956,wSharedWork + $156,bank_001.asm,10077,UpdateEndingDemoSequence
 02,$ffca,hSharedScratch + $0a,bank_002.asm,2510,Bonus_StoreRoundRewardSelection
 02,$d8df,wSharedWork + $df,bank_002.asm,4552,Mekemeke_NextLaneOrCheckPlayerShot
 02,$d8f2,wSharedWork + $f2,bank_002.asm,6143,BugHunt_UpdateHazardRespawn

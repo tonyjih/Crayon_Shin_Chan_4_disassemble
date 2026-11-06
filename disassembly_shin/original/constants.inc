@@ -181,7 +181,7 @@ DEF OBJ_FORM_ACTION_KAMEN          EQU $19
 
 ; Platforms / stage hazards.
 DEF OBJ_PLATFORM_MOVING_VERTICAL_A EQU $1a
-DEF OBJ_PLATFORM_MOVING_VERTICAL_B EQU $1b
+DEF OBJ_PLATFORM_MOVING_HORIZONTAL EQU $1b
 DEF OBJ_PLATFORM_DROP_A            EQU $1c
 DEF OBJ_PLATFORM_BOUNCE_PAD        EQU $1d
 DEF OBJ_PLATFORM_DROP_B            EQU $1e
@@ -368,10 +368,10 @@ DEF wMinigamePhaseCounter            EQU $d852 ; Shared pre-round countdown, run
 DEF wMinigameTimerHundreds           EQU $d853 ; Decimal countdown hundreds digit during a round.
 DEF wMinigameTimerTens               EQU $d854 ; Decimal countdown tens digit during a round.
 DEF wMinigameTimerOnes               EQU $d855 ; Decimal countdown ones digit during a round.
-DEF wEndingDemoJoyHeld               EQU $d92d ; Held input from the ending demo script.
-DEF wEndingDemoInputTimer            EQU $d92e ; Decrement to $ff before reading the next input/duration pair.
-DEF wEndingDemoInputPtrLo            EQU $d92f ; Next ending demo input pair, low byte.
-DEF wEndingDemoInputPtrHi            EQU $d930 ; Next ending demo input pair, high byte.
+DEF wTutorialJoyHeld               EQU $d92d ; Held input from the tutorial demo script.
+DEF wTutorialInputTimer            EQU $d92e ; Decrement to $ff before reading the next input/duration pair.
+DEF wTutorialInputPtrLo            EQU $d92f ; Next tutorial demo input pair, low byte.
+DEF wTutorialInputPtrHi            EQU $d930 ; Next tutorial demo input pair, high byte.
 DEF wBossHitFlashTimer               EQU $d931 ; Boss invulnerability/blink countdown; set to $84 after a hit, bit 3 hides the sprite.
 DEF wMinigamePaused                  EQU $d932 ; Nonzero freezes the minigame update and reuses the previous OAM list.
 DEF wTitleMenuPhase                  EQU $d934 ; 0=press start, 1=main choices, 2=minigame choices.
@@ -426,8 +426,6 @@ DEF wSequentialTilemapBuffer           EQU $da80 ; 16-byte scratch for the unuse
 DEF wMessageLineBuffer         EQU $c820 ; Temporary base-glyph line inside the shared map buffer.
 ; These bases give unresolved fields a bank-independent symbol without claiming their individual meanings.
 ; See notes/unresolved_memory.csv for the remaining field/consumer pairs.
-DEF wRuntimeWork               EQU $c0a0 ; Main-loop/player/stage shared runtime area.
-DEF wGameplayWork              EQU $c400 ; Gameplay queue, camera, and stage scratch area.
 DEF wSharedWork                EQU $d800 ; Shared screen/minigame/ending/player work overlay.
 DEF hSharedScratch             EQU $ffc0 ; Shared temporary HRAM bytes; interpretation depends on the caller.
 
@@ -458,7 +456,7 @@ DEF hMenuCursorOptionCount   EQU $ffc9
 DEF hMenuCursorDestLo        EQU $ffca
 DEF hMenuCursorDestHi        EQU $ffcb
 DEF hMinigameTimerTiles      EQU $ffc9 ; Three digit tiles assembled for the countdown HUD.
-DEF wSceneTestValues         EQU $d940 ; Dialogue, scene, ending, and bonus health test values.
+DEF wSceneTestValues         EQU $d940 ; Stage dialogue, password result, ending, and bonus health test values.
 DEF wSceneTestLastEditedValue EQU $d93a ; Copy of the displayed value. No scene-test reader confirmed.
 DEF wBonusActorX             EQU $d93a
 DEF wBonusDestination        EQU $d93b ; Station selector, also passed to the instruction/hint screen.
@@ -586,3 +584,7 @@ DEF wStage3BossAttackPhase        EQU $c0b7
 DEF wStage3BossAttackTimer        EQU $c0b8 ; Used for both the throw pose and the camera shake.
 DEF wStage3BossCoconutFallEnabled EQU $c0b9 ; Set on the return walk, cleared in the throw sequence.
 DEF wStage3BossNormalHitEnabled  EQU $c0ba ; Stomp and ordinary action hits register on the return walk.
+
+; State 8 tutorial overlays.
+DEF wTutorialMessageIndex EQU $d956 ; Next tutorial message relative to descriptor $5d.
+DEF wTutorialMessageDelay EQU $d957 ; Start after four frames. Bit 7 prevents further ticks until reset.

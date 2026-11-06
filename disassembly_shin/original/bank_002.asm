@@ -6140,7 +6140,7 @@ BugHunt_DrawHazard::
 
 
 BugHunt_UpdateHazardRespawn::
-    ld a, [wSharedWork + $f2] ; The resulting comparison only updates B. No caller uses that result.
+    ld a, [wSharedWork + $f2] ; ChooseScreenRandomThird overwrites B before the saved byte is read.
     ld b, a
     call ChooseScreenRandomThird
     add [hl]
