@@ -424,10 +424,6 @@ DEF wActionKamenMoveSpeedHi            EQU $d999 ; High byte of the saved Action
 DEF wStage1ClearedMetatileTiles        EQU $da00 ; Four tile IDs used after clearing a Stage 1 metatile; overlaps the stage-layout work area.
 DEF wSequentialTilemapBuffer           EQU $da80 ; 16-byte scratch for the unused sequential 4x4 tilemap helper.
 DEF wMessageLineBuffer         EQU $c820 ; Temporary base-glyph line inside the shared map buffer.
-; These bases give unresolved fields a bank-independent symbol without claiming their individual meanings.
-; See notes/unresolved_memory.csv for the remaining field/consumer pairs.
-DEF wSharedWork                EQU $d800 ; Shared screen/minigame/ending/player work overlay.
-DEF hSharedScratch             EQU $ffc0 ; Shared temporary HRAM bytes; interpretation depends on the caller.
 
 ; State-4 stage dialogue overlay; minigame states give the same bytes other meanings.
 DEF wStageDialogueScriptPtrLo EQU $d80c
@@ -455,6 +451,7 @@ DEF hStageDialogueSpeakerMask         EQU $ffca ; Speaker marker bits also index
 DEF hMenuCursorOptionCount   EQU $ffc9
 DEF hMenuCursorDestLo        EQU $ffca
 DEF hMenuCursorDestHi        EQU $ffcb
+DEF hBonusRoundTierOutput    EQU $ffca ; Bonus substate 7 output; no consumer confirmed.
 DEF hMinigameTimerTiles      EQU $ffc9 ; Three digit tiles assembled for the countdown HUD.
 DEF wSceneTestValues         EQU $d940 ; Stage dialogue, password result, ending, and bonus health test values.
 DEF wSceneTestLastEditedValue EQU $d93a ; Copy of the displayed value. No scene-test reader confirmed.
@@ -511,6 +508,7 @@ DEF wMekemekePaletteFlashTimer EQU $d84d
 DEF wMekemekeBlastPickCooldown EQU $d84e
 DEF wMekemekeBlastLaneFlags    EQU $d84f ; Lane in bits 0-6, bit 7 arms the blast after a hit.
 DEF wMekemekeBlastSpan         EQU $d850 ; Tracks enemy X before the hit, then counts down.
+DEF wMekemekeUnusedHitByte     EQU $d8df ; Read on a shot hit; overlaps wBugLastCaughtType in mode 2.
 DEF wMekemekePlayerLane        EQU $d976
 DEF hMekemekeLaneY             EQU $ffc9
 DEF hMekemekeLaneIndex         EQU $ffca
@@ -542,6 +540,7 @@ DEF wBugPopupY                  EQU $d8e1
 ; Hazard records hold respawn timer, X or spawn index, Y, step error,
 ; aim refresh timer, absolute aim X/Y, and aim sign bits.
 DEF wBugHazardSlots             EQU $d8e2
+DEF wBugHazardSlotsEnd          EQU wBugHazardSlots + 2 * BUG_HAZARD_SIZE
 DEF wBugPlayerBlinkTimer        EQU $d956 ; Hit recovery flicker and hazard invulnerability.
 DEF wBugHazardFrameCounter      EQU $d957
 DEF wBugPlayerX                 EQU $d975

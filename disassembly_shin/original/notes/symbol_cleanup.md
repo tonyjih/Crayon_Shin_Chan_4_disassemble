@@ -11,8 +11,7 @@ MD5 = BCB3D47C291FD0A26B2C7B1082C3AD88
 
 - 硬體、WRAM／HRAM、畫面與聲音引擎常數移入 `constants.inc`，新增 154 個 `DEF` 名稱。
 - 直接 `jp`／`jr`／`call` 的數字目標為 0；61 個 RST $00 分派表與三個跨 bank 呼叫表均使用 symbol。
-- 指令中的裸記憶體操作數，例如 `[$d940]`，為 0。已確認的欄位使用用途名稱，
-  其餘使用具名工作區加 offset。這些 offset 欄位仍保留在待查清單中。
+- 指令中的裸記憶體操作數，例如 `[$d940]`，為 0。共用記憶體依各畫面中的用途命名。
 - bank 0 的共用函式、聲音 sequencer、DEBUG 選單，以及 bank 3 的訊息與 SGB 程式，
   已沒有 `Call_`／`Jump_`／`jr_`／`label_` 形式的自動名稱。
 - bank 1 補上玩家碰撞、跳躍速度、圖塊載入、敵人與頭目的狀態入口名稱。
@@ -61,7 +60,7 @@ MD5 = BCB3D47C291FD0A26B2C7B1082C3AD88
 | `wPassword*` | 密碼畫面中的輸入列、cursor、重複按鍵與比對結果 |
 | `hPlayerTileProbeCount`／`hPlayerObjectProbeBelow` | 同為 `$ffcd`，分別是 tile probe 計數與物件碰撞距離門檻 |
 | `wMinigamePhaseCounter` | 開始前倒數、遊戲中的 timer tick、結果動畫 counter，依 substate 切換 |
-| `wSharedWork`、`hSharedScratch` | 剩餘三處未確認用途的 WRAM／HRAM 中性基底 |
+| `hBonusRoundTierOutput` | 獎勵關卡子狀態 `$07` 寫出的輪次分級值，下游用途待查 |
 
 ## 尚未確認的部分
 
@@ -69,20 +68,30 @@ MD5 = BCB3D47C291FD0A26B2C7B1082C3AD88
 [unresolved_labels.csv](unresolved_labels.csv) 目前只有欄位名稱。
 `preceding_symbol` 只表示原始碼中的位置，不保證是函式或呼叫關係的邊界。
 
-[unresolved_memory.csv](unresolved_memory.csv) 記錄中性工作區 offset 的 **3 處引用、3 個不同位址**。
-同一個位址可能有多個用途，不能把這個數字視為尚未辨識的變數數。
-
-| 位址 | 仍待確認的讀寫點 |
-| --- | --- |
-| `$ffca` | `Bonus_StoreRoundRewardSelection` 依輪次寫入一個值。其下游讀取點尚未確認。 |
-| `$d8df` | `Mekemeke_NextLaneOrCheckPlayerShot` 讀入 A。計分 helper 在使用 A 前先覆寫它。 |
-| `$d8f2` | `BugHunt_UpdateHazardRespawn` 讀入 B。`ChooseScreenRandomThird` 在比較前先覆寫 B。 |
+[unresolved_memory.csv](unresolved_memory.csv) 剩 **1 處引用、1 個位址**。
+`Bonus_StoreRoundRewardSelection` 對 `$ffca` 的寫入已命名，下游讀取點與進入子狀態 `$07` 的正常路徑仍待確認。
 
 另有部分資料只確認格式而未確認畫面內容，例如 `ScreenData_*`、以地址命名的音軌；
 音軌播放索引仍可由 `audio/sound_ids.csv` 追查。
 
 這兩份 CSV 是目前來源的快照。後續若更名或移動程式，來源行與統計需要一起更新。
 [symbol_cleanup.json](symbol_cleanup.json) 保存目前待查統計；`new_def_symbols` 保留首次整理的新增數量。
+
+## 原版 RAM 讀寫實測
+
+以 SameBoy 1.0.5 的 DMG、SGB 模式執行原版 ROM，用記憶體回呼記錄讀寫與指令位置。
+下列重跑只修改模擬器存檔快照的 RAM，ROM bytes 保持原版。
+
+| 位址 | 實測結果 |
+| --- | --- |
+| `$d8df` | 從標題進 Mekemeke 第 1 輪，實際開槍命中時在 `02:5d4a` 讀取。`02:650d` 的 `ld a, c` 在計分前將 A 換成 `$05`。以 `$00`、`$a5` 重跑，分數都是 000 → 005。該位址在抓蟲模式另作 `wBugLastCaughtType`。 |
+| `$d8f2` | DMG 從標題進抓蟲小遊戲，以按鍵完成第 1～3 輪。第 4 輪障礙重生在 `02:66d7` 讀取兩筆八位元組障礙記錄之後的 byte。另將解鎖輪次設成 4 後由標題進入，從同一快照用 `$00`、`$a5` 重跑。兩模式的 `02:66df` 比較值與障礙記錄各自相同，因為 `ChooseScreenRandomThird` 在比較前覆寫 B。 |
+| `$ffca` | 從小遊戲說明畫面強制執行獎勵子狀態 `$07` 一次，測輪次 1、3、4、6、7、10。`02:4fe6` 對三組輪次分別寫入 `$02/$03/$01`，`02:4fe9` 同時寫出文字代字 `$0b/$0c/$0d`。恢復說明畫面並開始 Mekemeke 後，下一筆 `$ffca` 存取是 `02:5b93` 寫入敵人列索引。 |
+
+另以原版密碼進場景測試，走到第二個獎勵站，使用按鍵過關並領取變身。
+兩模式皆從子狀態 `$06` 在 `02:4f5b` 讀取 `wMsgSubstitutionId`，減去 `$0a` 後於 `02:4f60` 寫入 `hPlayerForm`。
+在 DMG 的獎勵快照強制執行一次 `$07` 再回到 `$06`，六個輪次都得到相同的變身值 `$03`。
+從強制寫入到領取獎勵後再跑 600 幀，未觀察到後續的 `$ffca` 存取。
 
 ## 驗證
 

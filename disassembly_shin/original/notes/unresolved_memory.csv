@@ -1,4 +1,2 @@
 ﻿bank,address,symbol,source,line,preceding_symbol
-02,$ffca,hSharedScratch + $0a,bank_002.asm,2510,Bonus_StoreRoundRewardSelection
-02,$d8df,wSharedWork + $df,bank_002.asm,4552,Mekemeke_NextLaneOrCheckPlayerShot
-02,$d8f2,wSharedWork + $f2,bank_002.asm,6143,BugHunt_UpdateHazardRespawn
+02,$ffca,hBonusRoundTierOutput,bank_002.asm,2511,Bonus_StoreRoundRewardSelection

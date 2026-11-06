@@ -2505,9 +2505,10 @@ Bonus_SelectRewardByRoundTier::
     ld d, $01
 
 Bonus_StoreRoundRewardSelection::
-; C selects the displayed form name. The downstream use of D saved to HRAM is unconfirmed.
+; C selects the displayed form name. D records $02/$03/$01 for rounds 1-3/4-6/7-10.
+; Downstream use of the HRAM output is unconfirmed. See notes/symbol_cleanup.md.
     ld a, d
-    ldh [hSharedScratch + $0a], a
+    ldh [hBonusRoundTierOutput], a
     ld a, c
     ld [wMsgSubstitutionId], a
     ret
@@ -4549,7 +4550,7 @@ Mekemeke_NextLaneOrCheckPlayerShot::
     ld bc, $0005
     add hl, bc
     ld [hl], $00
-    ld a, [wSharedWork + $df] ; The score helper overwrites A before using it.
+    ld a, [wMekemekeUnusedHitByte] ; The score helper replaces A with C ($05) before adding points.
     ld bc, $0005
     ld hl, MekemekeRoundGoalTiles
     call Minigame_AddScoreAndCompareGoal
@@ -6140,7 +6141,7 @@ BugHunt_DrawHazard::
 
 
 BugHunt_UpdateHazardRespawn::
-    ld a, [wSharedWork + $f2] ; ChooseScreenRandomThird overwrites B before the saved byte is read.
+    ld a, [wBugHazardSlotsEnd] ; The byte after both records is loaded into B and overwritten by the RNG call.
     ld b, a
     call ChooseScreenRandomThird
     add [hl]
