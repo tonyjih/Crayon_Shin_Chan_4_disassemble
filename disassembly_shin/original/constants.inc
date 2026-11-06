@@ -468,3 +468,31 @@ DEF wBonusReturnRequest      EQU $d960 ; Saved request type, compared with the s
 DEF wBonusMinigameRounds     EQU $d961 ; Three per-station round numbers for bonus play.
 DEF wBonusInstructionPending EQU $d964 ; Three flags cleared the first time each instruction is shown.
 DEF wBonusWalkDeltaX         EQU $d967 ; Signed pixels per update, +1 or -1.
+
+; Slide jump (minigame 3). Positions are three-byte fixed point and velocities are signed 8.8.
+DEF wSlideCameraXLo          EQU $d812 ; Integer world X, clamped to 0 through $300.
+DEF wSlideCameraXHi          EQU $d813
+DEF wSlideCameraY            EQU $d814 ; Integer world Y, clamped to 0 through $70.
+DEF wSlideVelocityXLo       EQU $d815
+DEF wSlideVelocityXHi       EQU $d816
+DEF wSlideVelocityYLo       EQU $d817
+DEF wSlideVelocityYHi       EQU $d818
+DEF wSlideResultDelay       EQU $d819
+DEF wSlidePlatformPtrLo     EQU $d81a ; Current collision platform record in the round's list.
+DEF wSlidePlatformPtrHi     EQU $d81b
+DEF wSlideReuseLayout       EQU $d81c ; A screen reload reuses the previously expanded layout and tiles.
+DEF wSlidePlayerControl     EQU $d81d ; Zero runs the demo, one enables player input.
+DEF wSlideWorldXSubpixel     EQU $d81e
+DEF wSlideWorldXLo          EQU $d81f
+DEF wSlideWorldXHi          EQU $d820
+DEF wSlideWorldYSubpixel     EQU $d821
+DEF wSlideWorldYLo          EQU $d822
+DEF wSlideWorldYHi          EQU $d823
+DEF wSlideEffectActive      EQU $d824 ; Animation slot 1 is active at the ramp or bounce point.
+DEF wSlideEffectXLo         EQU $d825
+DEF wSlideEffectXHi         EQU $d826
+DEF wSlideEffectY           EQU $d827
+DEF wSlideLandingFrame      EQU $d956 ; Selects the alternating ground arrival metasprite.
+DEF wSlideActorScreenX      EQU $d97b ; Saved projected X for the result animation.
+DEF hSlidePlatformDrawPtrLo EQU $ffca ; Backtracked record used to highlight a platform during bounce.
+DEF hSlidePlatformDrawPtrHi EQU $ffcb

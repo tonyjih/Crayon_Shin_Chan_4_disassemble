@@ -481,7 +481,7 @@ RequestStateChange_Menu:: ; Menu/screen transition helper. Sets hNeedsReset and 
     dw RequestState_ReturnToTitleMenu        ; 00
     dw RequestState_GotoScreenState3         ; 01
     dw RequestState_GotoScreenState3Submode  ; 02
-    dw RequestState_GotoScreenState3WithD81C ; 03
+    dw RequestState_StartSelectedMinigame ; 03
     dw RequestState_TitleSubstate4           ; 04
     dw RequestState_TitleSubstate1           ; 05
     dw RequestState_PasswordResultMenu       ; 06: password-derived destination.
@@ -529,14 +529,14 @@ RequestState_GotoScreenState3Submode::
     ret
 
 
-RequestState_GotoScreenState3WithD81C::
+RequestState_StartSelectedMinigame::
     ld a, c
     inc a
     ld [wMinigameMode], a
     ld a, $03
     ldh [hGameState], a
     xor a
-    ld [wSharedWork + $1c], a
+    ld [wSlideReuseLayout], a
     ret
 
 
@@ -2549,13 +2549,13 @@ InitMinigame3::
     ld [wPaletteOBP0], a
     ld [wPaletteOBP1], a
     xor a
-    ld [wSharedWork + $24], a
-    ld [wSharedWork + $156], a
+    ld [wSlideEffectActive], a
+    ld [wSlideLandingFrame], a
     ld a, $0c
     ld [wScreenPaletteId], a
-    ld a, [wSharedWork + $1c]
+    ld a, [wSlideReuseLayout]
     or a
-    jr nz, jr_002_5065
+    jr nz, Slide_SelectInitialBgRowCount
 
     ld a, BANK(GfxRle_b05_7481)
     ld hl, GfxRle_b05_7481
@@ -2567,56 +2567,56 @@ InitMinigame3::
     ld bc, $1000
     call BankedMemcpy_RLEFF
     xor a
-    ld [wSharedWork + $1d], a
+    ld [wSlidePlayerControl], a
 
-jr_002_5065::
+Slide_SelectInitialBgRowCount::
     ld b, $1e
-    ld a, [wSharedWork + $1d]
+    ld a, [wSlidePlayerControl]
     or a
-    jr z, jr_002_506f
+    jr z, Slide_InitBgCopy
 
     ld b, $20
 
-jr_002_506f::
+Slide_InitBgCopy::
     ld hl, wStageLayoutMap
     ld de, _SCRN0
 
-jr_002_5075::
+Slide_CopyNextBgRow::
     ld c, $20
 
-jr_002_5077::
+Slide_CopyBgRowByte::
     ld a, [hl+]
     ld [de], a
     inc de
     dec c
-    jr nz, jr_002_5077
+    jr nz, Slide_CopyBgRowByte
 
     ld a, $60
     rst $38
     dec b
-    jr nz, jr_002_5075
+    jr nz, Slide_CopyNextBgRow
 
-    ld a, [wSharedWork + $1d]
+    ld a, [wSlidePlayerControl]
     or a
-    jr nz, jr_002_5091
+    jr nz, Slide_SelectInitialPhase
 
     ld b, $40
     xor a
 
-jr_002_508c::
+Slide_ClearBottomBgRows::
     ld [de], a
     inc de
     dec b
-    jr nz, jr_002_508c
+    jr nz, Slide_ClearBottomBgRows
 
-jr_002_5091::
-    ld a, [wSharedWork + $1d]
+Slide_SelectInitialPhase::
+    ld a, [wSlidePlayerControl]
     or a
-    jp nz, Jump_002_5140
+    jp nz, Slide_InitApproachMotion
 
-    ld a, [wSharedWork + $1c]
+    ld a, [wSlideReuseLayout]
     or a
-    jp nz, Jump_002_50f1
+    jp nz, Slide_BeginRoundBanner
 
     ld a, $02
     ld [wMessageFlags], a
@@ -2634,47 +2634,46 @@ UpdateMinigame3::
 ; Mode 3 update.
     ld a, [wScreenSubstate]
     cp $02
-    jr c, jr_002_50d7
+    jr c, Slide_DispatchPhase
 
     ldh a, [hJoyPressed]
     bit 3, a
-    jr z, jr_002_50d7
+    jr z, Slide_DispatchPhase
 
-    ld a, [wSharedWork + $1d]
+    ld a, [wSlidePlayerControl]
     or a
-    jr nz, jr_002_50d4
+    jr nz, Slide_PausePlayerRound
 
     ld a, $01
-    ld [wSharedWork + $1d], a
+    ld [wSlidePlayerControl], a
     ldh [hNeedsReset], a
-    ld [wSharedWork + $1c], a
+    ld [wSlideReuseLayout], a
     ret
 
 
-jr_002_50d4::
+Slide_PausePlayerRound::
     call PauseMinigame
 
-jr_002_50d7::
+Slide_DispatchPhase::
     ld a, [wScreenSubstate]
     rst $00
 
 Minigame3StateHandlers::
-    dw Minigame3_State00 ; $00
-    dw Minigame3_State01 ; $01
-    dw Minigame3_State02 ; $02
-    dw Minigame3_State03 ; $03
-    dw Minigame3_State04 ; $04
-    dw Minigame3_State05 ; $05
-    dw Minigame3_State06 ; $06
+    dw Slide_WaitForStart ; $00
+    dw Slide_UpdateRoundBanner ; $01
+    dw Slide_UpdateApproachOrLanding ; $02
+    dw Slide_UpdateAirborne ; $03
+    dw Slide_UpdateClearOrDemoResult ; $04
+    dw Slide_WaitForMissExit ; $05
+    dw Slide_UpdatePlatformBounce ; $06
 
-Minigame3_State00::
-; Minigame3StateHandlers index $00; detailed phase behavior remains to be named.
+Slide_WaitForStart::
     call HandleMinigameRoundSelection
     ldh a, [hJoyPressed]
     bit 3, a
     ret z
 
-Jump_002_50f1::
+Slide_BeginRoundBanner::
     ld a, $01
     ld [wScreenSubstate], a
     ld a, $60
@@ -2694,8 +2693,7 @@ Jump_002_50f1::
     ret
 
 
-Minigame3_State01::
-; Minigame3StateHandlers index $01; detailed phase behavior remains to be named.
+Slide_UpdateRoundBanner::
     call UpdateMessageFar
     ld a, [wScreenFrameCounter]
     dec a
@@ -2711,19 +2709,19 @@ Minigame3_State01::
     ld bc, $2001
     call QueueTilemapRect
 
-Jump_002_5140::
+Slide_InitApproachMotion::
     ld a, $02
     ld [wScreenSubstate], a
     xor a
     ld [wScreenFrameCounter], a
-    ld hl, wSharedWork + $1e
+    ld hl, wSlideWorldXSubpixel
     ld [hl], $00
     inc hl
     ld [hl], $28
     inc hl
     ld [hl], $00
     xor a
-    ld hl, wSharedWork + $21
+    ld hl, wSlideWorldYSubpixel
     ld [hl], $00
     inc hl
     ld [hl], $90
@@ -2737,74 +2735,73 @@ Jump_002_5140::
     ret
 
 
-Minigame3_State02::
-; Minigame3StateHandlers index $02; detailed phase behavior remains to be named.
+Slide_UpdateApproachOrLanding::
     ld d, $9c
-    ld a, [wSharedWork + $20]
+    ld a, [wSlideWorldXHi]
     or a
-    jp nz, Jump_002_5261
+    jp nz, Slide_UpdateGroundArrival
 
-    ld a, [wSharedWork + $1f]
+    ld a, [wSlideWorldXLo]
     cp $2a
-    jp nc, Jump_002_51af
+    jp nc, Slide_UpdateRampApproach
 
     ld a, [wScreenFrameCounter]
     inc a
     ld [wScreenFrameCounter], a
     cp $e0
-    jr nc, jr_002_519a
+    jr nc, Slide_StartApproachMotion
 
     xor a
-    ld [wSharedWork + $15], a
-    ld [wSharedWork + $16], a
-    ld [wSharedWork + $17], a
-    ld [wSharedWork + $18], a
-    jp jr_002_52f1
+    ld [wSlideVelocityXLo], a
+    ld [wSlideVelocityXHi], a
+    ld [wSlideVelocityYLo], a
+    ld [wSlideVelocityYHi], a
+    jp Slide_DrawApproachFrame
 
 
-jr_002_519a::
+Slide_StartApproachMotion::
     ld hl, $0080
     ld a, l
-    ld [wSharedWork + $15], a
+    ld [wSlideVelocityXLo], a
     ld a, h
-    ld [wSharedWork + $16], a
+    ld [wSlideVelocityXHi], a
     xor a
-    ld [wSharedWork + $17], a
-    ld [wSharedWork + $18], a
-    jp jr_002_52f1
+    ld [wSlideVelocityYLo], a
+    ld [wSlideVelocityYHi], a
+    jp Slide_DrawApproachFrame
 
 
-Jump_002_51af::
+Slide_UpdateRampApproach::
     ld d, $9e
     cp $80
-    jr nc, jr_002_51d2
+    jr nc, Slide_CheckRampEdge
 
-    ld hl, wSharedWork + $15
+    ld hl, wSlideVelocityXLo
     ld a, [hl+]
     ld h, [hl]
     ld l, a
     ld bc, $0003
     add hl, bc
     ld a, l
-    ld [wSharedWork + $15], a
+    ld [wSlideVelocityXLo], a
     ld a, h
-    ld [wSharedWork + $16], a
+    ld [wSlideVelocityXHi], a
     ld a, l
-    ld [wSharedWork + $17], a
+    ld [wSlideVelocityYLo], a
     ld a, h
-    ld [wSharedWork + $18], a
-    jp jr_002_52f1
+    ld [wSlideVelocityYHi], a
+    jp Slide_DrawApproachFrame
 
 
-jr_002_51d2::
+Slide_CheckRampEdge::
     cp $b0
-    jp nc, Jump_002_5261
+    jp nc, Slide_UpdateGroundArrival
 
-    ld a, [wSharedWork + $24]
+    ld a, [wSlideEffectActive]
     or a
-    jr nz, jr_002_5205
+    jr nz, Slide_WaitForLaunchInput
 
-    ld hl, wSharedWork + $25
+    ld hl, wSlideEffectXLo
     ld a, $98
     ld [hl+], a
     xor a
@@ -2812,13 +2809,13 @@ jr_002_51d2::
     ld a, $b0
     ld [hl+], a
     ld hl, SceneAnim_7a53
-    ld a, [wSharedWork + $1d]
+    ld a, [wSlidePlayerControl]
     or a
-    jr z, jr_002_51f4
+    jr z, Slide_StartRampEffect
 
     ld hl, SceneAnim_7a58
 
-jr_002_51f4::
+Slide_StartRampEffect::
     ld a, l
     ld [wSceneAnim1PtrLo], a
     ld a, h
@@ -2826,30 +2823,30 @@ jr_002_51f4::
     xor a
     ld [wSceneAnim1Timer], a
     ld a, $01
-    ld [wSharedWork + $24], a
+    ld [wSlideEffectActive], a
 
-jr_002_5205::
+Slide_WaitForLaunchInput::
     xor a
-    ld [wSharedWork + $19], a
-    ld [wSharedWork + $17], a
-    ld [wSharedWork + $18], a
+    ld [wSlideResultDelay], a
+    ld [wSlideVelocityYLo], a
+    ld [wSlideVelocityYHi], a
     ld a, $e4
-    ld [wSharedWork + $22], a
+    ld [wSlideWorldYLo], a
     ldh a, [hJoyPressed]
     ld b, a
-    ld a, [wSharedWork + $1d]
+    ld a, [wSlidePlayerControl]
     and b
-    jp z, jr_002_52f1
+    jp z, Slide_DrawApproachFrame
 
-jr_002_521e::
+Slide_LaunchFromRamp::
     ld a, [wMinigameRound]
     dec a
-    ld hl, Minigame3RoundObjectPointers
+    ld hl, SlidePlatformRoundPointers
     rst $20
     ld a, l
-    ld [wSharedWork + $1a], a
+    ld [wSlidePlatformPtrLo], a
     ld a, h
-    ld [wSharedWork + $1b], a
+    ld [wSlidePlatformPtrHi], a
     ld a, $42
     call PlaySound
     ld a, $03
@@ -2858,65 +2855,65 @@ jr_002_521e::
     ld a, [wMinigameRound]
     dec a
     ld b, a
-    ld a, [wSharedWork + $1d]
+    ld a, [wSlidePlayerControl]
     or b
-    jr nz, jr_002_5249
+    jr nz, Slide_StoreLaunchVelocity
 
     ld hl, $01c0
 
-jr_002_5249::
+Slide_StoreLaunchVelocity::
     ld a, l
-    ld [wSharedWork + $15], a
+    ld [wSlideVelocityXLo], a
     ld a, h
-    ld [wSharedWork + $16], a
+    ld [wSlideVelocityXHi], a
     ld hl, -$0280
     ld a, l
-    ld [wSharedWork + $17], a
+    ld [wSlideVelocityYLo], a
     ld a, h
-    ld [wSharedWork + $18], a
+    ld [wSlideVelocityYHi], a
     ld d, $9e
-    jp jr_002_52f1
+    jp Slide_DrawApproachFrame
 
 
-Jump_002_5261::
-    ld a, [wSharedWork + $1d]
+Slide_UpdateGroundArrival::
+    ld a, [wSlidePlayerControl]
     or a
-    jr z, jr_002_521e
+    jr z, Slide_LaunchFromRamp
 
     ld d, $9e
-    ld a, [wSharedWork + $22]
+    ld a, [wSlideWorldYLo]
     cp $f0
-    jr c, jr_002_52e1
+    jr c, Slide_AccelerateGroundFall
 
     ld d, $a0
-    ld a, [wSharedWork + $156]
+    ld a, [wSlideLandingFrame]
     inc a
-    ld [wSharedWork + $156], a
+    ld [wSlideLandingFrame], a
     bit 3, a
-    jr nz, jr_002_527f
+    jr nz, Slide_BrakeAfterGroundArrival
 
     ld d, $a1
 
-jr_002_527f::
+Slide_BrakeAfterGroundArrival::
     ld a, $f1
-    ld [wSharedWork + $22], a
+    ld [wSlideWorldYLo], a
     xor a
-    ld [wSharedWork + $17], a
-    ld [wSharedWork + $18], a
-    ld a, [wSharedWork + $16]
+    ld [wSlideVelocityYLo], a
+    ld [wSlideVelocityYHi], a
+    ld a, [wSlideVelocityXHi]
     bit 7, a
-    jr nz, jr_002_52b9
+    jr nz, Slide_BrakeLeftwardMotion
 
-    ld a, [wSharedWork + $15]
+    ld a, [wSlideVelocityXLo]
     sub $03
-    ld [wSharedWork + $15], a
-    ld a, [wSharedWork + $16]
+    ld [wSlideVelocityXLo], a
+    ld a, [wSlideVelocityXHi]
     sbc $00
-    ld [wSharedWork + $16], a
-    jr nc, jr_002_52f1
+    ld [wSlideVelocityXHi], a
+    jr nc, Slide_DrawApproachFrame
 
     xor a
-    ld [wSharedWork + $16], a
+    ld [wSlideVelocityXHi], a
     ld a, $05
     ld [wScreenSubstate], a
     push de
@@ -2924,19 +2921,19 @@ jr_002_527f::
     ld a, $38
     call PlaySound_Queue3
     pop de
-    jr jr_002_52f1
+    jr Slide_DrawApproachFrame
 
-jr_002_52b9::
-    ld a, [wSharedWork + $15]
+Slide_BrakeLeftwardMotion::
+    ld a, [wSlideVelocityXLo]
     add $03
-    ld [wSharedWork + $15], a
-    ld a, [wSharedWork + $16]
+    ld [wSlideVelocityXLo], a
+    ld a, [wSlideVelocityXHi]
     adc $00
-    ld [wSharedWork + $16], a
-    jr nc, jr_002_52f1
+    ld [wSlideVelocityXHi], a
+    jr nc, Slide_DrawApproachFrame
 
     ld a, $ff
-    ld [wSharedWork + $16], a
+    ld [wSlideVelocityXHi], a
     ld a, $05
     ld [wScreenSubstate], a
     push de
@@ -2944,39 +2941,38 @@ jr_002_52b9::
     ld a, $38
     call PlaySound_Queue3
     pop de
-    jr jr_002_52f1
+    jr Slide_DrawApproachFrame
 
-jr_002_52e1::
-    ld a, [wSharedWork + $17]
+Slide_AccelerateGroundFall::
+    ld a, [wSlideVelocityYLo]
     add $04
-    ld [wSharedWork + $17], a
-    ld a, [wSharedWork + $18]
+    ld [wSlideVelocityYLo], a
+    ld a, [wSlideVelocityYHi]
     adc $00
-    ld [wSharedWork + $18], a
+    ld [wSlideVelocityYHi], a
 
-jr_002_52f1::
+Slide_DrawApproachFrame::
     ld a, d
     ldh [hTileStreamWritePos], a
-    call Call_002_5419
-    call Call_002_5658
-    call Call_002_5521
+    call Slide_MoveAndDrawActor
+    call Slide_QueueAheadBackgroundColumn
+    call Slide_DrawRoundPlatforms
     ret
 
 
-Minigame3_State05::
-; Minigame3StateHandlers index $05; detailed phase behavior remains to be named.
+Slide_WaitForMissExit::
     ld a, $9f
     ldh [hTileStreamWritePos], a
-    call Call_002_5419
-    call Call_002_5521
-    ld a, [wSharedWork + $19]
+    call Slide_MoveAndDrawActor
+    call Slide_DrawRoundPlatforms
+    ld a, [wSlideResultDelay]
     inc a
-    ld [wSharedWork + $19], a
+    ld [wSlideResultDelay], a
     cp $90
     ret c
 
     ld a, $a0
-    ld [wSharedWork + $19], a
+    ld [wSlideResultDelay], a
     ldh a, [hJoyPressed]
     bit 0, a
     ret z
@@ -2984,49 +2980,48 @@ Minigame3_State05::
     jp RequestSavedMenuDestination
 
 
-Minigame3_State03::
-; Minigame3StateHandlers index $03; detailed phase behavior remains to be named.
-    ld a, [wSharedWork + $17]
+Slide_UpdateAirborne::
+    ld a, [wSlideVelocityYLo]
     add $0a
-    ld [wSharedWork + $17], a
-    ld a, [wSharedWork + $18]
+    ld [wSlideVelocityYLo], a
+    ld a, [wSlideVelocityYHi]
     adc $00
-    ld [wSharedWork + $18], a
+    ld [wSlideVelocityYHi], a
     ld d, $9e
     bit 7, a
-    jr z, jr_002_5337
+    jr z, Slide_DrawAirborneFrame
 
     ld d, $9d
 
-jr_002_5337::
+Slide_DrawAirborneFrame::
     ld a, d
     ldh [hTileStreamWritePos], a
-    call Call_002_5419
-    call Call_002_5658
-    call Call_002_5521
-    call Call_002_55ac
-    ld a, [wSharedWork + $23]
+    call Slide_MoveAndDrawActor
+    call Slide_QueueAheadBackgroundColumn
+    call Slide_DrawRoundPlatforms
+    call Slide_CheckPlatformLanding
+    ld a, [wSlideWorldYHi]
     or a
     ret nz
 
-    ld a, [wSharedWork + $22]
+    ld a, [wSlideWorldYLo]
     cp $f0
     ret c
 
-    ld a, [wSharedWork + $1d]
+    ld a, [wSlidePlayerControl]
     or a
-    jr z, jr_002_5363
+    jr z, Slide_BeginClearOrDemoResult
 
     ld a, [wMinigameResultFlag]
     or a
-    jr z, jr_002_5363
+    jr z, Slide_BeginClearOrDemoResult
 
     ld a, $02
     ld [wScreenSubstate], a
     ret
 
 
-jr_002_5363::
+Slide_BeginClearOrDemoResult::
     ld a, $04
     ld [wScreenSubstate], a
     call InitSound
@@ -3035,20 +3030,20 @@ jr_002_5363::
     ld hl, SceneAnim_7a36
     ld a, [wMinigameRound]
     cp $0a
-    jr nz, jr_002_537d
+    jr nz, Slide_SelectDemoResultAnimation
 
     ld hl, SceneAnim_7a61
 
-jr_002_537d::
-    ld a, [wSharedWork + $1d]
+Slide_SelectDemoResultAnimation::
+    ld a, [wSlidePlayerControl]
     or a
-    jr nz, jr_002_538b
+    jr nz, Slide_StartResultAnimation
 
     ld a, $5b
     call PlaySound
     ld hl, SceneAnim_7a43
 
-jr_002_538b::
+Slide_StartResultAnimation::
     ld a, l
     ld [wSceneAnim0PtrLo], a
     ld a, h
@@ -3059,37 +3054,36 @@ jr_002_538b::
     ret
 
 
-Minigame3_State06::
-; Minigame3StateHandlers index $06; detailed phase behavior remains to be named.
-    ld hl, wSharedWork + $17
+Slide_UpdatePlatformBounce::
+    ld hl, wSlideVelocityYLo
     ld a, [hl+]
     ld h, [hl]
     ld l, a
     ld bc, -$0060
     add hl, bc
     ld a, l
-    ld [wSharedWork + $17], a
+    ld [wSlideVelocityYLo], a
     ld a, h
-    ld [wSharedWork + $18], a
+    ld [wSlideVelocityYHi], a
     ld a, $9c
     ldh [hTileStreamWritePos], a
-    call Call_002_5419
-    call Call_002_5658
-    call Call_002_5521
+    call Slide_MoveAndDrawActor
+    call Slide_QueueAheadBackgroundColumn
+    call Slide_DrawRoundPlatforms
     ld a, [wScreenPhaseCounter]
     cp $07
-    jr c, jr_002_53d0
+    jr c, Slide_AdvancePlatformBounceFrame
 
     ldh a, [hJoyPressed]
     ld b, a
-    ld a, [wSharedWork + $1d]
+    ld a, [wSlidePlayerControl]
     and b
-    jr z, jr_002_53d0
+    jr z, Slide_AdvancePlatformBounceFrame
 
     ld a, [wScreenFrameCounter]
     ld [wScreenPhaseCounter], a
 
-jr_002_53d0::
+Slide_AdvancePlatformBounceFrame::
     ld a, [wScreenFrameCounter]
     inc a
     ld [wScreenFrameCounter], a
@@ -3098,7 +3092,7 @@ jr_002_53d0::
 
     ld a, $5c
     call PlaySound
-    ld hl, wSharedWork + $1a
+    ld hl, wSlidePlatformPtrLo
     ld a, [hl+]
     ld h, [hl]
     ld l, a
@@ -3108,205 +3102,206 @@ jr_002_53d0::
     ld d, [hl]
     inc hl
     ld a, l
-    ld [wSharedWork + $1a], a
+    ld [wSlidePlatformPtrLo], a
     ld a, h
-    ld [wSharedWork + $1b], a
+    ld [wSlidePlatformPtrHi], a
     ld hl, $007c
     bit 6, d
-    jr z, jr_002_53fc
+    jr z, Slide_SetPlatformLaunchVelocity
 
     ld hl, -$007c
 
-jr_002_53fc::
+Slide_SetPlatformLaunchVelocity::
     ld a, l
-    ld [wSharedWork + $15], a
+    ld [wSlideVelocityXLo], a
     ld a, h
-    ld [wSharedWork + $16], a
-    ld hl, Scene3Mode3MotionTable
+    ld [wSlideVelocityXHi], a
+    ld hl, SlidePlatformLaunchYVelocities
     ld a, [wScreenPhaseCounter]
     rst $20
     ld a, l
-    ld [wSharedWork + $17], a
+    ld [wSlideVelocityYLo], a
     ld a, h
-    ld [wSharedWork + $18], a
+    ld [wSlideVelocityYHi], a
     ld a, $03
     ld [wScreenSubstate], a
     ret
 
 
-Call_002_5419::
+Slide_MoveAndDrawActor::
+; hTileStreamWritePos holds the actor metasprite selector on entry.
     ld a, [wScreenSubstate]
     cp $05
-    jr z, jr_002_5456
+    jr z, Slide_UpdateCamera
 
-    ld a, [wSharedWork + $16]
+    ld a, [wSlideVelocityXHi]
     ld b, $00
     bit 7, a
-    jr z, jr_002_542b
+    jr z, Slide_IntegrateWorldX
 
     ld b, $ff
 
-jr_002_542b::
-    ld hl, wSharedWork + $1e
-    ld a, [wSharedWork + $15]
+Slide_IntegrateWorldX::
+    ld hl, wSlideWorldXSubpixel
+    ld a, [wSlideVelocityXLo]
     add [hl]
     ld [hl+], a
-    ld a, [wSharedWork + $16]
+    ld a, [wSlideVelocityXHi]
     adc [hl]
     ld [hl+], a
     ld a, b
     adc [hl]
     ld [hl+], a
-    ld a, [wSharedWork + $18]
+    ld a, [wSlideVelocityYHi]
     ld b, $00
     bit 7, a
-    jr z, jr_002_5446
+    jr z, Slide_IntegrateWorldY
 
     ld b, $ff
 
-jr_002_5446::
-    ld hl, wSharedWork + $21
-    ld a, [wSharedWork + $17]
+Slide_IntegrateWorldY::
+    ld hl, wSlideWorldYSubpixel
+    ld a, [wSlideVelocityYLo]
     add [hl]
     ld [hl+], a
-    ld a, [wSharedWork + $18]
+    ld a, [wSlideVelocityYHi]
     adc [hl]
     ld [hl+], a
     ld a, b
     adc [hl]
     ld [hl], a
 
-jr_002_5456::
-    ld hl, wSharedWork + $1f
+Slide_UpdateCamera::
+    ld hl, wSlideWorldXLo
     ld a, [hl+]
     ld h, [hl]
     ld l, a
-    ld bc, hPlayerXSubpixel
+    ld bc, -$0050 ; Center the camera 80 pixels left of the actor.
     add hl, bc
     bit 7, h
-    jr z, jr_002_5467
+    jr z, Slide_ClampCameraXUpperBound
 
     ld hl, $0000
 
-jr_002_5467::
+Slide_ClampCameraXUpperBound::
     ld a, h
     cp $03
-    jr c, jr_002_546f
+    jr c, Slide_StoreCameraX
 
     ld hl, $0300
 
-jr_002_546f::
+Slide_StoreCameraX::
     ld a, l
-    ld [wSharedWork + $12], a
+    ld [wSlideCameraXLo], a
     ld a, h
-    ld [wSharedWork + $13], a
-    ld hl, wSharedWork + $1f
+    ld [wSlideCameraXHi], a
+    ld hl, wSlideWorldXLo
     ld a, [hl+]
     ld h, [hl]
     ld l, a
     ld l, $70
     ld a, [wScreenSubstate]
     cp $02
-    jr z, jr_002_549f
+    jr z, Slide_StoreScrollAndProjectActor
 
-    ld hl, wSharedWork + $22
+    ld hl, wSlideWorldYLo
     ld a, [hl+]
     ld h, [hl]
     ld l, a
-    ld bc, hBonusCounter
+    ld bc, -$0048 ; Keep the actor near screen Y 72 while airborne.
     add hl, bc
     ld a, h
     or a
-    jr z, jr_002_5498
+    jr z, Slide_ClampCameraYUpperBound
 
     ld l, $00
-    jr jr_002_549f
+    jr Slide_StoreScrollAndProjectActor
 
-jr_002_5498::
+Slide_ClampCameraYUpperBound::
     ld a, l
     cp $70
-    jr c, jr_002_549f
+    jr c, Slide_StoreScrollAndProjectActor
 
     ld l, $70
 
-jr_002_549f::
+Slide_StoreScrollAndProjectActor::
     ld a, l
-    ld [wSharedWork + $14], a
-    ld a, [wSharedWork + $12]
+    ld [wSlideCameraY], a
+    ld a, [wSlideCameraXLo]
     ldh [hSCX], a
-    ld a, [wSharedWork + $14]
+    ld a, [wSlideCameraY]
     ldh [hSCY], a
-    ld a, [wSharedWork + $12]
+    ld a, [wSlideCameraXLo]
     ld c, a
-    ld a, [wSharedWork + $1f]
+    ld a, [wSlideWorldXLo]
     sub c
     ld c, a
-    ld [wSharedWork + $17b], a
-    ld a, [wSharedWork + $23]
+    ld [wSlideActorScreenX], a
+    ld a, [wSlideWorldYHi]
     or a
     ret nz
 
-    ld a, [wSharedWork + $14]
+    ld a, [wSlideCameraY]
     ld b, a
-    ld a, [wSharedWork + $22]
+    ld a, [wSlideWorldYLo]
     sub b
     ld b, a
     ld e, $00
-    ld a, [wSharedWork + $16]
+    ld a, [wSlideVelocityXHi]
     bit 7, a
-    jr z, jr_002_54d2
+    jr z, Slide_ApplyFacingAndSelectFrame
 
     ld e, $01
 
-jr_002_54d2::
+Slide_ApplyFacingAndSelectFrame::
     ld a, e
     ldh [hSpriteFlags], a
-    ld a, [wSharedWork + $1d]
+    ld a, [wSlidePlayerControl]
     or a
-    jr nz, jr_002_54f1
+    jr nz, Slide_DrawActorAndEffect
 
     ldh a, [hTileStreamWritePos]
     cp $9c
-    jr nz, jr_002_54e3
+    jr nz, Slide_MapDemoRisingFrame
 
     ld a, $a8
 
-jr_002_54e3::
+Slide_MapDemoRisingFrame::
     cp $9d
-    jr nz, jr_002_54e9
+    jr nz, Slide_MapDemoFallingFrame
 
     ld a, $a6
 
-jr_002_54e9::
+Slide_MapDemoFallingFrame::
     cp $9e
-    jr nz, jr_002_54ef
+    jr nz, Slide_StoreDemoFrame
 
     ld a, $a7
 
-jr_002_54ef::
+Slide_StoreDemoFrame::
     ldh [hTileStreamWritePos], a
 
-jr_002_54f1::
+Slide_DrawActorAndEffect::
     ldh a, [hTileStreamWritePos]
     ld d, a
     call DrawBank3MetaspriteFar
-    ld a, [wSharedWork + $24]
+    ld a, [wSlideEffectActive]
     or a
     ret z
 
-    ld hl, wSharedWork + $12
-    ld a, [wSharedWork + $25]
+    ld hl, wSlideCameraXLo
+    ld a, [wSlideEffectXLo]
     sub [hl]
     ld c, a
     inc hl
-    ld a, [wSharedWork + $26]
+    ld a, [wSlideEffectXHi]
     sbc [hl]
     or a
     ret nz
 
-    ld a, [wSharedWork + $14]
+    ld a, [wSlideCameraY]
     ld b, a
-    ld a, [wSharedWork + $27]
+    ld a, [wSlideEffectY]
     sub b
     ld b, a
     ld de, wSceneAnim1PtrLo
@@ -3315,12 +3310,13 @@ jr_002_54f1::
     ret z
 
     xor a
-    ld [wSharedWork + $24], a
+    ld [wSlideEffectActive], a
     ret
 
 
-Call_002_5521::
-    ld hl, wSharedWork + $1a
+Slide_DrawRoundPlatforms::
+; Compare each record with the active platform's draw record during a bounce.
+    ld hl, wSlidePlatformPtrLo
     ld a, [hl+]
     ld h, [hl]
     ld l, a
@@ -3341,31 +3337,31 @@ Call_002_5521::
     sbc $00
     ld h, a
     ld a, l
-    ldh [hSharedScratch + $0a], a
+    ldh [hSlidePlatformDrawPtrLo], a
     ld a, h
-    ldh [hTileStreamCount], a
+    ldh [hSlidePlatformDrawPtrHi], a
     ld a, [wMinigameRound]
     dec a
-    ld hl, Minigame3RoundObjectPointers
+    ld hl, SlidePlatformRoundPointers
     rst $20
 
-jr_002_5547::
+Slide_SelectNextPlatformFrame::
     ld d, $ab
     ld a, [wScreenSubstate]
     cp $06
-    jr nz, jr_002_555c
+    jr nz, Slide_ProjectPlatform
 
-    ldh a, [hSharedScratch + $0a]
+    ldh a, [hSlidePlatformDrawPtrLo]
     cp l
-    jr nz, jr_002_555c
+    jr nz, Slide_ProjectPlatform
 
-    ldh a, [hTileStreamCount]
+    ldh a, [hSlidePlatformDrawPtrHi]
     cp h
-    jr nz, jr_002_555c
+    jr nz, Slide_ProjectPlatform
 
     ld d, $ac
 
-jr_002_555c::
+Slide_ProjectPlatform::
     ld a, d
     ldh [hTileStreamWritePos], a
     ld e, [hl]
@@ -3383,25 +3379,25 @@ jr_002_555c::
     ld hl, $000c
     add hl, de
     bit 7, c
-    jr z, jr_002_55a5
+    jr z, Slide_AdvancePlatformRecord
 
-    ld a, [wSharedWork + $12]
+    ld a, [wSlideCameraXLo]
     ld c, a
     ld a, l
     sub c
     ld l, a
-    ld a, [wSharedWork + $13]
+    ld a, [wSlideCameraXHi]
     ld c, a
     ld a, h
     sbc c
     ld h, a
     ld a, h
     or a
-    jr nz, jr_002_55a5
+    jr nz, Slide_AdvancePlatformRecord
 
     ld a, l
     cp $e8
-    jr nc, jr_002_55a5
+    jr nc, Slide_AdvancePlatformRecord
 
     sub $10
     ld c, a
@@ -3409,48 +3405,49 @@ jr_002_555c::
     push hl
     ld a, [hl]
     cp $ff
-    jr nz, jr_002_559f
+    jr nz, Slide_DrawVisiblePlatform
 
     ld a, $ad
     ldh [hTileStreamWritePos], a
     ld a, [wMinigameResultFlag]
     or a
-    jr z, jr_002_55a5
+    jr z, Slide_AdvancePlatformRecord
 
-jr_002_559f::
+Slide_DrawVisiblePlatform::
     ldh a, [hTileStreamWritePos]
     ld d, a
     call DrawBank3MetaspriteNormal
 
-jr_002_55a5::
+Slide_AdvancePlatformRecord::
     pop hl
     ld a, [hl]
     cp $ff
-    jr nz, jr_002_5547
+    jr nz, Slide_SelectNextPlatformFrame
 
     ret
 
 
-Call_002_55ac::
-    ld a, [wSharedWork + $18]
+Slide_CheckPlatformLanding::
+; Tests downward motion, X overlap, then Y range. The last platform uses the wider goal range.
+    ld a, [wSlideVelocityYHi]
     bit 7, a
     ret nz
 
-    ld hl, wSharedWork + $1a
+    ld hl, wSlidePlatformPtrLo
     ld a, [hl+]
     ld h, [hl]
     ld l, a
     ld a, [hl]
-    ld [wSharedWork + $25], a
-    ld a, [wSharedWork + $1f]
+    ld [wSlideEffectXLo], a
+    ld a, [wSlideWorldXLo]
     add $0c
     push af
     sub [hl]
     inc hl
     ld b, a
     ld a, [hl]
-    ld [wSharedWork + $26], a
-    ld a, [wSharedWork + $20]
+    ld [wSlideEffectXHi], a
+    ld a, [wSlideWorldXHi]
     sbc [hl]
     ld c, a
     pop af
@@ -3464,14 +3461,14 @@ Call_002_55ac::
     cp $18
     ret nc
 
-    ld a, [wSharedWork + $23]
+    ld a, [wSlideWorldYHi]
     or a
     ret nz
 
     ld a, [hl]
     add $18
-    ld [wSharedWork + $27], a
-    ld a, [wSharedWork + $22]
+    ld [wSlideEffectY], a
+    ld a, [wSlideWorldYLo]
     add $18
     sub [hl]
     inc hl
@@ -3481,29 +3478,29 @@ Call_002_55ac::
     ld c, $10
     ld a, [hl]
     cp $ff
-    jr nz, jr_002_55f7
+    jr nz, Slide_CheckLandingVerticalRange
 
     ld c, $40
 
-jr_002_55f7::
+Slide_CheckLandingVerticalRange::
     ld a, b
     cp c
     ret nc
 
     ld a, [hl]
     cp $ff
-    jr z, jr_002_5649
+    jr z, Slide_RegisterGoalLanding
 
     ld a, $06
     ld [wScreenSubstate], a
-    ld a, [wSharedWork + $1d]
+    ld a, [wSlidePlayerControl]
     or a
     ld a, $08
-    jr nz, jr_002_560e
+    jr nz, Slide_BeginPlatformBounce
 
     ld a, $07
 
-jr_002_560e::
+Slide_BeginPlatformBounce::
     ld [wScreenPhaseCounter], a
     xor a
     ld [wScreenFrameCounter], a
@@ -3511,21 +3508,21 @@ jr_002_560e::
     dec hl
     ld a, [hl]
     sub $18
-    ld [wSharedWork + $22], a
+    ld [wSlideWorldYLo], a
     ld hl, $0300
     ld a, l
-    ld [wSharedWork + $17], a
+    ld [wSlideVelocityYLo], a
     ld a, h
-    ld [wSharedWork + $18], a
+    ld [wSlideVelocityYHi], a
     xor a
     bit 6, d
-    jr z, jr_002_562e
+    jr z, Slide_StartPlatformBounceEffect
 
     cpl
 
-jr_002_562e::
-    ld [wSharedWork + $15], a
-    ld [wSharedWork + $16], a
+Slide_StartPlatformBounceEffect::
+    ld [wSlideVelocityXLo], a
+    ld [wSlideVelocityXHi], a
     ld hl, SceneAnim_7a4e
     ld a, l
     ld [wSceneAnim1PtrLo], a
@@ -3534,11 +3531,11 @@ jr_002_562e::
     xor a
     ld [wSceneAnim1Timer], a
     ld a, $01
-    ld [wSharedWork + $24], a
+    ld [wSlideEffectActive], a
     ret
 
 
-jr_002_5649::
+Slide_RegisterGoalLanding::
     ld a, [wMinigameResultFlag]
     or a
     ret z
@@ -3550,16 +3547,16 @@ jr_002_5649::
     ret
 
 
-Call_002_5658::
+Slide_QueueAheadBackgroundColumn::
     ld e, $14
-    ld a, [wSharedWork + $16]
+    ld a, [wSlideVelocityXHi]
     bit 7, a
-    jr z, jr_002_5663
+    jr z, Slide_SelectBackgroundColumn
 
     ld e, $fe
 
-jr_002_5663::
-    ld hl, wSharedWork + $12
+Slide_SelectBackgroundColumn::
+    ld hl, wSlideCameraXLo
     ld a, [hl+]
     ld h, [hl]
     ld l, a
@@ -3591,14 +3588,14 @@ jr_002_5663::
     rst $38
     ld b, $20
 
-jr_002_5694::
+Slide_CopyBackgroundColumnTiles::
     ld a, [hl]
     ld [de], a
     inc de
     ld a, $80
     rst $38
     dec b
-    jr nz, jr_002_5694
+    jr nz, Slide_CopyBackgroundColumnTiles
 
     xor a
     ld [de], a
@@ -3608,26 +3605,25 @@ jr_002_5694::
     ret
 
 
-Minigame3_State04::
-; Minigame3StateHandlers index $04; detailed phase behavior remains to be named.
-    call Call_002_5521
+Slide_UpdateClearOrDemoResult::
+    call Slide_DrawRoundPlatforms
     ld de, wSceneAnim0PtrLo
-    ld a, [wSharedWork + $17b]
+    ld a, [wSlideActorScreenX]
     ld c, a
     ld b, $80
     call AnimateSceneMetasprite
-    ld a, [wSharedWork + $19]
+    ld a, [wSlideResultDelay]
     inc a
-    ld [wSharedWork + $19], a
+    ld [wSlideResultDelay], a
     cp $90
     ret c
 
-    ld a, [wSharedWork + $1d]
+    ld a, [wSlidePlayerControl]
     or a
-    jr z, jr_002_56f9
+    jr z, Slide_ReloadWithPlayerControl
 
     ld a, $a0
-    ld [wSharedWork + $19], a
+    ld [wSlideResultDelay], a
     ldh a, [hJoyPressed]
     bit 0, a
     ret z
@@ -3646,31 +3642,33 @@ Minigame3_State04::
     ld hl, wMinigameUnlockedRounds + 2
     ld b, [hl]
     cp b
-    jr c, jr_002_56ed
+    jr c, Slide_ReloadNextDemo
 
     ld [hl], a
 
-jr_002_56ed::
+Slide_ReloadNextDemo::
     xor a
-    ld [wSharedWork + $1d], a
+    ld [wSlidePlayerControl], a
     ld a, $01
     ldh [hNeedsReset], a
-    ld [wSharedWork + $1c], a
+    ld [wSlideReuseLayout], a
     ret
 
 
-jr_002_56f9::
+Slide_ReloadWithPlayerControl::
     ld a, $01
-    ld [wSharedWork + $1d], a
+    ld [wSlidePlayerControl], a
     ldh [hNeedsReset], a
-    ld [wSharedWork + $1c], a
+    ld [wSlideReuseLayout], a
     ret
 
 
 
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
 
-Minigame3RoundObjectPointers::
+SlidePlatformRoundPointers::
+; Records are X word, Y byte, flags. $ff,$ff follows the final platform.
+; Bit 7 draws the platform, bit 6 reverses launch X, and the low nibble backs up to its draw record.
     dw Minigame3RoundObjects_5718
     dw Minigame3RoundObjects_571e
     dw Minigame3RoundObjects_5728
@@ -3722,7 +3720,8 @@ Minigame3RoundObjects_57de::
     db $38, $02, $d0, $80, $78, $02, $70, $80, $c0, $02, $b8, $80, $f0, $02, $58, $80
     db $30, $03, $38, $80, $70, $03, $20, $80, $ff, $ff
 
-Scene3Mode3MotionTable::
+SlidePlatformLaunchYVelocities::
+; Signed 8.8 velocities indexed by the bounce timing.
     db $00, $ff, $80, $fe, $00, $fd, $00, $fd, $00, $fd, $00, $fd, $00, $fd, $00, $fd
     db $80, $ff
 InitMinigame1::
