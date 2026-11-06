@@ -4516,22 +4516,22 @@ SpriteFrameData_3551::
 Bank0TrailingGraphicsData_3572::
 Gfx_b00_3572::
 ; Source: gfx/raw/b00_3572_stage2_before_switch.png (raw, 912 decoded bytes).
-    INCBIN "../build/original/assets/b00_3572.bin"
+    INCBIN "assets/b00_3572.bin"
 
 
 Bank0TrailingGraphicsData_3902::
 Gfx_b00_3902::
 ; Source: gfx/raw/b00_3902_stage2_after_switch.png (raw, 928 decoded bytes).
-    INCBIN "../build/original/assets/b00_3902.bin"
+    INCBIN "assets/b00_3902.bin"
 
 
 Bank0TrailingGraphicsData_3ca2::
 Gfx_b00_3ca2::
 ; Source: gfx/raw/b00_3ca2_sgb_border.png (raw, 712 decoded bytes).
-    INCBIN "../build/original/assets/b00_3ca2.bin", $0, $25e
+    INCBIN "assets/b00_3ca2.bin", $0, $25e
 
 Bank0TrailingGraphicsData_3f00::
-    INCBIN "../build/original/assets/b00_3ca2.bin", $25e, $6a
+    INCBIN "assets/b00_3ca2.bin", $25e, $6a
 
 IF DEF(DEBUG)
 DebugMenu_InitBackgroundGfx::

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rebuild the unmodified 128 KiB ROM from original/ and check its MD5."""
+"""Build the original ROM or a separate test ROM from original/."""
 from __future__ import annotations
 
 import argparse
@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 import shutil
 import subprocess
+from tempfile import TemporaryDirectory
 
 from shin_prev_byte_rle import decode as decode_prev, encode as encode_prev
 from shin_rleff import decode as decode_rleff, encode as encode_rleff
@@ -17,6 +18,7 @@ from shin_rleff import decode as decode_rleff, encode as encode_rleff
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "original"
 OUTPUT = ROOT / "build" / "original"
+TEST_OUTPUT = ROOT / "build" / "test-rom"
 
 
 def tool(name: str) -> str:
@@ -65,14 +67,12 @@ def pack_spawns(path: Path) -> bytes:
     return bytes(result + b"\xff")
 
 
-def build() -> str:
-    manifest = json.loads((SOURCE / "assets.json").read_text(encoding="utf-8"))
+def assemble(assets: list[dict], output: Path) -> None:
     rgbds = rgbds_tools()
-    OUTPUT.mkdir(parents=True, exist_ok=True)
     rgbgfx = rgbds["rgbgfx"]
-    for asset in manifest["assets"]:
+    for asset in assets:
         path = SOURCE / asset["source"]
-        target = OUTPUT / "assets" / (asset["id"] + ".bin")
+        target = output / "assets" / (asset["id"] + ".bin")
         target.parent.mkdir(parents=True, exist_ok=True)
         if path.suffix == ".png":
             raw_path = target.with_suffix(".2bpp" if asset["bpp"] == 2 else ".1bpp")
@@ -104,36 +104,56 @@ def build() -> str:
         if len(packed) != asset["stored_size"]:
             raise ValueError(f"{path}: compressed size changed; fixed ROM layout needs updating")
         target.write_bytes(packed)
-    obj, rom = OUTPUT / "game.o", OUTPUT / "game.gb"
-    run([rgbds["rgbasm"], "-o", str(obj), "game.asm"])
-    run([rgbds["rgblink"], "-n", str(OUTPUT / "game.sym"), "-m", str(OUTPUT / "game.map"),
+    obj, rom = output / "game.o", output / "game.gb"
+    run([rgbds["rgbasm"], "-I", str(output), "-o", str(obj), "game.asm"])
+    run([rgbds["rgblink"], "-n", str(output / "game.sym"), "-m", str(output / "game.map"),
          "-o", str(rom), str(obj)])
     run([rgbds["rgbfix"], "-v", "-p", "255", str(rom)])
-    data = rom.read_bytes()
-    digest = hashlib.md5(data).hexdigest().upper()
-    if len(data) != 131072 or digest != manifest["rom_md5"]:
-        raise ValueError(f"ROM verification failed: size={len(data)}, MD5={digest}")
+
+
+def build(output: Path = OUTPUT, *, verify_original: bool = True) -> str:
+    manifest = json.loads((SOURCE / "assets.json").read_text(encoding="utf-8"))
+    output.mkdir(parents=True, exist_ok=True)
+    with TemporaryDirectory(dir=output) as directory:
+        work = Path(directory)
+        assemble(manifest["assets"], work)
+        data = (work / "game.gb").read_bytes()
+        digest = hashlib.md5(data).hexdigest().upper()
+        if len(data) != 131072 or (verify_original and digest != manifest["rom_md5"]):
+            raise ValueError(f"ROM verification failed: size={len(data)}, MD5={digest}")
+
+        # Publish the ROM after verification, leaving the previous result usable on build failure.
+        (output / "assets").mkdir(exist_ok=True)
+        for path in (work / "assets").iterdir():
+            path.replace(output / "assets" / path.name)
+        for name in ("game.o", "game.sym", "game.map", "game.gb"):
+            (work / name).replace(output / name)
+
     print(f"Built {len(manifest['assets'])} assets and the native audio sources.")
-    print(f"ROM: {rom}")
+    kind = "ROM" if verify_original else "Test ROM"
+    print(f"{kind}: {output / 'game.gb'}")
     print(f"MD5 = {digest}")
     return digest
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--clean", action="store_true", help="remove generated build/original/ only")
+    parser.add_argument("--test-rom", action="store_true",
+                        help="build in build/test-rom/ without requiring the original MD5")
+    parser.add_argument("--clean", action="store_true", help="remove the selected build directory")
     args = parser.parse_args()
+    output = TEST_OUTPUT if args.test_rom else OUTPUT
     try:
         if args.clean:
-            if OUTPUT.resolve() != (ROOT.resolve() / "build" / "original"):
+            if output.resolve() != ROOT.resolve() / "build" / output.name:
                 raise ValueError("refusing to clean an unexpected output directory")
-            if OUTPUT.is_symlink():
+            if output.is_symlink():
                 raise ValueError("refusing to clean a linked output directory")
-            if OUTPUT.exists():
-                shutil.rmtree(OUTPUT)
-            print("Removed generated build/original/ files.")
+            if output.exists():
+                shutil.rmtree(output)
+            print(f"Removed generated build/{output.name}/ files.")
         else:
-            build()
+            build(output, verify_original=not args.test_rom)
     except (OSError, ValueError, RuntimeError) as error:
         parser.exit(1, f"{error}\n")
     return 0

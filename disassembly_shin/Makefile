@@ -1,11 +1,14 @@
 PYTHON ?= python
 
-.PHONY: all original check-original clean clean-original
+.PHONY: all original check-original test-rom clean clean-original clean-test-rom
 
 all: original
 
 original:
 	$(PYTHON) -B tools/build_original.py
+
+test-rom:
+	$(PYTHON) -B tools/build_original.py --test-rom
 
 check-original: original
 	$(PYTHON) -B tools/test_original_assets.py
@@ -17,3 +20,6 @@ clean: clean-original
 
 clean-original:
 	$(PYTHON) -B tools/build_original.py --clean
+
+clean-test-rom:
+	$(PYTHON) -B tools/build_original.py --test-rom --clean

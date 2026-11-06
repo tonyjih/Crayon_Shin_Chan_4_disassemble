@@ -26,7 +26,7 @@ Bank3MetaspriteTableReference::
 rle_b03_400f_to_8900::
 GfxRle_b03_400f::
 ; Source: gfx/compressed/b03_400f.png (prevbyte, 368 decoded bytes).
-    INCBIN "../build/original/assets/b03_400f.bin"
+    INCBIN "assets/b03_400f.bin"
 
 INCLUDE "engine/messages.asm"
 

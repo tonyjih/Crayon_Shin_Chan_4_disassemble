@@ -33,7 +33,7 @@ SgbInitialColorPatterns::
 
 SgbBorderTilemapRle::
 ; Source: sgb/border_tilemap.bin (prevbyte, 1536 decoded bytes).
-    INCBIN "../build/original/assets/b03_47f4.bin"
+    INCBIN "assets/b03_47f4.bin"
 
 
 SgbPaletteTransferSource::

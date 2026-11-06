@@ -21,6 +21,10 @@ python -B tools/build_original.py
 產生 tile data，重新壓縮圖片／地圖、編譯原生音軌，最後驗證 ROM 大小與 MD5。
 建置不讀取原始 ROM，不依賴 Git 歷史或舊的壓縮檔。
 
+修改來源後要試玩時，執行 `make test-rom` 或 `python -B tools/build_original.py --test-rom`。
+測試 ROM、symbol、map 和產生的資產都放在 `build/test-rom/`。測試建置會顯示實際 MD5，
+並檢查 ROM 大小、資產尺寸和壓縮往返。修改後若壓縮長度改變，需先調整 ROM 配置。
+
 需要 Python 3.10+ 和 RGBDS **1.0.1**；版本記在 `.rgbds-version`。
 工具會先找專案上一層的 `rgbasm.exe`、`rgblink.exe`、`rgbfix.exe`、`rgbgfx.exe`，再找 PATH。
 建置前會核對四個工具的版本；版本不符、混用版本或工具無法執行時會停止，尚未開始產生資產。
@@ -46,7 +50,7 @@ PR 或手動執行時，以 Python 3.12 和同版官方 RGBDS Linux 套件執行
 
 資產格式與位元組對應方式見 [original/README.md](original/README.md)。
 
-`make clean` 與 `make clean-original` 都只刪除 `build/original/`，不刪除來源資料。
+`make clean` 和 `make clean-original` 清除 `build/original/`。`make clean-test-rom` 清除 `build/test-rom/`。
 
 ## 分支與來源
 

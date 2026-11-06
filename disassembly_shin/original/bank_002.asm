@@ -46,12 +46,12 @@ INCLUDE "data/scene_animations.asm"
 
 GfxRle_b02_7b8e::
 ; Source: gfx/compressed/b02_7b8e.png (prevbyte, 1296 decoded bytes).
-    INCBIN "../build/original/assets/b02_7b8e.bin"
+    INCBIN "assets/b02_7b8e.bin"
 
 
 GfxRle_b02_7fe0::
 ; Source: gfx/compressed/b02_7fe0.png (prevbyte, 16 decoded bytes).
-    INCBIN "../build/original/assets/b02_7fe0.bin"
+    INCBIN "assets/b02_7fe0.bin"
 
 
     ds $8000 - @, $ff

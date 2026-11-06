@@ -1,11 +1,14 @@
 """Regression checks for the original asset codecs and build toolchain."""
-import unittest
+from contextlib import redirect_stdout
+from io import StringIO
+import json
 from pathlib import Path
 import subprocess
 import tempfile
+import unittest
 from unittest.mock import patch
 
-from build_original import pack_spawns, rgbds_tools
+from build_original import build, pack_spawns, rgbds_tools
 from extract_original_assets import sound_track_source
 from shin_prev_byte_rle import decode as decode_prev, encode as encode_prev
 from shin_rleff import decode, encode
@@ -88,6 +91,45 @@ class OriginalCodecsTest(unittest.TestCase):
             path.write_text("type_raw,x,y_raw\n0xff,0,0\n", encoding="utf-8")
             with self.assertRaises(ValueError):
                 pack_spawns(path)
+
+    def test_test_rom_uses_edited_assets_and_preserves_the_verified_original(self):
+        with tempfile.TemporaryDirectory(prefix="rom build ") as directory:
+            root = Path(directory)
+            source = root / "source"
+            source.mkdir()
+            (source / "game.asm").write_text(
+                'SECTION "Payload", ROM0[$150]\n'
+                'INCBIN "assets/payload.bin"\n'
+                'SECTION "Last byte", ROMX[$7fff], BANK[7]\n'
+                'db $ff\n',
+                encoding="ascii",
+            )
+            manifest = {"assets": [{
+                "id": "payload", "source": "payload.bin", "codec": "raw",
+                "decoded_size": 1, "stored_size": 1,
+            }]}
+            manifest_path = source / "assets.json"
+            manifest_path.write_text(json.dumps(manifest), encoding="ascii")
+            asset = source / "payload.bin"
+            asset.write_bytes(b"\x01")
+
+            original = root / "original"
+            test = root / "test-rom"
+            with patch("build_original.SOURCE", source), redirect_stdout(StringIO()):
+                manifest["rom_md5"] = build(test, verify_original=False)
+                manifest_path.write_text(json.dumps(manifest), encoding="ascii")
+                self.assertEqual(build(original), manifest["rom_md5"])
+                baseline = (original / "game.gb").read_bytes()
+                self.assertEqual(baseline[0x150], 1)
+
+                asset.write_bytes(b"\x02")
+                self.assertNotEqual(build(test, verify_original=False), manifest["rom_md5"])
+                self.assertEqual((test / "game.gb").read_bytes()[0x150], 2)
+                with self.assertRaisesRegex(ValueError, "ROM verification failed"):
+                    build(original)
+
+            self.assertEqual((original / "game.gb").read_bytes(), baseline)
+            self.assertEqual((original / "assets/payload.bin").read_bytes(), b"\x01")
 
 
 if __name__ == "__main__":
