@@ -1,2 +1,2 @@
 ﻿bank,address,symbol,source,line,preceding_symbol
-02,$ffca,hBonusRoundTierOutput,bank_002.asm,2511,Bonus_StoreRoundRewardSelection
+02,$ffca,hBonusRoundTierOutput,engine/minigames/bonus.asm,845,Bonus_StoreRoundRewardSelection

@@ -18,6 +18,10 @@ stage object 的儲存區與欄位定義在 `ram/objects.asm`。
 
 bank 檔保留 ROM 配置順序，已確認的系統透過 INCLUDE 拆出：
 
+- `bank_001.asm`：關卡初始化、主迴圈、頭目入場和教學在 `engine/gameplay/`。
+  玩家操作、碰撞和變身在 `engine/player/`，物件生成、敵人、平台和各關頭目在 `engine/objects/`。
+- `bank_002.asm`：標題、密碼、場景測試、接關和關卡對話在 `engine/screens/`。
+  獎勵關卡、三個小遊戲和共用計分在 `engine/minigames/`。
 - `engine/audio.asm`：音效 sequencer；查表與波形宣告在 `data/audio/`。
 - `engine/messages.asm`：訊息解碼、換行與動態代字。
 - `engine/sgb.asm`：SGB 畫面調色盤與邊框傳輸；相關資料在 `data/sgb/`。

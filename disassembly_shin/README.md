@@ -33,7 +33,7 @@ PR 或手動執行時，以 Python 3.12 和同版官方 RGBDS Linux 套件執行
 ## 原版來源
 
 - `original/bank_000.asm`～`bank_007.asm`：原版 ROM 配置及尚未拆分的程式／資料；已補齊直接分支與 dispatch table 的 symbol。
-- `original/engine/`：已確認的音效、訊息、SGB、場景動畫與結局系統；bank 檔依原版順序 INCLUDE，維持地址不變。
+- `original/engine/`：關卡、玩家、物件、選單與小遊戲按功能分檔，也包含共用的音效、訊息、SGB、場景動畫與結局系統。bank 檔依原版順序 INCLUDE。
 - `original/data/`：上述系統的波形、查表、SGB 傳輸資料及文字 descriptor。
 - `original/text/`、`original/charmap.inc`：可直接組譯的日文訊息／DEBUG 文字、原生文字控制碼及字碼對照。
 - `original/scene/`：場景動畫 frame／loop／hold macro 與格式說明；演出資料在 `original/data/`。
