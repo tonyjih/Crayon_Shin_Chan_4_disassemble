@@ -4,10 +4,10 @@
   "numeric_direct_branches": 0,
   "raw_memory_operands": 0,
   "generic_labels_before": 1323,
-  "generic_labels_remaining": 395,
+  "generic_labels_remaining": 337,
   "new_def_symbols": 154,
-  "unresolved_memory_references": 265,
-  "unresolved_memory_addresses": 45,
+  "unresolved_memory_references": 183,
+  "unresolved_memory_addresses": 30,
   "bank_label_counts": {
     "0": [
       263,
@@ -19,7 +19,7 @@
     ],
     "2": [
       518,
-      129
+      71
     ],
     "3": [
       103,

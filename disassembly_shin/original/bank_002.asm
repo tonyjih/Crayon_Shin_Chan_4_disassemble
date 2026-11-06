@@ -3731,7 +3731,7 @@ InitMinigame1::
     xor a
     ldh [hSCX], a
     ldh [hSCY], a
-    ld [wSharedWork + $4d], a
+    ld [wMekemekePaletteFlashTimer], a
     ld a, $e4
     ld [wPaletteBGP], a
     ld a, $d0
@@ -3764,7 +3764,7 @@ InitMinigame1::
     call PlaySound_Queue3
     xor a
     ld [wScreenSubstate], a
-    ld [wSharedWork + $4b], a
+    ld [wMekemekeEnemySlotsEnd], a
     ld a, $0d
     ld [wScreenPaletteId], a
     ret
@@ -3772,19 +3772,19 @@ InitMinigame1::
 
 UpdateMinigame1::
 ; Mode 1 update.
-    ld a, [wSharedWork + $4d]
+    ld a, [wMekemekePaletteFlashTimer]
     or a
-    jr z, jr_002_589d
+    jr z, Mekemeke_RestoreNormalPalette
 
     dec a
-    ld [wSharedWork + $4d], a
+    ld [wMekemekePaletteFlashTimer], a
     ld a, $1b
     ld [wPaletteBGP], a
     ld [wPaletteOBP0], a
     ld [wPaletteOBP1], a
-    jr jr_002_58bd
+    jr Mekemeke_DispatchPhase
 
-jr_002_589d::
+Mekemeke_RestoreNormalPalette::
     ld a, $e4
     ld [wPaletteBGP], a
     ld a, $d0
@@ -3793,29 +3793,28 @@ jr_002_589d::
     ld [wPaletteOBP1], a
     ld a, [wSgbEnabled]
     or a
-    jr z, jr_002_58bd
+    jr z, Mekemeke_DispatchPhase
 
     ld a, $e4
     ld [wPaletteBGP], a
     ld [wPaletteOBP0], a
     ld [wPaletteOBP1], a
 
-jr_002_58bd::
+Mekemeke_DispatchPhase::
     ld a, [wScreenSubstate]
     rst $00
 
 Minigame1StateHandlers::
     dw Minigame_WaitForStart ; $00
-    dw Minigame1_State01 ; $01
-    dw Minigame1_State02 ; $02
-    dw Minigame1_State03 ; $03
-    dw Minigame1_State04 ; $04
+    dw Mekemeke_UpdateRoundIntro ; $01
+    dw Mekemeke_UpdateRound ; $02
+    dw Mekemeke_UpdateFailure ; $03
+    dw Mekemeke_UpdateClear ; $04
 
-Minigame1_State01::
-; Minigame1StateHandlers index $01; detailed phase behavior remains to be named.
+Mekemeke_UpdateRoundIntro::
     xor a
     ld [wScreenPhaseCounter], a
-    call Call_002_5e5a
+    call Mekemeke_QueueLaneTileAnimation
     call UpdateMessageFar
     ld c, $0f
     ld b, $1c
@@ -3823,7 +3822,7 @@ Minigame1_State01::
     call DrawBank3MetaspriteNormal
     ld a, [wMinigamePhaseCounter]
     cp $ff
-    jr nz, jr_002_590c
+    jr nz, Mekemeke_TickStartCountdown
 
     ld a, [wMinigameRound]
     ld [wMsgSubstitutionId], a
@@ -3842,14 +3841,14 @@ Minigame1_State01::
     ret
 
 
-jr_002_590c::
+Mekemeke_TickStartCountdown::
     ld a, [wScreenFrameCounter]
     dec a
     ld [wScreenFrameCounter], a
     ld b, a
     ld a, [wMinigamePhaseCounter]
     or b
-    jp nz, Jump_002_59cd
+    jp nz, Mekemeke_ShowCountdownDigit
 
     call InitSound
     ld a, $2c
@@ -3860,20 +3859,20 @@ jr_002_590c::
     ld bc, _SCRN0 + $148
     ld de, $0004
     call QueueVramFill
-    ld de, Scene3Mode1StatusTiles
+    ld de, MekemekeHudTiles
     ld hl, _SCRN0 + $201
     ld bc, $1102
     call QueueTilemapRect
     ld a, $02
     ld [wScreenSubstate], a
     xor a
-    ld [wSharedWork + $176], a
-    ld [wSharedWork + $29], a
+    ld [wMekemekePlayerLane], a
+    ld [wMekemekePlayerShotX], a
     ld a, [wMinigameRound]
     ld b, a
     sla a
     add b
-    ld hl, Scene3Mode1CommandTable
+    ld hl, MekemekeRoundGoalTiles
     rst $38
     ld e, l
     ld d, h
@@ -3881,20 +3880,20 @@ jr_002_590c::
     ld hl, _SCRN0 + $22f
     ld a, [de]
     cp $04
-    jr nz, jr_002_5968
+    jr nz, Mekemeke_DrawRoundGoal
 
     inc de
     inc hl
     dec b
 
-jr_002_5968::
+Mekemeke_DrawRoundGoal::
     call QueueTilemapRect
     ld a, [wMinigameRound]
     dec a
     ld b, a
     add a
     add b
-    ld hl, Scene3Mode1SpritePositions
+    ld hl, MekemekeRoundTimerDigits
     rst $38
     ld a, [hl+]
     ld [wMinigameTimerHundreds], a
@@ -3905,9 +3904,9 @@ jr_002_5968::
     ld a, $01
     ld [wMinigamePhaseCounter], a
     ld a, $04
-    ld [wSharedWork + $56], a
-    ld [wSharedWork + $57], a
-    ld [wSharedWork + $58], a
+    ld [wMinigameScoreHundreds], a
+    ld [wMinigameScoreTens], a
+    ld [wMinigameScoreOnes], a
     ld hl, SceneAnim_79bb
     ld a, l
     ld [wSceneAnim0PtrLo], a
@@ -3915,18 +3914,18 @@ jr_002_5968::
     ld [wSceneAnim0PtrHi], a
     xor a
     ld [wSceneAnim0Timer], a
-    ld [wSharedWork + $4c], a
-    ld [wSharedWork + $50], a
+    ld [wMekemekeHitReactionTimer], a
+    ld [wMekemekeBlastSpan], a
     cpl
-    ld [wSharedWork + $4f], a
+    ld [wMekemekeBlastLaneFlags], a
     call AdvanceScreenRandomByte
     and $07
     add $0a
-    ld [wSharedWork + $4e], a
+    ld [wMekemekeBlastPickCooldown], a
     ld b, $04
-    ld hl, wSharedWork + $2b
+    ld hl, wMekemekeEnemySlots
 
-jr_002_59ba::
+Mekemeke_InitNextEnemySlot::
     xor a
     ld [hl+], a
     xor a
@@ -3941,12 +3940,12 @@ jr_002_59ba::
     ld [hl+], a
     ld [hl+], a
     dec b
-    jr nz, jr_002_59ba
+    jr nz, Mekemeke_InitNextEnemySlot
 
     ret
 
 
-Jump_002_59cd::
+Mekemeke_ShowCountdownDigit::
     ld a, [wScreenFrameCounter]
     or a
     ret nz
@@ -3969,21 +3968,20 @@ Jump_002_59cd::
     ld a, [wMinigamePhaseCounter]
     or a
     ld a, $59
-    jr nz, jr_002_5a02
+    jr nz, Mekemeke_PlayCountdownCue
 
     ld a, $5a
 
-jr_002_5a02::
+Mekemeke_PlayCountdownCue::
     call PlaySound
     ret
 
 
-Minigame1_State02::
-; Minigame1StateHandlers index $02; detailed phase behavior remains to be named.
+Mekemeke_UpdateRound::
     ldh a, [hJoyPressed]
     bit 3, a
     call nz, PauseMinigame
-    ld a, [wSharedWork + $176]
+    ld a, [wMekemekePlayerLane]
     swap a
     add a
     or $1c
@@ -3993,31 +3991,31 @@ Minigame1_State02::
     call AnimateSceneMetasprite
     ld a, [wMinigamePhaseCounter]
     cp $01
-    jr nz, jr_002_5a2f
+    jr nz, Mekemeke_UpdateBlast
 
-    ld a, [wSharedWork + $4e]
+    ld a, [wMekemekeBlastPickCooldown]
     or a
-    jr z, jr_002_5a2f
+    jr z, Mekemeke_UpdateBlast
 
     dec a
-    ld [wSharedWork + $4e], a
+    ld [wMekemekeBlastPickCooldown], a
 
-jr_002_5a2f::
-    ld a, [wSharedWork + $50]
+Mekemeke_UpdateBlast::
+    ld a, [wMekemekeBlastSpan]
     or a
-    jp z, jr_002_5abe
+    jp z, Mekemeke_CheckAttackInput
 
     ld c, a
-    ld a, [wSharedWork + $4f]
+    ld a, [wMekemekeBlastLaneFlags]
     bit 7, a
-    jr z, jr_002_5a45
+    jr z, Mekemeke_ProjectBlast
 
-    ld a, [wSharedWork + $50]
+    ld a, [wMekemekeBlastSpan]
     dec a
-    ld [wSharedWork + $50], a
+    ld [wMekemekeBlastSpan], a
 
-jr_002_5a45::
-    ld a, [wSharedWork + $4f]
+Mekemeke_ProjectBlast::
+    ld a, [wMekemekeBlastLaneFlags]
     and $7f
     swap a
     add a
@@ -4025,40 +4023,40 @@ jr_002_5a45::
     ld b, a
     ld a, $00
     bit 7, c
-    jr z, jr_002_5a58
+    jr z, Mekemeke_DrawBlastAndCheckLane
 
     ld a, $02
 
-jr_002_5a58::
+Mekemeke_DrawBlastAndCheckLane::
     ldh [hSpriteFlags], a
     ld d, $76
     call DrawBank3MetaspriteFar
-    ld a, [wSharedWork + $176]
+    ld a, [wMekemekePlayerLane]
     ld b, a
-    ld a, [wSharedWork + $4f]
+    ld a, [wMekemekeBlastLaneFlags]
     bit 7, a
-    jr z, jr_002_5abe
+    jr z, Mekemeke_CheckAttackInput
 
     and $7f
     cp b
-    jr nz, jr_002_5abe
+    jr nz, Mekemeke_CheckAttackInput
 
-    ld a, [wSharedWork + $50]
+    ld a, [wMekemekeBlastSpan]
     cp $18
-    jr nc, jr_002_5abe
+    jr nc, Mekemeke_CheckAttackInput
 
     ld a, $20
-    ld [wSharedWork + $4d], a
+    ld [wMekemekePaletteFlashTimer], a
     ld a, $49
     call PlaySound_Queue1
     xor a
     ld c, a
-    ld [wSharedWork + $50], a
-    ld hl, wSharedWork + $2b
+    ld [wMekemekeBlastSpan], a
+    ld hl, wMekemekeEnemySlots
     ld de, $0008
     ld b, $04
 
-jr_002_5a8d::
+Mekemeke_BlastNextEnemy::
     push hl
     ld a, [hl]
     res 3, [hl]
@@ -4066,7 +4064,7 @@ jr_002_5a8d::
     inc hl
     inc hl
     bit 1, a
-    jr nz, jr_002_5aa4
+    jr nz, Mekemeke_AdvanceBlastSlot
 
     ld a, [hl]
     cp $98
@@ -4074,45 +4072,45 @@ jr_002_5a8d::
     inc hl
     inc hl
     ld [hl], $00
-    jr nc, jr_002_5aa4
+    jr nc, Mekemeke_AdvanceBlastSlot
 
     inc c
 
-jr_002_5aa4::
+Mekemeke_AdvanceBlastSlot::
     pop hl
     add hl, de
     dec b
-    jr nz, jr_002_5a8d
+    jr nz, Mekemeke_BlastNextEnemy
 
     ld a, c
     ld c, $00
     bit 0, a
-    jr z, jr_002_5ab2
+    jr z, Mekemeke_AddBlastScore
 
     ld c, $05
 
-jr_002_5ab2::
+Mekemeke_AddBlastScore::
     srl a
     ld b, a
-    ld hl, Scene3Mode1CommandTable
-    call Call_002_6509
-    jp nc, Jump_002_5d58
+    ld hl, MekemekeRoundGoalTiles
+    call Minigame_AddScoreAndCompareGoal
+    jp nc, Mekemeke_BeginClearAnimation
 
-jr_002_5abe::
+Mekemeke_CheckAttackInput::
     ldh a, [hJoyPressed]
     and $03
-    jr z, jr_002_5aed
+    jr z, Mekemeke_UpdateEnemiesAndCountdown
 
-    ld a, [wSharedWork + $29]
+    ld a, [wMekemekePlayerShotX]
     or a
-    jr nz, jr_002_5aed
+    jr nz, Mekemeke_UpdateEnemiesAndCountdown
 
-    ld a, [wSharedWork + $176]
-    ld [wSharedWork + $2a], a
+    ld a, [wMekemekePlayerLane]
+    ld [wMekemekePlayerShotLane], a
     ld a, $1a
-    ld [wSharedWork + $29], a
+    ld [wMekemekePlayerShotX], a
     xor a
-    ld [wSharedWork + $28], a
+    ld [wMekemekePlayerShotXSubpixel], a
     ld a, $50
     call PlaySound
     ld hl, SceneAnim_79b7
@@ -4123,11 +4121,11 @@ jr_002_5abe::
     xor a
     ld [wSceneAnim0Timer], a
 
-jr_002_5aed::
-    call Call_002_5b7f
+Mekemeke_UpdateEnemiesAndCountdown::
+    call Mekemeke_UpdateEnemyLanes
     call TickMinigameCountdown
     or a
-    jr nz, jr_002_5b16
+    jr nz, Mekemeke_TickHitReaction
 
     ld a, $03
     ld [wScreenSubstate], a
@@ -4145,12 +4143,12 @@ jr_002_5aed::
     ret
 
 
-jr_002_5b16::
-    ld a, [wSharedWork + $4c]
+Mekemeke_TickHitReaction::
+    ld a, [wMekemekeHitReactionTimer]
     dec a
-    ld [wSharedWork + $4c], a
+    ld [wMekemekeHitReactionTimer], a
     cp $ff
-    jr z, jr_002_5b32
+    jr z, Mekemeke_ReadLaneInput
 
     or a
     ret nz
@@ -4163,32 +4161,32 @@ jr_002_5b16::
     xor a
     ld [wSceneAnim0Timer], a
 
-jr_002_5b32::
+Mekemeke_ReadLaneInput::
     xor a
-    ld [wSharedWork + $4c], a
+    ld [wMekemekeHitReactionTimer], a
     ldh a, [hJoyPressed]
     ld b, a
-    ld a, [wSharedWork + $176]
+    ld a, [wMekemekePlayerLane]
     bit 6, b
-    jr z, jr_002_5b44
+    jr z, Mekemeke_CheckDownInput
 
     or a
-    jr z, jr_002_5b44
+    jr z, Mekemeke_CheckDownInput
 
     dec a
 
-jr_002_5b44::
+Mekemeke_CheckDownInput::
     bit 7, b
-    jr z, jr_002_5b4d
+    jr z, Mekemeke_StoreLaneAndMoveShot
 
     cp $03
-    jr nc, jr_002_5b4d
+    jr nc, Mekemeke_StoreLaneAndMoveShot
 
     inc a
 
-jr_002_5b4d::
-    ld [wSharedWork + $176], a
-    ld hl, wSharedWork + $28
+Mekemeke_StoreLaneAndMoveShot::
+    ld [wMekemekePlayerLane], a
+    ld hl, wMekemekePlayerShotXSubpixel
     ld a, [hl+]
     ld h, [hl]
     ld l, a
@@ -4199,15 +4197,15 @@ jr_002_5b4d::
     ld bc, $0300
     add hl, bc
     ld a, l
-    ld [wSharedWork + $28], a
+    ld [wMekemekePlayerShotXSubpixel], a
     ld a, h
-    ld [wSharedWork + $29], a
+    ld [wMekemekePlayerShotX], a
     ld a, h
     cp $98
-    jr nc, jr_002_5b7a
+    jr nc, Mekemeke_ClearPlayerShot
 
     ld c, h
-    ld a, [wSharedWork + $2a]
+    ld a, [wMekemekePlayerShotLane]
     swap a
     add a
     or $16
@@ -4217,80 +4215,80 @@ jr_002_5b4d::
     ret
 
 
-jr_002_5b7a::
+Mekemeke_ClearPlayerShot::
     xor a
-    ld [wSharedWork + $29], a
+    ld [wMekemekePlayerShotX], a
     ret
 
 
-Call_002_5b7f::
-    call Call_002_5e5a
-    ldh a, [hTileStreamCount]
-    ldh [hSharedScratch + $0c], a
+Mekemeke_UpdateEnemyLanes::
+    call Mekemeke_QueueLaneTileAnimation
+    ldh a, [hMekemekeVariantCount]
+    ldh [hMekemekePrevVariantCount], a
     xor a
-    ldh [hTileStreamCount], a
+    ldh [hMekemekeVariantCount], a
     ld a, $04
-    ldh [hSharedScratch + $0d], a
-    ld hl, wSharedWork + $4b
+    ldh [hMekemekeSlotsRemaining], a
+    ld hl, wMekemekeEnemySlotsEnd
 
-Jump_002_5b90::
-    ldh a, [hSharedScratch + $0d]
+Mekemeke_UpdateNextEnemyLane::
+    ldh a, [hMekemekeSlotsRemaining]
     dec a
-    ldh [hSharedScratch + $0a], a
+    ldh [hMekemekeLaneIndex], a
     swap a
     add a
     or $17
-    ldh [hTileStreamWritePos], a
-    ld bc, -$0008
+    ldh [hMekemekeLaneY], a
+    ld bc, -MEKEMEKE_ENEMY_SIZE
     add hl, bc
     push hl
     ld a, [wScreenSubstate]
     cp $04
-    jr nz, jr_002_5bac
+    jr nz, Mekemeke_CountActiveVariant
 
     set 1, [hl]
     res 3, [hl]
 
-jr_002_5bac::
+Mekemeke_CountActiveVariant::
     ld a, [hl+]
     ld d, a
     and $07
     cp $01
-    jr nz, jr_002_5bb9
+    jr nz, Mekemeke_SelectEnemyVelocity
 
-    ldh a, [hTileStreamCount]
+    ldh a, [hMekemekeVariantCount]
     inc a
-    ldh [hTileStreamCount], a
+    ldh [hMekemekeVariantCount], a
 
-jr_002_5bb9::
+Mekemeke_SelectEnemyVelocity::
     ld bc, $0200
     bit 1, d
-    jr nz, jr_002_5bd4
+    jr nz, Mekemeke_CheckStationaryAttack
 
     push hl
     push de
     ld a, [wMinigameRound]
     dec a
-    ld hl, Scene3Mode1MetaspriteMotionData
+    ld hl, MekemekeRoundEnemyVelocities
     bit 0, d
-    jr z, jr_002_5bcf
+    jr z, Mekemeke_ReadRoundEnemyVelocity
 
     add $0a
 
-jr_002_5bcf::
+Mekemeke_ReadRoundEnemyVelocity::
     rst $20
     ld c, l
     ld b, h
     pop de
     pop hl
 
-jr_002_5bd4::
+Mekemeke_CheckStationaryAttack::
     bit 3, d
-    jr z, jr_002_5bdb
+    jr z, Mekemeke_MoveEnemyAndCheckDefenseLine
 
     ld bc, $0000
 
-jr_002_5bdb::
+Mekemeke_MoveEnemyAndCheckDefenseLine::
     ld a, c
     add [hl]
     ld [hl+], a
@@ -4300,7 +4298,7 @@ jr_002_5bdb::
     ld a, [hl-]
     dec hl
     cp $2a
-    jr nc, jr_002_5c08
+    jr nc, Mekemeke_CheckEnemyRespawn
 
     push hl
     ld a, $03
@@ -4318,15 +4316,15 @@ jr_002_5bdb::
     call PlaySound_Queue3
     pop hl
 
-jr_002_5c08::
+Mekemeke_CheckEnemyRespawn::
     inc hl
     inc hl
     ld a, [hl]
     bit 1, d
-    jr z, jr_002_5c67
+    jr z, Mekemeke_UpdateBlastSpanFromEnemy
 
     cp $a8
-    jr c, jr_002_5c67
+    jr c, Mekemeke_UpdateBlastSpanFromEnemy
 
     inc hl
     inc hl
@@ -4342,76 +4340,76 @@ jr_002_5c08::
     dec hl
     ld a, [wMinigameRound]
     dec a
-    add $b8
+    add LOW(MekemekeVariantChances)
     ld c, a
     ld a, $00
-    adc $5e
+    adc HIGH(MekemekeVariantChances)
     ld b, a
     ld a, [bc]
     ld c, a
-    ldh a, [hSharedScratch + $0c]
+    ldh a, [hMekemekePrevVariantCount]
     cp $03
-    jr c, jr_002_5c3d
+    jr c, Mekemeke_RollEnemyVariant
 
     ld c, $00
 
-jr_002_5c3d::
+Mekemeke_RollEnemyVariant::
     call AdvanceScreenRandomByte
     and $07
     cp c
     ld a, $00
-    jr nc, jr_002_5c49
+    jr nc, Mekemeke_StoreVariantAndPickBlastLane
 
     ld a, $01
 
-jr_002_5c49::
+Mekemeke_StoreVariantAndPickBlastLane::
     ld [hl+], a
     inc hl
-    ld a, [wSharedWork + $4e]
+    ld a, [wMekemekeBlastPickCooldown]
     or a
-    jr nz, jr_002_5c67
+    jr nz, Mekemeke_UpdateBlastSpanFromEnemy
 
     call AdvanceScreenRandomByte
     and $07
     add $0a
-    ld [wSharedWork + $4e], a
-    ld a, [wSharedWork + $50]
+    ld [wMekemekeBlastPickCooldown], a
+    ld a, [wMekemekeBlastSpan]
     or a
-    jr nz, jr_002_5c67
+    jr nz, Mekemeke_UpdateBlastSpanFromEnemy
 
-    ldh a, [hSharedScratch + $0d]
+    ldh a, [hMekemekeSlotsRemaining]
     dec a
-    ld [wSharedWork + $4f], a
+    ld [wMekemekeBlastLaneFlags], a
 
-jr_002_5c67::
-    ld a, [wSharedWork + $4f]
+Mekemeke_UpdateBlastSpanFromEnemy::
+    ld a, [wMekemekeBlastLaneFlags]
     bit 7, a
-    jr nz, jr_002_5c7e
+    jr nz, Mekemeke_CheckEnemyAttackStart
 
-    ld a, [wSharedWork + $4f]
+    ld a, [wMekemekeBlastLaneFlags]
     inc a
     ld b, a
-    ldh a, [hSharedScratch + $0d]
+    ldh a, [hMekemekeSlotsRemaining]
     cp b
-    jr nz, jr_002_5c7e
+    jr nz, Mekemeke_CheckEnemyAttackStart
 
     ld a, [hl]
     sub $14
-    ld [wSharedWork + $50], a
+    ld [wMekemekeBlastSpan], a
 
-jr_002_5c7e::
+Mekemeke_CheckEnemyAttackStart::
     ld a, [hl+]
     ld c, a
     inc hl
     bit 3, d
-    jr nz, jr_002_5c97
+    jr nz, Mekemeke_TickEnemyAttackWindup
 
     bit 0, d
-    jr z, jr_002_5ca5
+    jr z, Mekemeke_SelectEnemyFrame
 
     ld a, [hl]
     cp c
-    jr c, jr_002_5ca5
+    jr c, Mekemeke_SelectEnemyFrame
 
     ld [hl], $30
     pop de
@@ -4419,13 +4417,13 @@ jr_002_5c7e::
     ld a, [de]
     set 3, a
     ld [de], a
-    jr jr_002_5ca5
+    jr Mekemeke_SelectEnemyFrame
 
-jr_002_5c97::
+Mekemeke_TickEnemyAttackWindup::
     dec [hl]
     ld a, [hl]
     or a
-    jr nz, jr_002_5ca5
+    jr nz, Mekemeke_SelectEnemyFrame
 
     pop de
     push de
@@ -4436,10 +4434,10 @@ jr_002_5c97::
     ld a, c
     ld [hl-], a
 
-jr_002_5ca5::
+Mekemeke_SelectEnemyFrame::
     dec hl
     push hl
-    ldh a, [hTileStreamWritePos]
+    ldh a, [hMekemekeLaneY]
     ld b, a
     ld a, c
     srl a
@@ -4447,24 +4445,24 @@ jr_002_5ca5::
     srl a
     and $03
     bit 1, d
-    jr z, jr_002_5cb9
+    jr z, Mekemeke_SelectAttackFrame
 
     ld a, $04
 
-jr_002_5cb9::
+Mekemeke_SelectAttackFrame::
     bit 3, d
-    jr z, jr_002_5cbf
+    jr z, Mekemeke_SelectVariantFrameTable
 
     ld a, $05
 
-jr_002_5cbf::
-    ld hl, Scene3Mode1MotionTableA
+Mekemeke_SelectVariantFrameTable::
+    ld hl, MekemekeEnemyFrames
     bit 0, d
-    jr z, jr_002_5cc9
+    jr z, Mekemeke_DrawEnemyAndCheckIncomingShot
 
-    ld hl, Scene3Mode1MotionTableB
+    ld hl, MekemekeVariantEnemyFrames
 
-jr_002_5cc9::
+Mekemeke_DrawEnemyAndCheckIncomingShot::
     rst $38
     ld d, [hl]
     call DrawBank3MetaspriteWithPriority
@@ -4473,19 +4471,19 @@ jr_002_5cc9::
     inc hl
     ld a, [hl]
     or a
-    jr z, jr_002_5d18
+    jr z, Mekemeke_NextLaneOrCheckPlayerShot
 
     cp $20
-    jr nc, jr_002_5d00
+    jr nc, Mekemeke_MoveIncomingShot
 
     cp $10
-    jr c, jr_002_5d00
+    jr c, Mekemeke_MoveIncomingShot
 
-    ldh a, [hSharedScratch + $0a]
+    ldh a, [hMekemekeLaneIndex]
     ld b, a
-    ld a, [wSharedWork + $176]
+    ld a, [wMekemekePlayerLane]
     cp b
-    jr nz, jr_002_5d00
+    jr nz, Mekemeke_MoveIncomingShot
 
     ld bc, SceneAnim_79cd
     ld a, c
@@ -4496,11 +4494,11 @@ jr_002_5cc9::
     ld [wSceneAnim0Timer], a
     ld [hl], a
     ld a, $78
-    ld [wSharedWork + $4c], a
+    ld [wMekemekeHitReactionTimer], a
     ld a, $51
     call PlaySound
 
-jr_002_5d00::
+Mekemeke_MoveIncomingShot::
     inc hl
     ld bc, -$0280
     ld a, [hl]
@@ -4509,41 +4507,41 @@ jr_002_5d00::
     ld a, [hl]
     adc b
     cp $f0
-    jr c, jr_002_5d0e
+    jr c, Mekemeke_StoreAndDrawIncomingShot
 
     xor a
 
-jr_002_5d0e::
+Mekemeke_StoreAndDrawIncomingShot::
     ld [hl], a
     ld c, a
-    ldh a, [hTileStreamWritePos]
+    ldh a, [hMekemekeLaneY]
     ld b, a
     ld d, $72
     call DrawBank3MetaspriteNormal
 
-jr_002_5d18::
+Mekemeke_NextLaneOrCheckPlayerShot::
     pop hl
-    ldh a, [hSharedScratch + $0d]
+    ldh a, [hMekemekeSlotsRemaining]
     dec a
-    ldh [hSharedScratch + $0d], a
-    jp nz, Jump_002_5b90
+    ldh [hMekemekeSlotsRemaining], a
+    jp nz, Mekemeke_UpdateNextEnemyLane
 
-    ld a, [wSharedWork + $2a]
+    ld a, [wMekemekePlayerShotLane]
     swap a
     srl a
-    ld hl, wSharedWork + $2b
+    ld hl, wMekemekeEnemySlots
     rst $38
     inc hl
     inc hl
     ld b, [hl]
-    ld a, [wSharedWork + $29]
+    ld a, [wMekemekePlayerShotX]
     cp b
-    jr c, jr_002_5d91
+    jr c, Mekemeke_CheckProjectileClash
 
     ld a, $52
     call PlaySound
     xor a
-    ld [wSharedWork + $29], a
+    ld [wMekemekePlayerShotX], a
     dec hl
     dec hl
     set 1, [hl]
@@ -4551,23 +4549,23 @@ jr_002_5d18::
     ld bc, $0005
     add hl, bc
     ld [hl], $00
-    ld a, [wSharedWork + $df]
+    ld a, [wSharedWork + $df] ; The score helper overwrites A before using it.
     ld bc, $0005
-    ld hl, Scene3Mode1CommandTable
-    call Call_002_6509
-    jr c, jr_002_5d82
+    ld hl, MekemekeRoundGoalTiles
+    call Minigame_AddScoreAndCompareGoal
+    jr c, Mekemeke_ArmBlastAfterShot
 
-Jump_002_5d58::
+Mekemeke_BeginClearAnimation::
     ld a, $04
     ld [wScreenSubstate], a
     ld hl, SceneAnim_79be
     ld a, [wMinigameRound]
     cp $0a
-    jr nz, jr_002_5d6a
+    jr nz, Mekemeke_StoreClearAnimation
 
     ld hl, SceneAnim_79d4
 
-jr_002_5d6a::
+Mekemeke_StoreClearAnimation::
     ld a, l
     ld [wSceneAnim0PtrLo], a
     ld a, h
@@ -4581,19 +4579,19 @@ jr_002_5d6a::
     ret
 
 
-jr_002_5d82::
-    ld a, [wSharedWork + $2a]
+Mekemeke_ArmBlastAfterShot::
+    ld a, [wMekemekePlayerShotLane]
     ld b, a
-    ld a, [wSharedWork + $4f]
+    ld a, [wMekemekeBlastLaneFlags]
     cp b
     ret nz
 
     set 7, a
-    ld [wSharedWork + $4f], a
+    ld [wMekemekeBlastLaneFlags], a
     ret
 
 
-jr_002_5d91::
+Mekemeke_CheckProjectileClash::
     inc hl
     inc hl
     inc hl
@@ -4602,7 +4600,7 @@ jr_002_5d91::
     ret z
 
     ld b, a
-    ld a, [wSharedWork + $29]
+    ld a, [wMekemekePlayerShotX]
     or a
     ret z
 
@@ -4611,13 +4609,12 @@ jr_002_5d91::
 
     xor a
     ld [hl], a
-    ld [wSharedWork + $29], a
+    ld [wMekemekePlayerShotX], a
     ret
 
 
-Minigame1_State03::
-; Minigame1StateHandlers index $03; detailed phase behavior remains to be named.
-    ld a, [wSharedWork + $176]
+Mekemeke_UpdateFailure::
+    ld a, [wMekemekePlayerLane]
     swap a
     add a
     or $1c
@@ -4626,21 +4623,21 @@ Minigame1_State03::
     ld de, wSceneAnim0PtrLo
     call AnimateSceneMetasprite
     ld b, $04
-    ld hl, wSharedWork + $4b
+    ld hl, wMekemekeEnemySlotsEnd
 
-jr_002_5dbb::
+Mekemeke_DrawNextFailedLane::
     push bc
     ld e, b
-    ld bc, -$0008
+    ld bc, -MEKEMEKE_ENEMY_SIZE
     add hl, bc
     push hl
     ld d, $00
     bit 0, [hl]
-    jr z, jr_002_5dca
+    jr z, Mekemeke_ProjectFailedLane
 
     ld d, $02
 
-jr_002_5dca::
+Mekemeke_ProjectFailedLane::
     inc hl
     inc hl
     ld a, e
@@ -4653,28 +4650,28 @@ jr_002_5dca::
     ld c, a
     cp $90
     ld a, $00
-    jr c, jr_002_5dde
+    jr c, Mekemeke_SetFailedLanePriority
 
     ld a, $02
 
-jr_002_5dde::
+Mekemeke_SetFailedLanePriority::
     ldh [hSpriteFlags], a
     ld a, [wScreenFrameCounter]
     bit 4, a
-    jr nz, jr_002_5de8
+    jr nz, Mekemeke_DrawFailedLaneFrame
 
     inc d
 
-jr_002_5de8::
+Mekemeke_DrawFailedLaneFrame::
     ld a, d
-    ld hl, Scene3Mode1AnimationFramesA
+    ld hl, MekemekeFailureEnemyFrames
     rst $38
     ld d, [hl]
     call DrawBank3MetaspriteFar
     pop hl
     pop bc
     dec b
-    jr nz, jr_002_5dbb
+    jr nz, Mekemeke_DrawNextFailedLane
 
     ld a, [wScreenFrameCounter]
     inc a
@@ -4697,21 +4694,20 @@ jr_002_5de8::
     ret
 
 
-Minigame1_State04::
-; Minigame1StateHandlers index $04; detailed phase behavior remains to be named.
-    ld hl, wSharedWork + $30
+Mekemeke_UpdateClear::
+    ld hl, wMekemekeEnemySlots + MEKEMEKE_ENEMY_OFS_SHOT_X
     xor a
     ld de, $0008
     ld b, $04
 
-jr_002_5e21::
+Mekemeke_ClearEnemyShotsAfterWin::
     ld [hl], a
     add hl, de
     dec b
-    jr nz, jr_002_5e21
+    jr nz, Mekemeke_ClearEnemyShotsAfterWin
 
-    call Call_002_5b7f
-    ld a, [wSharedWork + $176]
+    call Mekemeke_UpdateEnemyLanes
+    ld a, [wMekemekePlayerLane]
     swap a
     add a
     or $1c
@@ -4740,20 +4736,20 @@ jr_002_5e21::
     jp AdvanceMinigameRoundOrExit
 
 
-Call_002_5e5a::
+Mekemeke_QueueLaneTileAnimation::
     ld a, [wScreenPhaseCounter]
     inc a
     ld [wScreenPhaseCounter], a
     srl a
     srl a
     and $06
-    ld hl, Scene3Mode1AnimationFramesB
+    ld hl, MekemekeLaneTilePairs
     rst $38
     ld e, l
     ld d, h
     ld hl, _SCRN0 + $023
 
-jr_002_5e70::
+Mekemeke_QueueNextLaneTilePair::
     push de
     push hl
     ld bc, $0102
@@ -4764,46 +4760,51 @@ jr_002_5e70::
     add hl, bc
     ld a, h
     cp $9a
-    jr nz, jr_002_5e70
+    jr nz, Mekemeke_QueueNextLaneTilePair
 
     ret
 
 
 
-Scene3Mode1MetaspriteMotionData::
+MekemekeRoundEnemyVelocities::
+; Ten signed 8.8 velocities per variant.
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
     db $80, $ff, $79, $ff, $71, $ff, $69, $ff, $61, $ff, $5a, $ff, $52, $ff, $4a, $ff
     db $42, $ff, $3a, $ff, $40, $ff, $39, $ff, $31, $ff, $29, $ff, $21, $ff, $1a, $ff
     db $12, $ff, $0a, $ff, $02, $ff, $fa, $fe
 
-Scene3Mode1MotionTableA::
+MekemekeEnemyFrames::
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
     db $69, $6a, $69, $6b, $6d, $6d
 
-Scene3Mode1MotionTableB::
+MekemekeVariantEnemyFrames::
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
-    db $6e, $6f, $6e, $70, $75, $71, $01, $01, $02, $02, $03, $03, $04, $04, $05, $05
+    db $6e, $6f, $6e, $70, $75, $71
 
-Scene3Mode1AnimationFramesA::
+MekemekeVariantChances::
+; One threshold per round, compared with a random value 0 through 7.
+    db $01, $01, $02, $02, $03, $03, $04, $04, $05, $05
+
+MekemekeFailureEnemyFrames::
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
     db $6c, $69, $73, $74
 
-Scene3Mode1AnimationFramesB::
+MekemekeLaneTilePairs::
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
     db $91, $a1, $a8, $a9, $aa, $ab, $a8, $a9
 
-Scene3Mode1StatusTiles::
+MekemekeHudTiles::
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
     db $85, $86, $87, $ac, $ac, $ac, $ac, $ac, $80, $81, $ac, $ac, $ac, $ac, $82, $83
     db $84, $00, $00, $04, $00, $00, $00, $00, $00, $0d, $0d, $00, $00, $00, $00, $00
     db $00, $04
 
-Scene3Mode1SpritePositions::
+MekemekeRoundTimerDigits::
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
     db $00, $03, $01, $00, $04, $01, $00, $05, $01, $00, $06, $01, $00, $07, $01, $00
     db $08, $01, $00, $09, $01, $01, $00, $01, $01, $01, $01, $01, $02, $01
 
-Scene3Mode1CommandTable::
+MekemekeRoundGoalTiles::
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
     db $04, $04, $04, $05, $04, $04, $05, $09, $04, $06, $04, $04, $06, $09, $04, $07
     db $04, $04, $07, $09, $04, $08, $04, $04, $08, $09, $04, $09, $04, $04, $09, $09
@@ -4942,9 +4943,9 @@ jr_002_602f::
     ld [wMinigameTimerTens], a
     ld [wMinigameTimerOnes], a
     ld a, $04
-    ld [wSharedWork + $56], a
-    ld [wSharedWork + $57], a
-    ld [wSharedWork + $58], a
+    ld [wMinigameScoreHundreds], a
+    ld [wMinigameScoreTens], a
+    ld [wMinigameScoreOnes], a
     ld a, $32
     ld [wMinigamePhaseCounter], a
     ld a, $02
@@ -5726,7 +5727,7 @@ jr_002_6464::
     ld b, l
     ld c, h
     ld hl, ScreenData_6728
-    call Call_002_6509
+    call Minigame_AddScoreAndCompareGoal
     jr c, jr_002_64c0
 
     ld a, $04
@@ -5789,9 +5790,10 @@ Call_002_64d9::
     ret
 
 
-Call_002_6509::
+Minigame_AddScoreAndCompareGoal::
+; B=tens and C=ones to add. HL points to goal tiles by round. Returns carry if the score is below the goal.
     push hl
-    ld hl, wSharedWork + $58
+    ld hl, wMinigameScoreOnes
     ld a, c
     add [hl]
     ld [hl-], a
@@ -5801,39 +5803,39 @@ Call_002_6509::
     ld [hl+], a
     ld a, [hl]
     cp $0e
-    jr c, jr_002_651e
+    jr c, Minigame_CarryScoreTens
 
     sub $0a
     ld [hl-], a
     inc [hl]
     inc hl
 
-jr_002_651e::
+Minigame_CarryScoreTens::
     dec hl
     ld a, [hl]
     cp $0e
-    jr c, jr_002_6528
+    jr c, Minigame_SelectScoreHudDigits
 
     sub $0a
     ld [hl-], a
     inc [hl]
 
-jr_002_6528::
-    ld de, wSharedWork + $56
+Minigame_SelectScoreHudDigits::
+    ld de, wMinigameScoreHundreds
     ld hl, _SCRN0 + $221
     ld b, $03
 
-jr_002_6530::
+Minigame_SkipLeadingScoreZeros::
     ld a, [de]
     cp $04
-    jr nz, jr_002_653a
+    jr nz, Minigame_DrawScoreAndLoadGoal
 
     inc hl
     inc de
     dec b
-    jr nz, jr_002_6530
+    jr nz, Minigame_SkipLeadingScoreZeros
 
-jr_002_653a::
+Minigame_DrawScoreAndLoadGoal::
     ld c, $01
     call QueueTilemapRect
     ld a, [wMinigameRound]
@@ -5842,22 +5844,22 @@ jr_002_653a::
     add b
     pop hl
     rst $38
-    ld de, wSharedWork + $56
+    ld de, wMinigameScoreHundreds
     ld b, $03
 
-jr_002_654c::
+Minigame_CompareNextScoreDigit::
     ld a, [de]
     sub [hl]
     ret c
 
-    jr nz, jr_002_6556
+    jr nz, Minigame_ScoreAtLeastGoal
 
     inc de
     inc hl
     dec b
-    jr nz, jr_002_654c
+    jr nz, Minigame_CompareNextScoreDigit
 
-jr_002_6556::
+Minigame_ScoreAtLeastGoal::
     or a
     ret
 

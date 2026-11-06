@@ -496,3 +496,31 @@ DEF wSlideLandingFrame      EQU $d956 ; Selects the alternating ground arrival m
 DEF wSlideActorScreenX      EQU $d97b ; Saved projected X for the result animation.
 DEF hSlidePlatformDrawPtrLo EQU $ffca ; Backtracked record used to highlight a platform during bounce.
 DEF hSlidePlatformDrawPtrHi EQU $ffcb
+
+; Mekemeke (minigame 1). Four enemy records in lane order.
+DEF MEKEMEKE_ENEMY_COUNT       EQU 4
+DEF MEKEMEKE_ENEMY_SIZE        EQU 8
+DEF MEKEMEKE_ENEMY_OFS_SHOT_X  EQU 5
+DEF wMekemekePlayerShotXSubpixel EQU $d828
+DEF wMekemekePlayerShotX       EQU $d829 ; Zero means inactive.
+DEF wMekemekePlayerShotLane    EQU $d82a
+; Flags, X fraction, X, original byte +3, attack X/windup, shot X, shot fraction, original byte +7.
+; Flags: bit 0 selects the variant, bit 1 marks retreat, and bit 3 holds X during windup.
+DEF wMekemekeEnemySlots        EQU $d82b
+DEF wMekemekeEnemySlotsEnd     EQU wMekemekeEnemySlots + MEKEMEKE_ENEMY_COUNT * MEKEMEKE_ENEMY_SIZE
+DEF wMekemekeHitReactionTimer  EQU $d84c
+DEF wMekemekePaletteFlashTimer EQU $d84d
+DEF wMekemekeBlastPickCooldown EQU $d84e
+DEF wMekemekeBlastLaneFlags    EQU $d84f ; Lane in bits 0-6, bit 7 arms the blast after a hit.
+DEF wMekemekeBlastSpan         EQU $d850 ; Tracks enemy X before the hit, then counts down.
+DEF wMekemekePlayerLane        EQU $d976
+DEF hMekemekeLaneY             EQU $ffc9
+DEF hMekemekeLaneIndex         EQU $ffca
+DEF hMekemekeVariantCount      EQU $ffcb
+DEF hMekemekePrevVariantCount  EQU $ffcc
+DEF hMekemekeSlotsRemaining    EQU $ffcd
+
+; Modes 1 and 2 share three decimal score digits encoded as tile IDs ($04 = zero).
+DEF wMinigameScoreHundreds     EQU $d856
+DEF wMinigameScoreTens         EQU $d857
+DEF wMinigameScoreOnes         EQU $d858
