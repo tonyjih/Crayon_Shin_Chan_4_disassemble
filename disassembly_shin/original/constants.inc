@@ -524,3 +524,39 @@ DEF hMekemekeSlotsRemaining    EQU $ffcd
 DEF wMinigameScoreHundreds     EQU $d856
 DEF wMinigameScoreTens         EQU $d857
 DEF wMinigameScoreOnes         EQU $d858
+
+; Bug catching (minigame 2). Each bug holds type, axis/sign, X, Y, motion fraction,
+; special motion timer, direction phase, and the original trailing byte.
+DEF BUG_SLOT_COUNT             EQU 16
+DEF BUG_SLOT_SIZE              EQU 8
+DEF BUG_HAZARD_SIZE            EQU 8
+DEF BUG_HAZARD_OFS_AIM_REFRESH EQU 4
+DEF wBugSpawnGate              EQU $d859
+DEF wBugSpawnDelay             EQU $d85a
+DEF wBugPlayerStepFraction     EQU $d85b ; Carry alternates one- and two-pixel steps.
+DEF wBugWingFrameCounter       EQU $d85c
+DEF wBugSlots                  EQU $d85d
+DEF wBugPhase                  EQU $d8dd ; Move, catch, hit reaction, empty phase, or result.
+DEF wBugCatchType              EQU $d8de ; $ff until a bug is caught in the current swing.
+DEF wBugLastCaughtType          EQU $d8df ; Popup and score type for the most recent catch.
+DEF wBugPopupX                  EQU $d8e0
+DEF wBugPopupY                  EQU $d8e1
+; Hazard records hold respawn timer, X or spawn index, Y, step error,
+; aim refresh timer, absolute aim X/Y, and aim sign bits.
+DEF wBugHazardSlots             EQU $d8e2
+DEF wBugPlayerBlinkTimer        EQU $d956 ; Hit recovery flicker and hazard invulnerability.
+DEF wBugHazardFrameCounter      EQU $d957
+DEF wBugPlayerX                 EQU $d975
+DEF wBugPlayerY                 EQU $d976
+DEF wBugPlayerFacing            EQU $d977 ; Up, left, down, right.
+DEF hBugSpawnX                  EQU $ffc9
+DEF hBugSpawnY                  EQU $ffca
+DEF hBugSpawnType               EQU $ffcb
+DEF hBugCatchMinX               EQU $ffc9
+DEF hBugCatchMinY               EQU $ffca
+DEF hBugCatchMaxX               EQU $ffcb
+DEF hBugCatchMaxY               EQU $ffcc
+DEF hBugHazardAimAbsX           EQU $ffc9
+DEF hBugHazardAimAbsY           EQU $ffca
+DEF hBugHazardMetasprite        EQU $ffcb
+ASSERT wBugSlots + BUG_SLOT_COUNT * BUG_SLOT_SIZE == wBugPhase

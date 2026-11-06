@@ -4855,11 +4855,10 @@ UpdateMinigame2::
 
 Minigame2StateHandlers::
     dw Minigame_WaitForStart ; $00
-    dw Minigame2_State01 ; $01
-    dw Minigame2_State02 ; $02
+    dw BugHunt_UpdateRoundIntro ; $01
+    dw BugHunt_UpdateRound ; $02
 
-Minigame2_State01::
-; Minigame2StateHandlers index $01; detailed phase behavior remains to be named.
+BugHunt_UpdateRoundIntro::
     call UpdateMessageFar
     ld bc, $4050
     ld d, $1a
@@ -4876,7 +4875,7 @@ Minigame2_State01::
     call nc, DrawBank3MetaspriteNormal
     ld a, [wMinigamePhaseCounter]
     cp $ff
-    jr nz, jr_002_5fe1
+    jr nz, BugHunt_TickStartCountdown
 
     ld a, [wMinigameRound]
     ld [wMsgSubstitutionId], a
@@ -4885,7 +4884,7 @@ Minigame2_State01::
     ld a, $14
     call StartMessageFar
     ld bc, _SCRN0 + $201
-    ld de, _VRAM + $1111
+    ld de, $9111 ; Fill 17 columns with tile $91.
     call QueueVramFill
     ld bc, _SCRN0 + $221
     ld de, $0011
@@ -4895,19 +4894,19 @@ Minigame2_State01::
     ret
 
 
-jr_002_5fe1::
+BugHunt_TickStartCountdown::
     ld a, [wScreenFrameCounter]
     dec a
     ld [wScreenFrameCounter], a
     ld b, a
     ld a, [wMinigamePhaseCounter]
     or b
-    jp nz, Jump_002_60a2
+    jp nz, BugHunt_ShowCountdownDigit
 
     call InitSound
     ld a, $24
     call PlaySound_Queue3
-    ld de, ScreenData_6706
+    ld de, BugHuntHudTiles
     ld hl, _SCRN0 + $201
     ld bc, $1102
     call QueueTilemapRect
@@ -4921,7 +4920,7 @@ jr_002_5fe1::
     ld b, a
     sla a
     add b
-    ld hl, ScreenData_6728
+    ld hl, BugHuntRoundGoalTiles
     rst $38
     ld e, l
     ld d, h
@@ -4929,13 +4928,13 @@ jr_002_5fe1::
     ld hl, _SCRN0 + $22f
     ld a, [de]
     cp $04
-    jr nz, jr_002_602f
+    jr nz, BugHunt_DrawRoundGoal
 
     inc de
     inc hl
     dec b
 
-jr_002_602f::
+BugHunt_DrawRoundGoal::
     call QueueTilemapRect
     xor a
     ld [wMinigameTimerHundreds], a
@@ -4951,7 +4950,7 @@ jr_002_602f::
     ld a, $02
     ld [wScreenSubstate], a
     ld a, $a0
-    ld [wSharedWork + $5a], a
+    ld [wBugSpawnDelay], a
     ld hl, SceneAnim_7913
     ld a, l
     ld [wSceneAnim0PtrLo], a
@@ -4959,43 +4958,43 @@ jr_002_602f::
     ld [wSceneAnim0PtrHi], a
     xor a
     ld [wSceneAnim0Timer], a
-    ld [wSharedWork + $dd], a
-    ld [wSharedWork + $156], a
+    ld [wBugPhase], a
+    ld [wBugPlayerBlinkTimer], a
     ld a, $50
-    ld [wSharedWork + $175], a
+    ld [wBugPlayerX], a
     ld a, $40
-    ld [wSharedWork + $176], a
+    ld [wBugPlayerY], a
     ld a, $02
-    ld [wSharedWork + $177], a
-    ld hl, ScreenData_6846
-    ld de, wSharedWork + $e2
+    ld [wBugPlayerFacing], a
+    ld hl, BugHuntInitialHazardRecords
+    ld de, wBugHazardSlots
     ld b, $10
 
-jr_002_6084::
+BugHunt_CopyHazardInitialState::
     ld a, [hl+]
     ld [de], a
     inc de
     dec b
-    jr nz, jr_002_6084
+    jr nz, BugHunt_CopyHazardInitialState
 
     ld a, $80
-    ld hl, wSharedWork + $5d
+    ld hl, wBugSlots
     ld bc, $0008
     ld d, $10
 
-jr_002_6094::
+BugHunt_ClearNextBugSlot::
     ld [hl], a
     add hl, bc
     dec d
-    jr nz, jr_002_6094
+    jr nz, BugHunt_ClearNextBugSlot
 
     call AdvanceScreenRandomByte
     and $03
-    ld [wSharedWork + $59], a
+    ld [wBugSpawnGate], a
     ret
 
 
-Jump_002_60a2::
+BugHunt_ShowCountdownDigit::
     ld a, [wScreenFrameCounter]
     or a
     ret nz
@@ -5018,53 +5017,52 @@ Jump_002_60a2::
     ld a, [wMinigamePhaseCounter]
     or a
     ld a, $59
-    jr nz, jr_002_60d7
+    jr nz, BugHunt_PlayCountdownCue
 
     ld a, $5a
 
-jr_002_60d7::
+BugHunt_PlayCountdownCue::
     call PlaySound
     ret
 
 
-Minigame2_State02::
-; Minigame2StateHandlers index $02; detailed phase behavior remains to be named.
-    ld a, [wSharedWork + $157]
+BugHunt_UpdateRound::
+    ld a, [wBugHazardFrameCounter]
     inc a
-    ld [wSharedWork + $157], a
+    ld [wBugHazardFrameCounter], a
     ldh a, [hJoyPressed]
     bit 3, a
     call nz, PauseMinigame
-    ld a, [wSharedWork + $175]
+    ld a, [wBugPlayerX]
     ld c, a
-    ld a, [wSharedWork + $176]
+    ld a, [wBugPlayerY]
     ld b, a
     ld de, wSceneAnim0PtrLo
     call AnimateSceneMetasprite
-    ld a, [wSharedWork + $156]
+    ld a, [wBugPlayerBlinkTimer]
     or a
-    jr z, jr_002_6108
+    jr z, BugHunt_UpdateHazardsAndTimer
 
     dec a
-    ld [wSharedWork + $156], a
+    ld [wBugPlayerBlinkTimer], a
     bit 3, a
-    jr z, jr_002_6108
+    jr z, BugHunt_UpdateHazardsAndTimer
 
     xor a
     ldh [hOamWritePos], a
 
-jr_002_6108::
-    call Call_002_65b3
-    call Call_002_64d9
-    ld a, [wSharedWork + $5c]
+BugHunt_UpdateHazardsAndTimer::
+    call BugHunt_UpdateRoundHazards
+    call BugHunt_DrawCaughtBugPopup
+    ld a, [wBugWingFrameCounter]
     inc a
-    ld [wSharedWork + $5c], a
+    ld [wBugWingFrameCounter], a
     call TickMinigameCountdown
     or a
-    jr nz, jr_002_6141
+    jr nz, BugHunt_TickSpawnGate
 
     ld a, $04
-    ld [wSharedWork + $dd], a
+    ld [wBugPhase], a
     ld hl, SceneAnim_7960
     ld a, l
     ld [wSceneAnim0PtrLo], a
@@ -5080,120 +5078,120 @@ jr_002_6108::
     ld a, $38
     call PlaySound_Queue3
 
-jr_002_6141::
-    ld a, [wSharedWork + $5a]
+BugHunt_TickSpawnGate::
+    ld a, [wBugSpawnDelay]
     dec a
-    ld [wSharedWork + $5a], a
+    ld [wBugSpawnDelay], a
     cp $60
-    jp nc, jr_002_6204
+    jp nc, BugHunt_UpdateBugSlots
 
     and $0f
-    jp nz, jr_002_6204
+    jp nz, BugHunt_UpdateBugSlots
 
-    ld a, [wSharedWork + $59]
+    ld a, [wBugSpawnGate]
     sla a
     sla a
-    ld hl, ScreenData_6749
+    ld hl, BugHuntSpawnGates
     rst $38
     ld a, [hl+]
     push hl
     ld h, [hl]
     ld l, a
-    ld a, [wSharedWork + $5a]
-    ld de, ScreenData_6759
+    ld a, [wBugSpawnDelay]
+    ld de, BugHuntGateBaseTiles
     bit 4, a
-    jr z, jr_002_6176
+    jr z, BugHunt_DrawSpawnGate
 
-    ld a, [wSharedWork + $dd]
+    ld a, [wBugPhase]
     cp $04
-    jp z, jr_002_6176
+    jp z, BugHunt_DrawSpawnGate
 
-    ld de, ScreenData_675c
+    ld de, BugHuntGateBlinkTiles
 
-jr_002_6176::
+BugHunt_DrawSpawnGate::
     ld bc, $0301
     call QueueTilemapRect
     pop hl
-    ld a, [wSharedWork + $5a]
+    ld a, [wBugSpawnDelay]
     or a
-    jp nz, jr_002_6204
+    jp nz, BugHunt_UpdateBugSlots
 
-    ld a, [wSharedWork + $dd]
+    ld a, [wBugPhase]
     cp $04
-    jp z, jr_002_6204
+    jp z, BugHunt_UpdateBugSlots
 
     inc hl
     ld a, [hl+]
-    ldh [hTileStreamWritePos], a
+    ldh [hBugSpawnX], a
     ld a, [hl]
-    ldh [hSharedScratch + $0a], a
+    ldh [hBugSpawnY], a
     ld a, [wMinigameRound]
     dec a
     add a
     add a
-    ld hl, ScreenData_676b
+    ld hl, BugHuntRoundSpawnWeights
     rst $38
     call AdvanceScreenRandomByte
     and $07
     ld b, $00
 
-jr_002_61a4::
+BugHunt_SelectWeightedBugType::
     sub [hl]
-    jr c, jr_002_61ab
+    jr c, BugHunt_SelectSpawnDirection
 
     inc b
     inc hl
-    jr jr_002_61a4
+    jr BugHunt_SelectWeightedBugType
 
-jr_002_61ab::
+BugHunt_SelectSpawnDirection::
     ld a, b
-    ldh [hTileStreamCount], a
-    ld a, [wSharedWork + $59]
+    ldh [hBugSpawnType], a
+    ld a, [wBugSpawnGate]
     ld b, a
     add a
     add b
-    ld hl, ScreenData_675f
+    ld hl, BugHuntGateDirectionChoices
     rst $38
-    ldh a, [hTileStreamCount]
+    ldh a, [hBugSpawnType]
     cp $03
-    jr nz, jr_002_61c8
+    jr nz, BugHunt_PickOrdinaryBugDirection
 
     call AdvanceScreenRandomByte
     bit 0, a
-    jr z, jr_002_61cc
+    jr z, BugHunt_FindFreeBugSlot
 
     inc hl
-    jr jr_002_61cc
+    jr BugHunt_FindFreeBugSlot
 
-jr_002_61c8::
+BugHunt_PickOrdinaryBugDirection::
     call ChooseScreenRandomThird
     rst $38
 
-jr_002_61cc::
+BugHunt_FindFreeBugSlot::
     ld d, [hl]
-    ld hl, wSharedWork + $5d
+    ld hl, wBugSlots
     ld b, $10
 
-jr_002_61d2::
+BugHunt_CheckNextBugSlot::
     ld a, [hl]
     bit 7, a
-    jr nz, jr_002_61df
+    jr nz, BugHunt_WriteSpawnedBug
 
     ld a, $08
     rst $38
     dec b
-    jr nz, jr_002_61d2
+    jr nz, BugHunt_CheckNextBugSlot
 
-    jr jr_002_6204
+    jr BugHunt_UpdateBugSlots
 
-jr_002_61df::
-    ldh a, [hTileStreamCount]
+BugHunt_WriteSpawnedBug::
+    ldh a, [hBugSpawnType]
     ld [hl+], a
     ld [hl], d
     inc hl
-    ldh a, [hTileStreamWritePos]
+    ldh a, [hBugSpawnX]
     ld [hl+], a
-    ldh a, [hSharedScratch + $0a]
+    ldh a, [hBugSpawnY]
     ld [hl+], a
     xor a
     ld [hl+], a
@@ -5205,30 +5203,30 @@ jr_002_61df::
     call AdvanceScreenRandomByte
     and $7f
     add $40
-    ld [wSharedWork + $5a], a
+    ld [wBugSpawnDelay], a
     call AdvanceScreenRandomByte
     and $03
-    ld [wSharedWork + $59], a
+    ld [wBugSpawnGate], a
 
-jr_002_6204::
+BugHunt_UpdateBugSlots::
     ld b, $10
-    ld hl, wSharedWork + $5d
+    ld hl, wBugSlots
 
-Jump_002_6209::
+BugHunt_UpdateNextBug::
     push bc
     push hl
     ld a, [hl]
     and $c0
-    jp nz, jr_002_6290
+    jp nz, BugHunt_AdvanceBugSlot
 
     ld a, [hl]
     push hl
     cp $03
-    call nc, Call_002_62a9
+    call nc, BugHunt_UpdateSpecialBugMotion
     pop hl
     ld a, [hl]
     sla a
-    ld de, ScreenData_6793
+    ld de, BugHuntMotionSteps
     add e
     ld e, a
     ld a, $00
@@ -5249,62 +5247,62 @@ Jump_002_6209::
     inc hl
     push hl
     bit 1, b
-    jr nz, jr_002_623c
+    jr nz, BugHunt_SelectMotionAxis
 
     cpl
     inc a
 
-jr_002_623c::
+BugHunt_SelectMotionAxis::
     bit 0, b
-    jr nz, jr_002_6241
+    jr nz, BugHunt_MoveBugAndCheckX
 
     inc hl
 
-jr_002_6241::
+BugHunt_MoveBugAndCheckX::
     add [hl]
     ld [hl], a
     pop hl
     ld a, [hl]
     ld c, a
     bit 7, a
-    jr z, jr_002_6255
+    jr z, BugHunt_CheckBugY
 
     cp $a0
-    jr c, jr_002_6255
+    jr c, BugHunt_CheckBugY
 
     dec hl
     dec hl
     ld a, $80
     ld [hl], a
-    jr jr_002_6290
+    jr BugHunt_AdvanceBugSlot
 
-jr_002_6255::
+BugHunt_CheckBugY::
     inc hl
     ld a, [hl]
     ld b, a
     bit 7, a
-    jr z, jr_002_6268
+    jr z, BugHunt_SelectBugAnimationPhase
 
     cp $80
-    jr c, jr_002_6268
+    jr c, BugHunt_SelectBugAnimationPhase
 
     dec hl
     dec hl
     dec hl
     ld a, $80
     ld [hl], a
-    jr jr_002_6290
+    jr BugHunt_AdvanceBugSlot
 
-jr_002_6268::
+BugHunt_SelectBugAnimationPhase::
     dec hl
     dec hl
-    ld a, [wSharedWork + $5c]
+    ld a, [wBugWingFrameCounter]
     and $10
-    jr z, jr_002_6272
+    jr z, BugHunt_SelectBugMetasprite
 
     scf
 
-jr_002_6272::
+BugHunt_SelectBugMetasprite::
     ld a, [hl-]
     rla
     ld d, a
@@ -5312,56 +5310,56 @@ jr_002_6272::
     swap a
     srl a
     or d
-    ld hl, ScreenData_67a5
+    ld hl, BugHuntBugFrames
     rst $38
     ld a, $01
     ld d, [hl]
     bit 7, d
-    jr nz, jr_002_6287
+    jr nz, BugHunt_DrawBug
 
     xor a
 
-jr_002_6287::
+BugHunt_DrawBug::
     ldh [hSpriteFlags], a
     ld a, d
     and $7f
     ld d, a
     call DrawBank3MetaspriteFar
 
-jr_002_6290::
+BugHunt_AdvanceBugSlot::
     pop hl
     ld bc, $0008
     add hl, bc
     pop bc
     dec b
-    jp nz, Jump_002_6209
+    jp nz, BugHunt_UpdateNextBug
 
-    ld a, [wSharedWork + $dd]
+    ld a, [wBugPhase]
     rst $00
 
 Minigame2SecondaryStateHandlers::
-    dw Minigame2_Secondary_State00 ; $00
-    dw Minigame2_Secondary_State01 ; $01
-    dw Minigame2_Secondary_State02 ; $02
-    dw Minigame2_Secondary_State03 ; $03
-    dw Minigame2_Secondary_State04 ; $04
+    dw BugHunt_UpdatePlayerInput ; $00
+    dw BugHunt_UpdateCatch ; $01
+    dw BugHunt_UpdateHitReaction ; $02
+    dw BugHunt_EmptyPhase ; $03
+    dw BugHunt_UpdateResult ; $04
 
-Minigame2_Secondary_State03::
-; Minigame2SecondaryStateHandlers index $03; detailed phase behavior remains to be named.
+BugHunt_EmptyPhase::
     ret
 
 
-Call_002_62a9::
+BugHunt_UpdateSpecialBugMotion::
+; Types 3 and 4 alternate timed phases. Type 3 also reads the signed Y wobble table.
     ld a, [hl]
     and $01
-    jr z, jr_002_62cd
+    jr z, BugHunt_TickSpecialBugDirectionPhase
 
     ld bc, $0005
     add hl, bc
     ld a, [hl]
     dec hl
     dec hl
-    ld bc, ScreenData_6835
+    ld bc, BugHuntSpecialBugYOffsets
     add c
     ld c, a
     ld a, $00
@@ -5382,13 +5380,13 @@ Call_002_62a9::
     ret
 
 
-jr_002_62cd::
+BugHunt_TickSpecialBugDirectionPhase::
     ld bc, $0005
     add hl, bc
     dec [hl]
     ld a, [hl]
     cp $10
-    jr nz, jr_002_6316
+    jr nz, BugHunt_WaitOrSwitchSpecialBugPhase
 
     inc hl
     inc [hl]
@@ -5403,45 +5401,45 @@ jr_002_62cd::
     ld d, a
     ld a, e
     and $fc
-    jr nz, jr_002_6310
+    jr nz, BugHunt_StoreSpecialBugDirection
 
-jr_002_62eb::
+BugHunt_TryNextSpecialBugDirection::
     ld a, d
     inc a
     cp $02
-    jr nz, jr_002_62f3
+    jr nz, BugHunt_SetDirectionProbeDelta
 
     ld a, $ff
 
-jr_002_62f3::
+BugHunt_SetDirectionProbeDelta::
     ld d, a
     add [hl]
     ld b, a
     push hl
     ld c, $3c
     bit 1, b
-    jr nz, jr_002_62ff
+    jr nz, BugHunt_SelectDirectionProbeAxis
 
     ld c, $c4
 
-jr_002_62ff::
+BugHunt_SelectDirectionProbeAxis::
     inc hl
     bit 0, b
-    jr nz, jr_002_6305
+    jr nz, BugHunt_CheckDirectionProbeBounds
 
     inc hl
 
-jr_002_6305::
+BugHunt_CheckDirectionProbeBounds::
     ld a, c
     add [hl]
     pop hl
     cp $0c
-    jr c, jr_002_62eb
+    jr c, BugHunt_TryNextSpecialBugDirection
 
     cp $88
-    jr nc, jr_002_62eb
+    jr nc, BugHunt_TryNextSpecialBugDirection
 
-jr_002_6310::
+BugHunt_StoreSpecialBugDirection::
     ld a, d
     add [hl]
     and $03
@@ -5449,7 +5447,7 @@ jr_002_6310::
     ret
 
 
-jr_002_6316::
+BugHunt_WaitOrSwitchSpecialBugPhase::
     ld a, [hl]
     or a
     ret nz
@@ -5461,13 +5459,12 @@ jr_002_6316::
     ret
 
 
-Minigame2_Secondary_State00::
-; Minigame2SecondaryStateHandlers index $00; detailed phase behavior remains to be named.
+BugHunt_UpdatePlayerInput::
     ldh a, [hJoyPressed]
     bit 0, a
-    jr z, jr_002_634c
+    jr z, BugHunt_CheckMovementInput
 
-    ld a, [wSharedWork + $177]
+    ld a, [wBugPlayerFacing]
     and $03
     ld hl, Minigame2ActionAnimationPointers
     rst $20
@@ -5478,18 +5475,18 @@ Minigame2_Secondary_State00::
     xor a
     ld [wSceneAnim0Timer], a
     ld a, $01
-    ld [wSharedWork + $dd], a
+    ld [wBugPhase], a
     ld a, $11
     ld [wScreenFrameCounter], a
     ld a, $ff
-    ld [wSharedWork + $de], a
+    ld [wBugCatchType], a
     ret
 
 
-jr_002_634c::
+BugHunt_CheckMovementInput::
     ldh a, [hJoyHeld]
     and $f0
-    jr nz, jr_002_635a
+    jr nz, BugHunt_ComputePlayerStep
 
     ld a, [wSceneAnim0Timer]
     inc a
@@ -5497,11 +5494,11 @@ jr_002_634c::
     ret
 
 
-jr_002_635a::
+BugHunt_ComputePlayerStep::
     ld bc, $0180
-    ld a, [wSharedWork + $5b]
+    ld a, [wBugPlayerStepFraction]
     add c
-    ld [wSharedWork + $5b], a
+    ld [wBugPlayerStepFraction], a
     ld a, $00
     adc b
     ld c, a
@@ -5511,56 +5508,56 @@ jr_002_635a::
     ld h, a
     ld b, $ff
     bit 6, h
-    jr z, jr_002_637a
+    jr z, BugHunt_CheckLeftInput
 
     ld b, $00
     ld a, $00
     sub c
     ld e, a
 
-jr_002_637a::
+BugHunt_CheckLeftInput::
     bit 5, h
-    jr z, jr_002_6384
+    jr z, BugHunt_CheckDownInput
 
     ld b, $01
     ld a, $00
     sub c
     ld d, a
 
-jr_002_6384::
+BugHunt_CheckDownInput::
     bit 7, h
-    jr z, jr_002_638b
+    jr z, BugHunt_CheckRightInput
 
     ld b, $02
     ld e, c
 
-jr_002_638b::
+BugHunt_CheckRightInput::
     bit 4, h
-    jr z, jr_002_6392
+    jr z, BugHunt_MovePlayerAndSetFacing
 
     ld b, $03
     ld d, c
 
-jr_002_6392::
-    ld a, [wSharedWork + $175]
+BugHunt_MovePlayerAndSetFacing::
+    ld a, [wBugPlayerX]
     add d
-    ld [wSharedWork + $175], a
-    ld a, [wSharedWork + $176]
+    ld [wBugPlayerX], a
+    ld a, [wBugPlayerY]
     add e
-    ld [wSharedWork + $176], a
-    ld a, [wSharedWork + $177]
-    ld hl, ScreenData_681d
+    ld [wBugPlayerY], a
+    ld a, [wBugPlayerFacing]
+    ld hl, BugHuntFacingJoyMasks
     rst $38
     ld c, [hl]
     ldh a, [hJoyHeld]
     and c
-    jr nz, jr_002_63c7
+    jr nz, BugHunt_ClampPlayerMinX
 
     ld a, b
     bit 7, a
-    jr nz, jr_002_63c7
+    jr nz, BugHunt_ClampPlayerMinX
 
-    ld [wSharedWork + $177], a
+    ld [wBugPlayerFacing], a
     and $03
     ld hl, Minigame2IdleAnimationPointers
     rst $20
@@ -5571,135 +5568,134 @@ jr_002_6392::
     xor a
     ld [wSceneAnim0Timer], a
 
-jr_002_63c7::
-    ld a, [wSharedWork + $175]
+BugHunt_ClampPlayerMinX::
+    ld a, [wBugPlayerX]
     cp $0a
-    jr nc, jr_002_63d0
+    jr nc, BugHunt_ClampPlayerMaxX
 
     ld a, $0a
 
-jr_002_63d0::
+BugHunt_ClampPlayerMaxX::
     cp $95
-    jr c, jr_002_63d6
+    jr c, BugHunt_StoreXAndClampMinY
 
     ld a, $95
 
-jr_002_63d6::
-    ld [wSharedWork + $175], a
-    ld a, [wSharedWork + $176]
+BugHunt_StoreXAndClampMinY::
+    ld [wBugPlayerX], a
+    ld a, [wBugPlayerY]
     cp $0a
-    jr nc, jr_002_63e2
+    jr nc, BugHunt_ClampPlayerMaxY
 
     ld a, $0a
 
-jr_002_63e2::
+BugHunt_ClampPlayerMaxY::
     cp $75
-    jr c, jr_002_63e8
+    jr c, BugHunt_StorePlayerY
 
     ld a, $75
 
-jr_002_63e8::
-    ld [wSharedWork + $176], a
+BugHunt_StorePlayerY::
+    ld [wBugPlayerY], a
     ret
 
 
-Minigame2_Secondary_State01::
-; Minigame2SecondaryStateHandlers index $01; detailed phase behavior remains to be named.
-    ld a, [wSharedWork + $de]
+BugHunt_UpdateCatch::
+    ld a, [wBugCatchType]
     bit 7, a
-    jr z, jr_002_6464
+    jr z, BugHunt_TickCatchAnimation
 
-    ld a, [wSharedWork + $177]
+    ld a, [wBugPlayerFacing]
     add a
     add a
     ld b, a
     add a
     add b
-    ld hl, ScreenData_67ed
+    ld hl, BugHuntCatchBounds
     rst $38
     ld a, [wScreenFrameCounter]
     ld bc, $0004
     cp $06
-    jr nc, jr_002_640a
+    jr nc, BugHunt_CheckLateCatchFrame
 
     add hl, bc
 
-jr_002_640a::
+BugHunt_CheckLateCatchFrame::
     cp $0c
-    jr nc, jr_002_640f
+    jr nc, BugHunt_BuildCatchBounds
 
     add hl, bc
 
-jr_002_640f::
-    ld a, [wSharedWork + $175]
+BugHunt_BuildCatchBounds::
+    ld a, [wBugPlayerX]
     ld b, a
-    ld a, [wSharedWork + $176]
+    ld a, [wBugPlayerY]
     ld c, a
     ld a, [hl+]
     add b
-    ldh [hTileStreamWritePos], a
+    ldh [hBugCatchMinX], a
     ld a, [hl+]
     add c
-    ldh [hSharedScratch + $0a], a
+    ldh [hBugCatchMinY], a
     ld a, [hl+]
     add b
-    ldh [hTileStreamCount], a
+    ldh [hBugCatchMaxX], a
     ld a, [hl+]
     add c
-    ldh [hSharedScratch + $0c], a
+    ldh [hBugCatchMaxY], a
     ld b, $10
-    ld hl, wSharedWork + $5d
+    ld hl, wBugSlots
 
-jr_002_642c::
+BugHunt_TestNextBugAgainstCatchBounds::
     push hl
     ld a, [hl+]
     bit 7, a
-    jr nz, jr_002_645d
+    jr nz, BugHunt_AdvanceCatchTestSlot
 
     inc hl
     ld c, [hl]
-    ldh a, [hTileStreamWritePos]
+    ldh a, [hBugCatchMinX]
     cp c
-    jr nc, jr_002_645d
+    jr nc, BugHunt_AdvanceCatchTestSlot
 
-    ldh a, [hTileStreamCount]
+    ldh a, [hBugCatchMaxX]
     cp c
-    jr c, jr_002_645d
+    jr c, BugHunt_AdvanceCatchTestSlot
 
     inc hl
     ld c, [hl]
-    ldh a, [hSharedScratch + $0a]
+    ldh a, [hBugCatchMinY]
     cp c
-    jr nc, jr_002_645d
+    jr nc, BugHunt_AdvanceCatchTestSlot
 
-    ldh a, [hSharedScratch + $0c]
+    ldh a, [hBugCatchMaxY]
     cp c
-    jr c, jr_002_645d
+    jr c, BugHunt_AdvanceCatchTestSlot
 
     dec hl
     dec hl
     dec hl
     ld a, [hl]
     cp $04
-    jr nz, jr_002_6454
+    jr nz, BugHunt_StoreCaughtType
 
     ld a, $03
 
-jr_002_6454::
-    ld [wSharedWork + $de], a
+BugHunt_StoreCaughtType::
+    ld [wBugCatchType], a
     ld a, $80
     ld [hl], a
     pop hl
-    jr jr_002_6464
+    jr BugHunt_TickCatchAnimation
 
-jr_002_645d::
+BugHunt_AdvanceCatchTestSlot::
     pop hl
     ld a, $08
     rst $38
     dec b
-    jr nz, jr_002_642c
+    jr nz, BugHunt_TestNextBugAgainstCatchBounds
 
-jr_002_6464::
+BugHunt_TickCatchAnimation::
     ld a, [wScreenFrameCounter]
     dec a
     ld [wScreenFrameCounter], a
@@ -5707,46 +5703,46 @@ jr_002_6464::
     ret nz
 
     xor a
-    ld [wSharedWork + $dd], a
-    ld a, [wSharedWork + $de]
+    ld [wBugPhase], a
+    ld a, [wBugCatchType]
     bit 7, a
-    jr nz, jr_002_64c0
+    jr nz, BugHunt_RestoreFacingAnimation
 
-    ld [wSharedWork + $df], a
+    ld [wBugLastCaughtType], a
     ld a, $44
     call PlaySound
-    ld a, [wSharedWork + $175]
-    ld [wSharedWork + $e0], a
-    ld a, [wSharedWork + $176]
-    ld [wSharedWork + $e1], a
+    ld a, [wBugPlayerX]
+    ld [wBugPopupX], a
+    ld a, [wBugPlayerY]
+    ld [wBugPopupY], a
     ld a, $20
     ld [wScreenPhaseCounter], a
-    ld a, [wSharedWork + $df]
-    ld hl, ScreenData_679d
+    ld a, [wBugLastCaughtType]
+    ld hl, BugHuntTypeScoreDigits
     rst $20
     ld b, l
     ld c, h
-    ld hl, ScreenData_6728
+    ld hl, BugHuntRoundGoalTiles
     call Minigame_AddScoreAndCompareGoal
-    jr c, jr_002_64c0
+    jr c, BugHunt_RestoreFacingAnimation
 
     ld a, $04
-    ld [wSharedWork + $dd], a
+    ld [wBugPhase], a
     xor a
     ld [wMinigameResultFlag], a
     ld a, $90
     ld [wScreenFrameCounter], a
     xor a
-    ld [wSharedWork + $e6], a
-    ld [wSharedWork + $ee], a
+    ld [wBugHazardSlots + BUG_HAZARD_OFS_AIM_REFRESH], a
+    ld [wBugHazardSlots + BUG_HAZARD_SIZE + BUG_HAZARD_OFS_AIM_REFRESH], a
     call InitSound
     ld a, $34
     call PlaySound_Queue3
     ret
 
 
-jr_002_64c0::
-    ld a, [wSharedWork + $177]
+BugHunt_RestoreFacingAnimation::
+    ld a, [wBugPlayerFacing]
     and $03
     ld hl, Minigame2IdleAnimationPointers
     rst $20
@@ -5761,7 +5757,7 @@ jr_002_64c0::
     ret
 
 
-Call_002_64d9::
+BugHunt_DrawCaughtBugPopup::
     ld a, [wScreenPhaseCounter]
     or a
     ret z
@@ -5770,20 +5766,20 @@ Call_002_64d9::
     dec a
     ld [wScreenPhaseCounter], a
     srl a
-    ld hl, ScreenData_6821
+    ld hl, BugHuntCaughtPopupXOffsets
     rst $38
-    ld a, [wSharedWork + $e0]
+    ld a, [wBugPopupX]
     add [hl]
     ld c, a
     ld a, [wScreenPhaseCounter]
     srl a
     sub $18
     ld b, a
-    ld a, [wSharedWork + $e1]
+    ld a, [wBugPopupY]
     add b
     ld b, a
-    ld hl, ScreenData_6831
-    ld a, [wSharedWork + $df]
+    ld hl, BugHuntCaughtPopupFrames
+    ld a, [wBugLastCaughtType]
     rst $38
     ld d, [hl]
     call DrawBank3MetaspriteNormal
@@ -5864,24 +5860,23 @@ Minigame_ScoreAtLeastGoal::
     ret
 
 
-Minigame2_Secondary_State04::
-; Minigame2SecondaryStateHandlers index $04; detailed phase behavior remains to be named.
+BugHunt_UpdateResult::
     ld a, [wScreenFrameCounter]
     cp $60
-    jr nz, jr_002_657e
+    jr nz, BugHunt_WaitForResultConfirm
 
     ld a, [wMinigameResultFlag]
     or a
-    jr nz, jr_002_657e
+    jr nz, BugHunt_WaitForResultConfirm
 
     ld hl, SceneAnim_794b
     ld a, [wMinigameRound]
     cp $0a
-    jr nz, jr_002_6572
+    jr nz, BugHunt_StartWinAnimation
 
     ld hl, SceneAnim_796e
 
-jr_002_6572::
+BugHunt_StartWinAnimation::
     ld a, l
     ld [wSceneAnim0PtrLo], a
     ld a, h
@@ -5889,7 +5884,7 @@ jr_002_6572::
     xor a
     ld [wSceneAnim0Timer], a
 
-jr_002_657e::
+BugHunt_WaitForResultConfirm::
     ld a, [wMinigamePhaseCounter]
     inc a
     ld [wMinigamePhaseCounter], a
@@ -5909,8 +5904,7 @@ jr_002_657e::
     jp AdvanceMinigameRoundOrExit
 
 
-Minigame2_Secondary_State02::
-; Minigame2SecondaryStateHandlers index $02; detailed phase behavior remains to be named.
+BugHunt_UpdateHitReaction::
     ld a, [wScreenFrameCounter]
     dec a
     ld [wScreenFrameCounter], a
@@ -5918,151 +5912,152 @@ Minigame2_Secondary_State02::
     ret nz
 
     xor a
-    ld [wSharedWork + $dd], a
+    ld [wBugPhase], a
     ld a, $c0
-    ld [wSharedWork + $156], a
-    jp jr_002_64c0
+    ld [wBugPlayerBlinkTimer], a
+    jp BugHunt_RestoreFacingAnimation
 
 
-Call_002_65b3::
-    ld hl, wSharedWork + $e2
-    ld de, ScreenData_67cd
+BugHunt_UpdateRoundHazards::
+    ld hl, wBugHazardSlots
+    ld de, BugHuntFirstHazardFrames
     ld a, [wMinigameRound]
     cp $04
-    call nc, Call_002_65d0
-    ld hl, wSharedWork + $ea
-    ld de, ScreenData_67d1
+    call nc, BugHunt_UpdateHazard
+    ld hl, wBugHazardSlots + BUG_HAZARD_SIZE
+    ld de, BugHuntSecondHazardFrames
     ld a, [wMinigameRound]
     cp $07
-    call nc, Call_002_65d0
+    call nc, BugHunt_UpdateHazard
     ret
 
 
-Call_002_65d0::
+BugHunt_UpdateHazard::
+; HL points to an eight-byte hazard record. DE points to its directional metasprite IDs.
     ld a, [hl+]
     or a
-    jp nz, Jump_002_66d7
+    jp nz, BugHunt_UpdateHazardRespawn
 
     push de
     ld c, $00
     ld a, [hl+]
     add $08
     ld b, a
-    ld a, [wSharedWork + $175]
+    ld a, [wBugPlayerX]
     add $08
     sub b
-    jr nc, jr_002_65e8
+    jr nc, BugHunt_SaveHazardAbsXDelta
 
     cpl
     inc a
     set 0, c
 
-jr_002_65e8::
-    ldh [hTileStreamWritePos], a
+BugHunt_SaveHazardAbsXDelta::
+    ldh [hBugHazardAimAbsX], a
     ld a, [hl+]
     add $08
     ld b, a
-    ld a, [wSharedWork + $176]
+    ld a, [wBugPlayerY]
     add $08
     sub b
-    jr nc, jr_002_65fa
+    jr nc, BugHunt_CheckHazardAimRefresh
 
     cpl
     inc a
     set 1, c
 
-jr_002_65fa::
-    ldh [hSharedScratch + $0a], a
+BugHunt_CheckHazardAimRefresh::
+    ldh [hBugHazardAimAbsY], a
     push hl
     inc hl
     ld a, [hl]
     or a
-    jr z, jr_002_660d
+    jr z, BugHunt_LoadCachedHazardAim
 
     dec a
     ld [hl+], a
-    ldh a, [hTileStreamWritePos]
+    ldh a, [hBugHazardAimAbsX]
     ld [hl+], a
-    ldh a, [hSharedScratch + $0a]
+    ldh a, [hBugHazardAimAbsY]
     ld [hl+], a
     ld [hl], c
-    jr jr_002_6615
+    jr BugHunt_SelectHazardMotionDirection
 
-jr_002_660d::
+BugHunt_LoadCachedHazardAim::
     inc hl
     ld a, [hl+]
-    ldh [hTileStreamWritePos], a
+    ldh [hBugHazardAimAbsX], a
     ld a, [hl+]
-    ldh [hSharedScratch + $0a], a
+    ldh [hBugHazardAimAbsY], a
     ld c, [hl]
 
-jr_002_6615::
+BugHunt_SelectHazardMotionDirection::
     pop hl
-    ldh a, [hTileStreamWritePos]
+    ldh a, [hBugHazardAimAbsX]
     ld b, a
-    ldh a, [hSharedScratch + $0a]
+    ldh a, [hBugHazardAimAbsY]
     cp b
-    jr c, jr_002_6628
+    jr c, BugHunt_SelectHorizontalHazardFacing
 
     ld b, $00
     bit 1, c
-    jr nz, jr_002_6630
+    jr nz, BugHunt_SelectHazardFlip
 
     ld b, $02
-    jr jr_002_6630
+    jr BugHunt_SelectHazardFlip
 
-jr_002_6628::
+BugHunt_SelectHorizontalHazardFacing::
     ld b, $01
     bit 0, c
-    jr nz, jr_002_6630
+    jr nz, BugHunt_SelectHazardFlip
 
     ld b, $03
 
-jr_002_6630::
+BugHunt_SelectHazardFlip::
     ld a, b
     cp $01
-    jr z, jr_002_6636
+    jr z, BugHunt_SelectHazardFrameAndStep
 
     xor a
 
-jr_002_6636::
+BugHunt_SelectHazardFrameAndStep::
     ldh [hSpriteFlags], a
     pop de
     ld a, b
     rst $30
     ld a, [de]
-    ldh [hTileStreamCount], a
+    ldh [hBugHazardMetasprite], a
     ld d, $00
     ld e, d
     ld a, [hl]
     ld b, a
-    ldh a, [hSharedScratch + $0a]
+    ldh a, [hBugHazardAimAbsY]
     cp b
-    jr c, jr_002_6656
+    jr c, BugHunt_StepHazardHorizontally
 
-    ldh a, [hTileStreamWritePos]
+    ldh a, [hBugHazardAimAbsX]
     add b
     ld [hl], a
     ld e, $01
     bit 1, c
-    jr z, jr_002_6664
+    jr z, BugHunt_ApplyHazardPositionDelta
 
     ld e, $ff
-    jr jr_002_6664
+    jr BugHunt_ApplyHazardPositionDelta
 
-jr_002_6656::
-    ldh a, [hSharedScratch + $0a]
+BugHunt_StepHazardHorizontally::
+    ldh a, [hBugHazardAimAbsY]
     ld b, a
     ld a, [hl]
     sub b
     ld [hl], a
     ld d, $01
     bit 0, c
-    jr z, jr_002_6664
+    jr z, BugHunt_ApplyHazardPositionDelta
 
     ld d, $ff
 
-jr_002_6664::
+BugHunt_ApplyHazardPositionDelta::
     dec hl
     ld a, [hl]
     add e
@@ -6076,46 +6071,46 @@ jr_002_6664::
     ld a, c
     add $08
     cp $f0
-    jr nc, jr_002_667c
+    jr nc, BugHunt_StartHazardRespawnTimer
 
     ld a, b
     add $08
     cp $f0
-    jr c, jr_002_6685
+    jr c, BugHunt_TestHazardPlayerOverlap
 
-jr_002_667c::
+BugHunt_StartHazardRespawnTimer::
     call AdvanceScreenRandomByte
     and $03
     add $03
     ld [hl+], a
     ld [hl-], a
 
-jr_002_6685::
+BugHunt_TestHazardPlayerOverlap::
     pop bc
     push bc
-    ld a, [wSharedWork + $175]
+    ld a, [wBugPlayerX]
     add $0e
     sub c
     cp $1c
-    jr nc, jr_002_66c7
+    jr nc, BugHunt_SelectHazardWingFrame
 
-    ld a, [wSharedWork + $176]
+    ld a, [wBugPlayerY]
     add $0e
     sub b
     cp $1c
-    jr nc, jr_002_66c7
+    jr nc, BugHunt_SelectHazardWingFrame
 
     ld bc, $0004
     add hl, bc
     xor a
     ld [hl], a
-    ld a, [wSharedWork + $dd]
+    ld a, [wBugPhase]
     cp $02
-    jr nc, jr_002_66c7
+    jr nc, BugHunt_SelectHazardWingFrame
 
-    ld a, [wSharedWork + $156]
+    ld a, [wBugPlayerBlinkTimer]
     or a
-    jr nz, jr_002_66c7
+    jr nz, BugHunt_SelectHazardWingFrame
 
     ld hl, SceneAnim_7967
     ld a, l
@@ -6127,40 +6122,40 @@ jr_002_6685::
     ld a, $c0
     ld [wScreenFrameCounter], a
     ld a, $02
-    ld [wSharedWork + $dd], a
+    ld [wBugPhase], a
 
-jr_002_66c7::
+BugHunt_SelectHazardWingFrame::
     pop bc
-    ldh a, [hTileStreamCount]
+    ldh a, [hBugHazardMetasprite]
     ld d, a
-    ld a, [wSharedWork + $157]
+    ld a, [wBugHazardFrameCounter]
     bit 3, a
-    jr nz, jr_002_66d3
+    jr nz, BugHunt_DrawHazard
 
     inc d
 
-jr_002_66d3::
+BugHunt_DrawHazard::
     call DrawBank3MetaspriteFar
     ret
 
 
-Jump_002_66d7::
-    ld a, [wSharedWork + $f2]
+BugHunt_UpdateHazardRespawn::
+    ld a, [wSharedWork + $f2] ; The resulting comparison only updates B. No caller uses that result.
     ld b, a
     call ChooseScreenRandomThird
     add [hl]
     cp b
-    jr z, jr_002_66e3
+    jr z, BugHunt_WrapHazardSpawnIndex
 
     inc b
 
-jr_002_66e3::
+BugHunt_WrapHazardSpawnIndex::
     cp $0c
-    jr c, jr_002_66e9
+    jr c, BugHunt_TickHazardRespawnTimer
 
     sub $0c
 
-jr_002_66e9::
+BugHunt_TickHazardRespawnTimer::
     ld [hl], a
     ld a, [wMinigamePhaseCounter]
     cp $01
@@ -6174,7 +6169,7 @@ jr_002_66e9::
     ld [hl+], a
     ld a, [hl]
     add a
-    ld de, ScreenData_6856
+    ld de, BugHuntHazardRespawnPositions
     rst $30
     ld a, [de]
     inc de
@@ -6189,59 +6184,72 @@ jr_002_66e9::
 
 
 
-ScreenData_6706::
+BugHuntHudTiles::
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
     db $85, $86, $87, $91, $91, $91, $91, $91, $80, $81, $91, $91, $91, $91, $82, $83
     db $84, $00, $00, $04, $00, $00, $00, $00, $00, $0d, $0d, $00, $00, $00, $00, $00
     db $00, $04
 
-ScreenData_6728::
+BugHuntRoundGoalTiles::
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
     db $04, $04, $04, $04, $0c, $04, $05, $05, $04, $05, $08, $04, $05, $0b, $04, $06
     db $04, $04, $06, $07, $04, $06, $0a, $04, $06, $0d, $04, $07, $06, $04, $07, $09
     db $04
 
-ScreenData_6749::
+BugHuntSpawnGates::
+; VRAM address, then X and Y for the spawned bug.
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
-    db $4b, $98, $64, $14, $a2, $98, $1c, $2c, $2f, $99, $84, $4c, $c5, $99, $34, $74
+    dw _SCRN0 + $04b
+    db $64, $14
+    dw _SCRN0 + $0a2
+    db $1c, $2c
+    dw _SCRN0 + $12f
+    db $84, $4c
+    dw _SCRN0 + $1c5
+    db $34, $74
 
-ScreenData_6759::
+BugHuntGateBaseTiles::
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
     db $88, $89, $8a
 
-ScreenData_675c::
+BugHuntGateBlinkTiles::
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
     db $8b, $8c, $8d
 
-ScreenData_675f::
+BugHuntGateDirectionChoices::
+; Three movement axis/sign combinations per gate.
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
     db $01, $02, $03, $02, $03, $00, $00, $01, $02, $00, $03, $01
 
-ScreenData_676b::
+BugHuntRoundSpawnWeights::
+; Four weights per round with a total of eight.
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
     db $04, $02, $01, $01, $04, $02, $01, $01, $03, $02, $02, $01, $03, $02, $02, $01
     db $02, $03, $02, $01, $02, $03, $02, $01, $02, $02, $03, $01, $02, $02, $03, $01
     db $01, $02, $03, $02, $01, $02, $02, $03
 
-ScreenData_6793::
+BugHuntMotionSteps::
+; Signed-axis motion uses these unsigned 8.8 magnitudes.
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
     db $60, $00, $b0, $00, $00, $01, $e0, $01, $00, $00
 
-ScreenData_679d::
+BugHuntTypeScoreDigits::
+; Tens and ones score increments per caught type.
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
     db $00, $05, $01, $00, $01, $05, $02, $00
 
-ScreenData_67a5::
+BugHuntBugFrames::
+; Eight frame selectors per type. Bit 7 flips the metasprite.
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
     db $33, $4f, $34, $b4, $33, $4f, $34, $b4, $50, $51, $b7, $b8, $35, $36, $37, $38
     db $4c, $cc, $ad, $ae, $2c, $ac, $2d, $2e, $ce, $ce, $b2, $b2, $30, $30, $32, $32
     db $cd, $cd, $b1, $b1, $2f, $2f, $31, $31
 
-ScreenData_67cd::
+BugHuntFirstHazardFrames::
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
     db $42, $40, $3e, $40
 
-ScreenData_67d1::
+BugHuntSecondHazardFrames::
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
     db $4a, $48, $46, $48
 
@@ -6262,34 +6270,35 @@ Minigame2ActionAnimationPointers::
 Minigame2ActionOffsets::
     db $00, $ee, $ee, $00, $00, $12, $12, $00
 
-ScreenData_67ed::
+BugHuntCatchBounds::
+; Four directions, three animation phases, four signed offsets per rectangle.
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
     db $f6, $0c, $0a, $1e, $f6, $f4, $0a, $0c, $f6, $e0, $0a, $f4, $00, $dc, $14, $f0
     db $e4, $e8, $00, $fd, $e4, $fd, $f8, $08, $f6, $dd, $0a, $f4, $f6, $f4, $0a, $0c
     db $f6, $0c, $0a, $1b, $ec, $dc, $00, $f0, $00, $e8, $1c, $fd, $08, $fd, $1c, $08
 
-ScreenData_681d::
+BugHuntFacingJoyMasks::
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
     db $40, $20, $80, $10
 
-ScreenData_6821::
+BugHuntCaughtPopupXOffsets::
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
     db $03, $02, $02, $01, $00, $ff, $fe, $fe, $fe, $fe, $fe, $ff, $00, $01, $02, $02
 
-ScreenData_6831::
+BugHuntCaughtPopupFrames::
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
     db $3c, $3b, $3a, $3d
 
-ScreenData_6835::
+BugHuntSpecialBugYOffsets::
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
     db $00, $03, $03, $02, $03, $02, $01, $01, $00, $00, $ff, $ff, $fe, $fd, $fe, $fd
     db $fd
 
-ScreenData_6846::
+BugHuntInitialHazardRecords::
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
     db $00, $20, $48, $00, $00, $01, $00, $01, $00, $80, $48, $00, $00, $01, $00, $00
 
-ScreenData_6856::
+BugHuntHazardRespawnPositions::
 ; Indexed screen data; scene-specific interpretation is documented at its consumer.
     db $f8, $74, $f8, $48, $f8, $1c, $1c, $f8, $48, $f8, $74, $f8, $a8, $1c, $a8, $48
     db $a8, $74, $74, $a8, $48, $a8, $1c, $a8

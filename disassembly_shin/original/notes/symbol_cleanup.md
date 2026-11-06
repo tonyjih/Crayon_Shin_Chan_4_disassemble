@@ -31,9 +31,9 @@ MD5 = BCB3D47C291FD0A26B2C7B1082C3AD88
 | --- | ---: | ---: |
 | 0 | 263 | 0 |
 | 1 | 439 | 266 |
-| 2 | 518 | 71 |
+| 2 | 518 | 0 |
 | 3 | 103 | 0 |
-| 合計 | 1,323 | 337 |
+| 合計 | 1,323 | 266 |
 
 ## 容易誤讀的地方
 
@@ -65,11 +65,11 @@ MD5 = BCB3D47C291FD0A26B2C7B1082C3AD88
 
 ## 尚未確認的部分
 
-目前仍有 **337 個自動命名的內部 label**。
+目前仍有 **266 個自動命名的內部 label**。
 [unresolved_labels.csv](unresolved_labels.csv) 記錄 bank、地址、原始名稱、來源行及前一個具名 symbol。
 `preceding_symbol` 只表示原始碼中的位置，不保證是函式或呼叫關係的邊界。
 
-[unresolved_memory.csv](unresolved_memory.csv) 記錄中性工作區 offset 的 **183 處引用、30 個不同位址**。
+[unresolved_memory.csv](unresolved_memory.csv) 記錄中性工作區 offset 的 **91 處引用、13 個不同位址**。
 同一個位址可能有多個用途，不能把這個數字視為尚未辨識的變數數。
 另有部分資料只確認格式而未確認畫面內容，例如 `ScreenData_*`、以地址命名的音軌；
 音軌播放索引仍可由 `audio/sound_ids.csv` 追查。
@@ -146,3 +146,5 @@ Windows／Ubuntu 的完整 `check-original` 均通過：9 個資產測試、6 �
 - 滑行跳躍小遊戲補上 56 個自動 label 與 152 處 RAM 引用。已辨識 24-bit 座標、8.8 速度、鏡頭、平台指標與結果流程，並將兩個被誤標為 HRAM 的鏡頭位移改回 signed scalar。
 
 - メケメケ與共用計分補上 58 個自動 label 和 82 處 RAM 引用。敵人跑道記錄、投射物、爆炸、分數與勝負分支已命名，敵人變種機率表也改用 symbol 指向。
+
+- 昆蟲小遊戲補上 71 個自動 label 與 92 處 RAM 引用。出蟲閘門、16 筆昆蟲記錄、捕捉矩形、得分提示和兩個會撞到玩家的物件都有用途名稱。bank 2 的自動 label 已清完，三處仍待查的 RAM 引用保留在清單。
