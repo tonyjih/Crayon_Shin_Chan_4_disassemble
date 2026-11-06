@@ -566,3 +566,8 @@ DEF hSpawnRecordPtrLo          EQU $ffc5 ; Active five-byte record used to initi
 DEF hSpawnRecordPtrHi          EQU $ffc6
 DEF hObjectScreenYHi           EQU $ffca ; Signed high byte after subtracting camera Y.
 DEF wDropPlatformMinXDistance  EQU $c403 ; Reset each frame. X candidates update it before the Y test.
+
+; Player-only HRAM overlays used by ground collision and cockroach action frames.
+DEF hPlayerGroundProbeY          EQU $ffca ; Low byte of world Y for the two-foot probe.
+DEF hCockroachActionFramePtrLo   EQU $ffc5 ; Selected animation frame table, read by all three action steps.
+DEF hCockroachActionFramePtrHi   EQU $ffc6

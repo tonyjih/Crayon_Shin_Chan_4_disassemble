@@ -2872,7 +2872,7 @@ CheckPlayerHeadCollision:: ; Player upward/head collision check.
     call DispatchPlayerHeadTileContact
     ldh a, [hPlayerTileProbeCount]
     cp $01
-    jr nz, jr_001_50ec
+    jr nz, HeadCollision_CheckReleaseFromSnapState
 
     ldh a, [hPrevPlayerState]
     cp $03
@@ -2887,12 +2887,12 @@ CheckPlayerHeadCollision:: ; Player upward/head collision check.
     ld [wPlayerForcedJumpFlags], a
     ldh a, [hPlayerForm]
     cp $02
-    jr nz, jr_001_50e0
+    jr nz, HeadCollision_SnapPlayerX
 
     xor a
     ldh [hPlayerActionLock], a
 
-jr_001_50e0::
+HeadCollision_SnapPlayerX::
     xor a
     ldh [hPlayerTileEffect], a
     ldh a, [hPlayerX]
@@ -2902,7 +2902,7 @@ jr_001_50e0::
     ret
 
 
-jr_001_50ec::
+HeadCollision_CheckReleaseFromSnapState::
     ldh a, [hPrevPlayerState]
     cp $03
     ret nz
@@ -2913,33 +2913,33 @@ jr_001_50ec::
 DispatchPlayerHeadTileContact::
 ; Tile attribute in A selects head contact / Stage 1 transition handling.
     cp $06
-    jr z, jr_001_510d
+    jr z, HeadTile_CountSolidProbe
 
     cp $08
-    jr z, jr_001_5112
+    jr z, HeadTile_CountIfUpperHalf
 
     cp $09
-    jr z, jr_001_511e
+    jr z, HeadTileAttr09_CountIfNonzeroY
 
     cp $0a
-    jr z, jr_001_5128
+    jr z, HeadTileAttr0A_CountIfNonzeroY
 
     cp $1c
-    jr z, jr_001_5132
+    jr z, HeadTile_CheckStage1Profile1Trigger
 
     cp $1d
-    jr z, jr_001_5158
+    jr z, HeadTile_CheckStage1Profile2Trigger
 
     ret
 
 
-jr_001_510d::
+HeadTile_CountSolidProbe::
     ld hl, hPlayerTileProbeCount
     inc [hl]
     ret
 
 
-jr_001_5112::
+HeadTile_CountIfUpperHalf::
     ldh a, [hPlayerY]
     and $0f
     cp $08
@@ -2950,7 +2950,7 @@ jr_001_5112::
     ret
 
 
-jr_001_511e::
+HeadTileAttr09_CountIfNonzeroY::
     ldh a, [hPlayerY]
     and $0f
     ret z
@@ -2960,7 +2960,7 @@ jr_001_511e::
     ret
 
 
-jr_001_5128::
+HeadTileAttr0A_CountIfNonzeroY::
     ldh a, [hPlayerY]
     and $0f
     ret z
@@ -2970,22 +2970,22 @@ jr_001_5128::
     ret
 
 
-jr_001_5132::
+HeadTile_CheckStage1Profile1Trigger::
     ldh a, [hPlayerY]
     and $0f
     cp $03
-    jr c, jr_001_513f
+    jr c, HeadTile_SelectStage1Profile1
 
     ld hl, hPlayerTileProbeCount
     inc [hl]
     ret
 
 
-jr_001_513f::
+HeadTile_SelectStage1Profile1::
     ld a, $01
     ld [wStage1CameraProfileIndex], a
 
-jr_001_5144::
+HeadTile_BeginStage1Transition::
     ld a, $40
     ld [wFadeTransitionTimer], a
     ld a, $07
@@ -2997,21 +2997,21 @@ jr_001_5144::
     ret
 
 
-jr_001_5158::
+HeadTile_CheckStage1Profile2Trigger::
     ldh a, [hPlayerY]
     and $0f
     cp $0b
-    jr nc, jr_001_5165
+    jr nc, HeadTile_SelectStage1Profile2
 
     ld hl, hPlayerTileProbeCount
     inc [hl]
     ret
 
 
-jr_001_5165::
+HeadTile_SelectStage1Profile2::
     ld a, $02
     ld [wStage1CameraProfileIndex], a
-    jr jr_001_5144
+    jr HeadTile_BeginStage1Transition
 
 CheckPlayerRightTileCollision::
 ; Probe at player world X + 7.
@@ -3044,11 +3044,11 @@ CheckPlayerSideTileCollisionAtBC::
     ld e, PLAYER_COLLISION_HEIGHT_NORMAL
     ldh a, [hPlayerForm]
     cp PLAYER_FORM_COCKROACH
-    jr nz, jr_001_519b
+    jr nz, SideCollision_ProbeUpperBody
 
     ld e, PLAYER_COLLISION_HEIGHT_COCKROACH
 
-jr_001_519b::
+SideCollision_ProbeUpperBody::
     ld hl, hPlayerY
     ld a, [hl+]
     sub e
@@ -3135,7 +3135,6 @@ PlayerSideCollisionNoHit::
     ret
 
 PlayerSideCollisionSolid::
-jr_001_5223::
     ld a, $ff
     ldh [hPlayerTileCollisionFlag], a
     ret
@@ -3145,13 +3144,13 @@ PlayerSideCollisionSolidIfYLowBit3Set::
     bit 3, e
     ret z
 
-    jr jr_001_5223
+    jr PlayerSideCollisionSolid
 
 PlayerSideCollisionSolidIfYLowBit3Clear::
     bit 3, e
     ret nz
 
-    jr jr_001_5223
+    jr PlayerSideCollisionSolid
 
 PlayerSideCollisionSpecialStageFlag::
     ld a, [wStageCheckpointActive]
@@ -3181,7 +3180,7 @@ ProbePlayerGroundTilesAtHeight18::
     ldh [hPlayerTileCollisionFlag], a
     ldh [hPlayerTileProbeCount], a
     ld e, $12
-    jr jr_001_526c
+    jr GroundCollision_ProbeBothFeet
 
 CheckPlayerGroundCollision:: ; Player downward/ground collision check.
     ldh a, [hPlayerY]
@@ -3196,11 +3195,11 @@ CheckPlayerGroundCollision:: ; Player downward/ground collision check.
     ld e, PLAYER_COLLISION_HEIGHT_NORMAL
     ldh a, [hPlayerForm]
     cp PLAYER_FORM_COCKROACH
-    jr nz, jr_001_526c
+    jr nz, GroundCollision_ProbeBothFeet
 
     ld e, PLAYER_COLLISION_HEIGHT_COCKROACH
 
-jr_001_526c::
+GroundCollision_ProbeBothFeet::
     ld hl, hPlayerY
     ld a, [hl+]
     sub e
@@ -3209,7 +3208,7 @@ jr_001_526c::
     sbc $00
     ld d, a
     ld a, e
-    ldh [hSharedScratch + $0a], a
+    ldh [hPlayerGroundProbeY], a
     ldh a, [hPlayerX]
     ld c, a
     ldh a, [hPlayerXHigh]
@@ -3253,12 +3252,12 @@ jr_001_526c::
     ldh [hPlayerAnimFrame], a
     ldh a, [hPlayerForm]
     cp $02
-    jr nz, jr_001_52c3
+    jr nz, GroundCollision_SnapPlayerY
 
     xor a
     ldh [hPlayerActionLock], a
 
-jr_001_52c3::
+GroundCollision_SnapPlayerY::
     ldh a, [hPlayerY]
     and $f0
     or $08
@@ -3349,14 +3348,14 @@ GroundTileCollisionNone::
     ret
 
 GroundTileSlopeLeftIfLowerHalf::
-    ldh a, [hSharedScratch + $0a]
+    ldh a, [hPlayerGroundProbeY]
     bit 3, a
     ret z
 
     jr GroundTileSolidOrFallState
 
 GroundTileSlopeRightIfUpperHalf::
-    ldh a, [hSharedScratch + $0a]
+    ldh a, [hPlayerGroundProbeY]
     bit 3, a
     ret nz
 
@@ -3555,7 +3554,7 @@ PlayerTileStageTransitionIfLow::
     ldh a, [hPlayerY]
     and $0f
     cp $0b
-    jp nc, jr_001_5165
+    jp nc, HeadTile_SelectStage1Profile2
 
 PlayerTileContactSolid::
     ld hl, hPlayerTileProbeCount
@@ -3718,34 +3717,34 @@ PlayerTileSpawnDropPlatform::
     pop bc
     ld hl, wObjectSlots
 
-jr_001_5567::
+DropPlatformTile_FindFreeSlot::
     ld a, [hl]
     or a
-    jr z, jr_001_557b
+    jr z, DropPlatformTile_SelectObjectType
 
     cp $ff
-    jr z, jr_001_5575
+    jr z, DropPlatformTile_AppendBeforeTerminator
 
     ld de, $0010
     add hl, de
-    jr jr_001_5567
+    jr DropPlatformTile_FindFreeSlot
 
-jr_001_5575::
-    call jr_001_557b
+DropPlatformTile_AppendBeforeTerminator::
+    call DropPlatformTile_SelectObjectType
     ld [hl], $ff
     ret
 
 
-jr_001_557b::
+DropPlatformTile_SelectObjectType::
     push hl
     ldh a, [hStageIndex]
     cp $01
     ld a, $1c
-    jr nz, jr_001_5586
+    jr nz, DropPlatformTile_InitObjectAndUpdate
 
     ld a, $1e
 
-jr_001_5586::
+DropPlatformTile_InitObjectAndUpdate::
     ld [hl+], a
     xor a
     ld [hl+], a
@@ -3781,14 +3780,14 @@ jr_001_5586::
     push hl
     ldh a, [hStageIndex]
     cp $01
-    jr z, jr_001_55bb
+    jr z, DropPlatformTile_UpdateStage1Variant
 
     call UpdateObjDropPlatformA
     pop hl
     ret
 
 
-jr_001_55bb::
+DropPlatformTile_UpdateStage1Variant::
     call UpdateObjDropPlatformB
     pop hl
     ret
@@ -3805,7 +3804,7 @@ ClearPlayerFootMetatileAndQueue::
     call GetPlayerMetatileBgAddress
     ldh a, [hStageIndex]
     cp $01
-    jr z, jr_001_55dc
+    jr z, ClearFootTile_ScheduleStage1Patch
 
     ld b, h
     ld c, l
@@ -3813,10 +3812,10 @@ ClearPlayerFootMetatileAndQueue::
     jp QueueVramFill
 
 
-jr_001_55dc::
+ClearFootTile_ScheduleStage1Patch::
     ld a, [wPendingVramUpdates]
     bit 3, a
-    jr nz, jr_001_55f1
+    jr nz, ClearFootTile_QueueStage1PatchImmediately
 
     set 3, a
     ld [wPendingVramUpdates], a
@@ -3827,7 +3826,7 @@ jr_001_55dc::
     ret
 
 
-jr_001_55f1::
+ClearFootTile_QueueStage1PatchImmediately::
     ld de, wStage1ClearedMetatileTiles
     ld bc, $0202
     jp QueueTilemapRect
@@ -3966,11 +3965,11 @@ Stage2QueueTransitionBgTile:: ; Queue one 8x8 tile update for Stage 2 tile ids $
     ld hl, Bank0TrailingGraphicsData_3572
     ld a, [wStage2TransitionStep]
     cp $02
-    jr z, jr_001_56cf
+    jr z, Stage2Transition_QueueSelectedTile
 
     ld hl, Bank0TrailingGraphicsData_3902
 
-jr_001_56cf::
+Stage2Transition_QueueSelectedTile::
     ld a, [wStageInteractionCounter]
     ld c, a
     add $45
@@ -4027,7 +4026,7 @@ PlayerState_UpdateDamageBounce::
     dec [hl]
     ld a, [hl]
     cp $16
-    jr z, jr_001_573a
+    jr z, DamageBounce_ApplyHealthLossAndKnockback
 
     or a
     ret nz
@@ -4040,7 +4039,7 @@ PlayerState_UpdateDamageBounce::
     jp AlignPlayerToTileAndResetState
 
 
-jr_001_573a::
+DamageBounce_ApplyHealthLossAndKnockback::
     call SubtractPlayerHealthAndMarkHudDirty
     ld hl, hPlayerXSubpixel
     ld de, $0200
@@ -4061,23 +4060,23 @@ PlayerState_UpdateDeathFall:: ; State 0b: fall-out/death bounce, life decrement,
     adc $00
     ld [hl], a
     bit 7, a
-    jr nz, jr_001_5764
+    jr nz, DeathFall_IntegrateYAndSelectFrame
 
     cp $04
-    jr c, jr_001_5764
+    jr c, DeathFall_IntegrateYAndSelectFrame
 
     ld a, $04
     ld [hl-], a
     ld [hl], $00
 
-jr_001_5764::
+DeathFall_IntegrateYAndSelectFrame::
     call ApplyPlayerYVelocity
     ld hl, PlayerDeathAnimByForm
     ldh a, [hPlayerForm]
     rst $38
     ld a, [hl]
 
-jr_001_576e::
+DeathFall_CheckOffscreenAndRestart::
     ldh [hPlayerAnimId], a
     ld a, $ff
     ldh [hCollisionFlag], a
@@ -4152,17 +4151,18 @@ PlayerState_UpdateStageInteraction0D::
     ldh a, [hPlayerPlatformAttached]
     or a
     call z, EnterPlayerFallState
-    jr jr_001_57f7
+    jr GroundedAction_UpdateWalkingFrames
 
-Call_001_57d9::
+EnterPlayerAttachedGroundState::
+; Used when the hanging doll supports the player. State $0d exits when the support flag clears.
     ldh a, [hPlayerForm]
     cp $02
-    jr nz, jr_001_57e2
+    jr nz, AttachedGround_ResetAnimation
 
     xor a
     ldh [hPlayerActionLock], a
 
-jr_001_57e2::
+AttachedGround_ResetAnimation::
     ld a, $0d
     ldh [hPlayerState], a
     xor a
@@ -4178,9 +4178,9 @@ jr_001_57e2::
 
 
 PlayerState_UpdateGroundedActionCheck::
-    call Call_001_5812
+    call GroundedAction_CheckSupportThenInput
 
-jr_001_57f7::
+GroundedAction_UpdateWalkingFrames::
     ldh a, [hPlayerStatePhase]
     or a
     ret z
@@ -4201,7 +4201,7 @@ jr_001_57f7::
 PlayerGroundedActionAnimIds::
     db $12, $13, $12, $14
 
-Call_001_5812::
+GroundedAction_CheckSupportThenInput::
     call CheckPlayerGroundCollision
     ldh a, [hPlayerTileProbeCount]
     cp $02
@@ -4214,18 +4214,18 @@ HandlePlayerGroundInput:: ; Handle normal ground input and transition to jump/cr
 
     ldh a, [hJoyHeld]
     or a
-    jr z, jr_001_5834
+    jr z, GroundedAction_SelectIdlePose
 
     bit 4, a
-    jr nz, jr_001_583c
+    jr nz, GroundedAction_WalkRight
 
     bit 5, a
-    jr nz, jr_001_5846
+    jr nz, GroundedAction_WalkLeft
 
     bit 7, a
     jp nz, EnterPlayerFallState
 
-jr_001_5834::
+GroundedAction_SelectIdlePose::
     xor a
     ldh [hPlayerStatePhase], a
     ld a, $12
@@ -4233,7 +4233,7 @@ jr_001_5834::
     ret
 
 
-jr_001_583c::
+GroundedAction_WalkRight::
     ld a, $01
     ldh [hPlayerStatePhase], a
     xor a
@@ -4241,7 +4241,7 @@ jr_001_583c::
     jp ApplyPlayerXVelocity
 
 
-jr_001_5846::
+GroundedAction_WalkLeft::
     ld a, $01
     ldh [hPlayerStatePhase], a
     ld a, $ff
@@ -4283,7 +4283,7 @@ PlayerState_UpdateDuck:: ; State 01: down/duck pose and related transitions.
     call ProbePlayerFeetThenHandleFall
     ldh a, [hJoyHeld]
     cp $80
-    jr z, jr_001_58d9
+    jr z, Duck_UpdateHeldDownPose
 
     ld a, $0c
     ldh [hPlayerAnimId], a
@@ -4292,18 +4292,18 @@ PlayerState_UpdateDuck:: ; State 01: down/duck pose and related transitions.
     jp z, AlignPlayerToTileAndResetState
 
     bit 0, a
-    jr nz, jr_001_58ae
+    jr nz, Duck_DropThroughGround
 
     bit 5, a
-    jr nz, jr_001_58a0
+    jr nz, Duck_FaceLeft
 
     bit 4, a
-    jr nz, jr_001_58a8
+    jr nz, Duck_FaceRight
 
     ret
 
 
-jr_001_58a0::
+Duck_FaceLeft::
     ld a, $ff
     ldh [hPlayerDirection], a
     xor a
@@ -4311,14 +4311,14 @@ jr_001_58a0::
     ret
 
 
-jr_001_58a8::
+Duck_FaceRight::
     xor a
     ldh [hPlayerDirection], a
     ldh [hPlayerAnimTimer], a
     ret
 
 
-jr_001_58ae::
+Duck_DropThroughGround::
     call CheckPlayerFootTileContact
     ld a, [wPlayerTileAligned]
     or a
@@ -4344,7 +4344,7 @@ jr_001_58ae::
     ret
 
 
-jr_001_58d9::
+Duck_UpdateHeldDownPose::
     call ProbePlayerHeadOnePixelLower
     ld a, $0c
     ldh [hPlayerAnimId], a
@@ -4419,10 +4419,10 @@ HandlePlayerVerticalInput::
 ; Handle UP/DOWN motion in the grounded-snap state.
     ldh a, [hJoyHeld]
     bit 6, a
-    jr nz, jr_001_594c
+    jr nz, SnapState_TryMoveUp
 
     bit 7, a
-    jr nz, jr_001_5965
+    jr nz, SnapState_MoveDown
 
     ldh a, [hJoyPressed]
     bit 0, a
@@ -4433,7 +4433,7 @@ HandlePlayerVerticalInput::
     jp CheckPlayerHeadCollision
 
 
-jr_001_594c::
+SnapState_TryMoveUp::
     ld a, $01
     ldh [hPlayerStatePhase], a
     ld hl, -$0100 ; Signed 16-bit delta; interpreted as pixels or 8.8 velocity by the caller.
@@ -4448,7 +4448,7 @@ jr_001_594c::
     jp CheckPlayerHeadCollision
 
 
-jr_001_5965::
+SnapState_MoveDown::
     ld a, $01
     ldh [hPlayerStatePhase], a
     ld hl, $0100
@@ -4514,11 +4514,11 @@ PlayerState_UpdateChickenAction:: ; State 08: mother-hen form action.
     ld b, $0a
     ld a, [wSavedPlayerState]
     or a
-    jr nz, jr_001_59d0
+    jr nz, ChickenAction_StoreEggPosition
 
     ld b, $04
 
-jr_001_59d0::
+ChickenAction_StoreEggPosition::
     ld a, b
     call CalcSpecialActorY
     call StoreSpecialActorPos
@@ -4560,7 +4560,7 @@ UpdatePlayerFormActionAnim:: ; Advance form-action animation once timer passes t
     ld hl, wFormActionStep
     ld a, [hl]
     or a
-    jr z, jr_001_5a14
+    jr z, FormAction_InitPose
 
     ldh a, [hPlayerAnimTimer]
     cp e
@@ -4578,7 +4578,7 @@ UpdatePlayerFormActionAnim:: ; Advance form-action animation once timer passes t
     ret
 
 
-jr_001_5a14::
+FormAction_InitPose::
     inc [hl]
     ld a, $17
     ldh [hPlayerAnimId], a
@@ -4632,7 +4632,7 @@ CalcSpecialActorX:: ; BC = player X +/- A based on hPlayerDirection.
     ld c, a
     ldh a, [hPlayerDirection]
     or a
-    jr nz, jr_001_5a73
+    jr nz, SpecialActorX_OffsetLeft
 
     ldh a, [hPlayerX]
     add c
@@ -4643,7 +4643,7 @@ CalcSpecialActorX:: ; BC = player X +/- A based on hPlayerDirection.
     ret
 
 
-jr_001_5a73::
+SpecialActorX_OffsetLeft::
     ldh a, [hPlayerX]
     sub c
     ld c, a
@@ -4676,25 +4676,25 @@ StartActionKamenAction:: ; Begin Action Kamen form action; only allowed from nor
 UpdateActionKamenActionAnim:: ; Select Action Kamen action animation by hPlayerAnimTimer.
     ldh a, [hPlayerAnimTimer]
     cp $0a
-    jr c, jr_001_5aa3
+    jr c, ActionKamenAction_SelectStartupFrame
 
     cp $14
     jr z, SpawnActionKamenProjectile
 
-    jr nc, jr_001_5aa8
+    jr nc, ActionKamenAction_SelectRecoveryFrame
 
     ld a, $16
     ldh [hPlayerAnimId], a
     ret
 
 
-jr_001_5aa3::
+ActionKamenAction_SelectStartupFrame::
     ld a, $15
     ldh [hPlayerAnimId], a
     ret
 
 
-jr_001_5aa8::
+ActionKamenAction_SelectRecoveryFrame::
     ld a, $17
     ldh [hPlayerAnimId], a
     ret
@@ -4787,58 +4787,56 @@ PlayerState_UpdateNormalGround:: ; State 00: normal grounded player control.
 
     ldh a, [hPlayerForm]
     cp PLAYER_FORM_COCKROACH
-    jr nz, jr_001_5b31
+    jr nz, GroundedPlayer_DispatchAnimation
 
     ldh a, [hPlayerActionLock]
     or a
-    jr nz, jr_001_5b3a
+    jr nz, CockroachGroundAction_SelectFrameTable
 
-jr_001_5b31::
+GroundedPlayer_DispatchAnimation::
     ldh a, [hPlayerStatePhase]
     rst $00
 
-	dw CockroachGroundAnim_State00
-	dw CockroachGroundAnim_State01
-	dw CockroachGroundAnim_State02
+	dw GroundedPlayer_IdlePose
+	dw GroundedPlayer_WalkCycle
+	dw GroundedPlayer_IdleFidget
 
-jr_001_5b3a::
+CockroachGroundAction_SelectFrameTable::
     ldh a, [hPlayerStatePhase]
     or a
-    jr nz, jr_001_5b51
+    jr nz, CockroachGroundAction_UseMovingFrames
 
-    ld hl, CockroachHitboxTableA
+    ld hl, CockroachGroundIdleActionFrames
     ld a, l
-    ldh [hSharedScratch + $05], a
+    ldh [hCockroachActionFramePtrLo], a
     ld a, h
-    ldh [hSharedScratch + $06], a
+    ldh [hCockroachActionFramePtrHi], a
     jp UpdateCockroachActionHitbox
 
 
 
-CockroachHitboxTableA::
+CockroachGroundIdleActionFrames::
     db $15, $16, $16, $16, $15, $15
 
-jr_001_5b51::
-    ld hl, CockroachHitboxTableB
+CockroachGroundAction_UseMovingFrames::
+    ld hl, CockroachGroundMovingActionFrames
     ld a, l
-    ldh [hSharedScratch + $05], a
+    ldh [hCockroachActionFramePtrLo], a
     ld a, h
-    ldh [hSharedScratch + $06], a
+    ldh [hCockroachActionFramePtrHi], a
     jp UpdateCockroachActionHitbox
 
 
 
-CockroachHitboxTableB::
+CockroachGroundMovingActionFrames::
     db $15, $16, $16, $17, $15, $1b
 
-CockroachGroundAnim_State00::
-; PlayerState_UpdateNormalGround dispatch index $00; behavior name can be refined after tracing.
+GroundedPlayer_IdlePose::
     ld a, $04
     ldh [hPlayerAnimId], a
     ret
 
-CockroachGroundAnim_State01::
-; PlayerState_UpdateNormalGround dispatch index $01; behavior name can be refined after tracing.
+GroundedPlayer_WalkCycle::
     ld h, $0a
     ld l, $04
     ld e, $00
@@ -4861,7 +4859,7 @@ AdvancePlayerAnimWithinRange::
     inc a
     ldh [hPlayerAnimCounter], a
     cp h
-    jr c, jr_001_5b98
+    jr c, PlayerAnimation_CheckCurrentFrame
 
     xor a
     ldh [hPlayerAnimCounter], a
@@ -4869,25 +4867,24 @@ AdvancePlayerAnimWithinRange::
     inc a
     ldh [hPlayerAnimFrame], a
 
-jr_001_5b8f::
+PlayerAnimation_CheckFrameRange::
     cp e
-    jr c, jr_001_5b94
+    jr c, PlayerAnimation_WrapToFirstFrame
 
     cp l
     ret c
 
-jr_001_5b94::
+PlayerAnimation_WrapToFirstFrame::
     ld a, e
     ldh [hPlayerAnimFrame], a
     ret
 
 
-jr_001_5b98::
+PlayerAnimation_CheckCurrentFrame::
     ldh a, [hPlayerAnimFrame]
-    jr jr_001_5b8f
+    jr PlayerAnimation_CheckFrameRange
 
-CockroachGroundAnim_State02::
-; PlayerState_UpdateNormalGround dispatch index $02; behavior name can be refined after tracing.
+GroundedPlayer_IdleFidget::
     ld h, $0a
     ld l, $05
     ld e, $00
@@ -4895,7 +4892,7 @@ CockroachGroundAnim_State02::
     ld hl, CockroachAnimIdsB
     ldh a, [hPlayerAnimFrame]
     cp $04
-    jr nc, jr_001_5bb3
+    jr nc, GroundedPlayer_EndIdleFidget
 
     rst $38
     ld a, [hl]
@@ -4903,7 +4900,7 @@ CockroachGroundAnim_State02::
     ret
 
 
-jr_001_5bb3::
+GroundedPlayer_EndIdleFidget::
     xor a
     ldh [hPlayerStatePhase], a
     ldh [hPlayerAnimFrame], a
@@ -4918,30 +4915,30 @@ CockroachAnimIdsB::
 HandleGroundInput:: ; Ground input router: duck, jump, form action, horizontal movement, idle timer.
     ldh a, [hJoyHeld]
     bit 7, a
-    jr nz, jr_001_5c1a
+    jr nz, GroundInput_CheckDuck
 
     ldh a, [hJoyPressed]
     rrca
-    jr c, jr_001_5c17
+    jr c, GroundInput_StartJump
 
     rrca
     jp c, UsePlayerFormAction
 
-jr_001_5bcf::
+GroundInput_CheckDirectionalButtons::
     ldh a, [hJoyHeld]
     or a
-    jr z, jr_001_5be0
+    jr z, GroundInput_UpdateIdle
 
     bit 4, a
-    jr nz, jr_001_5c35
+    jr nz, GroundInput_MoveRight
 
     bit 5, a
-    jr nz, jr_001_5c59
+    jr nz, GroundInput_MoveLeft
 
     bit 6, a
-    jr nz, jr_001_5bfb
+    jr nz, GroundInput_TryEnterSnapState
 
-jr_001_5be0::
+GroundInput_UpdateIdle::
     call ProbePlayerFeetThenHandleFall
     xor a
     ldh [hPlayerStatePhase], a
@@ -4962,7 +4959,7 @@ jr_001_5be0::
     ret
 
 
-jr_001_5bfb::
+GroundInput_TryEnterSnapState::
     ld hl, -$0100 ; Signed 16-bit delta; interpreted as pixels or 8.8 velocity by the caller.
     call MovePlayerYBySignedHL
     call CheckPlayerHeadCollision
@@ -4970,21 +4967,21 @@ jr_001_5bfb::
     call MovePlayerYBySignedHL
     ldh a, [hPlayerState]
     cp $03
-    jr nz, jr_001_5be0
+    jr nz, GroundInput_UpdateIdle
 
     ld hl, -$0100 ; Signed 16-bit delta; interpreted as pixels or 8.8 velocity by the caller.
     call MovePlayerYBySignedHL
     ret
 
 
-jr_001_5c17::
+GroundInput_StartJump::
     jp StartPlayerJump
 
 
-jr_001_5c1a::
+GroundInput_CheckDuck::
     ldh a, [hPlayerForm]
     cp $02
-    jr z, jr_001_5c2a
+    jr z, GroundInput_CheckCockroachDrop
 
     ld a, $01
     ldh [hPlayerState], a
@@ -4994,15 +4991,15 @@ jr_001_5c1a::
     ret
 
 
-jr_001_5c2a::
+GroundInput_CheckCockroachDrop::
     call ProbePlayerHeadOnePixelLower
     ldh a, [hJoyHeld]
     rrca
-    jp c, jr_001_58ae
+    jp c, Duck_DropThroughGround
 
-    jr jr_001_5bcf
+    jr GroundInput_CheckDirectionalButtons
 
-jr_001_5c35::
+GroundInput_MoveRight::
     xor a
     ldh [hPlayerAnimTimer], a
     ld a, $01
@@ -5011,13 +5008,13 @@ jr_001_5c35::
     ldh [hPlayerDirection], a
     ld a, [wStageBossStateFlag]
     cp $ff
-    jr nz, jr_001_5c4d
+    jr nz, GroundInput_ProbeRightBeforeMove
 
     ldh a, [hPlayerScreenX]
     cp $9c
     jp nc, ApplyPlayerXVelocity
 
-jr_001_5c4d::
+GroundInput_ProbeRightBeforeMove::
     call CheckPlayerRightTileCollision
     ldh a, [hPlayerTileCollisionFlag]
     or a
@@ -5025,7 +5022,7 @@ jr_001_5c4d::
     jp ProbePlayerFeetThenHandleFall
 
 
-jr_001_5c59::
+GroundInput_MoveLeft::
     xor a
     ldh [hPlayerAnimTimer], a
     ld a, $01
@@ -5075,14 +5072,14 @@ AirborneAnim_FlyingSquirrel::
     call z, UpdateFlyingSquirrelGlide
     ldh a, [hPlayerVelYHigh]
     rlca
-    jr nc, jr_001_5ca3
+    jr nc, SquirrelAirborne_SelectDescentFrame
 
     ld a, $0e
     ldh [hPlayerAnimId], a
     ret
 
 
-jr_001_5ca3::
+SquirrelAirborne_SelectDescentFrame::
     ld hl, wPlayerForcedJumpFlags
     bit 7, [hl]
     ret nz
@@ -5117,11 +5114,11 @@ AirborneAnim_Cockroach::
     or a
     jr z, AirborneAnim_Alternating
 
-    ld hl, ActionHitboxTable
+    ld hl, CockroachAirActionFrames
     ld a, l
-    ldh [hSharedScratch + $05], a
+    ldh [hCockroachActionFramePtrLo], a
     ld a, h
-    ldh [hSharedScratch + $06], a
+    ldh [hCockroachActionFramePtrHi], a
 
 UpdateCockroachActionHitbox:: ; Update cockroach action hitbox position while hPlayerActionLock is active.
     call UpdatePlayerActionAnimStep
@@ -5133,16 +5130,16 @@ UpdateCockroachActionHitbox:: ; Update cockroach action hitbox position while hP
     ld de, $1606
     ld a, [wFormActionStep]
     cp $01
-    jr nz, jr_001_5cee
+    jr nz, CockroachAction_SetHitboxWidthAndX
 
     ld de, $1c0c
 
-jr_001_5cee::
+CockroachAction_SetHitboxWidthAndX::
     ld a, e
     ldh [hActionHitboxHalfWidth], a
     ldh a, [hPlayerDirection]
     or a
-    jr nz, jr_001_5cfd
+    jr nz, CockroachAction_SetLeftHitboxX
 
     ldh a, [hPlayerScreenX]
     add d
@@ -5150,7 +5147,7 @@ jr_001_5cee::
     ret
 
 
-jr_001_5cfd::
+CockroachAction_SetLeftHitboxX::
     ldh a, [hPlayerScreenX]
     sub d
     ld [wPlayerActionHitbox0X], a
@@ -5162,16 +5159,15 @@ UpdatePlayerActionAnimStep:: ; Advance multi-step player form action animation.
     rst $00
 
     ; rst $00 jump table (3 entries)
-    dw PlayerActionAnim_State00, PlayerActionAnim_State01, PlayerActionAnim_State02
+    dw CockroachAction_Windup, CockroachAction_Extended, CockroachAction_Recover
 
 
-PlayerActionAnim_State00::
-; UpdatePlayerActionAnimStep dispatch index $00; behavior name can be refined after tracing.
+CockroachAction_Windup::
     ld h, $08
     ld l, $03
     ld e, $00
     call AdvancePlayerAnimWithinRange
-    ld hl, hSharedScratch + $05
+    ld hl, hCockroachActionFramePtrLo
     ld a, [hl+]
     ld h, [hl]
     ld l, a
@@ -5191,13 +5187,12 @@ PlayerActionAnim_State00::
     ret
 
 
-PlayerActionAnim_State01::
-; UpdatePlayerActionAnimStep dispatch index $01; behavior name can be refined after tracing.
+CockroachAction_Extended::
     ld h, $08
     ld l, $04
     ld e, $02
     call AdvancePlayerAnimWithinRange
-    ld hl, hSharedScratch + $05
+    ld hl, hCockroachActionFramePtrLo
     ld a, [hl+]
     ld h, [hl]
     ld l, a
@@ -5217,13 +5212,12 @@ PlayerActionAnim_State01::
     ret
 
 
-PlayerActionAnim_State02::
-; UpdatePlayerActionAnimStep dispatch index $02; behavior name can be refined after tracing.
+CockroachAction_Recover::
     ld h, $08
     ld l, $06
     ld e, $04
     call AdvancePlayerAnimWithinRange
-    ld hl, hSharedScratch + $05
+    ld hl, hCockroachActionFramePtrLo
     ld a, [hl+]
     ld h, [hl]
     ld l, a
@@ -5243,7 +5237,7 @@ PlayerActionAnim_State02::
 
 
 
-ActionHitboxTable::
+CockroachAirActionFrames::
     db $18, $19, $19, $1a, $18, $1c
 
 UpdateAirbornePlayerInput:: ; Handle airborne B action, horizontal control, gravity, and landing checks.
@@ -5256,17 +5250,17 @@ UpdateAirbornePlayerInput:: ; Handle airborne B action, horizontal control, grav
     call nc, LimitUpwardVelocityOnARelease
     ldh a, [hJoyHeld]
     bit 6, a
-    jr nz, jr_001_5db6
+    jr nz, AirborneInput_ProbeSnapContact
 
-jr_001_5d8a::
+AirborneInput_CheckHorizontalButtons::
     ldh a, [hJoyHeld]
     bit 4, a
-    jr nz, jr_001_5dc0
+    jr nz, AirborneInput_MoveRight
 
     bit 5, a
-    jr nz, jr_001_5dd0
+    jr nz, AirborneInput_MoveLeft
 
-    jr jr_001_5ddf
+    jr AirborneInput_ApplyGravity
 
 LimitUpwardVelocityOnARelease:: ; When A is released during upward motion, clamp upward velocity.
     ld a, [wPlayerForcedJumpFlags]
@@ -5294,37 +5288,37 @@ LimitUpwardVelocityOnARelease:: ; When A is released during upward motion, clamp
     ret
 
 
-jr_001_5db6::
+AirborneInput_ProbeSnapContact::
     call CheckPlayerHeadCollision
     ldh a, [hPlayerState]
     cp $03
-    jr nz, jr_001_5d8a
+    jr nz, AirborneInput_CheckHorizontalButtons
 
     ret
 
 
-jr_001_5dc0::
+AirborneInput_MoveRight::
     xor a
     ldh [hPlayerDirection], a
     call CheckPlayerRightTileCollision
     ldh a, [hPlayerTileCollisionFlag]
     or a
-    jr nz, jr_001_5ddf
+    jr nz, AirborneInput_ApplyGravity
 
     call ApplyPlayerXVelocity
-    jr jr_001_5ddf
+    jr AirborneInput_ApplyGravity
 
-jr_001_5dd0::
+AirborneInput_MoveLeft::
     ld a, $ff
     ldh [hPlayerDirection], a
     call CheckPlayerLeftTileCollision
     ldh a, [hPlayerTileCollisionFlag]
     or a
-    jr nz, jr_001_5ddf
+    jr nz, AirborneInput_ApplyGravity
 
     call ApplyPlayerXVelocity
 
-jr_001_5ddf::
+AirborneInput_ApplyGravity::
     ldh a, [hPlayerGravity]
     ld b, a
     ld hl, hPlayerVelYLo
@@ -5338,13 +5332,13 @@ jr_001_5ddf::
     jp nz, ApplyPlayerYVelocityAndCheckGround
 
     cp $04
-    jr c, jr_001_5dfa
+    jr c, AirborneInput_IntegrateFallAndCheckFeet
 
     ld a, $04
     ld [hl-], a
     ld [hl], $00
 
-jr_001_5dfa::
+AirborneInput_IntegrateFallAndCheckFeet::
     call ApplyPlayerYVelocity
     call CheckPlayerFootTileContact
     ld hl, hPlayerState
@@ -5386,36 +5380,36 @@ UpdatePlayerJumpProfile:: ; Select jump profile. Chicken Shin-chan uses a strong
 UpdateFlyingSquirrelGlide:: ; Flying squirrel: repeated A presses build glide meter and briefly cancel gravity/Y velocity.
     ldh a, [hJoyPressed]
     rrca
-    jr nc, jr_001_5e5e
+    jr nc, SquirrelGlide_DecayWhileDescending
 
     ld a, $4b
     call PlaySound
     ldh a, [hPlayerAnimId]
     cp $0e
-    jr nz, jr_001_5e42
+    jr nz, SquirrelGlide_SelectAscentFrame
 
     inc a
-    jr jr_001_5e44
+    jr SquirrelGlide_UpdateMeter
 
-jr_001_5e42::
+SquirrelGlide_SelectAscentFrame::
     ld a, $0e
 
-jr_001_5e44::
+SquirrelGlide_UpdateMeter::
     ldh [hPlayerAnimId], a
     ld hl, wPlayerActionMeter
     ld a, [hl]
     add $1e
     cp $3d
-    jr c, jr_001_5e52
+    jr c, SquirrelGlide_StoreMeter
 
     ld a, $3c
 
-jr_001_5e52::
+SquirrelGlide_StoreMeter::
     ld [hl], a
     cp $1f
     ret c
 
-jr_001_5e56::
+SquirrelGlide_ClearVerticalMotion::
     xor a
     ldh [hPlayerGravity], a
     ldh [hPlayerVelY], a
@@ -5423,7 +5417,7 @@ jr_001_5e56::
     ret
 
 
-jr_001_5e5e::
+SquirrelGlide_DecayWhileDescending::
     ldh a, [hPlayerVelYHigh]
     rlca
     ret c
@@ -5437,7 +5431,7 @@ jr_001_5e5e::
 
     dec [hl]
     cp $37
-    jr nc, jr_001_5e56
+    jr nc, SquirrelGlide_ClearVerticalMotion
 
     ret
 
@@ -5516,7 +5510,7 @@ SetPlayerJumpVelocity7::
 PlayerState_UpdateHurtKnockback:: ; State 06: recovery/knockback-style animation state.
     ldh a, [hPlayerStatePhase]
     or a
-    jr z, jr_001_5f1f
+    jr z, HurtRecovery_StreamFormTilesAndAnimate
 
     ld h, $0c
     ld l, $03
@@ -5525,7 +5519,7 @@ PlayerState_UpdateHurtKnockback:: ; State 06: recovery/knockback-style animation
     ld hl, PlayerRecoveryAnimIdsA
     ldh a, [hPlayerAnimFrame]
     cp $02
-    jr z, jr_001_5ef4
+    jr z, HurtRecovery_RestoreNormalControl
 
     rst $38
     ld a, [hl]
@@ -5545,7 +5539,7 @@ PlayerState_UpdateHurtKnockback:: ; State 06: recovery/knockback-style animation
 PlayerRecoveryAnimIdsA::
     db $02, $03, $03
 
-jr_001_5ef4::
+HurtRecovery_RestoreNormalControl::
     ld a, $04
     ldh [hPlayerAnimId], a
     call QueuePlayerFormHudIcon
@@ -5571,7 +5565,7 @@ jr_001_5ef4::
     ret
 
 
-jr_001_5f1f::
+HurtRecovery_StreamFormTilesAndAnimate::
     call StreamPlayerFormTilesUntilComplete
     ldh a, [hPlayerAnimCounter]
     cp $01
@@ -5613,7 +5607,7 @@ StreamNextPlayerFormTile::
     rst $20
     ldh a, [hPlayerAnimTimer]
     bit 7, a
-    jr nz, jr_001_5f62
+    jr nz, FormTileStream_AdvanceCounter
 
     ld c, a
     add $13
@@ -5621,7 +5615,7 @@ StreamNextPlayerFormTile::
     ld d, $05
     call QueueBankedVramTile8000
 
-jr_001_5f62::
+FormTileStream_AdvanceCounter::
     ldh a, [hPlayerAnimTimer]
     inc a
     ldh [hPlayerAnimTimer], a
@@ -9638,7 +9632,7 @@ jr_001_737d::
     ldh [hPlayerPlatformAttached], a
     ldh a, [hPlayerState]
     cp $0d
-    call nz, Call_001_57d9
+    call nz, EnterPlayerAttachedGroundState
     ld a, $01
     ldh [hTileStreamWritePos], a
 
