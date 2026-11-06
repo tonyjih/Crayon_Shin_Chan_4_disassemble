@@ -206,12 +206,12 @@ InitGameplayObjectAndCameraWork::
     ld de, $0140
     ld a, [wSpecialModeFlags]
     or a
-    jr z, jr_001_41c7
+    jr z, Gameplay_StoreMovementDefaults
 
     ld hl, $01c0
     ld de, $0200
 
-jr_001_41c7::
+Gameplay_StoreMovementDefaults::
     ld a, l
     ld [wPlayerNormalSpeedLo], a
     ld a, h
@@ -256,10 +256,10 @@ jr_001_41c7::
 
 
 LoadStageLayoutForResume::
-    call jr_001_4225
+    call DecodeStageLayout
     ld a, [wStageCheckpointActive]
     or a
-    jr z, jr_001_4225
+    jr z, DecodeStageLayout
 
     ld hl, StageResumeLayoutPatchOffsets
     ldh a, [hStageIndex]
@@ -270,10 +270,10 @@ LoadStageLayoutForResume::
     ret
 
 
-jr_001_4225::
+DecodeStageLayout::
     ldh a, [hStageIndex]
     cp $03
-    jr z, jr_001_4250
+    jr z, DecodeStage3ExtendedLayout
 
     ld hl, StageLayoutRlePtrs
     ldh a, [hStageIndex]
@@ -298,7 +298,7 @@ StageResumeLayoutPatchOffsets:: ; Offsets into $c800 patched to metatile $05 whe
     dw $0841
     dw $0000
 
-jr_001_4250::
+DecodeStage3ExtendedLayout::
     ld hl, LayoutRle_b04_6b77
     ld de, wStageLayoutMap
     ld bc, $1100
@@ -506,12 +506,12 @@ PlayerCheckpointStartCameraPointers::
     dw PlayerStartCameraInit_437d
     dw PlayerStartCameraInit_438d
 
-jr_001_43a9::
+LoadNormalStageStartCamera::
     ld hl, PlayerStartCameraInit_Pointers
     ldh a, [hStageIndex]
     rst $20
 
-jr_001_43af::
+ApplyPlayerStartAndCameraRecord::
     ld a, [hl+]
     ldh [hPlayerX], a
     ld a, [hl+]
@@ -543,9 +543,9 @@ InitStageStartAndCheckpointState:: ; Select player start/camera profile and repl
     rst $20
     ld a, [wStageCheckpointActive]
     or a
-    jr z, jr_001_43a9
+    jr z, LoadNormalStageStartCamera
 
-    jr jr_001_43af
+    jr ApplyPlayerStartAndCameraRecord
 
 Stage2ApplyCheckpointGraphics:: ; If resuming Stage 2, replay checkpoint graphics and set transition step to 3.
     ld a, [wStageCheckpointActive]
@@ -685,10 +685,10 @@ PlayerStartCameraInit_44b7::
 UpdateGameplayState:: ; Main gameplay frame update for hGameState=2.
     ldh a, [hJoyPressed]
     bit 3, a
-    jr nz, jr_001_4532
+    jr nz, EnterGameplayPause
 
     ld a, $ff
-    ld [wGameplayWork + $03], a
+    ld [wDropPlatformMinXDistance], a
     call UpdateCameraAndStreamMap
     call UpdateSpecialActors
     call UpdateObjectsAndSpawnQueue
@@ -751,7 +751,7 @@ UploadPendingClearedMetatilePatch::
 HudTilePatch::
     db $08, $09, $0a, $0b
 
-jr_001_4532::
+EnterGameplayPause::
     ld a, $06
     ldh [hGameState], a
     ldh a, [hPrevOamPos]
@@ -763,7 +763,7 @@ jr_001_4532::
     ret
 
 
-jr_001_4544::
+DrawPlayer_EndHurtBlink::
     ldh a, [hPlayerFlags]
     res 1, a
     ldh [hPlayerFlags], a
@@ -774,15 +774,15 @@ DrawPlayerSprite:: ; Draw player metasprite using hPlayerForm/hPlayerAnimId and 
     ld hl, wPlayerHurtBlinkTimer
     ld a, [hl]
     or a
-    jr z, jr_001_4558
+    jr z, DrawPlayer_SelectFormMetasprite
 
     dec [hl]
-    jr z, jr_001_4544
+    jr z, DrawPlayer_EndHurtBlink
 
     bit 3, [hl]
     ret z
 
-jr_001_4558::
+DrawPlayer_SelectFormMetasprite::
     ldh a, [hPlayerDirection]
     and $01
     ld b, a
@@ -819,14 +819,14 @@ UpdateSpecialActors:: ; Update short-lived gameplay actor slots/effects.
     ld a, [hl]
     sbc $00
     ld [hl], a
-    jr z, jr_001_45a6
+    jr z, ActionKamenTimer_UpdateHudBlink
 
-    jr c, jr_001_4599
+    jr c, ActionKamenTimer_RestorePreviousForm
 
     ret
 
 
-jr_001_4599::
+ActionKamenTimer_RestorePreviousForm::
     ld a, [wStoredPlayerForm]
     ldh [hPlayerForm], a
     ld a, $04
@@ -834,7 +834,7 @@ jr_001_4599::
     jp EnterPlayerHurtState
 
 
-jr_001_45a6::
+ActionKamenTimer_UpdateHudBlink::
     ld a, [wFormTimerLo]
     ld b, a
     and $0f
@@ -875,10 +875,10 @@ UpdatePlayerSpecialActor1:: ; Update wPlayerSpecialActor1, used by paired flying
     call ProjectObjectToScreenAndCull
     ldh a, [hObjectOffscreen]
     or a
-    jr nz, jr_001_45f1
+    jr nz, ClearSecondFlyingSquirrelProjectile
 
     call CheckSpecialActorTileCollision
-    jr z, jr_001_45f1
+    jr z, ClearSecondFlyingSquirrelProjectile
 
     call SetSpecialActorHitbox4x4
     inc bc
@@ -892,7 +892,7 @@ UpdatePlayerSpecialActor1:: ; Update wPlayerSpecialActor1, used by paired flying
     jp DrawMetasprite
 
 
-jr_001_45f1::
+ClearSecondFlyingSquirrelProjectile::
     xor a
     ld [bc], a
     ld hl, hPlayerActionLock
@@ -954,13 +954,13 @@ CheckSpecialActorTileCollision:: ; Check projectile tile collision against the s
 IsProjectileTileBlocked::
 ; Return A=0 for passable tiles, $ff otherwise.
     call CheckProjectileTilePassability
-    jr c, jr_001_463f
+    jr c, ProjectileTile_ReturnPassable
 
     or $ff
     ret
 
 
-jr_001_463f::
+ProjectileTile_ReturnPassable::
     xor a
     ret
 
@@ -982,10 +982,10 @@ UpdateFlyingSquirrelProjectile:: ; Special actor type 1: flying-squirrel project
     call ProjectObjectToScreenAndCull
     ldh a, [hObjectOffscreen]
     or a
-    jr nz, jr_001_4677
+    jr nz, ClearFirstFlyingSquirrelProjectile
 
     call CheckSpecialActorTileCollision
-    jr z, jr_001_4677
+    jr z, ClearFirstFlyingSquirrelProjectile
 
     call SetChickenProjectileHitbox
     inc bc
@@ -999,7 +999,7 @@ UpdateFlyingSquirrelProjectile:: ; Special actor type 1: flying-squirrel project
     jp DrawMetasprite
 
 
-jr_001_4677::
+ClearFirstFlyingSquirrelProjectile::
     xor a
     ld [bc], a
     ld hl, hPlayerActionLock
@@ -1016,10 +1016,10 @@ UpdateChickenProjectile:: ; Special actor type 2: chicken projectile.
     call ProjectObjectToScreenAndCull
     ldh a, [hObjectOffscreen]
     or a
-    jr nz, jr_001_46a5
+    jr nz, ClearChickenProjectile
 
     call CheckSpecialActorTileCollision
-    jr z, jr_001_46a5
+    jr z, ClearChickenProjectile
 
     call SetProjectileHitbox4x4AtScreenPos
     inc bc
@@ -1033,7 +1033,7 @@ UpdateChickenProjectile:: ; Special actor type 2: chicken projectile.
     jp DrawMetasprite
 
 
-jr_001_46a5::
+ClearChickenProjectile::
     xor a
     ld [bc], a
     ld hl, hPlayerActionLock
@@ -1045,13 +1045,13 @@ UpdateChickenProjectileMotion:: ; Update chicken projectile motion; after startu
     ld hl, wPlayerSpecialActor0Timer
     ld a, [hl]
     cp $20
-    jr nc, jr_001_46b9
+    jr nc, ChickenProjectile_CheckForDrop
 
     inc [hl]
     jp MoveSpecialActorX_0180
 
 
-jr_001_46b9::
+ChickenProjectile_CheckForDrop::
     call CheckChickenProjectileNextTile
     call nc, AdvanceChickenProjectileY
     jp MoveSpecialActorX_0180
@@ -1105,25 +1105,25 @@ CheckProjectileTilePassability:: ; Dispatch tile-specific projectile passability
     rst $00
 
     ; rst $00 jump table (64 entries)
-    dw jr_001_478a, label_001_478c, label_001_478e, label_001_4794
-    dw jr_001_479a, jr_001_47a2, jr_001_478a, jr_001_479a
-    dw jr_001_47a2, jr_001_478a, jr_001_479a, jr_001_478a
-    dw label_001_47ae, label_001_47b4, jr_001_479a, jr_001_478a
-    dw jr_001_478a, label_001_478c, label_001_478c, jr_001_478a
-    dw label_001_478c, jr_001_479a, jr_001_478a, jr_001_479a
-    dw jr_001_479a, jr_001_478a, jr_001_479a, label_001_4782
-    dw jr_001_478a, jr_001_478a, label_001_4779, jr_001_478a
-    dw label_001_478c, label_001_478c, label_001_478c, label_001_478c
-    dw label_001_478c, jr_001_478a, jr_001_478a, jr_001_478a
-    dw jr_001_478a, jr_001_478a, jr_001_478a, jr_001_478a
-    dw jr_001_478a, jr_001_478a, jr_001_478a, jr_001_478a
-    dw jr_001_478a, jr_001_478a, jr_001_478a, jr_001_478a
-    dw jr_001_478a, jr_001_478a, jr_001_478a, jr_001_478a
-    dw jr_001_478a, jr_001_478a, jr_001_478a, jr_001_478a
-    dw jr_001_478a, jr_001_478a, jr_001_478a, jr_001_478a
+    dw ProjectileTile_Blocked, ProjectileTile_Passable, ProjectileTile_PassTopQuarterOnRight, ProjectileTile_PassTopQuarterOnLeft
+    dw ProjectileTile_PassTopQuarter, ProjectileTile_PassThirdQuarter, ProjectileTile_Blocked, ProjectileTile_PassTopQuarter
+    dw ProjectileTile_PassThirdQuarter, ProjectileTile_Blocked, ProjectileTile_PassTopQuarter, ProjectileTile_Blocked
+    dw ProjectileTile_PassThirdQuarterOnRight, ProjectileTile_PassThirdQuarterOnLeft, ProjectileTile_PassTopQuarter, ProjectileTile_Blocked
+    dw ProjectileTile_Blocked, ProjectileTile_Passable, ProjectileTile_Passable, ProjectileTile_Blocked
+    dw ProjectileTile_Passable, ProjectileTile_PassTopQuarter, ProjectileTile_Blocked, ProjectileTile_PassTopQuarter
+    dw ProjectileTile_PassTopQuarter, ProjectileTile_Blocked, ProjectileTile_PassTopQuarter, ProjectileTile_PassUpperHalf
+    dw ProjectileTile_Blocked, ProjectileTile_Blocked, ProjectileTile_PassLowerHalf, ProjectileTile_Blocked
+    dw ProjectileTile_Passable, ProjectileTile_Passable, ProjectileTile_Passable, ProjectileTile_Passable
+    dw ProjectileTile_Passable, ProjectileTile_Blocked, ProjectileTile_Blocked, ProjectileTile_Blocked
+    dw ProjectileTile_Blocked, ProjectileTile_Blocked, ProjectileTile_Blocked, ProjectileTile_Blocked
+    dw ProjectileTile_Blocked, ProjectileTile_Blocked, ProjectileTile_Blocked, ProjectileTile_Blocked
+    dw ProjectileTile_Blocked, ProjectileTile_Blocked, ProjectileTile_Blocked, ProjectileTile_Blocked
+    dw ProjectileTile_Blocked, ProjectileTile_Blocked, ProjectileTile_Blocked, ProjectileTile_Blocked
+    dw ProjectileTile_Blocked, ProjectileTile_Blocked, ProjectileTile_Blocked, ProjectileTile_Blocked
+    dw ProjectileTile_Blocked, ProjectileTile_Blocked, ProjectileTile_Blocked, ProjectileTile_Blocked
 
 
-label_001_4779::
+ProjectileTile_PassLowerHalf::
     ld a, c
     and $0f
     cp $08
@@ -1134,7 +1134,7 @@ label_001_4779::
     ret
 
 
-label_001_4782::
+ProjectileTile_PassUpperHalf::
     ld a, c
     and $0f
     cp $08
@@ -1144,29 +1144,29 @@ label_001_4782::
     ret
 
 
-jr_001_478a::
+ProjectileTile_Blocked::
     sub a
     ret
 
 
-label_001_478c::
+ProjectileTile_Passable::
     scf
     ret
 
 
-label_001_478e::
+ProjectileTile_PassTopQuarterOnRight::
     bit 3, b
-    jr z, jr_001_478a
+    jr z, ProjectileTile_Blocked
 
-    jr jr_001_479a
+    jr ProjectileTile_PassTopQuarter
 
-label_001_4794::
+ProjectileTile_PassTopQuarterOnLeft::
     bit 3, b
-    jr nz, jr_001_478a
+    jr nz, ProjectileTile_Blocked
 
-    jr jr_001_479a
+    jr ProjectileTile_PassTopQuarter
 
-jr_001_479a::
+ProjectileTile_PassTopQuarter::
     ld a, c
     and $0f
     cp $04
@@ -1176,11 +1176,11 @@ jr_001_479a::
     ret
 
 
-jr_001_47a2::
+ProjectileTile_PassThirdQuarter::
     ld a, c
     and $0f
     cp $08
-    jr c, jr_001_478a
+    jr c, ProjectileTile_Blocked
 
     cp $0c
     ret nc
@@ -1189,17 +1189,17 @@ jr_001_47a2::
     ret
 
 
-label_001_47ae::
+ProjectileTile_PassThirdQuarterOnRight::
     bit 3, b
-    jr z, jr_001_478a
+    jr z, ProjectileTile_Blocked
 
-    jr jr_001_47a2
+    jr ProjectileTile_PassThirdQuarter
 
-label_001_47b4::
+ProjectileTile_PassThirdQuarterOnLeft::
     bit 3, b
-    jr nz, jr_001_478a
+    jr nz, ProjectileTile_Blocked
 
-    jr jr_001_47a2
+    jr ProjectileTile_PassThirdQuarter
 
 SetProjectileHitbox4x4AtScreenPos:: ; Use $ffd3/$ffd4 as a 4x4 projectile hitbox position.
     ld a, $04
@@ -1220,7 +1220,7 @@ UpdateActionKamenProjectile:: ; Special actor type 3: Action Kamen projectile.
     call ProjectObjectToScreenAndCull
     ldh a, [hObjectOffscreen]
     or a
-    jr nz, jr_001_47f9
+    jr nz, ClearActionKamenProjectile
 
     call SetActionKamenProjectileHitbox8x8
     inc bc
@@ -1231,11 +1231,11 @@ UpdateActionKamenProjectile:: ; Special actor type 3: Action Kamen projectile.
     inc a
     ld [wPlayerSpecialActor0Timer], a
     bit 4, a
-    jr nz, jr_001_47f0
+    jr nz, ActionKamenProjectile_DrawSelectedFrame
 
     ld hl, SpriteFrameData_32e7
 
-jr_001_47f0::
+ActionKamenProjectile_DrawSelectedFrame::
     ldh a, [hObjectScreenX]
     ld c, a
     ldh a, [hObjectScreenY]
@@ -1243,7 +1243,7 @@ jr_001_47f0::
     jp DrawMetasprite
 
 
-jr_001_47f9::
+ClearActionKamenProjectile::
     xor a
     ld [bc], a
     ld hl, hPlayerActionLock
@@ -1326,33 +1326,33 @@ UpdateObjNone00:: ; Object type $00 / fallback: no-op object behavior.
 UpdateObjectsAndSpawnQueue:: ; Update active object slots and spawn queued objects near camera.
     ld a, [wStageBossCountdown]
     or a
-    jr z, jr_001_4871
+    jr z, Objects_BeginFrameSlotScan
 
     call UpdateStageBossIntro
 
-jr_001_4871::
+Objects_BeginFrameSlotScan::
     xor a
     ldh [hPlayerPlatformAttached], a
     ld hl, wObjectSlots
 
-jr_001_4877::
+Objects_CheckNextSlot::
     ld a, [hl]
     or a
-    jr z, jr_001_4884
+    jr z, Objects_AdvanceSlot
 
     cp OBJECT_LIST_END
-    jr z, jr_001_488a
+    jr z, Objects_ProcessFourSpawnRecords
 
     push hl
     call UpdateObjectSlotByType
     pop hl
 
-jr_001_4884::
+Objects_AdvanceSlot::
     ld bc, OBJECT_SLOT_SIZE
     add hl, bc
-    jr jr_001_4877
+    jr Objects_CheckNextSlot
 
-jr_001_488a::
+Objects_ProcessFourSpawnRecords::
     call TrySpawnNextObject
     call TrySpawnNextObject
     call TrySpawnNextObject
@@ -1388,9 +1388,9 @@ TrySpawnNextObject:: ; Try to spawn the next eligible stage object near the came
     add hl, bc
     add hl, bc
     ld a, l
-    ldh [hSharedScratch + $05], a
+    ldh [hSpawnRecordPtrLo], a
     ld a, h
-    ldh [hSharedScratch + $06], a
+    ldh [hSpawnRecordPtrHi], a
     ld a, [hl+]
     ldh [hTileStreamWritePos], a
     ld a, [hl+]
@@ -1411,7 +1411,7 @@ TrySpawnNextObject:: ; Try to spawn the next eligible stage object near the came
     ld de, $0050
     add hl, de
     bit 7, h
-    jr z, jr_001_48e5
+    jr z, Spawn_CheckHorizontalWindow
 
     ld a, l
     cpl
@@ -1422,7 +1422,8 @@ TrySpawnNextObject:: ; Try to spawn the next eligible stage object near the came
     adc $00
     ld h, a
 
-jr_001_48e5::
+Spawn_CheckHorizontalWindow::
+; DE was the spawn X. HL is now the absolute distance from the camera center.
     ld a, h
     ld e, l
     pop hl
@@ -1431,23 +1432,23 @@ jr_001_48e5::
 
     ldh a, [hTileStreamWritePos]
     cp $10
-    jr c, jr_001_48f6
+    jr c, Spawn_CheckLowTypeWindow
 
     ld a, e
     cp $70
     ret nc
 
-    jr jr_001_48fe
+    jr Spawn_MarkRecordBlocked
 
-jr_001_48f6::
+Spawn_CheckLowTypeWindow::
     ld a, e
     cp $b0
     ret nc
 
     cp $60
-    jr c, jr_001_4915
+    jr c, Spawn_CheckYInsideViewport
 
-jr_001_48fe::
+Spawn_MarkRecordBlocked::
     ld hl, wSpawnStateList
     add hl, bc
     ld [hl], SPAWN_STATE_BLOCKED
@@ -1455,19 +1456,19 @@ jr_001_48fe::
 FindFreeObjectSlot:: ; Find an empty object slot, extending the list if needed.
     ld hl, wObjectSlots
 
-jr_001_4907::
+Spawn_CheckNextFreeSlot::
     ld a, [hl]
     or a
     jr z, SpawnObjectIntoSlot
 
     cp $ff
-    jr z, jr_001_492e
+    jr z, Spawn_AppendSlotBeforeTerminator
 
     ld de, OBJECT_SLOT_SIZE
     add hl, de
-    jr jr_001_4907
+    jr Spawn_CheckNextFreeSlot
 
-jr_001_4915::
+Spawn_CheckYInsideViewport::
     ld a, [hl+]
     ld h, [hl]
     ld l, a
@@ -1483,16 +1484,16 @@ jr_001_4915::
     ld h, a
     ld a, h
     or a
-    jr nz, jr_001_48fe
+    jr nz, Spawn_MarkRecordBlocked
 
     ld a, l
     cp $a0
-    jr nc, jr_001_48fe
+    jr nc, Spawn_MarkRecordBlocked
 
     ret
 
 
-jr_001_492e::
+Spawn_AppendSlotBeforeTerminator::
     call SpawnObjectIntoSlot
     ld a, OBJECT_LIST_END
     ld hl, OBJECT_SLOT_SIZE
@@ -1510,7 +1511,7 @@ SpawnObjectIntoSlot:: ; Copy a 5-byte spawn record into the selected object slot
     ld [hl], a
     ld b, d
     ld c, e
-    ld hl, hSharedScratch + $05
+    ld hl, hSpawnRecordPtrLo
     ld a, [hl+]
     ld h, [hl]
     ld l, a
@@ -1633,11 +1634,11 @@ InitSpawnedObjectFacingFromSpawnParam:: ; Use spawn param bit 0 to set object fa
     srl a
     ld a, [bc]
     res 7, a
-    jr nc, jr_001_49f5
+    jr nc, Spawn_StoreFacingFlags
 
     set 7, a
 
-jr_001_49f5::
+Spawn_StoreFacingFlags::
     ld [bc], a
     ret
 
@@ -1695,7 +1696,7 @@ PlatformSpawnParamTable::
 
 InitSpawnedObjectMotionBlockA:: ; Initialize motion params from block A.
     ld de, SpawnMotionBlockA
-    jr jr_001_4a71
+    jr Spawn_ApplyModeMotionBlock
 
 
 SpawnMotionBlockA::
@@ -1703,7 +1704,7 @@ SpawnMotionBlockA::
 
 InitSpawnedObjectMotionBlockB:: ; Initialize motion params from block B.
     ld de, SpawnMotionBlockB
-    jr jr_001_4a71
+    jr Spawn_ApplyModeMotionBlock
 
 
 SpawnMotionBlockB::
@@ -1711,7 +1712,7 @@ SpawnMotionBlockB::
 
 InitSpawnedObjectMotionBlockC:: ; Initialize motion params from block C.
     ld de, SpawnMotionBlockC
-    jr jr_001_4a71
+    jr Spawn_ApplyModeMotionBlock
 
 
 SpawnMotionBlockC::
@@ -1719,13 +1720,13 @@ SpawnMotionBlockC::
 
 InitSpawnedObjectMotionBlockD:: ; Initialize motion params from block D.
     ld de, SpawnMotionBlockD
-    jr jr_001_4a71
+    jr Spawn_ApplyModeMotionBlock
 
 
 SpawnMotionBlockD::
     db $00, $01, $02, $02, $80, $01, $03, $03
 
-jr_001_4a71::
+Spawn_ApplyModeMotionBlock::
     ld a, [wAlternateModeFlags]
     add e
     ld e, a
@@ -1748,11 +1749,11 @@ jr_001_4a71::
     ld l, $00
     ld a, [wAlternateModeFlags]
     or a
-    jr z, jr_001_4a95
+    jr z, Spawn_LookUpAnimationParams
 
     ld l, $08
 
-jr_001_4a95::
+Spawn_LookUpAnimationParams::
     ldh a, [hTileStreamWritePos]
     and $07
     add l
@@ -1774,7 +1775,7 @@ SpawnAnimParamTableB::
     db $18, $30, $50, $70, $80, $a0, $c0, $f0, $10, $20, $34, $4a, $54, $6a, $80, $a0
 InitSpawnedObjectParamBlockA:: ; Initialize params from block A.
     ld de, SpawnParamBlockA
-    jr jr_001_4a71
+    jr Spawn_ApplyModeMotionBlock
 
 
 SpawnParamBlockA::
@@ -1782,7 +1783,7 @@ SpawnParamBlockA::
 
 InitSpawnedObjectParamBlockB:: ; Initialize params from block B.
     ld de, SpawnParamBlockB
-    jr jr_001_4a71
+    jr Spawn_ApplyModeMotionBlock
 
 
 SpawnParamBlockB::
@@ -1790,7 +1791,7 @@ SpawnParamBlockB::
 
 InitSpawnedObjectParamBlockC:: ; Initialize params from block C.
     ld de, SpawnParamBlockC
-    jr jr_001_4a71
+    jr Spawn_ApplyModeMotionBlock
 
 
 SpawnParamBlockC::
@@ -1800,7 +1801,7 @@ InitSpawnedObjectParamBlockD:: ; Initialize params from block D and clear event 
     xor a
     ld [wRuntimeWork + $1a], a
     ld de, SpawnParamBlockD
-    jp jr_001_4a71
+    jp Spawn_ApplyModeMotionBlock
 
 
 
@@ -1826,18 +1827,18 @@ InitSpawnStateList:: ; Initialize one-byte state entries for stage spawn records
     ld e, l
     ld hl, wSpawnStateList
 
-jr_001_4b14::
+SpawnState_InitNextRecord::
     ld a, [de]
     cp $ff
-    jr z, jr_001_4b21
+    jr z, SpawnState_WriteTerminator
 
     ld a, $01
     ld [hl+], a
     ld a, SPAWN_RECORD_SIZE
     rst $30
-    jr jr_001_4b14
+    jr SpawnState_InitNextRecord
 
-jr_001_4b21::
+SpawnState_WriteTerminator::
     ld [hl], $ff
     ret
 
@@ -1877,7 +1878,7 @@ ProjectObjectToScreenAndCull:: ; Convert object world position to screen positio
     ldh [hObjectScreenY], a
     ld a, [hl+]
     sbc d
-    ldh [hSharedScratch + $0a], a
+    ldh [hObjectScreenYHi], a
     jr c, CheckObjectVerticalVisibility_AboveViewport
 
     or a
@@ -1936,40 +1937,40 @@ CullObjectAndReleaseSpawn:: ; Despawn object when far offscreen and mark its spa
     ld hl, $00a0
     add hl, de
     bit 7, h
-    jr nz, jr_001_4bbd
+    jr nz, CullObject_FreeSlotAndRearmSpawn
 
     bit 7, d
-    jr nz, jr_001_4ba1
+    jr nz, CullObject_CheckVerticalDistance
 
     ld hl, -$0140
     add hl, de
     bit 7, h
-    jr z, jr_001_4bbd
+    jr z, CullObject_FreeSlotAndRearmSpawn
 
-jr_001_4ba1::
-    ldh a, [hSharedScratch + $0a]
+CullObject_CheckVerticalDistance::
+    ldh a, [hObjectScreenYHi]
     ld d, a
     ldh a, [hObjectScreenY]
     ld e, a
     ld hl, $0090
     add hl, de
     bit 7, h
-    jr nz, jr_001_4bbd
+    jr nz, CullObject_FreeSlotAndRearmSpawn
 
     bit 7, d
-    jr nz, jr_001_4bbb
+    jr nz, CullObject_KeepSlot
 
     ld hl, -$0100 ; Signed 16-bit delta; interpreted as pixels or 8.8 velocity by the caller.
     add hl, de
     bit 7, h
-    jr z, jr_001_4bbd
+    jr z, CullObject_FreeSlotAndRearmSpawn
 
-jr_001_4bbb::
+CullObject_KeepSlot::
     xor a
     ret
 
 
-jr_001_4bbd::
+CullObject_FreeSlotAndRearmSpawn::
     ld h, b
     ld l, c
     inc hl
@@ -2062,22 +2063,22 @@ DrawCurrentStageObject::
 LoadPlayerObjectCollisionProbe::
     ldh a, [hPlayerState]
     cp $01
-    jr z, jr_001_4c26
+    jr z, PlayerProbe_SelectShortBodyTable
 
     ldh a, [hPlayerForm]
     cp $02
-    jr z, jr_001_4c26
+    jr z, PlayerProbe_SelectShortBodyTable
 
-    jr jr_001_4c2b
+    jr PlayerProbe_SelectNormalBodyTable
 
-jr_001_4c26::
+PlayerProbe_SelectShortBodyTable::
     ld hl, PlayerCollisionProbeTableDuckOrCockroach
-    jr jr_001_4c2e
+    jr PlayerProbe_LoadSelectedRecord
 
-jr_001_4c2b::
+PlayerProbe_SelectNormalBodyTable::
     ld hl, PlayerCollisionProbeTableNormal
 
-jr_001_4c2e::
+PlayerProbe_LoadSelectedRecord::
     ld a, d
     add a
     add a
@@ -2117,51 +2118,51 @@ CheckPlayerAgainstCurrentObject::
     ldh a, [hObjectScreenX]
     sub h
     bit 7, a
-    jr z, jr_001_4cad
+    jr z, PlayerObjectCollision_CheckHorizontalRange
 
     cpl
     inc a
 
-jr_001_4cad::
+PlayerObjectCollision_CheckHorizontalRange::
     cp l
     ret nc
 
     ldh a, [hPlayerState]
     cp $02
-    jr nz, jr_001_4cce
+    jr nz, PlayerObjectCollision_CheckBodyY
 
     ldh a, [hPlayerVelYHigh]
     rlca
-    jr c, jr_001_4cce
+    jr c, PlayerObjectCollision_CheckBodyY
 
     ldh a, [hPlayerScreenY]
     ld h, a
     ldh a, [hObjectScreenY]
     sub h
-    jr c, jr_001_4cdf
+    jr c, PlayerObjectCollision_CheckAbove
 
     cp e
-    jr nc, jr_001_4cc7
+    jr nc, PlayerObjectCollision_ResolveStomp
 
     cp d
     ccf
 
-jr_001_4cc7::
-    jr nc, jr_001_4cd6
+PlayerObjectCollision_ResolveStomp::
+    jr nc, PlayerObjectCollision_CheckBelow
 
     call SetPlayerForcedBounceVelocity
     scf
     ret
 
 
-jr_001_4cce::
+PlayerObjectCollision_CheckBodyY::
     ldh a, [hPlayerScreenY]
     ld h, a
     ldh a, [hObjectScreenY]
     sub h
-    jr c, jr_001_4cdf
+    jr c, PlayerObjectCollision_CheckAbove
 
-jr_001_4cd6::
+PlayerObjectCollision_CheckBelow::
     ld l, a
     ldh a, [hPlayerObjectProbeBelow]
     ld h, a
@@ -2169,9 +2170,9 @@ jr_001_4cd6::
     cp h
     ret nc
 
-    jr jr_001_4ce8
+    jr PlayerObjectCollision_ApplyDamage
 
-jr_001_4cdf::
+PlayerObjectCollision_CheckAbove::
     cpl
     inc a
     ld l, a
@@ -2181,7 +2182,7 @@ jr_001_4cdf::
     cp h
     ret nc
 
-jr_001_4ce8::
+PlayerObjectCollision_ApplyDamage::
     call HandlePlayerDamage
     sub a
     ret
@@ -2191,12 +2192,12 @@ CheckCurrentObjectAgainstPoint::
     ldh a, [hObjectScreenX]
     sub [hl]
     bit 7, a
-    jr z, jr_001_4cf6
+    jr z, ObjectPointCollision_CheckXRange
 
     cpl
     inc a
 
-jr_001_4cf6::
+ObjectPointCollision_CheckXRange::
     cp d
     ret nc
 
@@ -2204,20 +2205,20 @@ jr_001_4cf6::
     ldh a, [hTileStreamWritePos]
     sub [hl]
     bit 7, a
-    jr z, jr_001_4d02
+    jr z, ObjectPointCollision_CheckYRange
 
     cpl
     inc a
 
-jr_001_4d02::
+ObjectPointCollision_CheckYRange::
     cp e
     ret
 
 
-jr_001_4d04::
+BossIntro_AdjustCameraBeforeTiles::
     ldh a, [hStageIndex]
     cp $03
-    jr z, jr_001_4d14
+    jr z, BossIntro_ApproachStage3CameraY
 
     ld hl, hSCY
     ld a, [wCameraScrollYMaxLo]
@@ -2228,19 +2229,19 @@ jr_001_4d04::
     ret
 
 
-jr_001_4d14::
+BossIntro_ApproachStage3CameraY::
     ld hl, hSCY
     ld a, [hl]
     cp $80
     ret z
 
-    jr nc, jr_001_4d21
+    jr nc, BossIntro_ScrollStage3CameraUp
 
     inc [hl]
     jp QueueCurrentCameraBgRow
 
 
-jr_001_4d21::
+BossIntro_ScrollStage3CameraUp::
     dec [hl]
     jp QueueCurrentCameraBgRow
 
@@ -2259,7 +2260,7 @@ UpdateStageBossIntro:: ; Boss intro/countdown handler. Loads boss tiles, then sp
     sub b
     ld b, a
     cp $60
-    jr nc, jr_001_4d04
+    jr nc, BossIntro_AdjustCameraBeforeTiles
 
     ld a, STAGE_BOSS_STATE_ACTIVE
     ld [wStageBossStateFlag], a
@@ -2275,20 +2276,19 @@ UpdateStageBossIntro:: ; Boss intro/countdown handler. Loads boss tiles, then sp
 
 
 BossSpriteGfxSourceBaseTable:: ; Bank 5 source bases for boss sprite graphics loaded during intro.
-    dw $6561 ; Stage 0 boss graphics base in bank 5.
-    dw $6821 ; Stage 1 boss graphics base in bank 5.
-    dw $6af1 ; Stage 2 boss graphics base in bank 5.
-    dw $6e81 ; Stage 3 boss graphics base in bank 5.
+    dw Gfx_b05_64e1 + $80 ; Stage 0 boss graphics base in bank 5.
+    dw Gfx_b05_64e1 + $340 ; Stage 1 boss graphics base in bank 5.
+    dw Gfx_b05_64e1 + $610 ; Stage 2 boss graphics base in bank 5.
+    dw Gfx_b05_64e1 + $9a0 ; Stage 3 boss graphics base in bank 5.
 
 SpawnStageBossFromIntro::
-jr_001_4d51:: ; Compatibility alias.
     ld hl, BossSpawnRecordPtrs
     ldh a, [hStageIndex]
     rst $20
     ld a, l
-    ldh [hSharedScratch + $05], a
+    ldh [hSpawnRecordPtrLo], a
     ld a, h
-    ldh [hSharedScratch + $06], a
+    ldh [hSpawnRecordPtrHi], a
     jp FindFreeObjectSlot
 
 
@@ -2457,7 +2457,7 @@ MovePlayerYBySignedHL::
 ApplyPlayerXVelocity:: ; Apply signed player horizontal step to world X with bounds checks.
     ldh a, [hPlayerDirection]
     or a
-    jr nz, jr_001_4e79
+    jr nz, ApplyPlayerXVelocity_Left
 
     ld hl, hPlayerXSubpixel
     ldh a, [hPlayerSpeedX]
@@ -2487,7 +2487,7 @@ ApplyPlayerXVelocity:: ; Apply signed player horizontal step to world X with bou
     ret
 
 
-jr_001_4e79::
+ApplyPlayerXVelocity_Left::
     ld hl, hPlayerXSubpixel
     ldh a, [hPlayerSpeedX]
     ld d, a
@@ -5642,7 +5642,7 @@ UpdateObjPickupChocobi:: ; Object type $10: Chocobi pickup; 30 awards an extra l
 
     ldh a, [hObjectOffscreen]
     or a
-    jp nz, jr_001_4bbd
+    jp nz, CullObject_FreeSlotAndRearmSpawn
 
     call CheckPlayerPickupChocobi
 
@@ -5705,7 +5705,7 @@ UpdateObjPickupHiddenChocobi:: ; Object type $11: hidden Chocobi; appears/effect
 
     ldh a, [hObjectOffscreen]
     or a
-    jp nz, jr_001_4bbd
+    jp nz, CullObject_FreeSlotAndRearmSpawn
 
     ld e, $0a
     ld d, $11
@@ -5793,7 +5793,7 @@ UpdateObjPickupExtraLife:: ; Object type $12: immediate extra-life pickup.
 
     ldh a, [hObjectOffscreen]
     or a
-    jp nz, jr_001_4bbd
+    jp nz, CullObject_FreeSlotAndRearmSpawn
 
     call CheckPlayerPickupExtraLife
 
@@ -5830,7 +5830,7 @@ UpdateObjPickupHiddenExtraLife:: ; Object type $13: hidden extra-life pickup; ap
 
     ldh a, [hObjectOffscreen]
     or a
-    jp nz, jr_001_4bbd
+    jp nz, CullObject_FreeSlotAndRearmSpawn
 
     ld e, $0e
     ld d, $12
@@ -5910,7 +5910,7 @@ UpdateObjPickupHiddenHealth:: ; Object type $15: hidden health pickup; appears/e
 
     ldh a, [hObjectOffscreen]
     or a
-    jp nz, jr_001_4bbd
+    jp nz, CullObject_FreeSlotAndRearmSpawn
 
     ld e, $0e
     ld d, $12
@@ -6620,7 +6620,7 @@ CheckEnemyReactiveSpecialBodyCollision::
     cp d
     ret nc
 
-    jp jr_001_4ce8
+    jp PlayerObjectCollision_ApplyDamage
 
 
 GetObjectLeadingEdgeScreenX::
@@ -9012,7 +9012,7 @@ CheckPlayerStandingOnDropPlatform::
     cp $ff
     ret z
 
-    ld a, [wGameplayWork + $03]
+    ld a, [wDropPlatformMinXDistance]
     ld l, a
     ldh a, [hObjectScreenX]
     ld h, a
@@ -9025,7 +9025,7 @@ CheckPlayerStandingOnDropPlatform::
     cp l
     ret nc
 
-    ld [wGameplayWork + $03], a
+    ld [wDropPlatformMinXDistance], a
     ldh a, [hObjectScreenY]
     ld h, a
     ldh a, [hPlayerScreenY]

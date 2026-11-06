@@ -560,3 +560,9 @@ DEF hBugHazardAimAbsX           EQU $ffc9
 DEF hBugHazardAimAbsY           EQU $ffca
 DEF hBugHazardMetasprite        EQU $ffcb
 ASSERT wBugSlots + BUG_SLOT_COUNT * BUG_SLOT_SIZE == wBugPhase
+
+; Gameplay scratch aliases. Other owners of these HRAM bytes keep their own names.
+DEF hSpawnRecordPtrLo          EQU $ffc5 ; Active five-byte record used to initialize a stage object.
+DEF hSpawnRecordPtrHi          EQU $ffc6
+DEF hObjectScreenYHi           EQU $ffca ; Signed high byte after subtracting camera Y.
+DEF wDropPlatformMinXDistance  EQU $c403 ; Reset each frame. X candidates update it before the Y test.

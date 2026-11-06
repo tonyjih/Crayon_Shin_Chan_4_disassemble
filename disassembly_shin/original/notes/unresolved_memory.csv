@@ -1,13 +1,5 @@
 ﻿bank,address,symbol,source,line,preceding_symbol
-01,$c403,wGameplayWork + $03,bank_001.asm,691,UpdateGameplayState
-01,$ffc5,hSharedScratch + $05,bank_001.asm,1391,TrySpawnNextObject
-01,$ffc6,hSharedScratch + $06,bank_001.asm,1393,TrySpawnNextObject
-01,$ffc5,hSharedScratch + $05,bank_001.asm,1513,SpawnObjectIntoSlot
-01,$c0ba,wRuntimeWork + $1a,bank_001.asm,1801,InitSpawnedObjectParamBlockD
-01,$ffca,hSharedScratch + $0a,bank_001.asm,1880,ProjectObjectToScreenAndCull
-01,$ffca,hSharedScratch + $0a,bank_001.asm,1950,CullObjectAndReleaseSpawn
-01,$ffc5,hSharedScratch + $05,bank_001.asm,2289,SpawnStageBossFromIntro
-01,$ffc6,hSharedScratch + $06,bank_001.asm,2291,SpawnStageBossFromIntro
+01,$c0ba,wRuntimeWork + $1a,bank_001.asm,1802,InitSpawnedObjectParamBlockD
 01,$ffca,hSharedScratch + $0a,bank_001.asm,3212,CheckPlayerGroundCollision
 01,$ffca,hSharedScratch + $0a,bank_001.asm,3352,GroundTileSlopeLeftIfLowerHalf
 01,$ffca,hSharedScratch + $0a,bank_001.asm,3359,GroundTileSlopeRightIfUpperHalf
@@ -75,8 +67,6 @@
 01,$c0ba,wRuntimeWork + $1a,bank_001.asm,8552,Stage3BossAttack_State0D
 01,$c0b7,wRuntimeWork + $17,bank_001.asm,8554,Stage3BossAttack_State0D
 01,$c0b9,wRuntimeWork + $19,bank_001.asm,8583,UpdateObjStage3BossProjectile
-01,$c403,wGameplayWork + $03,bank_001.asm,9015,CheckPlayerStandingOnDropPlatform
-01,$c403,wGameplayWork + $03,bank_001.asm,9028,CheckPlayerStandingOnDropPlatform
 01,$d956,wSharedWork + $156,bank_001.asm,9914,InitEndingDemoSequence
 01,$d957,wSharedWork + $157,bank_001.asm,9915,InitEndingDemoSequence
 01,$d956,wSharedWork + $156,bank_001.asm,10093,UpdateEndingDemoSequence
