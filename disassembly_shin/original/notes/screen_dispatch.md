@@ -34,14 +34,31 @@ DMG、SGB 從標題打贏第 1～3 輪。第 4 輪等障礙命中、恢復並超
 | `StageSceneInitHandlers`、`StageSceneUpdateHandlers` | 0 關卡標題卡、1 接關、2 故事、3 對話都有寫入。接關由 `PlayerDeath_EnterGameOver` 直接寫遊戲狀態 4、子狀態 1。DMG 耗盡殘機後進接關，先選繼續、再於下一次選離開，確認 `ContinueMenuPhaseHandlers` 的 0～2。 |
 | `EndingInitHandlers`、`EndingUpdateHandlers`、兩種片尾的子狀態表 | DMG 從場景測試選主片尾和捲動片尾。主片尾跑遍 0～6，捲動片尾由文字 `<WRITE>` 推進並跑遍 0～4。兩者分別以請求 `$02` 的引數 3、4 進 BONUS 的提示畫面，子狀態都是 `$03`。引數 5 是捲動片尾的特殊模式分支。 |
 | `RequestStateChange_Menu` | 請求 0～6、8、9 能追到直接呼叫或保存後重播的請求碼。請求 7 的表項 `RequestState_EnterContinueScreen` 未找到正常傳入的 B，也未找到會被重播成 7 的保存請求。 |
-| `InitCurrentGameState`、`UpdateCurrentGameState` | 原版 release 的狀態 1 沒有確認的入口。`EnterDebugMenu` 沒有程式引用，請求 6 只在 DEBUG 建置選狀態 1。狀態 7 有正常寫入，學校關換區的 `01:514b` 會設定它，`00:097d` 接手淡出及重載。DMG 從學校關入口快照回放換區按鍵，觀察到 2 → 7 → 2。 |
+| `InitCurrentGameState`、`UpdateCurrentGameState` | 原版 release 保留狀態 1 的 `EnterDebugMenu`，但未找到呼叫端。專案 DEBUG 測試版手動把請求 6 接到狀態 1。狀態 7 有正常寫入，學校關換區的 `01:514b` 會設定它，`00:097d` 接手淡出及重載。DMG 從學校關入口快照回放換區按鍵，觀察到 2 → 7 → 2。 |
 
-### 接關請求 07 與 DEBUG
+### 接關請求 07
 
 正常耗盡殘機時，DMG 在 `01:57be` 執行 `PlayerDeath_EnterGameOver`，再進 `02:6ac5` 更新接關畫面。
 監看的 `02:4363`（轉場請求 `$07`）沒有執行。另從密碼取消的淡出畫面將保存請求
 `wStateChangeParamHi` 改為 `$07`，DMG 隨後執行 `02:4363`，也進入同一個接關畫面。
 
-另用 DEBUG 組譯版跑 DMG，從標題開始遊戲會進狀態 1 的 DEBUG 選單。
-按 A 開始遊玩時，`DebugMenu_ResumeGameplay` 把 `wGameplayInitSubstate` 寫成 3。
-這是已知的 3 寫入點，對應的 gameplay 初始化表項和 2 共用 `InitGameplaySubstateCommon`。
+### DEBUG 原版入口與測試版接線
+
+`00:1703` 的 `EnterDebugMenu` 是原版 ROM 內唯一找到會把 `hGameState` 寫為 1 的程式。
+它先將 `hStageIndex + (wAlternateModeFlags & $04)` 寫入 `wDebugStageSelection`，
+再把 `hGameState` 和 `hNeedsReset` 設為 1，返回呼叫端。畫面初始化由 `00:1965` 的 `LoadDebugMenu` 接手。
+原版 ROM 中和 `$1703` 相符的五組小端序 bytes 都落在物件、地圖、圖片或音軌資料，未找到直接跳轉或分派指標。
+DMG、SGB 在遊玩中同時按 A+B+SELECT+START 都執行 `00:017c` 回標題。
+原本的開發版如何呼叫 `00:1703` 仍無法確認。
+
+原版關卡開始請求在 `02:4356` 是 `ld a, $04`，進入關卡標題卡。專案早期的 DEBUG 測試 ROM
+把 `02:4357` 的立即值改成 `$01`，並另外接入 `00:3f6a` 的背景載入。兩項改動在目前的 DEBUG 建置仍可比對到。
+DMG 從這個標題接線進選單時沒有執行 `EnterDebugMenu`。直接按 A 開始遊戲，
+`DebugMenu_ResumeGameplay` 寫入初始化索引 3，跳過原版新遊戲把 `hPlayerLives` 設為 `$02` 的步驟，殘機欄位仍為 `$00`。
+
+受控測試從原版密碼進入學校關的第二輪模式，已在遊玩時只於模擬器暫時把 VBlank 的一筆
+`call UpdateCurrentGameState` 改送 `EnterDebugMenu`。DMG、SGB 都帶入關卡 `$01` 和模式位 `$04`，
+得到選關值 `$05`。按 A 離開選單後，仍是同一關與模式，殘機欄位維持 `$02`。此測試確認入口副程式的行為。
+
+公開資料列出的 Game Genie 碼 `003-57B-F7A` 在此 ROM 會將 `02:4357` 的 `$04` 換成 `$00`。
+SameBoy 的 DMG 實測是回到標題，未進 DEBUG。 [公開碼記錄](https://www.arcade-history.com/game/65805/crayon-shin-chan-4-ora-no-itazura-daihenshin-model-dmg-h9j)

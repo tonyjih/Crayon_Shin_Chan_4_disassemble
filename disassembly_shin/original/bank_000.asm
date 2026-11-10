@@ -1225,7 +1225,7 @@ UpdateCurrentGameState:: ; Per-frame state dispatcher, called from VBlank after 
 
     ; hGameState update jump table. rst $00 consumes these words as data.
     dw UpdateGameState_TitleMenu ; 00: bank 2 title/menu update
-    dw UpdateGameState_DebugMenu ; 01: entered by the DEBUG build's stage-start request
+    dw UpdateGameState_DebugMenu ; 01: retail menu, with a project-only title hook
     dw UpdateGameState_Gameplay ; 02: bank 1 gameplay update
     dw UpdateGameState_Bank2Screen0 ; 03: bonus stage and minigames
     dw UpdateGameState_Bank2Screen1 ; 04: stage transition, continue, story and dialogue

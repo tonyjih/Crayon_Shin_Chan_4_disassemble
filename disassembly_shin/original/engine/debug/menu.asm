@@ -1,4 +1,6 @@
 EnterDebugMenu::
+; Retail entry helper. Snapshots the current stage and alternate-mode bit.
+; No retail caller was found. The project's title hook bypasses this routine.
     ld a, [wAlternateModeFlags]
     and $04
     ld hl, hStageIndex
@@ -395,6 +397,7 @@ DebugMenu_IncrementSoundIndex::
 LoadDebugMenu::
     xor a
 IF DEF(DEBUG)
+    ; The project test build supplies extra background graphics.
     call DebugMenu_InitBackgroundGfx
     xor a
 ELSE

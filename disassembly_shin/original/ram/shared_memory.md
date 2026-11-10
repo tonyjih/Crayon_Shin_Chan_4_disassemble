@@ -9,7 +9,7 @@
 | `hGameState` | 更新流程 | 次級分派 |
 | --- | --- | --- |
 | 0 | 標題選單 | `wScreenSubstate` 0 標題、1 密碼輸入、2 密碼正確確認、3 淡出前往儲存目的地、4 場景測試。標題另用 `wTitleMenuPhase` 0 等待 START、1 主選單、2 小遊戲選單。 |
-| 1 | DEBUG 選單 | DEBUG 建置的關卡開始請求會進入此狀態。原版 release 的同一請求進關卡標題卡。游標、關卡、音樂、音效選擇使用 `wDebugCursorRow`、`wDebugStageSelection`、`wDebugMusicIndex`、`wDebugSoundIndex`（`$c0d7–$c0da`）。 |
+| 1 | DEBUG 選單 | 原版保留 `EnterDebugMenu`，未找到呼叫端。本專案的 DEBUG 測試版把關卡開始請求手動接到這個狀態。游標、關卡、音樂、音效選擇使用 `wDebugCursorRow`、`wDebugStageSelection`、`wDebugMusicIndex`、`wDebugSoundIndex`（`$c0d7–$c0da`）。 |
 | 2 | 正常遊玩 | `hStageIndex` 選關卡，`hPlayerState` 與 `hPlayerForm` 選玩家更新路徑。 |
 | 3 | 獎勵關卡和小遊戲 | `wMinigameMode`（`$d93e`）0 BONUS、1 メケメケ、2 捉蟲、3 滑跳。各模式獨立解讀 `wScreenSubstate`。 |
 | 4 | 關卡過場 | `wScreenSubstate` 0 關卡標題卡、1 接關、2 故事、3 關卡對話。接關另用 `wContinuePhase` 0 選擇、1 接受後移動、2 離場。 |
