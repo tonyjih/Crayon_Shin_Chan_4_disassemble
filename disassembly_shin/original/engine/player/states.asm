@@ -276,6 +276,7 @@ DeathFall_CheckOffscreenAndRestart::
 
 
 PlayerDeathAnimByForm::
+; EnterPlayerDeathFallState clears hPlayerForm first. The remaining entries are retained form-table slots.
     db $15, $19, $1d, $19, $18
 
 PlayerDeath_EnterGameOver::

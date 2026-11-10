@@ -28,6 +28,7 @@ PlayerState_UpdateHurtKnockback:: ; State 06: recovery/knockback-style animation
 
 
 PlayerRecoveryAnimIdsA::
+; The 92 tile-stream updates leave index 1 and counter 8. Index 0 is skipped and index 2 exits before lookup.
     db $02, $03, $03
 
 HurtRecovery_RestoreNormalControl::

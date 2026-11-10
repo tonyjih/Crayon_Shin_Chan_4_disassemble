@@ -2387,33 +2387,33 @@ SpriteAnimPointerTable_1a19::
     dw SpriteAnimPointerTable_1a23, SpriteAnimPointerTable_1a4f, SpriteAnimPointerTable_1a83, SpriteAnimPointerTable_1abf, SpriteAnimPointerTable_1af3
 
 SpriteAnimPointerTable_1a23::
-    dw SpriteFrameData_2a2b, SpriteFrameData_2a44, SpriteFrameData_2a5d, SpriteFrameData_2a72, SpriteFrameData_2a7f, SpriteFrameData_2a98, SpriteFrameData_2ab1, SpriteFrameData_2aca
+    dw SpriteFrameData_2a2b, SpriteFrameData_2a44, PlayerUnusedRecoveryPose02, SpriteFrameData_2a72, SpriteFrameData_2a7f, SpriteFrameData_2a98, SpriteFrameData_2ab1, SpriteFrameData_2aca
     dw SpriteFrameData_2ae3, SpriteFrameData_2afc, SpriteFrameData_2b1d, SpriteFrameData_2b3e, SpriteFrameData_2b5b, SpriteFrameData_2b6c, SpriteFrameData_2b7d, SpriteFrameData_2b92
-    dw SpriteFrameData_2baf, SpriteFrameData_2bc8, SpriteFrameData_2be1, SpriteFrameData_2bf6, SpriteFrameData_2c0f, SpriteFrameData_2c28
+    dw SpriteFrameData_2baf, SpriteFrameData_2bc8, SpriteFrameData_2be1, SpriteFrameData_2bf6, SpriteFrameData_2c0f, PlayerDeathPose
 
 SpriteAnimPointerTable_1a4f::
-    dw SpriteFrameData_2a2b, SpriteFrameData_2a44, SpriteFrameData_2a5d, SpriteFrameData_2a72, SpriteFrameData_2cb9, SpriteFrameData_2cd6, SpriteFrameData_2cf3, SpriteFrameData_2d10
+    dw SpriteFrameData_2a2b, SpriteFrameData_2a44, PlayerUnusedRecoveryPose02, SpriteFrameData_2a72, SpriteFrameData_2cb9, SpriteFrameData_2cd6, SpriteFrameData_2cf3, SpriteFrameData_2d10
     dw SpriteFrameData_2d10, SpriteFrameData_2d2d, SpriteFrameData_2d52, SpriteFrameData_2d77, SpriteFrameData_2d98, SpriteFrameData_2d98, SpriteFrameData_2da9, SpriteFrameData_2dc6
     dw SpriteFrameData_2de3, SpriteFrameData_2dfc, SpriteFrameData_2e15, SpriteFrameData_2e2e, SpriteFrameData_2e47, SpriteFrameData_2e60, SpriteFrameData_2e79, SpriteFrameData_2ea0
-    dw SpriteFrameData_2ebd, SpriteFrameData_2c28
+    dw SpriteFrameData_2ebd, PlayerDeathPose
 
 SpriteAnimPointerTable_1a83::
-    dw SpriteFrameData_2a2b, SpriteFrameData_2a44, SpriteFrameData_2a5d, SpriteFrameData_2a72, SpriteFrameData_3321, SpriteFrameData_333a, SpriteFrameData_333a, SpriteFrameData_333a
+    dw SpriteFrameData_2a2b, SpriteFrameData_2a44, PlayerUnusedRecoveryPose02, SpriteFrameData_2a72, SpriteFrameData_3321, SpriteFrameData_333a, SpriteFrameData_333a, SpriteFrameData_333a
     dw SpriteFrameData_3353, SpriteFrameData_3364, SpriteFrameData_337d, SpriteFrameData_3396, SpriteFrameData_33ab, SpriteFrameData_33ab, SpriteFrameData_33ab, SpriteFrameData_33c4
     dw SpriteFrameData_33dd, SpriteFrameData_33f6, SpriteFrameData_340f, SpriteFrameData_3428, SpriteFrameData_3441, SpriteFrameData_345a, SpriteFrameData_347b, SpriteFrameData_34a0
-    dw SpriteFrameData_34c5, SpriteFrameData_34e6, SpriteFrameData_350b, SpriteFrameData_3530, SpriteFrameData_3551, SpriteFrameData_2c28
+    dw SpriteFrameData_34c5, SpriteFrameData_34e6, SpriteFrameData_350b, SpriteFrameData_3530, SpriteFrameData_3551, PlayerDeathPose
 
 SpriteAnimPointerTable_1abf::
-    dw SpriteFrameData_2a2b, SpriteFrameData_2a44, SpriteFrameData_2a5d, SpriteFrameData_2a72, SpriteFrameData_2f2e, SpriteFrameData_2f4b, SpriteFrameData_2f4b, SpriteFrameData_2f4b
+    dw SpriteFrameData_2a2b, SpriteFrameData_2a44, PlayerUnusedRecoveryPose02, SpriteFrameData_2a72, SpriteFrameData_2f2e, SpriteFrameData_2f4b, SpriteFrameData_2f4b, SpriteFrameData_2f4b
     dw SpriteFrameData_2f68, SpriteFrameData_2f85, SpriteFrameData_2fa6, SpriteFrameData_2fc7, SpriteFrameData_2fe4, SpriteFrameData_2fe4, SpriteFrameData_3012, SpriteFrameData_2ff5
     dw SpriteFrameData_302f, SpriteFrameData_3048, SpriteFrameData_3061, SpriteFrameData_3076, SpriteFrameData_308f, SpriteFrameData_30e7, SpriteFrameData_3104, SpriteFrameData_30a8
-    dw SpriteFrameData_30c5, SpriteFrameData_2c28
+    dw SpriteFrameData_30c5, PlayerDeathPose
 
 SpriteAnimPointerTable_1af3::
-    dw SpriteFrameData_2a2b, SpriteFrameData_2a44, SpriteFrameData_2a5d, SpriteFrameData_2a72, SpriteFrameData_3121, SpriteFrameData_313a, SpriteFrameData_3153, SpriteFrameData_316c
+    dw SpriteFrameData_2a2b, SpriteFrameData_2a44, PlayerUnusedRecoveryPose02, SpriteFrameData_2a72, SpriteFrameData_3121, SpriteFrameData_313a, SpriteFrameData_3153, SpriteFrameData_316c
     dw SpriteFrameData_316c, SpriteFrameData_3185, SpriteFrameData_31a6, SpriteFrameData_31c7, SpriteFrameData_31e4, SpriteFrameData_31e4, SpriteFrameData_31f5, SpriteFrameData_320a
     dw SpriteFrameData_3227, SpriteFrameData_3240, SpriteFrameData_3259, SpriteFrameData_326e, SpriteFrameData_3287, SpriteFrameData_32a0, SpriteFrameData_32fc, SpriteFrameData_32b9
-    dw SpriteFrameData_2c28
+    dw PlayerDeathPose
 
 SpriteStageAnimPointerTable_1b25:: ; Stage-indexed table used by bank 1 object sprite drawing.
     dw SpriteAnimPointerTable_1b2d, SpriteAnimPointerTable_1b61, SpriteAnimPointerTable_1b99, SpriteAnimPointerTable_1bd1
@@ -2966,7 +2966,7 @@ SpriteFrameData_2a44::
     db $eb, $f8, $06, $01, $eb, $00, $07, $01, $f3, $f8, $08, $01, $f3, $00, $09, $01
     db $fb, $f8, $0a, $01, $fb, $00, $0b, $01, $80
 
-SpriteFrameData_2a5d::
+PlayerUnusedRecoveryPose02:: ; All five forms share frame $02, skipped by the normal recovery handoff.
     db $eb, $fc, $0c, $01, $f3, $f8, $0d, $01, $f3, $00, $0e, $01, $fb, $f8, $0f, $01
     db $fb, $00, $10, $01, $80
 
@@ -3043,7 +3043,7 @@ SpriteFrameData_2c0f::
     db $eb, $f8, $51, $01, $eb, $00, $52, $01, $f3, $f8, $53, $01, $f3, $00, $54, $01
     db $fa, $f8, $1b, $01, $fa, $00, $1c, $01, $80
 
-SpriteFrameData_2c28::
+PlayerDeathPose:: ; Shared by all five tables. The normal death path clears the form before selecting this pose.
     db $eb, $f8, $eb, $01, $eb, $00, $ec, $01, $f3, $f8, $ed, $01, $f3, $00, $ee, $01
     db $fb, $f9, $ef, $21, $fb, $00, $ef, $01, $80
 

@@ -117,6 +117,7 @@ UpdatePlayerFormActionAnim:: ; Advance form-action animation once timer passes t
 
 
 FormAction_InitPose::
+; Flying squirrel and chicken start at $17 on the ground and advance to $18. In air they start at $15.
     inc [hl]
     ld a, $17
     ldh [hPlayerAnimId], a

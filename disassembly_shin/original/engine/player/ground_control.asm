@@ -109,7 +109,7 @@ GroundedPlayer_IdleFidget::
     ld l, $05
     ld e, $00
     call AdvancePlayerAnimWithinRange
-    ld hl, CockroachAnimIdsB
+    ld hl, PlayerIdleFidgetAnimIds
     ldh a, [hPlayerAnimFrame]
     cp $04
     jr nc, GroundedPlayer_EndIdleFidget
@@ -129,7 +129,8 @@ GroundedPlayer_EndIdleFidget::
 
 
 
-CockroachAnimIdsB::
+PlayerIdleFidgetAnimIds::
+; Only normal Shin-chan can enter the idle-fidget phase, so transformed tables never select $07 here.
     db $04, $07, $04, $07, $04
 
 HandleGroundInput:: ; Ground input router: duck, jump, form action, horizontal movement, idle timer.
@@ -212,6 +213,7 @@ GroundInput_CheckDuck::
 
 
 GroundInput_CheckCockroachDrop::
+; The cockroach bypasses duck state $01. Its $0c and $0d both share the airborne $0e pose.
     call ProbePlayerHeadOnePixelLower
     ldh a, [hJoyHeld]
     rrca

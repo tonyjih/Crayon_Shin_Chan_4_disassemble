@@ -200,6 +200,7 @@ Duck_UpdateHeldDownPose::
     call ProbePlayerHeadOnePixelLower
     ld a, $0c
     ldh [hPlayerAnimId], a
+    ; Only normal Shin-chan advances from $0c to the long-held duck pose $0d.
     ldh a, [hPlayerForm]
     or a
     ret nz
@@ -255,7 +256,7 @@ PlayerGroundedSnap_State01::
     ld l, $02
     ld e, $00
     call AdvancePlayerAnimWithinRange
-    ld hl, PlayerDuckAnimIds
+    ld hl, PlayerLadderAnimIds
     ldh a, [hPlayerAnimFrame]
     rst $38
     ld a, [hl]
@@ -264,7 +265,7 @@ PlayerGroundedSnap_State01::
 
 
 
-PlayerDuckAnimIds::
+PlayerLadderAnimIds::
     db $10, $11
 
 HandlePlayerVerticalInput::
