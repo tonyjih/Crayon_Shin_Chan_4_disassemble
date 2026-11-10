@@ -203,6 +203,45 @@ class OriginalCodecsTest(unittest.TestCase):
                     build(test, verify_original=False)
             self.assertEqual((test / "game.gb").read_bytes(), changed)
 
+    def test_test_rom_pads_shorter_screen_maps_in_their_original_slots(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "source"
+            source.mkdir()
+            (source / "game.asm").write_text(
+                'SECTION "Screen maps", ROM0[$150]\n'
+                'INCBIN "assets/b06_501e.bin"\n'
+                'INCBIN "assets/b01_7e7c.bin"\n'
+                'db $42\n'
+                'SECTION "Last byte", ROMX[$7fff], BANK[7]\n'
+                'db $ff\n',
+                encoding="ascii",
+            )
+            assets = []
+            for name, asset_id in (("title", "b06_501e"), ("password", "b01_7e7c")):
+                assets.append({
+                    "id": asset_id, "codec": "rleff", "source": f"{name}.bin",
+                    "assembly_source": f"{name}.asm", "decoded_size": 6, "stored_size": 4,
+                })
+                (source / f"{name}.bin").write_bytes(b"\x01\x01\x01\x01\x01\x02")
+                (source / f"{name}.asm").write_text(
+                    'SECTION "Map", ROM0\n    ds 6, 1\n', encoding="ascii")
+            (source / "assets.json").write_text(json.dumps({"assets": assets}), encoding="ascii")
+
+            test = root / "test-rom"
+            with patch("build_original.SOURCE", source), redirect_stdout(StringIO()):
+                build(test, verify_original=False)
+                rom = (test / "game.gb").read_bytes()
+                self.assertEqual(rom[0x150:0x159], b"\xff\x06\x01\xff" * 2 + b"\x42")
+                with self.assertRaisesRegex(ValueError, "assembled tilemap differs"):
+                    build(root / "original")
+
+                (source / "password.asm").write_text(
+                    'SECTION "Map", ROM0\n    db 1, 2, 3, 4, 5, 6\n', encoding="ascii")
+                with self.assertRaisesRegex(ValueError, "compressed size changed"):
+                    build(test, verify_original=False)
+            self.assertEqual((test / "game.gb").read_bytes(), rom)
+
 
 if __name__ == "__main__":
     unittest.main()

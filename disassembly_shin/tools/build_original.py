@@ -150,10 +150,16 @@ def assemble(assets: list[dict], output: Path, *, test_rom: bool, debug: bool = 
                 raise ValueError(f"RLEFF round trip failed: {path}")
         else:
             packed = raw
-        if len(packed) != asset["stored_size"]:
-            if not test_rom or asset["id"] != "b06_5334" or asset["codec"] != "prevbyte":
+        stored_size = asset["stored_size"]
+        if len(packed) != stored_size:
+            if (test_rom and asset["id"] in ("b01_7e7c", "b06_501e")
+                    and asset["codec"] == "rleff" and len(packed) < stored_size):
+                # RLEFF stops after the requested output length, before the padding.
+                packed = packed.ljust(stored_size, b"\xff")
+            elif test_rom and asset["id"] == "b06_5334" and asset["codec"] == "prevbyte":
+                asm_flags.extend(["-D", "TEST_RELOCATE_BONUS_GFX=1"])
+            else:
                 raise ValueError(f"{path}: compressed size changed; fixed ROM layout needs updating")
-            asm_flags.extend(["-D", "TEST_RELOCATE_BONUS_GFX=1"])
         target.write_bytes(packed)
     obj, rom = output / "game.o", output / "game.gb"
     run([rgbds["rgbasm"], *asm_flags, "-I", str(output), "-o", str(obj), "game.asm"])
