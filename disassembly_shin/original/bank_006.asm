@@ -45,7 +45,7 @@ GfxRle_b06_5556::
     INCBIN "assets/b06_5556.bin"
 
 LayoutRle_b06_5787::
-; Source: maps/bonus.bin (rleff, 360 decoded bytes).
+; Source: maps/bonus.asm (rleff, 360 decoded bytes).
     INCBIN "assets/b06_5787.bin"
 
 

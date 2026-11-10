@@ -609,7 +609,8 @@
       "stored_size": 202,
       "decoded_size": 360,
       "codec": "rleff",
-      "source": "maps/bonus.bin"
+      "source": "maps/bonus.bin",
+      "assembly_source": "maps/bonus.asm"
     },
     {
       "id": "b06_5851",

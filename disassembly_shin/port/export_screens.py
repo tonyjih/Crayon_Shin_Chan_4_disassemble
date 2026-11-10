@@ -118,7 +118,7 @@ def export_screens(out, rom, symbols, array, tutorial_vram):
     tilemap("stage_card", menu_background(0, (3, 1, 12, 4, 0x8f)))
     tilemap("dialogue", menu_background(0x60, (1, 1, 16, 7, 0xef)))
     tilemap("ending_hint", menu_background(0, (3, 1, 12, 13, 0x8f)))
-    tilemap("bonus", (maps / "bonus.bin").read_bytes())
+    rom_tilemap("bonus", "LayoutRle_b06_5787")
     tilemap("mekemeke", (maps / "b06_6fe5.bin").read_bytes())
     tilemap("bug_hunt", (maps / "b06_60db.bin").read_bytes())
     array(out, "waterfall", (maps / "waterfall.bin").read_bytes())
