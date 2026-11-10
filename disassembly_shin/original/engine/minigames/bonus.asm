@@ -187,7 +187,7 @@ BonusStageStateHandlers::
     dw Bonus_LeaveAfterFade ; $04
     dw Bonus_LaunchAfterInstructionFade ; $05
     dw Bonus_ShowResultAndApplyReward ; $06
-    dw Bonus_SelectRewardByRoundTier ; $07
+    dw Bonus_SelectRewardByRoundTier ; $07, no entry from the normal transitions
 
 Bonus_WalkBetweenStations::
     call UpdateMessageFar
@@ -392,7 +392,7 @@ Bonus_PlayEntryAnimation::
     ld b, $03
     ld a, [wBonusDestination]
     ld c, a
-    ld de, $0106
+    ld de, $0106 ; Saved request 1 resumes BONUS at substate $06.
     ld a, [hl]
     or a
     jp z, RequestStateChange_Menu
@@ -402,7 +402,7 @@ Bonus_PlayEntryAnimation::
     ld b, $02
     ld a, [wBonusDestination]
     ld c, a
-    ld de, $0106
+    ld de, $0106 ; Pass the same result destination through the instructions.
     jp RequestStateChange_Menu
 
 
@@ -824,6 +824,7 @@ Bonus_StoreRoundNumberTile::
 
 
 Bonus_SelectRewardByRoundTier::
+; Kept in the original dispatch table. BONUS results enter $06 for every round.
     ld a, [wBonusMinigameRounds + 1]
     ld c, $0b
     ld d, $02

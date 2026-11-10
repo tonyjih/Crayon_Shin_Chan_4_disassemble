@@ -14,8 +14,8 @@ RequestStateChange_Menu:: ; Menu/screen transition helper. Sets hNeedsReset and 
 
     ; RequestStateChange_Menu dispatch table. B selects one of these handlers.
     dw RequestState_ReturnToTitleMenu        ; 00
-    dw RequestState_GotoScreenState3         ; 01
-    dw RequestState_GotoScreenState3Submode  ; 02
+    dw RequestState_EnterBonusSubstate      ; 01
+    dw RequestState_OpenMinigameInstructions ; 02
     dw RequestState_StartSelectedMinigame ; 03
     dw RequestState_TitleSubstate4           ; 04
     dw RequestState_TitleSubstate1           ; 05
@@ -41,7 +41,8 @@ RequestState_ReturnToTitleMenu::
     ret
 
 
-RequestState_GotoScreenState3::
+RequestState_EnterBonusSubstate::
+; C is $00 from stage clear or the scene test, $06 from a saved minigame return.
     xor a
     ld [wMinigameMode], a
     ld a, c
@@ -51,7 +52,8 @@ RequestState_GotoScreenState3::
     ret
 
 
-RequestState_GotoScreenState3Submode::
+RequestState_OpenMinigameInstructions::
+; C is the instruction destination. The shared screen always uses BONUS substate $03.
     xor a
     ld [wMinigameMode], a
     ld a, c
@@ -65,6 +67,7 @@ RequestState_GotoScreenState3Submode::
 
 
 RequestState_StartSelectedMinigame::
+; Stations 0-2 select modes 1-3. Each mode initializes its own substate.
     ld a, c
     inc a
     ld [wMinigameMode], a
