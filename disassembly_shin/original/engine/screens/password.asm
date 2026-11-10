@@ -45,7 +45,7 @@ InitPasswordScreen::
     ld a, $02
     ld [wScreenPaletteId], a
     xor a
-    ld b, $14
+    ld b, PASSWORD_CODE_SIZE
     ld hl, wPasswordInputTopRow
     call FillBytesWithA
     ret
@@ -334,10 +334,10 @@ PasswordInput_CheckStartAndClampIndex::
 
 
 PasswordInput_ClampIndexAtLastSlot::
-    cp $0a
+    cp PASSWORD_CODE_WIDTH
     jr c, PasswordInput_Return
 
-    ld a, $09
+    ld a, PASSWORD_CODE_WIDTH - 1
     ld [wPasswordInputIndex], a
 
 PasswordInput_Return::
@@ -391,7 +391,7 @@ PasswordSelect_ReadKanaAndDiacritic::
     ld d, [hl]
     ld bc, -$0014
     add hl, bc
-    ld e, $45
+    ld e, TEXT_DAKUTEN
     ld a, [hl]
     or a
     jr nz, PasswordSelect_CheckEmptyDiacriticTile
@@ -438,7 +438,7 @@ SubmitPassword_NextCandidate::
 SubmitPassword_CompareNextByte::
     inc c
     ld a, c
-    cp $15
+    cp PASSWORD_CODE_SIZE + 1
     jr nc, SubmitPassword_AcceptMatch
 
     ld a, [de]
@@ -449,12 +449,12 @@ SubmitPassword_CompareNextByte::
     jr z, SubmitPassword_CompareNextByte
 
     pop hl
-    ld bc, $0014
+    ld bc, PASSWORD_CODE_SIZE
     add hl, bc
     ld a, [wPasswordMatchIndex]
     inc a
     ld [wPasswordMatchIndex], a
-    cp $0c
+    cp PASSWORD_CODE_COUNT
     jr nz, SubmitPassword_NextCandidate
 
     ld de, PasswordErrorTiles
@@ -523,54 +523,27 @@ PasswordErrorTilesTail::
 ; Part of the error text row. The dialogue lookup starts one password record before PasswordCodeTable.
     db $15, $44, $12, $44, $59, $7e, $00, $00
 
+; Preserve the original spellings and match order. Both tables use this list.
+MACRO password_codes
+    \1 PasswordCode_WagamamaDanaa,   "わがままだなあ"
+    \1 PasswordCode_TamanegiTabereru, "たまねぎたべれる"
+    \1 PasswordCode_Wahahahaha,      "わははははわはははは"
+    \1 PasswordCode_Obenkidene,      "おべんきでね"
+    \1 PasswordCode_KetsudakeSeijin, "けつだけせいじん"
+    \1 PasswordCode_ActionBeam,     "あくしょんびいむ"
+    \1 PasswordCode_ZousanZousan,    "ぞおさんぞおさん"
+    \1 PasswordCode_ShinchanTurbo,  "しんちゃんたあぼ"
+    \1 PasswordCode_BuriburiZaemon,  "ぶりぶりざえもん"
+    \1 PasswordCode_NasuNoOshinko,   "なすのおしんこ"
+    \1 PasswordCode_ArigatoGozamasu, "ありがとござますう"
+    \1 PasswordCode_Kamishibai,     "かみしばい"
+ENDM
+
 PasswordCodeLengths::
-    db $07, $08, $0a, $06, $08, $08, $08, $08, $08, $07, $09, $05
+    password_codes password_code_length
+    ASSERT @ - PasswordCodeLengths == PASSWORD_CODE_COUNT
 
 PasswordCodeTable::
-PasswordCode_WagamamaDanaa::
-    db $00, $45, $00, $00, $45, $00, $00, $00, $00, $00, $3f, $15, $2f, $2f, $1f, $25
-    db $10, $00, $00, $00
-
-PasswordCode_TamanegiTabereru::
-    db $00, $00, $00, $45, $00, $45, $00, $00, $00, $00, $1f, $2f, $28, $16, $1f, $2d
-    db $37, $36, $00, $00
-
-PasswordCode_Wahahahaha::
-    db $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $3f, $2a, $2a, $2a, $2a, $3f
-    db $2a, $2a, $2a, $2a
-
-PasswordCode_Obenkidene::
-    db $00, $45, $00, $00, $45, $00, $00, $00, $00, $00, $14, $2d, $42, $16, $23, $28
-    db $00, $00, $00, $00
-
-PasswordCode_KetsudakeSeijin::
-    db $00, $00, $45, $00, $00, $00, $45, $00, $00, $00, $18, $21, $1f, $18, $1d, $11
-    db $1b, $42, $00, $00
-
-PasswordCode_ActionBeam::
-    db $00, $00, $00, $00, $00, $45, $00, $00, $00, $00, $10, $17, $1b, $3e, $42, $2b
-    db $11, $31, $00, $00
-
-PasswordCode_ZousanZousan::
-    db $45, $00, $00, $00, $45, $00, $00, $00, $00, $00, $1e, $14, $1a, $42, $1e, $14
-    db $1a, $42, $00, $00
-
-PasswordCode_ShinchanTurbo::
-    db $00, $00, $00, $00, $00, $00, $00, $45, $00, $00, $1b, $42, $20, $3a, $42, $1f
-    db $10, $2e, $00, $00
-
-PasswordCode_BuriburiZaemon::
-    db $45, $00, $45, $00, $45, $00, $00, $00, $00, $00, $2c, $35, $2c, $35, $1a, $13
-    db $33, $42, $00, $00
-
-PasswordCode_NasuNoOshinko::
-    db $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $25, $1c, $29, $14, $1b, $42
-    db $19, $00, $00, $00
-
-PasswordCode_ArigatoGozamasu::
-    db $00, $00, $45, $00, $45, $45, $00, $00, $00, $00, $10, $35, $15, $24, $19, $1a
-    db $2f, $1c, $12, $00
-
-PasswordCode_Kamishibai::
-    db $00, $00, $00, $45, $00, $00, $00, $00, $00, $00, $15, $30, $1b, $2a, $11, $00
-    db $00, $00, $00, $00
+    password_codes password_code
+    ASSERT @ - PasswordCodeTable == PASSWORD_CODE_COUNT * PASSWORD_CODE_SIZE
+PURGE password_codes

@@ -385,7 +385,7 @@ StartNextStageDialogueMessage::
 StageDialogue_PreparePasswordLine::
     ld a, $e0
     ld [wMessageFlags], a
-    ld hl, PasswordCodeTable - $14
+    ld hl, PasswordCodeTable - PASSWORD_CODE_SIZE
     ld a, [wStageSceneIndex]
     srl a
     inc a
@@ -402,7 +402,7 @@ StageDialogue_PreparePasswordLine::
 
 StageDialogue_ApplyPasswordGroupOffset::
     add d
-    ld de, $0014
+    ld de, PASSWORD_CODE_SIZE
 
 StageDialogue_AdvancePasswordRecord::
     add hl, de
@@ -412,6 +412,7 @@ StageDialogue_AdvancePasswordRecord::
     push bc
     ld e, l
     ld d, h
+    ; The original centering lookup uses the scene index without the mode's record offset.
     ld hl, PasswordCodeLengths
     ld a, [wStageSceneIndex]
     srl a

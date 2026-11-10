@@ -32,6 +32,9 @@ bank 檔保留 ROM 配置順序，已確認的系統透過 INCLUDE 拆出：
 - `engine/scene_animation.asm`、`engine/ending.asm`：場景動畫播放器與結局流程，相關資料在 `data/`。
 - `ram/objects.asm`：`$c180`～`$c37f` 的 32 筆 stage object 儲存區，包含 list terminator 的空間。
 - `text/`、`charmap.inc`：可直接組譯的日文訊息、DEBUG 文字與字碼；descriptor 表在 `data/messages.asm`。
+- [密碼清單](engine/screens/password.asm) 以原版日文拼法存放 12 組密碼。組譯器沿用 `shin_text`，
+  從同一份清單產生字數及每組 20 bytes 的密碼記錄。前 10 bytes 是濁音標記，後 10 bytes 是假名圖塊，
+  兩列不足的部分補零。輸入比對和過關對話顯示共用這份記錄。
 
 文字 macro、濁音的兩-byte 編碼及場景字形限制，見 [文字格式](text/README.md)。
 場景動畫的時間／翻轉、loop／hold 與結局 cue 格式，見 [場景格式](scene/README.md)。

@@ -22,10 +22,10 @@ class OriginalMacrosTest(unittest.TestCase):
                 code += f"\nASSERT @ == {len(expected)}\n"
             source.write_text(code, encoding="utf-8")
             result = subprocess.run([self.rgbds["rgbasm"], "-o", str(obj), str(source)],
-                                    cwd=SOURCE, capture_output=True, text=True)
+                                    cwd=SOURCE, capture_output=True, encoding="utf-8")
             if result.returncode == 0:
                 result = subprocess.run([self.rgbds["rgblink"], "-o", str(rom), str(obj)],
-                                        capture_output=True, text=True)
+                                        capture_output=True, encoding="utf-8")
             if expected is None:
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn(error, result.stderr)
@@ -58,6 +58,30 @@ SharedTail:
         for invalid in ("漢", "A", "が\u3099", "<VRA>"):
             with self.subTest(text=invalid):
                 self.assemble(f'    text "{invalid}"\n')
+
+    def test_password_length_rows_padding_and_charmap_scope(self):
+        self.assemble('''
+    password_code_length ShortCode, "が ね"
+    password_code ShortCode, "が ね"
+    password_code FullCode, "わははははわはははは"
+    db "A"
+''', bytes.fromhex(
+            "03 "
+            "45 00 00 00 00 00 00 00 00 00 15 00 28 00 00 00 00 00 00 00 "
+            "00 00 00 00 00 00 00 00 00 00 3f 2a 2a 2a 2a 3f 2a 2a 2a 2a "
+            "41"))
+
+    def test_password_rejects_characters_missing_from_input_grid(self):
+        for invalid, error in (
+            ("漢", "Unmapped password character"),
+            ("ぱ", "Password only supports dakuten"),
+            ("っ", "Password character is not on the input grid"),
+            ("<A>", "Password character is not on the input grid"),
+            ("", "Password must contain 1 to 10 characters"),
+            ("あいうえおかきくけこさ", "Password must contain 1 to 10 characters"),
+        ):
+            with self.subTest(text=invalid):
+                self.assemble(f'    password_code InvalidCode, "{invalid}"\n', error=error)
 
     def test_scene_facing_loop_hold_and_legacy_word(self):
         self.assemble('''

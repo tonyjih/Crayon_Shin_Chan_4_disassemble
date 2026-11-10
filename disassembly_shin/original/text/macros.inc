@@ -27,3 +27,42 @@ MACRO done
     ASSERT _NARG == 0, "done takes no arguments"
     db TEXT_END
 ENDM
+
+DEF PASSWORD_CODE_WIDTH EQU 10
+DEF PASSWORD_CODE_SIZE  EQU 2 * PASSWORD_CODE_WIDTH
+DEF PASSWORD_CODE_COUNT EQU 12
+
+MACRO password_code_length
+    PUSHC shin_text
+    db CHARLEN(\2)
+    POPC
+ENDM
+
+MACRO password_code
+    \1::
+    PUSHC shin_text
+    ASSERT 1 <= CHARLEN(\2) && CHARLEN(\2) <= PASSWORD_CODE_WIDTH, "Password must contain 1 to 10 characters"
+
+    ; The input screen and the dialogue reveal both use a row of marks above the kana.
+    FOR password_index, CHARLEN(\2)
+        ASSERT INCHARMAP(STRCHAR(\2, password_index)), "Unmapped password character"
+        IF CHARSIZE(STRCHAR(\2, password_index)) == 1
+            db 0
+        ELSE
+            ASSERT CHARSIZE(STRCHAR(\2, password_index)) == 2 && CHARVAL(STRCHAR(\2, password_index), 0) == TEXT_DAKUTEN, "Password only supports dakuten"
+            db TEXT_DAKUTEN
+        ENDC
+    ENDR
+    ds PASSWORD_CODE_WIDTH - CHARLEN(\2), 0
+
+    FOR password_index, CHARLEN(\2)
+        DEF password_tile EQU CHARVAL(STRCHAR(\2, password_index), -1)
+        ; The grid has spaces and hiragana, with no small っ or A button tile.
+        ASSERT password_tile == 0 || ($10 <= password_tile && password_tile <= $42 && password_tile != $22 && password_tile != $40), "Password character is not on the input grid"
+        db password_tile
+        PURGE password_tile
+    ENDR
+    ds PASSWORD_CODE_WIDTH - CHARLEN(\2), 0
+    PURGE password_index
+    POPC
+ENDM
