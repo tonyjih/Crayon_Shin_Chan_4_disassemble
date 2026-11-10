@@ -9,7 +9,7 @@ UpdatePlayerState:: ; Dispatch current player state machine.
     dw PlayerState_UpdateJumpFall              ; 02
     dw PlayerState_UpdateGroundedSnap          ; 03
     dw PlayerState_UpdateGroundedActionCheck   ; 04: grounded/action check state
-    dw PlayerState_UpdateClimbOrVerticalMove   ; 05: climb/vertical move state
+    dw PlayerState_UpdateUnusedMove05          ; 05: retained animation with no known normal entry
     dw PlayerState_UpdateHurtKnockback         ; 06
     dw PlayerState_UpdateFlyingSquirrelAction  ; 07
     dw PlayerState_UpdateChickenAction         ; 08

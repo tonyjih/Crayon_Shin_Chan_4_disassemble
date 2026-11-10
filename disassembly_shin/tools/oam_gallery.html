@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>蠟筆小新 4 · OAM 素材圖鑑</title>
+<style>
+  :root { color-scheme: light; font-family: system-ui, "Microsoft JhengHei", sans-serif; color: #20292b; background: #f6f3e9; }
+  * { box-sizing: border-box; }
+  body { margin: 0 auto; padding: 2rem clamp(1rem, 4vw, 4rem); max-width: 1500px; }
+  header { border-bottom: 2px solid #234540; margin-bottom: 1rem; padding-bottom: 1rem; }
+  h1 { margin: .25rem 0; font-size: clamp(1.7rem, 5vw, 3rem); }
+  h2, h3 { margin: .25rem 0 .65rem; }
+  p { margin: .35rem 0; line-height: 1.55; }
+  .tag { font-weight: 700; color: #265e55; }
+  .quiet { color: #53605e; font-size: .875rem; }
+  .controls { display: flex; flex-wrap: wrap; gap: .7rem; align-items: end; margin: 1rem 0; }
+  label { display: grid; gap: .2rem; font-weight: 600; }
+  .search { flex: 1; min-width: min(260px, 100%); }
+  input, select, button { font: inherit; color: inherit; }
+  input[type=search], select { min-width: 0; max-width: 100%; border: 1px solid #9ba9a3; border-radius: .45rem; background: #fffdf7; padding: .45rem .6rem; }
+  button { cursor: pointer; border: 1px solid #a3afa9; border-radius: .5rem; background: #fffdf7; padding: .35rem .55rem; }
+  button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid #14786b; outline-offset: 2px; }
+  button[aria-pressed=true] { border-color: #247264; background: #d9ece2; box-shadow: inset 0 0 0 1px #247264; }
+  main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: .5rem; }
+  .card { min-width: 0; min-height: 125px; text-align: left; overflow-wrap: anywhere; }
+  .card svg { width: 100%; height: 62px; display: block; margin-bottom: .4rem; }
+  .card strong { display: block; font-size: .85rem; }
+  .panel { border: 1px solid #c2c9bd; border-radius: .6rem; background: #fffdf7; padding: 1rem; min-width: 0; }
+  #detail { position: sticky; top: .5rem; max-height: calc(100vh - 1rem); overflow: auto; }
+  .pixel { background: repeating-conic-gradient(#e0e6df 0% 25%, #f1f5ed 0% 50%) 0 / 16px 16px; }
+  svg image { image-rendering: pixelated; }
+  .inspection { display: grid; gap: .75rem; }
+  .inspection:has(details[open]) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .pose svg { width: 100%; height: 195px; display: block; }
+  .pose label { display: inline-flex; flex-direction: row; align-items: center; margin: .4rem 0; }
+  .parts { max-height: 230px; overflow: auto; margin: .5rem 0; }
+  table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+  th, td { padding: .3rem .35rem; text-align: left; vertical-align: top; border-bottom: 1px solid #e1e5da; }
+  td button { text-align: left; font-size: .8rem; overflow-wrap: anywhere; }
+  code { overflow-wrap: anywhere; }
+  details { margin-top: .8rem; }
+  summary { cursor: pointer; font-weight: 700; margin: .5rem 0; }
+  #asset-svg svg { width: 100%; height: 135px; display: block; margin: .4rem 0; }
+  a { color: #155e52; }
+  @media (max-width: 840px) {
+    main { grid-template-columns: 1fr; }
+    #detail { position: static; max-height: none; }
+  }
+  @media (max-width: 500px) {
+    .inspection:has(details[open]) { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="tag">GB 原版素材</div>
+  <h1>蠟筆小新 4 · OAM 素材圖鑑</h1>
+  <p>按角色或動作找完整姿勢，再點部件定位到原版 PNG 的圖塊。</p>
+  <p class="quiet" id="stats"></p>
+</header>
+<div class="controls">
+  <label>群組 <select id="groups"><option value="">全部群組</option></select></label>
+  <label class="search">搜尋 <input type="search" id="query" placeholder="例如 走路、雨傘、00:1d23、b05_4131"></label>
+</div>
+<main>
+  <section aria-label="姿勢清單">
+    <p class="quiet" id="results" aria-live="polite"></p>
+    <div class="grid" id="poses"></div>
+  </section>
+  <section class="panel" id="detail" aria-label="姿勢與來源">
+    <div id="pose-info"></div>
+    <div class="inspection">
+      <div class="pose">
+        <label><input type="checkbox" id="show-parts" checked> 顯示部件框與原點</label>
+        <div class="pixel" id="pose-svg"></div>
+      </div>
+      <details id="sources">
+        <summary>編譯用原圖</summary>
+        <label>原版 PNG <select id="asset"></select></label>
+        <p id="asset-info" class="quiet"></p>
+        <div id="asset-svg" class="pixel"></div>
+        <a id="asset-link">開啟原版 PNG</a>
+        <button id="find-uses" type="button">找使用這張圖的姿勢</button>
+      </details>
+    </div>
+    <div class="parts" id="parts"></div>
+    <p class="quiet">部件依原版 metasprite 順序，座標相對於繪製原點。實際 OAM 也受遊戲當下的座標、翻轉、優先權和其他精靈影響。</p>
+  </section>
+</main>
+<script type="application/json" id="gallery-data"><!-- GALLERY_DATA --></script>
+<script>
+const {groups, poses, assets, md5} = JSON.parse(document.getElementById("gallery-data").textContent);
+const el = id => document.getElementById(id);
+const esc = value => String(value).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const hex = n => "$" + n.toString(16).padStart(2, "0");
+const title = pose => pose.actions.find(action => action.name !== "用途待確認")?.name ?? pose.subject;
+const labels = new Map(groups.map(group => [group.id, group.label]));
+let pose, activePart = -1, activeTile = null;
+
+function sprite(data, view, extra = "") {
+  return `<svg viewBox="${view.join(" ")}" aria-hidden="true"><image width="${data.size[0]}" height="${data.size[1]}" href="${data.image}"/>${extra}</svg>`;
+}
+
+function showPose() {
+  if (!pose) {
+    el("pose-svg").innerHTML = "";
+    el("parts").innerHTML = "";
+    return;
+  }
+  const [x, y] = pose.anchor;
+  const overlays = pose.parts.map((part, i) => `<rect x="${x + part.x}" y="${y + part.y}" width="8" height="8"
+    fill="${i === activePart ? "#ef9e4066" : "none"}" stroke="${i === activePart ? "#ae4d1e" : "#247264"}" stroke-width=".45"/>`).join("");
+  const origin = `<path d="M${x-2},${y}h4 M${x},${y-2}v4" fill="none" stroke="#ae4d1e" stroke-width=".6"/>`;
+  const xs = [x, ...pose.parts.flatMap(part => [x + part.x, x + part.x + 8])];
+  const ys = [y, ...pose.parts.flatMap(part => [y + part.y, y + part.y + 8])];
+  const left = Math.min(...xs) - 3, top = Math.min(...ys) - 3;
+  const view = [left, top, Math.max(...xs) + 3 - left, Math.max(...ys) + 3 - top];
+  el("pose-svg").innerHTML = sprite(pose, view, el("show-parts").checked ? overlays + origin : "");
+}
+
+function showAsset() {
+  const path = el("asset").value;
+  const asset = assets[path];
+  const columns = asset.width / 8;
+  const box = activeTile === null ? "" : `<rect x="${activeTile % columns * 8}" y="${Math.floor(activeTile / columns) * 8}"
+    width="8" height="8" fill="#ef9e4066" stroke="#ae4d1e" stroke-width=".8"/>`;
+  el("asset-svg").innerHTML = sprite({size: [asset.width, asset.height], image: asset.image}, [0, 0, asset.width, asset.height], box);
+  const uses = asset.pose_count ? `${asset.pose_count} 個姿勢引用` : "目前姿勢索引未引用";
+  const tile = activeTile === null ? "" : ` · 圖塊 ${hex(activeTile)}（欄 ${activeTile % columns}、列 ${Math.floor(activeTile / columns)}，從 0 起）`;
+  el("asset-info").textContent = `${asset.address} · ${asset.codec} · ${asset.tiles} 個有效圖塊 · ${uses}${tile}`;
+  el("asset-link").href = asset.url;
+  el("find-uses").disabled = !asset.pose_count;
+}
+
+function inspect(index) {
+  pose = poses[index];
+  activePart = -1;
+  for (const button of el("poses").children) button.setAttribute("aria-pressed", Number(button.dataset.index) === index);
+  const names = pose.actions.map(action => `${esc(action.name)} <code>${esc(action.symbol)}</code>`).join(" · ");
+  el("pose-info").innerHTML = `<p class="tag">${esc(pose.subject)} · ${esc(pose.frame)}</p><h2>${esc(title(pose))}</h2>
+    <p><code>${esc(pose.address)} ${esc(pose.symbol)}</code></p>
+    <p class="quiet">${pose.parts.length} 個部件${pose.table ? " · " + esc(pose.table) : ""}${pose.record === "border_part" ? " · 邊框共用圖塊" : ""}</p>
+    <p class="quiet">${names || "動作用途尚未標註"}</p>`;
+  el("parts").innerHTML = `<table><thead><tr><th>#</th><th>X, Y</th><th>OBJ tile</th><th>旗標</th><th>PNG 來源圖塊</th></tr></thead><tbody>
+    ${pose.parts.map((part, i) => `<tr><td>${i}</td><td>${part.x}, ${part.y}</td><td>${hex(part.tile)}</td><td>${hex(part.flags)}</td>
+    <td><button type="button" data-part="${i}" aria-pressed="false">${part.source ? esc(part.source.split("/").pop()) + " " + hex(part.png_tile) : "空白 VRAM"}</button></td></tr>`).join("")}
+    </tbody></table>`;
+  showPose();
+}
+
+const searchText = poses.map(pose => [
+  pose.group, pose.subject, pose.frame, pose.symbol, pose.address, pose.table,
+  ...pose.actions.flatMap(action => [action.name, action.symbol]),
+  ...pose.parts.map(part => part.source)
+].join(" ").toLowerCase());
+
+function render() {
+  const words = el("query").value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const group = el("groups").value;
+  const shown = poses.flatMap((entry, i) => ((!group || group === entry.group) && words.every(word => searchText[i].includes(word))) ? [i] : []);
+  el("results").textContent = `${shown.length} 個姿勢`;
+  el("poses").innerHTML = shown.map(i => {
+    const entry = poses[i];
+    return `<button type="button" class="card" data-index="${i}" aria-pressed="false">${sprite(entry, entry.crop)}
+      <strong>${esc(title(entry))}</strong><span class="quiet">${esc(entry.frame)} · ${esc(labels.get(entry.group))}</span></button>`;
+  }).join("");
+  if (shown.length) {
+    inspect(shown[0]);
+  } else {
+    pose = null;
+    el("pose-info").innerHTML = "<h2>查無姿勢</h2><p>可切回全部群組，或在下方直接查看編譯用原圖。</p>";
+    showPose();
+  }
+}
+
+for (const group of groups) el("groups").add(new Option(`${group.label}（${group.count}）`, group.id));
+for (const path of Object.keys(assets).sort()) el("asset").add(new Option(path, path));
+el("stats").textContent = `${groups.length} 組 · ${poses.length} 個完整姿勢 · ${Object.keys(assets).length} 張來源 PNG · ROM MD5 ${md5}`;
+el("groups").addEventListener("change", render);
+el("query").addEventListener("input", render);
+el("poses").addEventListener("click", event => {
+  const button = event.target.closest("button[data-index]");
+  if (!button) return;
+  inspect(Number(button.dataset.index));
+  if (matchMedia("(max-width: 840px)").matches) el("detail").scrollIntoView();
+});
+el("parts").addEventListener("click", event => {
+  const button = event.target.closest("button[data-part]");
+  if (!button || !pose) return;
+  activePart = Number(button.dataset.part);
+  for (const row of el("parts").querySelectorAll("button")) row.setAttribute("aria-pressed", row === button);
+  const part = pose.parts[activePart];
+  el("show-parts").checked = true;
+  showPose();
+  if (part.source) {
+    el("asset").value = part.source;
+    activeTile = part.png_tile;
+    el("sources").open = true;
+  } else {
+    activeTile = null;
+  }
+  showAsset();
+});
+el("show-parts").addEventListener("change", showPose);
+el("asset").addEventListener("change", () => { activeTile = null; showAsset(); });
+el("find-uses").addEventListener("click", () => {
+  el("groups").value = "";
+  el("query").value = el("asset").value;
+  render();
+});
+el("groups").value = groups[0].id;
+render();
+showAsset();
+</script>
+</body>
+</html>

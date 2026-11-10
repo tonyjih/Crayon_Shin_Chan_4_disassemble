@@ -77,8 +77,8 @@ groups,action,rom_symbol,rom_address,kind,frames,end
 07-ending/scrolling,一般片尾追加角色,SceneAnim_7b85,02:7b85,scene_script,0xec@10 0xed@10 0xee@10,loop:02:7b85
 01-player/normal|01-player/squirrel|01-player/cockroach|01-player/chicken|01-player/kamen,玩家步行,CockroachAnimIdsA,01:5b7b,id_table,0x04 0x05 0x04 0x06,
 01-player/normal|01-player/squirrel|01-player/cockroach|01-player/chicken|01-player/kamen,玩家久站動作,CockroachAnimIdsB,01:5bbb,id_table,0x04 0x07 0x04 0x07 0x04,
-01-player/normal|01-player/squirrel|01-player/cockroach|01-player/chicken|01-player/kamen,玩家攀爬,PlayerClimbAnimIds,01:586d,id_table,0x08 0x09 0x0a 0x0b 0x08 0x09 0x0a 0x0b 0x08,
-01-player/normal|01-player/squirrel|01-player/cockroach|01-player/chicken|01-player/kamen,玩家蹲下,PlayerDuckAnimIds,01:5933,id_table,0x10 0x11,
+01-player/normal|01-player/squirrel|01-player/cockroach|01-player/chicken|01-player/kamen,UnusedMove05（未找到正常入口）,PlayerUnusedMove05AnimIds,01:586d,id_table,0x08 0x09 0x0a 0x0b 0x08 0x09 0x0a 0x0b 0x08,
+01-player/normal|01-player/squirrel|01-player/cockroach|01-player/chicken|01-player/kamen,梯子上的移動（狀態 $03）,PlayerDuckAnimIds,01:5933,id_table,0x10 0x11,
 01-player/normal|01-player/squirrel|01-player/cockroach|01-player/chicken|01-player/kamen,玩家站姿動作檢查,PlayerGroundedActionAnimIds,01:580e,id_table,0x12 0x13 0x12 0x14,
 01-player/normal|01-player/squirrel|01-player/cockroach|01-player/chicken|01-player/kamen,玩家受傷恢復,PlayerRecoveryAnimIdsA,01:5ef1,id_table,0x02 0x03 0x03,
 01-player/normal|01-player/squirrel|01-player/cockroach|01-player/chicken|01-player/kamen,玩家變身解除恢復,PlayerRecoveryAnimIdsB,01:5f3e,id_table,0x00 0x01,

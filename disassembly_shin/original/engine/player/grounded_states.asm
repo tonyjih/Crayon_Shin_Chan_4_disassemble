@@ -101,17 +101,17 @@ GroundedAction_WalkLeft::
     jp ApplyPlayerXVelocity
 
 
-PlayerState_UpdateClimbOrVerticalMove::
+PlayerState_UpdateUnusedMove05::
     ld hl, hPlayerFlags
     set 0, [hl]
     ld h, $08
     ld l, $09
     ld e, $00
     call AdvancePlayerAnimWithinRange
-    ld hl, PlayerClimbAnimIds
+    ld hl, PlayerUnusedMove05AnimIds
     ldh a, [hPlayerAnimFrame]
     cp $08
-    jr nc, PlayerClimb_FinishAnimation
+    jr nc, PlayerUnusedMove05_FinishAnimation
 
     rst $38
     ld a, [hl]
@@ -120,10 +120,10 @@ PlayerState_UpdateClimbOrVerticalMove::
 
 
 
-PlayerClimbAnimIds::
+PlayerUnusedMove05AnimIds::
     db $08, $09, $0a, $0b, $08, $09, $0a, $0b, $08
 
-PlayerClimb_FinishAnimation::
+PlayerUnusedMove05_FinishAnimation::
     ldh a, [hPlayerFlags]
     res 0, a
     ldh [hPlayerFlags], a
