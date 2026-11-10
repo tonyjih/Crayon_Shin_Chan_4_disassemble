@@ -83,7 +83,7 @@
 | `$ffc9` | SGB 調色 | `hSgbColorScale` 只在產生漸層調色盤時保存目前比例。 |
 | `$ffc9–$ffcb` | 標題或場景測試游標 | `hMenuCursorOptionCount`、`hMenuCursorDestLo`、`hMenuCursorDestHi` 為本次游標更新的選項數與 tilemap 指標。 |
 | `$ffc9–$ffcb` | メケメケ和捉蟲的回合 HUD | `hMinigameTimerTiles` 為此次上傳組好的三個倒數數字 tile。 |
-| `$ffca` | HUD、關卡對話、BONUS、滑跳 | `hDecimalTens` 為十進位十位；`hStageDialogueSpeakerMask` 為當次台詞的 speaker bits；`hBonusRoundTierOutput` 在 BONUS 子狀態 7 有寫入，讀取點尚未確認；滑跳反彈時與 `$ffcb` 一起作 `hSlidePlatformDrawPtrLo`、`hSlidePlatformDrawPtrHi`。 |
+| `$ffca` | HUD、關卡對話、BONUS、滑跳 | `hDecimalTens` 為十進位十位。`hStageDialogueSpeakerMask` 為當次台詞的 speaker bits。`hBonusRoundTierScratch` 由 BONUS 子狀態 7 寫入輪次分級，實測領獎返回主關卡和從說明畫面進メケメケ時皆先被覆蓋。滑跳反彈時與 `$ffcb` 一起作 `hSlidePlatformDrawPtrLo`、`hSlidePlatformDrawPtrHi`。 |
 | `$ffca` | 關卡物件投影及玩家踩地判定 | `hObjectScreenYHi` 暫存物件相對鏡頭的 Y 高 byte，`hPlayerGroundProbeY` 暫存兩腳探測的世界 Y 低 byte。 |
 | `$ffcb–$ffcc` | 訊息 `FD` 代字 | `hMessageResumePtrLo`、`hMessageResumePtrHi` 保留原訊息的回復位置，展開完畢時清除高 byte。 |
 | `$ffcb–$ffcd` | 玩家對物件的身體碰撞 | `hPlayerObjectProbeRangeX`、`hPlayerObjectProbeAbove`、`hPlayerObjectProbeBelow` 是此次探測的距離門檻。玩家對地圖 tile 的接觸判定另用 `$ffcd` 作 `hPlayerTileProbeCount`。 |

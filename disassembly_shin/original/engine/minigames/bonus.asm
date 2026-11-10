@@ -839,10 +839,10 @@ Bonus_SelectRewardByRoundTier::
     ld d, $01
 
 Bonus_StoreRoundRewardSelection::
-; C selects the displayed form name. D records $02/$03/$01 for rounds 1-3/4-6/7-10.
-; Downstream use of the HRAM output is unconfirmed. See notes/symbol_cleanup.md.
+; C selects the displayed form name. D is $02/$03/$01 for rounds 1-3/4-6/7-10.
+; Both traced paths overwrite $ffca before reading it. Substate 6 grants the form from wMsgSubstitutionId.
     ld a, d
-    ldh [hBonusRoundTierOutput], a
+    ldh [hBonusRoundTierScratch], a
     ld a, c
     ld [wMsgSubstitutionId], a
     ret

@@ -60,7 +60,7 @@ MD5 = BCB3D47C291FD0A26B2C7B1082C3AD88
 | `wPassword*` | 密碼畫面中的輸入列、cursor、重複按鍵與比對結果 |
 | `hPlayerTileProbeCount`／`hPlayerObjectProbeBelow` | 同為 `$ffcd`，分別是 tile probe 計數與物件碰撞距離門檻 |
 | `wMinigamePhaseCounter` | 開始前倒數、遊戲中的 timer tick、結果動畫 counter，依 substate 切換 |
-| `hBonusRoundTierOutput` | 獎勵關卡子狀態 `$07` 寫出的輪次分級值，下游用途待查 |
+| `hBonusRoundTierScratch` | 獎勵關卡子狀態 `$07` 寫出的輪次分級值，兩條實測路徑都在讀取前覆蓋 |
 
 ## 尚未確認的部分
 
@@ -68,8 +68,8 @@ MD5 = BCB3D47C291FD0A26B2C7B1082C3AD88
 [unresolved_labels.csv](unresolved_labels.csv) 目前只有欄位名稱。
 `preceding_symbol` 只表示原始碼中的位置，不保證是函式或呼叫關係的邊界。
 
-[unresolved_memory.csv](unresolved_memory.csv) 剩 **1 處引用、1 個位址**。
-`Bonus_StoreRoundRewardSelection` 對 `$ffca` 的寫入已命名，下游讀取點與進入子狀態 `$07` 的正常路徑仍待確認。
+[unresolved_memory.csv](unresolved_memory.csv) 目前沒有待命名的 RAM 引用。
+獎勵關卡子狀態 `$07` 的正常進入路徑仍待確認。
 
 另有部分資料只確認格式而未確認畫面內容，例如 `ScreenData_*`、以地址命名的音軌；
 音軌播放索引仍可由 `audio/sound_ids.csv` 追查。
@@ -86,12 +86,24 @@ MD5 = BCB3D47C291FD0A26B2C7B1082C3AD88
 | --- | --- |
 | `$d8df` | 從標題進 Mekemeke 第 1 輪，實際開槍命中時在 `02:5d4a` 讀取。`02:650d` 的 `ld a, c` 在計分前將 A 換成 `$05`。以 `$00`、`$a5` 重跑，分數都是 000 → 005。該位址在抓蟲模式另作 `wBugLastCaughtType`。 |
 | `$d8f2` | DMG 從標題進抓蟲小遊戲，以按鍵完成第 1～3 輪。第 4 輪障礙重生在 `02:66d7` 讀取兩筆八位元組障礙記錄之後的 byte。另將解鎖輪次設成 4 後由標題進入，從同一快照用 `$00`、`$a5` 重跑。兩模式的 `02:66df` 比較值與障礙記錄各自相同，因為 `ChooseScreenRandomThird` 在比較前覆寫 B。 |
-| `$ffca` | 從小遊戲說明畫面強制執行獎勵子狀態 `$07` 一次，測輪次 1、3、4、6、7、10。`02:4fe6` 對三組輪次分別寫入 `$02/$03/$01`，`02:4fe9` 同時寫出文字代字 `$0b/$0c/$0d`。恢復說明畫面並開始 Mekemeke 後，下一筆 `$ffca` 存取是 `02:5b93` 寫入敵人列索引。 |
+| `$ffca` | BONUS 子狀態 `$07` 在 `02:4fe6` 寫入輪次分級。兩種模式、兩條回放路徑的 40 次追蹤，下一筆 `$ffca` 存取皆為覆寫。 |
 
-另以原版密碼進場景測試，走到第二個獎勵站，使用按鍵過關並領取變身。
-兩模式皆從子狀態 `$06` 在 `02:4f5b` 讀取 `wMsgSubstitutionId`，減去 `$0a` 後於 `02:4f60` 寫入 `hPlayerForm`。
-在 DMG 的獎勵快照強制執行一次 `$07` 再回到 `$06`，六個輪次都得到相同的變身值 `$03`。
-從強制寫入到領取獎勵後再跑 600 幀，未觀察到後續的 `$ffca` 存取。
+### BONUS 輪次分級
+
+DMG 與 SGB 各從說明畫面及第二獎勵站過關後的結果快照重跑輪次 1～10。
+每次只改 `wBonusMinigameRounds + 1` 並切換 `wScreenSubstate` 讓 `$07` 執行一次，然後恢復原子狀態，
+以按鍵繼續。SameBoy 的記憶體回呼從分級寫入一路記錄到同址的下一筆存取。
+
+| 輪次 | `02:4fe6` 寫 `$ffca` | `02:4fe9` 寫 `wMsgSubstitutionId` |
+| --- | --- | --- |
+| 1～3 | `$02` | `$0b` |
+| 4～6 | `$03` | `$0c` |
+| 7～10 | `$01` | `$0d` |
+
+- **恢復說明畫面（`$03`）後開始メケメケ**。下一筆是 `02:5b93` 寫入敵人跑道索引 `hMekemekeLaneIndex`。
+- **恢復結果畫面（`$06`）後領取變身並回主關卡**。`02:4f5b` 讀取玩家選定的 `wMsgSubstitutionId`，減去 `$0a` 後在 `02:4f60` 寫入 `hPlayerForm`。在這組回放中，各輪皆選中 `$0c` 並取得變身 `$02`。回到主關卡後，`$ffca` 的下一筆存取是 `00:05b1` 將 HUD 十位數寫入 `hDecimalTens`。
+
+用原版密碼進場景測試、挑戰第二獎勵站並領取變身的按鍵流程走的是 `$06`，未進入 `$07`。
 
 ## 驗證
 
@@ -157,7 +169,7 @@ Windows／Ubuntu 的完整 `check-original` 均通過：9 個資產測試、6 �
 
 - 關卡過場、接關與對話已補上 47 個自動 label 和 61 處 RAM 引用的用途。接關朝向與 X 小數共用 $d93b，對話遮罩與 SGB 封包欄位只在各自的讀寫範圍套用。
 
-- 獎勵關卡、場景測試和游標補上 44 個自動 label 與 66 處 RAM 引用。獎勵站的三個關卡等級和選單解鎖等級分開命名。依關卡等級寫入 $ffca 的獎勵選擇值尚無確認的讀取點。
+- 獎勵關卡、場景測試和游標補上 44 個自動 label 與 66 處 RAM 引用。獎勵站的三個關卡等級和選單解鎖等級分開命名。子狀態 `$07` 的輪次分級寫入在上列實測路徑中會被覆蓋。
 
 - 滑行跳躍小遊戲補上 56 個自動 label 與 152 處 RAM 引用。已辨識 24-bit 座標、8.8 速度、鏡頭、平台指標與結果流程，並將兩個被誤標為 HRAM 的鏡頭位移改回 signed scalar。
 

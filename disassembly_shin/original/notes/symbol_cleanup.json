@@ -6,8 +6,8 @@
   "generic_labels_before": 1323,
   "generic_labels_remaining": 0,
   "new_def_symbols": 154,
-  "unresolved_memory_references": 1,
-  "unresolved_memory_addresses": 1,
+  "unresolved_memory_references": 0,
+  "unresolved_memory_addresses": 0,
   "bank_label_counts": {
     "0": [
       263,

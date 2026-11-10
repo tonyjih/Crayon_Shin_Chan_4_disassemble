@@ -455,7 +455,7 @@ DEF hStageDialogueSpeakerMask         EQU $ffca ; Speaker marker bits also index
 DEF hMenuCursorOptionCount   EQU $ffc9
 DEF hMenuCursorDestLo        EQU $ffca
 DEF hMenuCursorDestHi        EQU $ffcb
-DEF hBonusRoundTierOutput    EQU $ffca ; Bonus substate 7 output; no consumer confirmed.
+DEF hBonusRoundTierScratch   EQU $ffca ; Bonus substate 7 tier byte, overwritten before any read in traced paths.
 DEF hMinigameTimerTiles      EQU $ffc9 ; Three digit tiles assembled for the countdown HUD.
 DEF wSceneTestValues         EQU $d940 ; Stage dialogue, password result, ending, and bonus health test values.
 DEF wSceneTestLastEditedValue EQU $d93a ; Copy of the displayed value. No scene-test reader confirmed.
