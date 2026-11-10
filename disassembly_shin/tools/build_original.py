@@ -102,9 +102,10 @@ def pack_spawns(path: Path) -> bytes:
                     for kind, x, y, param in read_spawns(path)) + b"\xff"
 
 
-def assemble(assets: list[dict], output: Path) -> None:
+def assemble(assets: list[dict], output: Path, *, test_rom: bool) -> None:
     rgbds = rgbds_tools()
     rgbgfx = rgbds["rgbgfx"]
+    asm_flags = []
     for asset in assets:
         path = SOURCE / asset["source"]
         target = output / "assets" / (asset["id"] + ".bin")
@@ -137,10 +138,12 @@ def assemble(assets: list[dict], output: Path) -> None:
         else:
             packed = raw
         if len(packed) != asset["stored_size"]:
-            raise ValueError(f"{path}: compressed size changed; fixed ROM layout needs updating")
+            if not test_rom or asset["id"] != "b06_5334" or asset["codec"] != "prevbyte":
+                raise ValueError(f"{path}: compressed size changed; fixed ROM layout needs updating")
+            asm_flags = ["-D", "TEST_RELOCATE_BONUS_GFX=1"]
         target.write_bytes(packed)
     obj, rom = output / "game.o", output / "game.gb"
-    run([rgbds["rgbasm"], "-I", str(output), "-o", str(obj), "game.asm"])
+    run([rgbds["rgbasm"], *asm_flags, "-I", str(output), "-o", str(obj), "game.asm"])
     run([rgbds["rgblink"], "-n", str(output / "game.sym"), "-m", str(output / "game.map"),
          "-o", str(rom), str(obj)])
     run([rgbds["rgbfix"], "-v", "-p", "255", str(rom)])
@@ -151,7 +154,7 @@ def build(output: Path = OUTPUT, *, verify_original: bool = True) -> str:
     output.mkdir(parents=True, exist_ok=True)
     with TemporaryDirectory(dir=output) as directory:
         work = Path(directory)
-        assemble(manifest["assets"], work)
+        assemble(manifest["assets"], work, test_rom=not verify_original)
         data = (work / "game.gb").read_bytes()
         digest = hashlib.md5(data).hexdigest().upper()
         if len(data) != 131072 or (verify_original and digest != manifest["rom_md5"]):

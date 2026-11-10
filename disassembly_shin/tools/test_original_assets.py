@@ -146,6 +146,63 @@ class OriginalCodecsTest(unittest.TestCase):
             self.assertEqual((original / "game.gb").read_bytes(), baseline)
             self.assertEqual((original / "assets/payload.bin").read_bytes(), b"\x01")
 
+    def test_test_rom_moves_only_the_audited_bonus_stream_when_its_size_changes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "source"
+            source.mkdir()
+            (source / "game.asm").write_text(
+                'SECTION "Loader", ROM0[$150]\n'
+                '    db BANK(BonusGfx)\n'
+                '    dw BonusGfx\n'
+                'SECTION "Original stream", ROMX[$5334], BANK[6]\n'
+                'IF DEF(TEST_RELOCATE_BONUS_GFX)\n'
+                '    ds 4, $ff\n'
+                'ELSE\n'
+                'BonusGfx::\n'
+                '    INCBIN "assets/b06_5334.bin"\n'
+                'ENDC\n'
+                '    db $42\n'
+                'SECTION "Test stream", ROMX[$7ed0], BANK[4]\n'
+                'IF DEF(TEST_RELOCATE_BONUS_GFX)\n'
+                'BonusGfx::\n'
+                '    INCBIN "assets/b06_5334.bin"\n'
+                'ENDC\n'
+                'SECTION "Last byte", ROMX[$7fff], BANK[7]\n'
+                '    db $ff\n',
+                encoding="ascii",
+            )
+            asset = {
+                "id": "b06_5334", "source": "payload.bin", "codec": "prevbyte",
+                "decoded_size": 8, "stored_size": 4,
+            }
+            manifest_path = source / "assets.json"
+            manifest_path.write_text(json.dumps({"assets": [asset]}), encoding="ascii")
+            payload = source / asset["source"]
+            payload.write_bytes(bytes(8))
+
+            test = root / "test-rom"
+            with patch("build_original.SOURCE", source), redirect_stdout(StringIO()):
+                build(test, verify_original=False)
+                baseline = (test / "game.gb").read_bytes()
+                self.assertEqual(baseline[0x150:0x153], b"\x06\x34\x53")
+
+                payload.write_bytes(bytes(range(8)))
+                build(test, verify_original=False)
+                changed = (test / "game.gb").read_bytes()
+                self.assertEqual(changed[0x150:0x153], b"\x04\xd0\x7e")
+                packed = encode_prev(bytes(range(8)))
+                self.assertEqual(changed[0x13ed0:0x13ed0 + len(packed)], packed)
+                self.assertEqual(changed[0x19334:0x19339], b"\xff\xff\xff\xff\x42")
+                with self.assertRaisesRegex(ValueError, "compressed size changed"):
+                    build(root / "original")
+
+                asset["id"] = "other"
+                manifest_path.write_text(json.dumps({"assets": [asset]}), encoding="ascii")
+                with self.assertRaisesRegex(ValueError, "compressed size changed"):
+                    build(test, verify_original=False)
+            self.assertEqual((test / "game.gb").read_bytes(), changed)
+
 
 if __name__ == "__main__":
     unittest.main()

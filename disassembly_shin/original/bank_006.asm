@@ -27,9 +27,14 @@ Gfx_b06_50c4::
 ; Source: gfx/raw/b06_50c4_font_and_symbols.png (raw, 624 decoded bytes).
     INCBIN "assets/b06_50c4.bin"
 
-GfxRle_b06_5334::
 ; Source: gfx/compressed/b06_5334.png (prevbyte, 224 decoded bytes).
+IF DEF(TEST_RELOCATE_BONUS_GFX)
+    ASSERT @ == $5334
+    ds $53ec - @, $ff ; Keep the following bank 6 assets at their original addresses.
+ELSE
+GfxRle_b06_5334::
     INCBIN "assets/b06_5334.bin"
+ENDC
 
 GfxRle_b06_53ec::
 ; Source: gfx/compressed/b06_53ec.png (prevbyte, 384 decoded bytes).

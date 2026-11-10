@@ -23,7 +23,8 @@ python -B tools/build_original.py
 
 修改來源後要試玩時，執行 `make test-rom` 或 `python -B tools/build_original.py --test-rom`。
 測試 ROM、symbol、map 和產生的資產都放在 `build/test-rom/`。測試建置會顯示實際 MD5，
-並檢查 ROM 大小、資產尺寸和壓縮往返。修改後若壓縮長度改變，需先調整 ROM 配置。
+並檢查 ROM 大小、資產尺寸和壓縮往返。BONUS 角色圖 `b06_5334.png` 的壓縮長度變動時可自動搬移。
+各 bank 空間和搬移範圍見 [測試 ROM 配置](original/notes/test_rom_layout.md)。
 
 需要 Python 3.10+ 和 RGBDS **1.0.1**；版本記在 `.rgbds-version`。
 工具會先找專案上一層的 `rgbasm.exe`、`rgblink.exe`、`rgbfix.exe`、`rgbgfx.exe`，再找 PATH。

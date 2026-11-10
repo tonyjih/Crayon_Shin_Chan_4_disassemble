@@ -119,6 +119,13 @@ LayoutRle_b04_79da::
 Bank4PostCollisionData_Bank4::
     INCBIN "assets/b04_79da.bin", $e0, $416
 
+IF DEF(TEST_RELOCATE_BONUS_GFX)
+    ASSERT @ == $7ed0
+GfxRle_b06_5334::
+    INCBIN "assets/b06_5334.bin"
+    ASSERT @ <= $8000, "Test BONUS graphics exceed the reserved bank 4 space"
+ENDC
+
     ds $8000 - @, $ff
 
 Bank4DataEnd::
