@@ -75,6 +75,8 @@ Stage 2 切換後的表另外放在 `levels/stage2_after_switch/`。
 
 ## 音樂與音效
 
+標題、關卡、頭目和片尾的用途、播放 ID 與四聲部對照見 [音樂索引](audio/README.md)。
+
 音樂是原生 sequencer 指令，並非 WAV／MP3 壓縮音訊。`audio/sound_data.asm` 的
 105 筆播放索引指向 102 段音軌，其中包含 BGM 的各聲部、音效與共享的空白音軌；
 這不代表 102 首歌曲。
