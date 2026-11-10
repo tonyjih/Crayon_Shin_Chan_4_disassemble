@@ -73,7 +73,7 @@ GfxRle_b06_663c::
 
 
 LayoutRle_b06_6801::
-; Source: maps/b06_6801.bin (rleff, 360 decoded bytes).
+; Source: maps/continue.asm (rleff, 360 decoded bytes).
     INCBIN "assets/b06_6801.bin"
 
 GfxRle_b06_6839::

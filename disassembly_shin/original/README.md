@@ -66,7 +66,8 @@ bank 檔保留 ROM 配置順序，已確認的系統透過 INCLUDE 拆出：
 - 23 段 previous-byte RLE：16-bit group count、每組 mask 決定八個 byte 是 literal 或重複前值。
   其中 22 段來自 PNG，另一段是 `sgb/border_tilemap.bin`。
 - 14 段 RLEFF：`FF count value`，原版壓縮器每段最多 251 bytes；其餘為 literal。
-  所有來源都是解壓後的 `.bin`，包含五關地圖及選單／小遊戲地圖。
+  包含五關地圖及選單／小遊戲地圖。標題、密碼和接關畫面由 `maps/*.asm` 組譯，
+  原版建置會先與解壓後的 `.bin` 逐位元組比對；其餘 RLEFF 地圖直接讀取 `.bin`。
 
 `levels/stage*/layout.bin` 是實體頁面的 metatile ID，每頁 16×16 bytes。
 `metatiles.bin` 每組四個 tile ID，順序為 TL、TR、BL、BR。
