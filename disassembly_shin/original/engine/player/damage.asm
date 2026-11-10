@@ -6,7 +6,7 @@ HandlePlayerDamage::
 
     ldh a, [hPlayerForm]
     or a
-    jp nz, LosePlayerFormAndEnterHurtState
+    jp nz, LosePlayerFormAndBeginFormChange
 
     ldh a, [hPlayerHealth]
     or a
@@ -16,7 +16,7 @@ HandlePlayerDamage::
     call PlaySound
     ldh a, [hPlayerState]
     ld [wSavedPlayerState], a
-    ld a, $0a
+    ld a, PlayerState_DamageKnockback
     ldh [hPlayerState], a
     ld hl, hPlayerFlags
     set 3, [hl]
@@ -25,8 +25,8 @@ HandlePlayerDamage::
     ret
 
 
-LosePlayerFormAndEnterHurtState::
-; Restore the saved normal move speed before starting the hurt/form-change animation.
+LosePlayerFormAndBeginFormChange::
+; Restore the saved normal move speed before streaming the normal form tiles.
     ldh a, [hPlayerForm]
     ld [wStoredPlayerForm], a
     xor a
@@ -39,7 +39,7 @@ LosePlayerFormAndEnterHurtState::
     ldh [hPlayerSpeedX], a
     ld a, h
     ldh [hPlayerSpeedXHigh], a
-    jp EnterPlayerHurtState
+    jp EnterPlayerFormChangeState
 
 
 SetPlayerForcedBounceVelocity::
@@ -51,8 +51,8 @@ SetPlayerForcedBounceVelocity::
     jp SetPlayerJumpVelocity3
 
 
-EnterPlayerHurtState:: ; Enter hurt/knockback-style player state; clears action actors and starts recovery timer.
-    ld a, $06
+EnterPlayerFormChangeState:: ; Clear action actors and start the form-change tile stream.
+    ld a, PlayerState_FormChange
     ldh [hPlayerState], a
     xor a
     ldh [hPlayerStatePhase], a

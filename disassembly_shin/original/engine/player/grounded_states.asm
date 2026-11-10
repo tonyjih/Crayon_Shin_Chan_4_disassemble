@@ -1,11 +1,11 @@
-PlayerState_UpdateStageInteraction0D::
-    call HandlePlayerGroundInput
+PlayerState_UpdateHangingDollRide:: ; The doll provides support while hPlayerPlatformAttached is set.
+    call HandleSupportedPlayerInput
     ldh a, [hPlayerPlatformAttached]
     or a
     call z, EnterPlayerFallState
     jr GroundedAction_UpdateWalkingFrames
 
-EnterPlayerAttachedGroundState::
+EnterPlayerHangingDollRide::
 ; Used when the hanging doll supports the player. State $0d exits when the support flag clears.
     ldh a, [hPlayerForm]
     cp $02
@@ -15,7 +15,7 @@ EnterPlayerAttachedGroundState::
     ldh [hPlayerActionLock], a
 
 AttachedGround_ResetAnimation::
-    ld a, $0d
+    ld a, PlayerState_HangingDollRide
     ldh [hPlayerState], a
     xor a
     ldh [hPlayerStatePhase], a
@@ -29,8 +29,8 @@ AttachedGround_ResetAnimation::
     ret
 
 
-PlayerState_UpdateGroundedActionCheck::
-    call GroundedAction_CheckSupportThenInput
+PlayerState_UpdateLowPlatform:: ; Stay on the low platform while both probes find support.
+    call LowPlatform_CheckSupportThenInput
 
 GroundedAction_UpdateWalkingFrames::
     ldh a, [hPlayerStatePhase]
@@ -53,13 +53,13 @@ GroundedAction_UpdateWalkingFrames::
 PlayerGroundedActionAnimIds::
     db $12, $13, $12, $14
 
-GroundedAction_CheckSupportThenInput::
+LowPlatform_CheckSupportThenInput::
     call CheckPlayerGroundCollision
     ldh a, [hPlayerTileProbeCount]
     cp $02
     jp nz, EnterPlayerFallState
 
-HandlePlayerGroundInput:: ; Handle normal ground input and transition to jump/crouch/move.
+HandleSupportedPlayerInput:: ; Ground controls shared by the low platform and the hanging doll.
     ldh a, [hJoyPressed]
     rrca
     jp c, StartPlayerJump
@@ -186,10 +186,10 @@ Duck_DropThroughGround::
     call ApplyPlayerYVelocity
     call ApplyPlayerYVelocity
     ldh a, [hPlayerState]
-    cp $0b
+    cp PlayerState_DeathFall
     ret z
 
-    ld a, $02
+    ld a, PlayerState_JumpFall
     ldh [hPlayerState], a
     ld a, $0f
     ldh [hPlayerAnimId], a
@@ -226,7 +226,7 @@ ProbePlayerHeadOnePixelLower::
     ld hl, -$0100 ; Signed 16-bit delta; interpreted as pixels or 8.8 velocity by the caller.
     call MovePlayerYBySignedHL
     ldh a, [hPlayerState]
-    cp $03
+    cp PlayerState_Ladder
     ret nz
 
     ld hl, $0100
@@ -236,22 +236,20 @@ ProbePlayerHeadOnePixelLower::
 
 
 
-PlayerState_UpdateGroundedSnap:: ; State 03: grounded snap/settle state after specific collision contact.
-    call HandlePlayerVerticalInput
+PlayerState_UpdateLadder:: ; Up/down climb. Phase 0 is idle and phase 1 animates climbing.
+    call HandlePlayerLadderInput
     ldh a, [hPlayerStatePhase]
     rst $00
 
-	dw PlayerGroundedSnap_State00
-	dw PlayerGroundedSnap_State01
+	dw PlayerLadder_IdlePose
+	dw PlayerLadder_MovePose
 
-PlayerGroundedSnap_State00::
-; PlayerState_UpdateGroundedSnap dispatch index $00; behavior name can be refined after tracing.
+PlayerLadder_IdlePose::
     ld a, $10
     ldh [hPlayerAnimId], a
     ret
 
-PlayerGroundedSnap_State01::
-; PlayerState_UpdateGroundedSnap dispatch index $01; behavior name can be refined after tracing.
+PlayerLadder_MovePose::
     ld h, $0a
     ld l, $02
     ld e, $00
@@ -268,14 +266,13 @@ PlayerGroundedSnap_State01::
 PlayerLadderAnimIds::
     db $10, $11
 
-HandlePlayerVerticalInput::
-; Handle UP/DOWN motion in the grounded-snap state.
+HandlePlayerLadderInput::
     ldh a, [hJoyHeld]
     bit 6, a
-    jr nz, SnapState_TryMoveUp
+    jr nz, Ladder_TryMoveUp
 
     bit 7, a
-    jr nz, SnapState_MoveDown
+    jr nz, Ladder_MoveDown
 
     ldh a, [hJoyPressed]
     bit 0, a
@@ -286,7 +283,7 @@ HandlePlayerVerticalInput::
     jp CheckPlayerHeadCollision
 
 
-SnapState_TryMoveUp::
+Ladder_TryMoveUp::
     ld a, $01
     ldh [hPlayerStatePhase], a
     ld hl, -$0100 ; Signed 16-bit delta; interpreted as pixels or 8.8 velocity by the caller.
@@ -301,7 +298,7 @@ SnapState_TryMoveUp::
     jp CheckPlayerHeadCollision
 
 
-SnapState_MoveDown::
+Ladder_MoveDown::
     ld a, $01
     ldh [hPlayerStatePhase], a
     ld hl, $0100

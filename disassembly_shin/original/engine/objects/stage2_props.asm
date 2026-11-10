@@ -74,7 +74,7 @@ MovePlatformAndCarryPlayer::
     ret nc
 
     ldh a, [hPlayerState]
-    cp $0b
+    cp PlayerState_DeathFall
     ret z
 
     ldh a, [hObjectOffscreen]
@@ -179,7 +179,7 @@ ShoppingCart_MarkPlayerAttached::
     ld a, $ff
     ldh [hPlayerPlatformAttached], a
     ldh a, [hPlayerState]
-    cp $02
+    cp PlayerState_JumpFall
     ret nz
 
     jp ResetPlayerToNormalState
@@ -467,10 +467,10 @@ HangingDoll_CheckLowerContactBound::
     jr nc, HangingDoll_TickTravel
 
     ldh a, [hPlayerState]
-    cp $0b
+    cp PlayerState_DeathFall
     jr z, HangingDoll_TickTravel
 
-    cp $06
+    cp PlayerState_FormChange
     jr z, HangingDoll_TickTravel
 
     ldh a, [hObjectOffscreen]
@@ -499,8 +499,8 @@ HangingDoll_AttachPlayer::
     ld a, $ff
     ldh [hPlayerPlatformAttached], a
     ldh a, [hPlayerState]
-    cp $0d
-    call nz, EnterPlayerAttachedGroundState
+    cp PlayerState_HangingDollRide
+    call nz, EnterPlayerHangingDollRide
     ld a, $01
     ldh [hTileStreamWritePos], a
 

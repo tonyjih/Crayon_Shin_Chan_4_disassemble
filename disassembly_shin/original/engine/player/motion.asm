@@ -154,7 +154,7 @@ EnterPlayerDeathFallState:: ; Enter fall-out/death bounce state and reset form/a
     call InitSound
     ld a, $55
     call PlaySound_Queue3
-    ld a, $0b
+    ld a, PlayerState_DeathFall
     ldh [hPlayerState], a
     ld hl, hPlayerFlags
     set 3, [hl]

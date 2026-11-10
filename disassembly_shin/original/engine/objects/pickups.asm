@@ -344,7 +344,7 @@ ApplyPickedUpPlayerForm::
 ; Remove the pickup and start the existing form-change animation state.
     xor a
     ld [bc], a
-    jp EnterPlayerHurtState
+    jp EnterPlayerFormChangeState
 
 
 UpdateObjFormCockroach:: ; Object type $17: Cockroach form pickup.

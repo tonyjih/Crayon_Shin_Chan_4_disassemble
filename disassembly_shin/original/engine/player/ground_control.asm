@@ -157,7 +157,7 @@ GroundInput_CheckDirectionalButtons::
     jr nz, GroundInput_MoveLeft
 
     bit 6, a
-    jr nz, GroundInput_TryEnterSnapState
+    jr nz, GroundInput_TryGrabLadder
 
 GroundInput_UpdateIdle::
     call ProbePlayerFeetThenHandleFall
@@ -180,14 +180,14 @@ GroundInput_UpdateIdle::
     ret
 
 
-GroundInput_TryEnterSnapState::
+GroundInput_TryGrabLadder::
     ld hl, -$0100 ; Signed 16-bit delta; interpreted as pixels or 8.8 velocity by the caller.
     call MovePlayerYBySignedHL
     call CheckPlayerHeadCollision
     ld hl, $0100
     call MovePlayerYBySignedHL
     ldh a, [hPlayerState]
-    cp $03
+    cp PlayerState_Ladder
     jr nz, GroundInput_UpdateIdle
 
     ld hl, -$0100 ; Signed 16-bit delta; interpreted as pixels or 8.8 velocity by the caller.
@@ -204,7 +204,7 @@ GroundInput_CheckDuck::
     cp $02
     jr z, GroundInput_CheckCockroachDrop
 
-    ld a, $01
+    ld a, PlayerState_Duck
     ldh [hPlayerState], a
     xor a
     ldh [hPlayerAnimTimer], a

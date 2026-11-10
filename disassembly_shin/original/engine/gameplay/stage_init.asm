@@ -157,7 +157,7 @@ StageInitBlock_3:: ; Stage 3 initial clamp/page data.
     db $00, $01, $02, $03, $04, $10, $00, $00, $00, $00, $00, $00, $00, $00
 
 ResetPlayerStateForStage::
-    xor a
+    xor a ; PlayerState_NormalGround and cleared movement flags.
     ldh [hPlayerState], a
     ldh [hPlayerDirection], a
     ldh [hPlayerActionLock], a

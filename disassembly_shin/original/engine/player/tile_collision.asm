@@ -26,13 +26,13 @@ CheckPlayerHeadCollision:: ; Player upward/head collision check.
     call DispatchPlayerHeadTileContact
     ldh a, [hPlayerTileProbeCount]
     cp $01
-    jr nz, HeadCollision_CheckReleaseFromSnapState
+    jr nz, HeadCollision_CheckReleaseFromLadder
 
     ldh a, [hPrevPlayerState]
-    cp $03
+    cp PlayerState_Ladder
     ret z
 
-    ld a, $03
+    ld a, PlayerState_Ladder
     ldh [hPlayerState], a
     xor a
     ldh [hPlayerVelY], a
@@ -56,9 +56,9 @@ HeadCollision_SnapPlayerX::
     ret
 
 
-HeadCollision_CheckReleaseFromSnapState::
+HeadCollision_CheckReleaseFromLadder::
     ldh a, [hPrevPlayerState]
-    cp $03
+    cp PlayerState_Ladder
     ret nz
 
     jp AlignPlayerToTileAndResetState
@@ -392,14 +392,15 @@ GroundCollision_ProbeBothFeet::
     ld a, [hl]
     call DispatchGroundTileCollision
     ldh a, [hPlayerTileProbeCount]
+    ; Attributes $07/$16 count as support near the top of a low platform. Both probes must count.
     cp $02
     ret nz
 
     ldh a, [hPlayerState]
-    cp $04
+    cp PlayerState_LowPlatform
     ret z
 
-    ld a, $04
+    ld a, PlayerState_LowPlatform
     ldh [hPlayerState], a
     xor a
     ldh [hPlayerStatePhase], a
@@ -436,10 +437,10 @@ DispatchGroundTileCollision::
     dw GroundTileCollisionNone ; 08
     dw GroundTileCollisionNone ; 09
     dw GroundTileCollisionNone ; 0a
-    dw GroundTileSolidOnlyWhenSnapState ; 0b
+    dw GroundTileSolidOnlyOnLadder ; 0b
     dw GroundTileCollisionNone ; 0c
     dw GroundTileCollisionNone ; 0d
-    dw GroundTileSolidOnlyWhenSnapState ; 0e
+    dw GroundTileSolidOnlyOnLadder ; 0e
     dw GroundTileCollisionNone ; 0f
     dw GroundTileCollisionNone ; 10
     dw GroundTileSolidOrFallState ; 11
@@ -476,10 +477,10 @@ DispatchGroundTileCollision::
 
 GroundTileEnterStageInteraction03::
     ldh a, [hPlayerState]
-    cp $0c
+    cp PlayerState_MallFloorTransition
     ret z
 
-    ld a, $0c
+    ld a, PlayerState_MallFloorTransition
     ldh [hPlayerState], a
     ld a, $03
     ld [wStageInteractionSubstate], a
@@ -487,10 +488,10 @@ GroundTileEnterStageInteraction03::
 
 GroundTileEnterStageInteraction01::
     ldh a, [hPlayerState]
-    cp $0c
+    cp PlayerState_MallFloorTransition
     ret z
 
-    ld a, $0c
+    ld a, PlayerState_MallFloorTransition
     ldh [hPlayerState], a
     xor a
     ld [wStageInteractionCounter], a
@@ -515,7 +516,7 @@ GroundTileSlopeRightIfUpperHalf::
 
 GroundTileSolidOrFallState::
     ldh a, [hPlayerState]
-    cp $03
+    cp PlayerState_Ladder
     jp nz, EnterPlayerFallState
 
     ld a, $ff
@@ -533,9 +534,9 @@ GroundTileSolidIfNearTop::
     inc [hl]
     ret
 
-GroundTileSolidOnlyWhenSnapState::
+GroundTileSolidOnlyOnLadder::
     ldh a, [hPlayerState]
-    cp $03
+    cp PlayerState_Ladder
     ret nz
 
     ld a, $ff
@@ -697,7 +698,7 @@ PlayerTileBounceLaunch::
     call PlaySound
     ld a, $10
     ldh [hPlayerGravity], a
-    ld a, $02
+    ld a, PlayerState_JumpFall
     ldh [hPlayerState], a
     ld [wPlayerForcedJumpFlags], a
     call PlayerTileSnapToTileTopClearEffect

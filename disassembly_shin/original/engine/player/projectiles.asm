@@ -26,7 +26,7 @@ ActionKamenTimer_RestorePreviousForm::
     ldh [hPlayerForm], a
     ld a, $04
     ld [wStoredPlayerForm], a
-    jp EnterPlayerHurtState
+    jp EnterPlayerFormChangeState
 
 
 ActionKamenTimer_UpdateHudBlink::

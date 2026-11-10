@@ -1,4 +1,4 @@
-PlayerState_UpdateHurtKnockback:: ; State 06: recovery/knockback-style animation state.
+PlayerState_UpdateFormChange:: ; Stream the new form's tiles, then finish the recovery animation.
     ldh a, [hPlayerStatePhase]
     or a
     jr z, HurtRecovery_StreamFormTilesAndAnimate

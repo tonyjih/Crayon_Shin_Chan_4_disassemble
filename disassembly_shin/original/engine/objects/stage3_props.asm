@@ -74,10 +74,10 @@ BeachBall_CheckAndAttachPlayer::
     ret nz
 
     ldh a, [hPlayerState]
-    cp $0b
+    cp PlayerState_DeathFall
     ret z
 
-    cp $06
+    cp PlayerState_FormChange
     ret z
 
     ld hl, $0006
@@ -103,7 +103,7 @@ BeachBall_MarkPlayerAttachedAndSink::
     inc [hl]
     inc [hl]
     ldh a, [hPlayerState]
-    cp $02
+    cp PlayerState_JumpFall
     ret nz
 
     jp ResetPlayerToNormalState

@@ -3,23 +3,24 @@ UpdatePlayerState:: ; Dispatch current player state machine.
     ldh [hPrevPlayerState], a
     rst $00
 
-    ; hPlayerState dispatch table. rst $00 consumes these words as data.
-    dw PlayerState_UpdateNormalGround          ; 00
-    dw PlayerState_UpdateDuck                  ; 01
-    dw PlayerState_UpdateJumpFall              ; 02
-    dw PlayerState_UpdateGroundedSnap          ; 03
-    dw PlayerState_UpdateGroundedActionCheck   ; 04: grounded/action check state
-    dw PlayerState_UpdateUnusedMove05          ; 05: retained animation with no known normal entry
-    dw PlayerState_UpdateHurtKnockback         ; 06
-    dw PlayerState_UpdateFlyingSquirrelAction  ; 07
-    dw PlayerState_UpdateChickenAction         ; 08
-    dw PlayerState_UpdateActionKamenAction     ; 09
-    dw PlayerState_UpdateDamageBounce          ; 0a: damage bounce state
-    dw PlayerState_UpdateDeathFall             ; 0b
-    dw PlayerState_UpdateStageTransition0C     ; 0c: scripted stage transition state
-    dw PlayerState_UpdateStageInteraction0D    ; 0d: special/stage interaction state
+PlayerStateUpdateTable:: ; Indexed by the PlayerState_* constants.
+    dw PlayerState_UpdateNormalGround          ; $00
+    dw PlayerState_UpdateDuck                  ; $01
+    dw PlayerState_UpdateJumpFall              ; $02
+    dw PlayerState_UpdateLadder                ; $03
+    dw PlayerState_UpdateLowPlatform           ; $04
+    dw PlayerState_UpdateUnusedMove05          ; $05, no known normal entry
+    dw PlayerState_UpdateFormChange            ; $06
+    dw PlayerState_UpdateFlyingSquirrelAction  ; $07
+    dw PlayerState_UpdateChickenAction         ; $08
+    dw PlayerState_UpdateActionKamenAction     ; $09
+    dw PlayerState_UpdateDamageKnockback       ; $0a
+    dw PlayerState_UpdateDeathFall             ; $0b
+    dw PlayerState_UpdateMallFloorTransition   ; $0c
+    dw PlayerState_UpdateHangingDollRide       ; $0d
+    ASSERT @ - PlayerStateUpdateTable == 2 * (PlayerState_HangingDollRide + 1)
 
-PlayerState_UpdateStageTransition0C:: ; Scripted stage transition handler; Stage 2 uses it for layered vertical-room transitions.
+PlayerState_UpdateMallFloorTransition:: ; Scroll between mall floors and stream the next floor's tiles.
     ld hl, -$0200 ; Signed 8.8 velocity, not an OAM pointer.
     ld a, l
     ldh [hPlayerVelY], a
@@ -139,7 +140,7 @@ StageTransitionScrollViewportUp::
 
     ld a, $ff
     ld [wPlayerForcedJumpFlags], a
-    ld a, $02
+    ld a, PlayerState_JumpFall
     ldh [hPlayerState], a
     ld a, [wStage2TransitionStep]
     inc a
@@ -162,7 +163,7 @@ StageTransitionMovePlayerAnchorUp:: ; During the first $20 frames, keep the play
     ret
 
 
-PlayerState_UpdateDamageBounce::
+PlayerState_UpdateDamageKnockback:: ; Delay health loss and horizontal knockback until the damage timer reaches $16.
     call CheckPlayerFootTileContact
     ld a, $15
     ldh [hPlayerAnimId], a
@@ -170,7 +171,7 @@ PlayerState_UpdateDamageBounce::
     dec [hl]
     ld a, [hl]
     cp $16
-    jr z, DamageBounce_ApplyHealthLossAndKnockback
+    jr z, DamageKnockback_ApplyHealthLossAndDisplacement
 
     or a
     ret nz
@@ -183,7 +184,7 @@ PlayerState_UpdateDamageBounce::
     jp AlignPlayerToTileAndResetState
 
 
-DamageBounce_ApplyHealthLossAndKnockback::
+DamageKnockback_ApplyHealthLossAndDisplacement::
     call SubtractPlayerHealthAndMarkHudDirty
     ld hl, hPlayerXSubpixel
     ld de, $0200

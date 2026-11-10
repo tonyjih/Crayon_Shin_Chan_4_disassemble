@@ -40,8 +40,8 @@ DEF hPlayerAnimId       EQU $ffa6
 DEF hPlayerAnimCounter  EQU $ffa7
 DEF hPlayerAnimFrame    EQU $ffa8
 DEF hPlayerObjectFlags  EQU $ffa9
-DEF hPlayerState        EQU $ffaa
-DEF hPrevPlayerState    EQU $ffab
+DEF hPlayerState        EQU $ffaa ; PlayerState_* dispatch index.
+DEF hPrevPlayerState    EQU $ffab ; Snapshot at UpdatePlayerState entry, before this update can change state.
 DEF hPlayerDirection    EQU $ffac ; direction/facing, 0=right-ish, $ff=left-ish.
 DEF hPlayerYSubpixel    EQU $ffad
 DEF hPlayerY            EQU $ffae
@@ -240,20 +240,23 @@ DEF STAGE_BOSS_STATE_ACTIVE   EQU $01 ; countdown/tile-load/boss-active phase; d
 DEF STAGE_BOSS_STATE_CLEAR    EQU $ff ; boss defeated / stage-clear phase; disables right clamp and child collisions
 DEF wStage1ResumeProfileFlag  EQU $c0bc
 
-DEF PlayerState_NormalGround          EQU $00
-DEF PlayerState_Duck                  EQU $01
-DEF PlayerState_JumpFall              EQU $02
-DEF PlayerState_GroundedSnap          EQU $03
-DEF PlayerState_GroundedActionCheck   EQU $04; grounded/action check state
-DEF PlayerState_ClimbOrVerticalMove   EQU $05; climb/vertical move state
-DEF PlayerState_HurtKnockback         EQU $06
-DEF PlayerState_FlyingSquirrelAction  EQU $07
-DEF PlayerState_ChickenAction         EQU $08
-DEF PlayerState_ActionKamenAction     EQU $09
-DEF PlayerState_DamageBounce          EQU $0a; damage bounce state
-DEF PlayerState_DeathFall             EQU $0b
-DEF PlayerState_StageTransition0C     EQU $0c; scripted stage transition state
-DEF PlayerState_StageInteraction0D    EQU $0d; special/stage interaction state
+; Dispatch order in PlayerStateUpdateTable.
+DEF PlayerState_NormalGround         EQU $00
+DEF PlayerState_Duck                 EQU $01
+DEF PlayerState_JumpFall             EQU $02
+DEF PlayerState_Ladder               EQU $03
+DEF PlayerState_LowPlatform          EQU $04
+DEF PlayerState_UnusedMove05         EQU $05 ; Animation with no known normal entry.
+DEF PlayerState_FormChange           EQU $06
+DEF PlayerState_FlyingSquirrelAction EQU $07
+DEF PlayerState_ChickenAction        EQU $08
+DEF PlayerState_ActionKamenAction    EQU $09
+DEF PlayerState_DamageKnockback      EQU $0a
+DEF PlayerState_DeathFall            EQU $0b
+DEF PlayerState_MallFloorTransition  EQU $0c
+DEF PlayerState_HangingDollRide      EQU $0d
+
+    ASSERT PlayerState_NormalGround == 0 ; State resets and zero tests use XOR/OR A.
 
 ; Fixed bank id and FarCallFromBankTable entry table.
 ; ROMX:$4000 must remain the bank id byte; ROMX:$4001 is indexed by bank 0

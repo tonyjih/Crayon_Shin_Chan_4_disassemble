@@ -1,7 +1,7 @@
 PlayerState_UpdateJumpFall:: ; State 02: airborne control, gravity, and landing checks.
     call UpdateAirbornePlayerInput
     ldh a, [hPlayerState]
-    cp $02
+    cp PlayerState_JumpFall
     ret nz
 
 UpdateAirbornePlayerAnimByForm:: ; Select airborne player animation and form-specific air behavior.
@@ -29,7 +29,7 @@ AirborneAnim_Normal::
 AirborneAnim_FlyingSquirrel::
 ; Apply glide in jump state, then choose the ascent/descent frame.
     ldh a, [hPlayerState]
-    cp $02
+    cp PlayerState_JumpFall
     call z, UpdateFlyingSquirrelGlide
     ldh a, [hPlayerVelYHigh]
     rlca
@@ -211,7 +211,7 @@ UpdateAirbornePlayerInput:: ; Handle airborne B action, horizontal control, grav
     call nc, LimitUpwardVelocityOnARelease
     ldh a, [hJoyHeld]
     bit 6, a
-    jr nz, AirborneInput_ProbeSnapContact
+    jr nz, AirborneInput_TryGrabLadder
 
 AirborneInput_CheckHorizontalButtons::
     ldh a, [hJoyHeld]
@@ -249,10 +249,10 @@ LimitUpwardVelocityOnARelease:: ; When A is released during upward motion, clamp
     ret
 
 
-AirborneInput_ProbeSnapContact::
+AirborneInput_TryGrabLadder::
     call CheckPlayerHeadCollision
     ldh a, [hPlayerState]
-    cp $03
+    cp PlayerState_Ladder
     jr nz, AirborneInput_CheckHorizontalButtons
 
     ret
@@ -316,7 +316,7 @@ AlignPlayerToTileAndResetState::
     call DispatchPlayerTileAlignment
 
 ResetPlayerToNormalState:: ; Clear motion/action state and return to normal ground state.
-    xor a
+    xor a ; PlayerState_NormalGround and cleared motion fields.
     ldh [hPlayerState], a
     ldh [hPlayerVelY], a
     ldh [hPlayerVelYHigh], a
@@ -404,7 +404,7 @@ ApplyPlayerYVelocityAndCheckGround::
 
 
 StartPlayerJump:: ; Enter jump state and initialize upward velocity/sound.
-    ld a, $02
+    ld a, PlayerState_JumpFall
     ldh [hPlayerState], a
     ld a, $42
     call PlaySound

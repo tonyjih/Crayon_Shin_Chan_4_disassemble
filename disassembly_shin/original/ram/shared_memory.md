@@ -31,6 +31,34 @@
 BONUS 的入口與結算寫入見 [子狀態追蹤](../notes/symbol_cleanup.md#bonus-子狀態-07)。
 其他分派表見 [畫面與小遊戲分派盤點](../notes/screen_dispatch.md)。
 
+## 玩家狀態
+
+遊玩和教學共用 `hPlayerState`（`$ffaa`）。每次進入 [`UpdatePlayerState`](../engine/player/states.asm)
+都先把狀態複製到 `hPrevPlayerState`（`$ffab`），再依 `PlayerStateUpdateTable` 分派。碰撞可以在同次更新改寫目前狀態，
+所以 `hPrevPlayerState` 保存的是分派當下的值。飛鼠、小雞和動感超人的定時動作另用 `wSavedPlayerState`
+保存要回去的狀態。
+
+| 值 | 常數 | 行為與入口 |
+| --- | --- | --- |
+| `$00` | `PlayerState_NormalGround` | 一般地面操作。關卡初始化及多數狀態結束後回到這裡。 |
+| `$01` | `PlayerState_Duck` | 在地面按方向鍵下時進入。蟑螂另有穿過地板的輸入分支。 |
+| `$02` | `PlayerState_JumpFall` | 跳躍、墜落及反彈共用的空中狀態。飛鼠滑翔也在這裡處理。 |
+| `$03` | `PlayerState_Ladder` | 接觸可攀的地形後對齊 X，之後用上、下移動。 |
+| `$04` | `PlayerState_LowPlatform` | 碰撞探測在低平台的 `$07/$16` 屬性取得兩側支撐後進入。可沿平台行走，失去支撐時回空中。 |
+| `$05` | `PlayerState_UnusedMove05` | 保留動畫，播放 `$08–$0B` 兩輪後回到一般地面狀態。目前找不到正常入口。 |
+| `$06` | `PlayerState_FormChange` | 取得變身、受傷解除變身或動感超人時間到時進入。先串流新型態的圖塊，再播放恢復動畫。 |
+| `$07` | `PlayerState_FlyingSquirrelAction` | 飛鼠按 B 的投射物動作，完成後回到保存的狀態。 |
+| `$08` | `PlayerState_ChickenAction` | 小雞按 B 下蛋，地面與空中使用不同姿勢。 |
+| `$09` | `PlayerState_ActionKamenAction` | 動感超人在一般地面按 B，計時後發射光束。 |
+| `$0A` | `PlayerState_DamageKnockback` | 普通型態有體力時受傷，計時到指定點才扣血及水平擊退。 |
+| `$0B` | `PlayerState_DeathFall` | 致死傷害或跌落觸發。先清除變身，死亡動作離開畫面後扣殘機並重生，殘機耗盡時進接關。 |
+| `$0C` | `PlayerState_MallFloorTransition` | 百貨關的碰撞屬性 `$23/$24` 觸發樓層切換，控制畫面垂直捲動及圖塊載入。 |
+| `$0D` | `PlayerState_HangingDollRide` | 百貨關的動感超人吊偶接住玩家時進入。可借吊偶支撐移動，脫離後回空中。 |
+
+`hPlayerStatePhase`（`$ffc1`）由目前狀態解讀。一般地面用它選靜止、步行及久站，
+梯子用它選靜止或移動，低平台和吊偶用它區分靜止與步行，換裝用它分隔圖塊串流與恢復動畫。
+百貨樓層切換另讀 `wStageInteractionSubstate`。保留動畫與姿勢的實測見 [GFX 索引](../gfx/README.md)。
+
 ## WRAM 畫面重疊欄位
 
 | 地址 | 生效狀態及欄位 |

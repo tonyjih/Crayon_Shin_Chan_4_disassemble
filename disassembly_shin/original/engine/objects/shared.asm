@@ -210,7 +210,7 @@ DrawCurrentStageObject::
 
 LoadPlayerObjectCollisionProbe::
     ldh a, [hPlayerState]
-    cp $01
+    cp PlayerState_Duck
     jr z, PlayerProbe_SelectShortBodyTable
 
     ldh a, [hPlayerForm]
@@ -276,7 +276,7 @@ PlayerObjectCollision_CheckHorizontalRange::
     ret nc
 
     ldh a, [hPlayerState]
-    cp $02
+    cp PlayerState_JumpFall
     jr nz, PlayerObjectCollision_CheckBodyY
 
     ldh a, [hPlayerVelYHigh]

@@ -69,7 +69,7 @@ UpdateBouncePadPlayerContact::
     inc hl
     inc [hl]
     ldh a, [hPlayerState]
-    cp $06
+    cp PlayerState_FormChange
     ret z
 
     call SetPlayerJumpVelocity0
@@ -106,14 +106,14 @@ ApplyBouncePadJump::
     inc hl
     dec [hl]
     ldh a, [hPlayerState]
-    cp $06
+    cp PlayerState_FormChange
     ret z
 
     ld a, $5c
     call PlaySound
     ld a, $10
     ldh [hPlayerGravity], a
-    ld a, $02
+    ld a, PlayerState_JumpFall
     ldh [hPlayerState], a
     ld [wPlayerForcedJumpFlags], a
     call AttachPlayerToObjectTop16
@@ -177,7 +177,7 @@ UpdateMovingPlatformVerticalA::
 
 CheckPlayerStandingOnPlatform::
     ldh a, [hPlayerState]
-    cp $06
+    cp PlayerState_FormChange
     ret z
 
     ldh a, [hObjectOffscreen]
@@ -193,7 +193,7 @@ AttachPlayerToPlatformTop::
     ldh [hPlayerPlatformAttached], a
     call AttachPlayerToObjectTop16
     ldh a, [hPlayerState]
-    cp $02
+    cp PlayerState_JumpFall
     ret nz
 
     jp ResetPlayerToNormalState
@@ -320,7 +320,7 @@ HorizontalPlatform_MoveLeftAndCarry::
     call SubtractSignedVelocityFromPosition24
     call MovingPlatform_TickTravelAndBeginWait
     ldh a, [hPlayerState]
-    cp $06
+    cp PlayerState_FormChange
     ret z
 
     ldh a, [hObjectOffscreen]
@@ -359,7 +359,7 @@ HorizontalPlatform_MoveRightAndCarry::
     call AddSignedVelocityToPosition24
     call MovingPlatform_TickTravelAndBeginWait
     ldh a, [hPlayerState]
-    cp $06
+    cp PlayerState_FormChange
     ret z
 
     ld e, $12
@@ -396,7 +396,7 @@ ClearOffscreenStageObject::
 
 CheckPlayerStandingOnDropPlatform::
     ldh a, [hPlayerState]
-    cp $06
+    cp PlayerState_FormChange
     ret z
 
     ldh a, [hPlayerVelYHigh]
@@ -450,7 +450,7 @@ CheckPlayerStandingOnDropPlatform::
     ld a, h
     ldh [hPlayerYHigh], a
     ldh a, [hPlayerState]
-    cp $02
+    cp PlayerState_JumpFall
     ret nz
 
     jp ResetPlayerToNormalState

@@ -31,8 +31,8 @@ UsePlayerFormAction:: ; Dispatch B-button ability for current hPlayerForm.
     ret
 
 
-StartChickenAction:: ; Begin mother-hen form action; enters player state 08.
-    ld de, $0a08
+StartChickenAction::
+    ld de, ($0a << 8) | PlayerState_ChickenAction
     jr StartTimedPlayerFormAction
 
 PlayerState_UpdateChickenAction:: ; State 08: mother-hen form action.
@@ -74,10 +74,10 @@ ChickenAction_StoreEggPosition::
     ret
 
 
-StartFlyingSquirrelAction:: ; Begin flying-squirrel form action; enters player state 07.
-    ld de, $0e07
+StartFlyingSquirrelAction::
+    ld de, ($0e << 8) | PlayerState_FlyingSquirrelAction
 
-StartTimedPlayerFormAction:: ; Save current state, set action timer/state, and clear form action work vars.
+StartTimedPlayerFormAction:: ; D = initial timer, E = PlayerState_* action. Save the state to resume afterward.
     ldh a, [hPlayerState]
     ld [wSavedPlayerState], a
     ld a, d
@@ -208,7 +208,7 @@ StartActionKamenAction:: ; Begin Action Kamen form action; only allowed from nor
     or a
     ret nz
 
-    ld de, $0009
+    ld de, PlayerState_ActionKamenAction ; D = 0, the timer counts up for this action.
     jp StartTimedPlayerFormAction
 
 
@@ -306,7 +306,7 @@ EnterPlayerFallState:: ; Switch to airborne/falling state when no ground is supp
 
     ld a, $20
     ldh [hPlayerGravity], a
-    ld a, $02
+    ld a, PlayerState_JumpFall
     ldh [hPlayerState], a
     xor a
     ldh [hPlayerVelY], a
