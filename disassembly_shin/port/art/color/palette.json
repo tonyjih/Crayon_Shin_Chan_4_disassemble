@@ -1,0 +1,386 @@
+{
+  "paper": [
+    "fff1d6",
+    "e5bf90",
+    "ab7351",
+    "50392f"
+  ],
+  "sky": [
+    "c8f2ed",
+    "9bdeda",
+    "75c3c5",
+    "4a8f9b"
+  ],
+  "cloud": [
+    "c8f2ed",
+    "f5fff0",
+    "c8efdc",
+    "8cbdb7"
+  ],
+  "brick": [
+    "fff0d5",
+    "e9b28a",
+    "b9795f",
+    "744d49"
+  ],
+  "wall": [
+    "f2dfbe",
+    "d8be92",
+    "b98e68",
+    "6c5144"
+  ],
+  "wood": [
+    "ffe3ab",
+    "d2a76b",
+    "9d6a43",
+    "5c4438"
+  ],
+  "glass": [
+    "e3f9ed",
+    "a5dce0",
+    "61a4bb",
+    "385f84"
+  ],
+  "metal": [
+    "f0f5ec",
+    "b3cbd2",
+    "6a8d9e",
+    "40566c"
+  ],
+  "leaves": [
+    "daedab",
+    "a4c850",
+    "4f7338",
+    "2c4829"
+  ],
+  "distant": [
+    "c8f2ed",
+    "9bc2b0",
+    "6e9c8b",
+    "47756e"
+  ],
+  "violet": [
+    "ede5f1",
+    "cfc1df",
+    "a08aad",
+    "60536f"
+  ],
+  "teal": [
+    "def4e6",
+    "9ed2c5",
+    "5a9d96",
+    "3d666b"
+  ],
+  "coral": [
+    "fff0d6",
+    "f5b394",
+    "d47870",
+    "8f4d57"
+  ],
+  "gold": [
+    "fff3c9",
+    "edcc72",
+    "b38d49",
+    "6e523a"
+  ],
+  "red": [
+    "fff2df",
+    "ed7261",
+    "c14451",
+    "6b3543"
+  ],
+  "blue": [
+    "e6f4ed",
+    "99bedc",
+    "597cab",
+    "354966"
+  ],
+  "skin": [
+    "fff1d6",
+    "ffcf9f",
+    "e7b28d",
+    "29212b"
+  ],
+  "shirt": [
+    "fff1d6",
+    "ef5442",
+    "d94b3e",
+    "29212b"
+  ],
+  "shorts": [
+    "fff1d6",
+    "ffde67",
+    "dbad49",
+    "29212b"
+  ],
+  "indigo": [
+    "fff1d6",
+    "a5a4dc",
+    "575998",
+    "29212b"
+  ],
+  "squirrel": [
+    "fff1d6",
+    "e8bb7e",
+    "a76642",
+    "29212b"
+  ],
+  "cockroach": [
+    "fff1d6",
+    "ca935f",
+    "794538",
+    "29212b"
+  ],
+  "chicken": [
+    "fff1d6",
+    "ffeac0",
+    "efb057",
+    "29212b"
+  ],
+  "kamen": [
+    "fff1d6",
+    "91d0da",
+    "486c9c",
+    "29212b"
+  ],
+  "chocobi": [
+    "fff1d6",
+    "c7e46c",
+    "79a546",
+    "355d32"
+  ],
+  "stamp": [
+    "fff1d6",
+    "ffb192",
+    "d96854",
+    "874735"
+  ],
+  "sand": [
+    "fff0c9",
+    "e8c78b",
+    "c59660",
+    "845d48"
+  ],
+  "sea": [
+    "d8f5e9",
+    "8cdcd2",
+    "4bafaf",
+    "337a8f"
+  ],
+  "deepsea": [
+    "c5e9d8",
+    "6abcb8",
+    "3e8690",
+    "33566d"
+  ],
+  "rock": [
+    "e5c8a1",
+    "b68d68",
+    "89634f",
+    "57483f"
+  ],
+  "cave": [
+    "bba991",
+    "947f68",
+    "68594e",
+    "3c3b3d"
+  ],
+  "cavebg": [
+    "829f9b",
+    "657f7d",
+    "4b6265",
+    "334851"
+  ],
+  "night": [
+    "243951",
+    "486078",
+    "7fa1af",
+    "e9ecd8"
+  ],
+  "wallpaper": [
+    "f5e9ec",
+    "ecd5d8",
+    "d7b5b8",
+    "a88b9b"
+  ],
+  "waterfall": [
+    "e9fff0",
+    "a4e7dd",
+    "60bfc5",
+    "448aab"
+  ],
+  "white": [
+    "fff1d6",
+    "fffbea",
+    "cddad0",
+    "38494d"
+  ],
+  "pink": [
+    "fff1d6",
+    "f6bfd1",
+    "bc7b9b",
+    "443347"
+  ],
+  "navy": [
+    "fff1d6",
+    "5d7190",
+    "3c4d68",
+    "29212b"
+  ],
+  "hair": [
+    "fff1d6",
+    "c68b5e",
+    "795140",
+    "29212b"
+  ],
+  "grass": [
+    "daedab",
+    "a4cf59",
+    "5f973d",
+    "355e32"
+  ],
+  "soil": [
+    "e9b179",
+    "c28a55",
+    "9f613e",
+    "573b31"
+  ],
+  "shirt-fill": [
+    "fff1d6",
+    "ef5442",
+    "d94b3e",
+    "ef5442"
+  ],
+  "shorts-fill": [
+    "fff1d6",
+    "ffde67",
+    "dbad49",
+    "ffde67"
+  ],
+  "skin-fill": [
+    "fff1d6",
+    "ffcf9f",
+    "e7b28d",
+    "ffcf9f"
+  ],
+  "air": [
+    "c8f2ed",
+    "c8f2ed",
+    "c8f2ed",
+    "c8f2ed"
+  ],
+  "wall-fill": [
+    "f2dfbe",
+    "f2dfbe",
+    "f2dfbe",
+    "f2dfbe"
+  ],
+  "mall-fill": [
+    "ede5f1",
+    "ede5f1",
+    "ede5f1",
+    "ede5f1"
+  ],
+  "cave-fill": [
+    "557775",
+    "557775",
+    "557775",
+    "557775"
+  ],
+  "cloud-gray": [
+    "f5fff0",
+    "c8f2ed",
+    "a5d1c5",
+    "7ba8a5"
+  ],
+  "tree-sky": [
+    "9bc2b0",
+    "c8f2ed",
+    "6e9c8b",
+    "47756e"
+  ],
+  "islands": [
+    "d8ecdc",
+    "c8f2ed",
+    "a2c7b7",
+    "6b9b93"
+  ],
+  "grass-text": [
+    "daedab",
+    "bcd98f",
+    "668a48",
+    "355e32"
+  ],
+  "school-bush": [
+    "c8f2ed",
+    "a3c69a",
+    "729975",
+    "4a735e"
+  ],
+  "bush-fill": [
+    "a3c69a",
+    "a3c69a",
+    "a3c69a",
+    "a3c69a"
+  ],
+  "guam-hills": [
+    "d8ecdc",
+    "c8f2ed",
+    "9dc4af",
+    "6a9b8a"
+  ],
+  "hill-fill": [
+    "d8ecdc",
+    "d8ecdc",
+    "d8ecdc",
+    "d8ecdc"
+  ],
+  "cave-hills": [
+    "8f9c8e",
+    "557775",
+    "6d8075",
+    "3d5658"
+  ],
+  "cave-hill-fill": [
+    "8f9c8e",
+    "8f9c8e",
+    "8f9c8e",
+    "8f9c8e"
+  ],
+  "palm-leaves": [
+    "a4cf59",
+    "c8f2ed",
+    "5c913f",
+    "305431"
+  ],
+  "sea-foam": [
+    "f0ffe9",
+    "8bd6cd",
+    "489eab",
+    "315e75"
+  ],
+  "cave-edge": [
+    "e5c8a1",
+    "557775",
+    "89634f",
+    "57483f"
+  ],
+  "rock-edge-sky": [
+    "e5c8a1",
+    "c8f2ed",
+    "89634f",
+    "57483f"
+  ],
+  "grass-edge": [
+    "daedab",
+    "5f973d",
+    "355e32",
+    "355e32"
+  ],
+  "grass-sky": [
+    "c8f2ed",
+    "a4cf59",
+    "5f973d",
+    "355e32"
+  ]
+}

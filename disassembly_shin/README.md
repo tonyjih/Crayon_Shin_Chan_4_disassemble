@@ -35,6 +35,18 @@ GitHub Actions 的 [Original ROM workflow](../.github/workflows/original.yml) �
 PR 或手動執行時，以 Python 3.12 和同版官方 RGBDS Linux 套件執行 `make check-original`。
 套件下載另核對 SHA-256。未來升級 RGBDS 時，需同步更新版本檔及 workflow 的套件雜湊。
 
+## SDL3 匯出驗證
+
+```powershell
+make check-sdl-export
+```
+
+這個命令會重建並驗證原版 ROM，將五份 C++ 標頭和 73 張 PNG 匯出到暫存目錄，
+逐檔核對 SHA-256。標題、密碼和接關地圖由 ROM 的 symbol 定位並解壓。
+除原版工具鏈外，需要 Pillow 12.2.0。WSL 可執行 `make check-sdl-export PYTHON=python3`。
+Windows 基準使用 Pillow 的 zlib-ng 1.3.1，WSL 基準使用 zlib 1.2.11。
+兩份基準分別保留原有的標頭換行與 PNG 壓縮位元組。
+
 ## 原版來源
 
 - `original/bank_000.asm`～`bank_007.asm`：原版 ROM 配置及尚未拆分的程式／資料；已補齊直接分支與 dispatch table 的 symbol。
