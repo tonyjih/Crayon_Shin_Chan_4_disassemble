@@ -7,6 +7,7 @@ from collections.abc import Iterator
 import csv
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import shutil
@@ -26,7 +27,9 @@ DEBUG_OUTPUT = ROOT / "build" / "debug-rom"
 
 
 def tool(name: str) -> str:
-    for path in (ROOT.parent / (name + ".exe"), ROOT.parent / name):
+    candidates = (name + ".exe", name) if os.name == "nt" else (name,)
+    for candidate in candidates:
+        path = ROOT.parent / candidate
         if path.is_file():
             return str(path)
     found = shutil.which(name)

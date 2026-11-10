@@ -27,7 +27,7 @@ python -B tools/build_original.py
 各 bank 空間和搬移範圍見 [測試 ROM 配置](original/notes/test_rom_layout.md)。
 
 需要 Python 3.10+ 和 RGBDS **1.0.1**；版本記在 `.rgbds-version`。
-工具會先找專案上一層的 `rgbasm.exe`、`rgblink.exe`、`rgbfix.exe`、`rgbgfx.exe`，再找 PATH。
+工具會先在專案上一層找 RGBDS，再找 PATH。Windows 會優先找 `.exe`，Linux／macOS 會找無副檔名的程式。
 建置前會核對四個工具的版本；版本不符、混用版本或工具無法執行時會停止，尚未開始產生資產。
 Linux 環境若只有 `python3`，可執行 `make check-original PYTHON=python3`。
 
