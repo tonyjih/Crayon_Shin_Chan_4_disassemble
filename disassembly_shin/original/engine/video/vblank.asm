@@ -30,7 +30,11 @@ VBlank_RunGameUpdate::
     ei
     call AdvanceRandomByte
     call ReadJoypad
+IF DEF(DEBUG)
+    call UpdateGameStateWithDebugShortcut
+ELSE
     call UpdateCurrentGameState
+ENDC
     ldh a, [hOamWritePos]
     ldh [hPrevOamPos], a
     call ClearUnusedOAM

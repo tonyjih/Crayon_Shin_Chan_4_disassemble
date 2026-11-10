@@ -8,7 +8,7 @@
 
 | Bank | 尾端填充 | Bytes | 邊界與固定地址 |
 | --- | --- | ---: | --- |
-| 0 | `$3f6a–$3fff` | 150 | 入口、重設／中斷向量和 cartridge header 固定。DEBUG 使用 `$3f6a–$3f81`，只剩 126 bytes。 |
+| 0 | `$3f6a–$3fff` | 150 | 入口、重設／中斷向量和 cartridge header 固定。DEBUG 背景載入和遊玩快捷鍵使用 `$3f6a–$3f97`，剩 104 bytes。 |
 | 1 | `$7f4c–$7fff` | 180 | `$4000` 是 bank ID，`$4001` 起是跨 bank 呼叫表。尾端填充在密碼畫面的 RLEFF 地圖之後。 |
 | 2 | `$7ff4–$7fff` | 12 | `$4001` 起是跨 bank 呼叫表。尾端填充在捲動片尾的 `GfxRle_b02_7fe0` 之後。 |
 | 3 | `$7f9e–$7fff` | 98 | `$4001` 起是跨 bank 呼叫表。填充是最後一筆 metasprite 的 `$80` 終止碼之後的 `db $ff`。 |

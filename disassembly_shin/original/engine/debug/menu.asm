@@ -1,6 +1,6 @@
 EnterDebugMenu::
 ; Retail entry helper. Snapshots the current stage and alternate-mode bit.
-; No retail caller was found. The project's title hook bypasses this routine.
+; No retail caller was found. The DEBUG build calls this from the gameplay shortcut.
     ld a, [wAlternateModeFlags]
     and $04
     ld hl, hStageIndex

@@ -93,12 +93,7 @@ RequestState_TitleSubstate1::
 
 
 RequestState_PasswordResultMenu::
-IF DEF(DEBUG)
-    ; Project test-ROM hook. The retail stage-start request selects state $04.
-    ld a, $01
-ELSE
     ld a, $04
-ENDC
     ldh [hGameState], a
     ld a, c
     ld [wStageSceneIndex], a

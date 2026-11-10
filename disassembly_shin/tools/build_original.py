@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the original ROM or a separate test ROM from original/."""
+"""Build the original ROM, a test ROM, or a DEBUG ROM from original/."""
 from __future__ import annotations
 
 import argparse
@@ -22,6 +22,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "original"
 OUTPUT = ROOT / "build" / "original"
 TEST_OUTPUT = ROOT / "build" / "test-rom"
+DEBUG_OUTPUT = ROOT / "build" / "debug-rom"
 
 
 def tool(name: str) -> str:
@@ -102,10 +103,10 @@ def pack_spawns(path: Path) -> bytes:
                     for kind, x, y, param in read_spawns(path)) + b"\xff"
 
 
-def assemble(assets: list[dict], output: Path, *, test_rom: bool) -> None:
+def assemble(assets: list[dict], output: Path, *, test_rom: bool, debug: bool = False) -> None:
     rgbds = rgbds_tools()
     rgbgfx = rgbds["rgbgfx"]
-    asm_flags = []
+    asm_flags = ["-D", "DEBUG=1"] if debug else []
     for asset in assets:
         path = SOURCE / asset["source"]
         target = output / "assets" / (asset["id"] + ".bin")
@@ -140,7 +141,7 @@ def assemble(assets: list[dict], output: Path, *, test_rom: bool) -> None:
         if len(packed) != asset["stored_size"]:
             if not test_rom or asset["id"] != "b06_5334" or asset["codec"] != "prevbyte":
                 raise ValueError(f"{path}: compressed size changed; fixed ROM layout needs updating")
-            asm_flags = ["-D", "TEST_RELOCATE_BONUS_GFX=1"]
+            asm_flags.extend(["-D", "TEST_RELOCATE_BONUS_GFX=1"])
         target.write_bytes(packed)
     obj, rom = output / "game.o", output / "game.gb"
     run([rgbds["rgbasm"], *asm_flags, "-I", str(output), "-o", str(obj), "game.asm"])
@@ -149,12 +150,12 @@ def assemble(assets: list[dict], output: Path, *, test_rom: bool) -> None:
     run([rgbds["rgbfix"], "-v", "-p", "255", str(rom)])
 
 
-def build(output: Path = OUTPUT, *, verify_original: bool = True) -> str:
+def build(output: Path = OUTPUT, *, verify_original: bool = True, debug: bool = False) -> str:
     manifest = json.loads((SOURCE / "assets.json").read_text(encoding="utf-8"))
     output.mkdir(parents=True, exist_ok=True)
     with TemporaryDirectory(dir=output) as directory:
         work = Path(directory)
-        assemble(manifest["assets"], work, test_rom=not verify_original)
+        assemble(manifest["assets"], work, test_rom=not verify_original, debug=debug)
         data = (work / "game.gb").read_bytes()
         digest = hashlib.md5(data).hexdigest().upper()
         if len(data) != 131072 or (verify_original and digest != manifest["rom_md5"]):
@@ -176,11 +177,17 @@ def build(output: Path = OUTPUT, *, verify_original: bool = True) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--test-rom", action="store_true",
-                        help="build in build/test-rom/ without requiring the original MD5")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--test-rom", action="store_true",
+                      help="build in build/test-rom/ without requiring the original MD5")
+    mode.add_argument("--debug-rom", action="store_true",
+                      help="build in build/debug-rom/ with the in-game DEBUG shortcut")
     parser.add_argument("--clean", action="store_true", help="remove the selected build directory")
     args = parser.parse_args()
-    output = TEST_OUTPUT if args.test_rom else OUTPUT
+    if args.debug_rom:
+        output = DEBUG_OUTPUT
+    else:
+        output = TEST_OUTPUT if args.test_rom else OUTPUT
     try:
         if args.clean:
             if output.resolve() != ROOT.resolve() / "build" / output.name:
@@ -191,7 +198,7 @@ def main() -> int:
                 shutil.rmtree(output)
             print(f"Removed generated build/{output.name}/ files.")
         else:
-            build(output, verify_original=not args.test_rom)
+            build(output, verify_original=not (args.test_rom or args.debug_rom), debug=args.debug_rom)
     except (OSError, ValueError, RuntimeError) as error:
         parser.exit(1, f"{error}\n")
     return 0

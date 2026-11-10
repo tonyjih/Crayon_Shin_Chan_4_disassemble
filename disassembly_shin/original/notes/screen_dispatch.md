@@ -34,7 +34,7 @@ DMG、SGB 從標題打贏第 1～3 輪。第 4 輪等障礙命中、恢復並超
 | `StageSceneInitHandlers`、`StageSceneUpdateHandlers` | 0 關卡標題卡、1 接關、2 故事、3 對話都有寫入。接關由 `PlayerDeath_EnterGameOver` 直接寫遊戲狀態 4、子狀態 1。DMG 耗盡殘機後進接關，先選繼續、再於下一次選離開，確認 `ContinueMenuPhaseHandlers` 的 0～2。 |
 | `EndingInitHandlers`、`EndingUpdateHandlers`、兩種片尾的子狀態表 | DMG 從場景測試選主片尾和捲動片尾。主片尾跑遍 0～6，捲動片尾由文字 `<WRITE>` 推進並跑遍 0～4。兩者分別以請求 `$02` 的引數 3、4 進 BONUS 的提示畫面，子狀態都是 `$03`。引數 5 是捲動片尾的特殊模式分支。 |
 | `RequestStateChange_Menu` | 請求 0～6、8、9 能追到直接呼叫或保存後重播的請求碼。請求 7 的表項 `RequestState_EnterContinueScreen` 未找到正常傳入的 B，也未找到會被重播成 7 的保存請求。 |
-| `InitCurrentGameState`、`UpdateCurrentGameState` | 原版 release 保留狀態 1 的 `EnterDebugMenu`，但未找到呼叫端。專案 DEBUG 測試版手動把請求 6 接到狀態 1。狀態 7 有正常寫入，學校關換區的 `01:514b` 會設定它，`00:097d` 接手淡出及重載。DMG 從學校關入口快照回放換區按鍵，觀察到 2 → 7 → 2。 |
+| `InitCurrentGameState`、`UpdateCurrentGameState` | 原版 release 保留狀態 1 的 `EnterDebugMenu`，但未找到呼叫端。DEBUG 測試版在遊玩中用 SELECT + START 開啟選單。狀態 7 有正常寫入，學校關換區的 `01:514b` 會設定它，`00:097d` 接手淡出及重載。DMG 從學校關入口快照回放換區按鍵，觀察到 2 → 7 → 2。 |
 
 ### 接關請求 07
 
@@ -52,9 +52,20 @@ DMG、SGB 在遊玩中同時按 A+B+SELECT+START 都執行 `00:017c` 回標題�
 原本的開發版如何呼叫 `00:1703` 仍無法確認。
 
 原版關卡開始請求在 `02:4356` 是 `ld a, $04`，進入關卡標題卡。專案早期的 DEBUG 測試 ROM
-把 `02:4357` 的立即值改成 `$01`，並另外接入 `00:3f6a` 的背景載入。兩項改動在目前的 DEBUG 建置仍可比對到。
-DMG 從這個標題接線進選單時沒有執行 `EnterDebugMenu`。直接按 A 開始遊戲，
+曾把 `02:4357` 的立即值改成 `$01`，並另外接入 `00:3f6a` 的背景載入。
+DMG 從舊標題接線進選單時沒有執行 `EnterDebugMenu`。直接按 A 開始遊戲，
 `DebugMenu_ResumeGameplay` 寫入初始化索引 3，跳過原版新遊戲把 `hPlayerLives` 設為 `$02` 的步驟，殘機欄位仍為 `$00`。
+
+現在用 `make debug-rom` 建置。關卡開始請求走原版的 `ld a, $04`。
+DEBUG 的 VBlank 在讀取手把後、執行當前狀態前檢查快捷鍵。正常遊玩（狀態 2）時，
+只按 SELECT 和 START 且至少一鍵剛按下，便把當幀更新交給 `EnterDebugMenu`。
+判定放在原版暫停處理之前，長按不會反覆觸發。
+
+SameBoy 1.0.5 的 DMG、SGB 都以純按鍵從標題進入遊戲。
+普通野餐關進出選單後是關卡 `$00`、模式位 `$00`、殘機 `$02`。
+輸入原版密碼進第二輪學校關後，選單預選值是 `$05`，離開後是關卡 `$01`、模式位 `$04`、殘機 `$02`。
+在選單將殘機加至 `$03` 後，離開並再次進出仍維持 `$03`。
+也確認單按 SELECT 會繼續遊玩，單按 START 可暫停和繼續，四鍵重設會回標題。
 
 受控測試從原版密碼進入學校關的第二輪模式，已在遊玩時只於模擬器暫時把 VBlank 的一筆
 `call UpdateCurrentGameState` 改送 `EnterDebugMenu`。DMG、SGB 都帶入關卡 `$01` 和模式位 `$04`，

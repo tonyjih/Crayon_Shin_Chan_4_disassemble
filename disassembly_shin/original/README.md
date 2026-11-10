@@ -101,6 +101,11 @@ Stage 2 切換後的表另外放在 `levels/stage2_after_switch/`。
 測試建置支援 BONUS 角色圖 `b06_5334.png` 的壓縮長度變動。其餘資產仍使用固定尺寸檢查。
 各 bank 的填充空間、固定地址與實測結果見 [測試 ROM 配置](notes/test_rom_layout.md)。
 
+執行 `make debug-rom` 會在 `build/debug-rom/` 產生獨立的 DEBUG 測試 ROM。
+從標題開始遊戲，進關後只按住 **SELECT + START** 即可開啟原版 DEBUG 選單。
+按 **A** 或 **START** 離開時會依選單設定重新載入關卡。單按 START 仍可暫停遊戲。
+入口與實測見 [DEBUG 分派紀錄](notes/screen_dispatch.md#debug-原版入口與測試版接線)。
+
 若要從指定 MD5 的原始 ROM 重新抽出資產，可輸出到另一個目錄，避免覆蓋編輯中的來源：
 
 ```powershell
