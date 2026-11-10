@@ -95,7 +95,8 @@
       "stored_size": 416,
       "decoded_size": 416,
       "codec": "spawns",
-      "source": "levels/stage1/spawns.csv"
+      "source": "levels/stage1/spawns.csv",
+      "spawn_format": "named"
     },
     {
       "id": "b01_77e6",
@@ -105,7 +106,8 @@
       "stored_size": 481,
       "decoded_size": 481,
       "codec": "spawns",
-      "source": "levels/stage2/spawns.csv"
+      "source": "levels/stage2/spawns.csv",
+      "spawn_format": "named"
     },
     {
       "id": "b01_79c7",
@@ -115,7 +117,8 @@
       "stored_size": 436,
       "decoded_size": 436,
       "codec": "spawns",
-      "source": "levels/stage3/spawns.csv"
+      "source": "levels/stage3/spawns.csv",
+      "spawn_format": "named"
     },
     {
       "id": "b01_7b7b",
@@ -125,7 +128,8 @@
       "stored_size": 16,
       "decoded_size": 16,
       "codec": "spawns",
-      "source": "levels/stage4/spawns.csv"
+      "source": "levels/stage4/spawns.csv",
+      "spawn_format": "named"
     },
     {
       "id": "b01_7e7c",
