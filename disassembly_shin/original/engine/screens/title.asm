@@ -1,5 +1,5 @@
 InitTitleOrPasswordScreen::
-; Initialize state 1; substate 4 opens the scene-test menu.
+; Initialize game state 0. Substate 4 opens the scene-test menu.
     ld a, $83
     ld [wLCDCShadow], a
     xor a
@@ -127,7 +127,7 @@ TitleMenuUpdateHandlers::
     dw TitleMenu_UpdateIntro ; $00
     dw PasswordScreen_UpdateInput ; $01
     dw PasswordScreen_ConfirmAcceptedCode ; $02
-    dw PasswordScreen_FadeToSavedDestination ; $03
+    dw PasswordScreen_FadeBackToMainMenu ; $03, cancel at password slot 0
     dw UpdateSceneTestMenu ; $04
 
 TitleMenu_UpdateIntro::

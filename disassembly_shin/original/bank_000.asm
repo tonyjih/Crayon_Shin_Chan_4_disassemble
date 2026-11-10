@@ -1225,13 +1225,13 @@ UpdateCurrentGameState:: ; Per-frame state dispatcher, called from VBlank after 
 
     ; hGameState update jump table. rst $00 consumes these words as data.
     dw UpdateGameState_TitleMenu ; 00: bank 2 title/menu update
-    dw UpdateGameState_DebugMenu ; 01: debug menu update
+    dw UpdateGameState_DebugMenu ; 01: entered by the DEBUG build's stage-start request
     dw UpdateGameState_Gameplay ; 02: bank 1 gameplay update
     dw UpdateGameState_Bank2Screen0 ; 03: bonus stage and minigames
     dw UpdateGameState_Bank2Screen1 ; 04: stage transition, continue, story and dialogue
     dw UpdateGameState_Bank2Screen2 ; 05: ending
     dw UpdateGameState_Pause ; 06: wait for START to resume gameplay
-    dw UpdateGameState_FadeReturn ; 07: fade back to gameplay
+    dw UpdateGameState_FadeReturn ; 07: school area transition
     dw UpdateGameState_Tutorial ; 08: tutorial demo
 
 UpdateGameState_TitleMenu::
@@ -1325,7 +1325,7 @@ InitCurrentGameState:: ; State init dispatcher, called with LCD off from ReinitC
 ;   4 -> bank 2 screen init
 ;   5 -> bank 2 screen init
 ;   6 -> no init
-;   7 -> bank 1 gameplay init variant, then set wScreenPaletteId=$18
+;   7 -> reload the school area, then set wScreenPaletteId=$18
     ldh a, [hGameState]
     rst $00
 
@@ -1337,7 +1337,7 @@ InitCurrentGameState:: ; State init dispatcher, called with LCD off from ReinitC
     dw InitGameState_Bank2Screen1 ; 04: bank 2 screen init
     dw InitGameState_Bank2Screen2 ; 05: bank 2 screen init
     dw InitGameState_NoInit ; 06: no init
-    dw InitGameState_GameplayStage18Variant ; 07: bank 1 gameplay init variant
+    dw InitGameState_SchoolAreaFadeReturn ; 07: reload the school area during the fade
     dw InitGameState_Tutorial ; 08: init stage-4 tutorial demo
 
 InitGameState_TitleMenu::
@@ -1373,7 +1373,7 @@ InitGameState_NoInit::
     ret
 
 
-InitGameState_GameplayStage18Variant::
+InitGameState_SchoolAreaFadeReturn::
     ld hl, FARCALL_BANK1_INIT_GAMEPLAY
     call FarCallFromBankTable
     ld a, $18

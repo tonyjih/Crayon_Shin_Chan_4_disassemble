@@ -112,7 +112,7 @@ DMG 與 SGB 各從說明畫面及第二獎勵站過關後的結果快照重跑�
 | 寫入 `wScreenSubstate` 的來源 | BONUS 內的值 |
 | --- | --- |
 | `RequestState_EnterBonusSubstate`，請求 `$01`，寫入位置 `02:431b` | 將 C 寫入。前三個主關卡的過關對話和密碼場景測試傳 C=`$00`；關島關的過關分支進片尾。BONUS 開啟小遊戲時保存 DE=`$0106`，結算由 `RequestSavedMenuDestination` 取回，傳 B=`$01`、C=`$06`。輪次和勝負在結算內處理。 |
-| `RequestState_OpenMinigameInstructions`，請求 `$02`，寫入位置 `02:432d` | 標題選小遊戲或首次進入獎勵站時固定寫 `$03`。C 選說明畫面，與子狀態分開。標題進入時保存 DE=`$0002`，小遊戲結算返回標題的小遊戲選單。 |
+| `RequestState_OpenMinigameInstructions`，請求 `$02`，寫入位置 `02:432d` | 標題選小遊戲、首次進入獎勵站、片尾顯示密碼提示都固定寫 `$03`。C 選小遊戲說明（0～2）或片尾提示（3～5）。標題進入時保存 DE=`$0002`，小遊戲結算返回標題的小遊戲選單。 |
 | BONUS 本地寫入 | 走動或無印章寫 `$00`，抵達站點或結算結束寫 `$01`，入場動畫寫 `$02`，離場淡出寫 `$04`，說明後的啟動淡出寫 `$05`。 |
 
 再次進入同一獎勵站時可跳過說明，直接走 `RequestState_StartSelectedMinigame`。

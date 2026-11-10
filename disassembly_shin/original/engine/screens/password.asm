@@ -142,8 +142,8 @@ PasswordAccepted_RequestStageStart::
     jp RequestStateChange_Menu
 
 
-PasswordScreen_FadeToSavedDestination::
-; Animate the password-screen characters until the fade finishes, then resume the saved request.
+PasswordScreen_FadeBackToMainMenu::
+; The title menu saved request $00 with argument $01 when it opened the password screen.
     ld c, $0c
     ld b, $28
     ld de, wSceneAnim1PtrLo
@@ -325,6 +325,7 @@ PasswordInput_CheckStartAndClampIndex::
     bit 7, a
     jr z, PasswordInput_ClampIndexAtLastSlot
 
+    ; B or the backspace cell at slot 0 underflows the index and cancels password entry.
     ld a, $03
     ld [wScreenSubstate], a
     ld a, $48

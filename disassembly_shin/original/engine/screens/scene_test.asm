@@ -41,7 +41,7 @@ SceneTest_ClearSelectorValues::
 
 
 UpdateSceneTestMenu::
-; Move between the four selectors; A or START invokes the selected request.
+; Move between the four selectors. A invokes the selected request.
     ld hl, wSceneTestValues
     ld a, [wMenuCursorRow]
     rst $38

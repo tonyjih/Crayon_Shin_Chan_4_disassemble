@@ -9,10 +9,10 @@ Gameplay_InitEntry::
     rst $00
 
     ; Gameplay init substate jump table.
-    dw InitGameplaySubstateFreshStart
-    dw InitGameplaySubstateResetStageFlags
-    dw InitGameplaySubstateCommon
-    dw InitGameplaySubstateCommon
+    dw InitGameplaySubstateFreshStart ; $00
+    dw InitGameplaySubstateResetStageFlags ; $01
+    dw InitGameplaySubstateCommon ; $02, resume with current stage flags
+    dw InitGameplaySubstateCommon ; $03, DEBUG menu start
 
 InitGameplaySubstateFreshStart::
     xor a

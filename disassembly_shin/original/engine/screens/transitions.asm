@@ -20,7 +20,7 @@ RequestStateChange_Menu:: ; Menu/screen transition helper. Sets hNeedsReset and 
     dw RequestState_TitleSubstate4           ; 04
     dw RequestState_TitleSubstate1           ; 05
     dw RequestState_PasswordResultMenu       ; 06: password-derived destination.
-    dw RequestState_GotoGameState4           ; 07
+    dw RequestState_EnterContinueScreen      ; 07, no request from the normal paths
     dw RequestState_GotoGameState4Submode    ; 08
     dw RequestState_GotoGameState5           ; 09
 
@@ -53,7 +53,7 @@ RequestState_EnterBonusSubstate::
 
 
 RequestState_OpenMinigameInstructions::
-; C is the instruction destination. The shared screen always uses BONUS substate $03.
+; C is 0-2 for a minigame or 3-5 for an ending hint. Both enter BONUS substate $03.
     xor a
     ld [wMinigameMode], a
     ld a, c
@@ -106,7 +106,8 @@ ENDC
     ret
 
 
-RequestState_GotoGameState4::
+RequestState_EnterContinueScreen::
+; Normal game over sets the same state directly in PlayerDeath_EnterGameOver.
     ld a, $04
     ldh [hGameState], a
     ld a, $01
