@@ -8,7 +8,9 @@ import csv
 import hashlib
 import json
 from pathlib import Path
+from struct import iter_unpack
 
+from build_original import spawn_type_ids
 from shin_prev_byte_rle import decode as decode_prev
 from shin_rleff import decode as decode_rleff
 
@@ -71,6 +73,33 @@ def sound_track_source(data: bytes, start: int) -> str:
     return "\n".join(lines) + "\n"
 
 
+def write_spawn_csv(path: Path, raw: bytes, *, named: bool) -> None:
+    if not raw.endswith(b"\xff") or (len(raw) - 1) % 5:
+        raise ValueError(f"invalid spawn list: {path}")
+    records = list(iter_unpack("<BHH", raw[:-1]))
+    if named:
+        names = {value: name for name, value in spawn_type_ids().items()}
+        unknown = {kind & 0x3f for kind, _, _ in records} - names.keys()
+        if unknown:
+            raise ValueError(f"unknown spawn object IDs in {path}: {sorted(unknown)}")
+        include_flags = any(kind & 0xc0 for kind, _, _ in records)
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.writer(handle, lineterminator="\n")
+        if named:
+            columns = ["object", "x", "y", "param"]
+            if include_flags:
+                columns.append("flags")
+            writer.writerow(columns)
+            for kind, x, raw_y in records:
+                row = [names[kind & 0x3f], x, raw_y & ~7, raw_y & 7]
+                if include_flags:
+                    row.append(f"0x{kind & 0xc0:02x}")
+                writer.writerow(row)
+        else:
+            writer.writerow(("type_raw", "x", "y_raw"))
+            writer.writerows((f"0x{kind:02x}", x, f"0x{raw_y:04x}") for kind, x, raw_y in records)
+
+
 def extract(rom_path: Path, destination: Path, manifest: dict) -> None:
     rom = rom_path.read_bytes()
     digest = hashlib.md5(rom).hexdigest().upper()
@@ -92,14 +121,7 @@ def extract(rom_path: Path, destination: Path, manifest: dict) -> None:
         if path.suffix == ".png":
             save_tiles(path, raw, asset["bpp"])
         elif asset["codec"] == "spawns":
-            if raw[-1] != 255 or (len(raw) - 1) % 5:
-                raise ValueError(f"invalid spawn list: {asset['id']}")
-            with path.open("w", encoding="utf-8", newline="") as handle:
-                writer = csv.writer(handle)
-                writer.writerow(("type_raw", "x", "y_raw"))
-                for pos in range(0, len(raw) - 1, 5):
-                    writer.writerow((f"0x{raw[pos]:02x}", int.from_bytes(raw[pos + 1:pos + 3], "little"),
-                                     f"0x{int.from_bytes(raw[pos + 3:pos + 5], 'little'):04x}"))
+            write_spawn_csv(path, raw, named=asset.get("spawn_format") == "named")
         else:
             path.write_bytes(raw)
     audio = manifest["audio"]

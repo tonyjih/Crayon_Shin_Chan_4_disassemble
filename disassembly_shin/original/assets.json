@@ -84,7 +84,8 @@
       "stored_size": 401,
       "decoded_size": 401,
       "codec": "spawns",
-      "source": "levels/stage0/spawns.csv"
+      "source": "levels/stage0/spawns.csv",
+      "spawn_format": "named"
     },
     {
       "id": "b01_7646",

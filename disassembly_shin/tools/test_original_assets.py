@@ -9,7 +9,7 @@ import unittest
 from unittest.mock import patch
 
 from build_original import build, pack_spawns, rgbds_tools
-from extract_original_assets import sound_track_source
+from extract_original_assets import sound_track_source, write_spawn_csv
 from shin_prev_byte_rle import decode as decode_prev, encode as encode_prev
 from shin_rleff import decode, encode
 
@@ -86,11 +86,26 @@ class OriginalCodecsTest(unittest.TestCase):
     def test_spawn_preserves_flags_and_y_parameter_bits(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "spawns.csv"
+            packed = bytes((0x83, 0x34, 0x12, 0x67, 0x45, 255))
             path.write_text("type_raw,x,y_raw\n0x83,4660,0x4567\n", encoding="utf-8")
-            self.assertEqual(pack_spawns(path), bytes((0x83, 0x34, 0x12, 0x67, 0x45, 255)))
+            self.assertEqual(pack_spawns(path), packed)
+            write_spawn_csv(path, packed, named=True)
+            self.assertEqual(path.read_text(encoding="utf-8"),
+                             "object,x,y,param,flags\nOBJ_STAGE2_BOSS,4660,17760,7,0x80\n")
+            self.assertEqual(pack_spawns(path), packed)
             path.write_text("type_raw,x,y_raw\n0xff,0,0\n", encoding="utf-8")
             with self.assertRaises(ValueError):
                 pack_spawns(path)
+
+    def test_named_spawns_reject_invalid_fields(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "spawns.csv"
+            for row in ("OBJ_TYPO,176,240,2,0", "OBJ_ENEMY_WALKING_KID,176,242,2,0",
+                        "OBJ_ENEMY_WALKING_KID,176,240,8,0", "OBJ_ENEMY_WALKING_KID,176,240,2,1"):
+                with self.subTest(row=row):
+                    path.write_text(f"object,x,y,param,flags\n{row}\n", encoding="utf-8")
+                    with self.assertRaisesRegex(ValueError, r"spawns\.csv:2: invalid spawn"):
+                        pack_spawns(path)
 
     def test_test_rom_uses_edited_assets_and_preserves_the_verified_original(self):
         with tempfile.TemporaryDirectory(prefix="rom build ") as directory:

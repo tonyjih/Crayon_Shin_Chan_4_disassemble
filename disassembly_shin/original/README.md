@@ -63,8 +63,12 @@ bank 檔保留 ROM 配置順序，已確認的系統透過 INCLUDE 拆出：
 `metatiles.bin` 每組四個 tile ID，順序為 TL、TR、BL、BR。
 Stage 2 切換後的表另外放在 `levels/stage2_after_switch/`。
 
-`levels/stage*/spawns.csv` 每列保存原本五個 byte 的語意欄位：`type_raw`、16-bit X、
-16-bit `y_raw`。`y_raw` 的低三個 bit 是參數，故保留完整值以確保重建不失真。
+野餐關 `levels/stage0/spawns.csv` 使用 `object,x,y,param`。例如
+`OBJ_ENEMY_WALKING_KID,176,240,2` 代表 X=176、Y=240、參數 2 的步行敵人。
+物件名稱對應 `constants.inc` 的 `OBJ_*`，Y 須為 8 的倍數，`param` 為 0～7。
+選填的 `flags` 保存物件 byte 的第 6、7 位，空白時為 0。
+建置把 `param` 放回 Y 的低三位，組回每筆原版 5 bytes，並保留表尾的 `$ff`。
+其他關卡繼續使用 `type_raw,x,y_raw`。
 `levels/shared/collision_attrs.bin` 保存碰撞屬性的實際存放區；各關取用窗口仍由程式中的 symbol 決定。
 
 ## 音樂與音效

@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import argparse
+from collections.abc import Iterator
 import csv
 import hashlib
 import json
 from pathlib import Path
+import re
 import shutil
+from struct import pack
 import subprocess
 from tempfile import TemporaryDirectory
 
@@ -51,20 +54,52 @@ def run(command: list[str]) -> None:
         raise RuntimeError(result.stdout + result.stderr)
 
 
-def pack_spawns(path: Path) -> bytes:
-    result = bytearray()
+def spawn_type_ids() -> dict[str, int]:
+    constants = (SOURCE / "constants.inc").read_text(encoding="utf-8")
+    entries = re.findall(r"^DEF (OBJ_[A-Z0-9_]+)\s+EQU\s+\$([0-9a-fA-F]+)\b", constants, re.MULTILINE)
+    return {name: int(value, 16) for name, value in entries}
+
+
+def read_spawns(path: Path) -> Iterator[tuple[int, int, int, int]]:
+    """Read kind (including flags), X, aligned Y, and the three-bit spawn parameter."""
     with path.open(encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)
-        if not {"type_raw", "x", "y_raw"}.issubset(reader.fieldnames or []):
-            raise ValueError(f"{path}: expected type_raw,x,y_raw CSV columns")
+        fields = set(reader.fieldnames or [])
+        named = {"object", "x", "y", "param"} <= fields
+        if named:
+            types = spawn_type_ids()
+        elif not {"type_raw", "x", "y_raw"} <= fields:
+            raise ValueError(f"{path}: expected object,x,y,param or type_raw,x,y_raw CSV columns")
+
         for row in reader:
-            kind, x, y = (int(row[key], 0) for key in ("type_raw", "x", "y_raw"))
-            if not 0 <= kind < 255 or not 0 <= x <= 65535 or not 0 <= y <= 65535:
-                raise ValueError(f"invalid spawn in {path}: {row}")
-            result.append(kind)
-            result.extend(x.to_bytes(2, "little"))
-            result.extend(y.to_bytes(2, "little"))
-    return bytes(result + b"\xff")
+            try:
+                x = int(row["x"], 0)
+                if named:
+                    kind = types[row["object"]]
+                    y = int(row["y"], 0)
+                    param = int(row["param"], 0)
+                    flags = int(row.get("flags") or "0", 0)
+                    if not 0 <= kind <= 0x3f:
+                        raise ValueError("object type must fit in six bits")
+                    if flags & ~0xc0:
+                        raise ValueError("flags may only use bits 6 and 7 of the object byte")
+                    kind |= flags
+                else:
+                    kind = int(row["type_raw"], 0)
+                    raw_y = int(row["y_raw"], 0)
+                    y, param = raw_y & ~7, raw_y & 7
+                if not 0 <= kind < 255 or not 0 <= x <= 65535 or not 0 <= y <= 65535:
+                    raise ValueError("object byte or coordinates out of range")
+                if y & 7 or not 0 <= param <= 7:
+                    raise ValueError("Y must be a multiple of 8 and param must be in 0..7")
+            except (KeyError, TypeError, ValueError) as error:
+                raise ValueError(f"{path}:{reader.line_num}: invalid spawn: {error}") from error
+            yield kind, x, y, param
+
+
+def pack_spawns(path: Path) -> bytes:
+    return b"".join(pack("<BHH", kind, x, y | param)
+                    for kind, x, y, param in read_spawns(path)) + b"\xff"
 
 
 def assemble(assets: list[dict], output: Path) -> None:
