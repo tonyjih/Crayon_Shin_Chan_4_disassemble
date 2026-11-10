@@ -18,6 +18,9 @@ stage object 的儲存區與欄位定義在 `ram/objects.asm`。
 
 bank 檔保留 ROM 配置順序，已確認的系統透過 INCLUDE 拆出：
 
+- `bank_000.asm`：VBlank、顯示暫存值和 VRAM queue 在 `engine/video/`。
+  RLEFF 與 previous-byte RLE 在 `engine/compression/`，DEBUG 選單與背景載入在 `engine/debug/`。
+  中斷向量與各段 INCLUDE 保留原版 ROM 順序。
 - `bank_001.asm`：關卡初始化、主迴圈、頭目入場和教學在 `engine/gameplay/`。
   玩家操作、碰撞和變身在 `engine/player/`，物件生成、敵人、平台和各關頭目在 `engine/objects/`。
 - `bank_002.asm`：標題、密碼、場景測試、接關和關卡對話在 `engine/screens/`。
