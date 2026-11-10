@@ -128,7 +128,7 @@ Minigame3StateHandlers::
     dw Slide_UpdateAirborne ; $03
     dw Slide_UpdateClearOrDemoResult ; $04
     dw Slide_WaitForMissExit ; $05
-    dw Slide_UpdatePlatformBounce ; $06
+    dw Slide_UpdatePlatformBounce ; $06, entered on a non-goal platform landing
 
 Slide_WaitForStart::
     call HandleMinigameRoundSelection

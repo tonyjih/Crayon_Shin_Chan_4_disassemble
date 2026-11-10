@@ -525,14 +525,14 @@ BugHunt_AdvanceBugSlot::
     ld a, [wBugPhase]
     rst $00
 
-Minigame2SecondaryStateHandlers::
+BugHuntRoundPhaseHandlers::
     dw BugHunt_UpdatePlayerInput ; $00
     dw BugHunt_UpdateCatch ; $01
     dw BugHunt_UpdateHitReaction ; $02
-    dw BugHunt_EmptyPhase ; $03
+    dw BugHunt_Phase03Return ; $03, no normal writer to wBugPhase
     dw BugHunt_UpdateResult ; $04
 
-BugHunt_EmptyPhase::
+BugHunt_Phase03Return::
     ret
 
 

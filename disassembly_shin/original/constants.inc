@@ -536,7 +536,7 @@ DEF wBugSpawnDelay             EQU $d85a
 DEF wBugPlayerStepFraction     EQU $d85b ; Carry alternates one- and two-pixel steps.
 DEF wBugWingFrameCounter       EQU $d85c
 DEF wBugSlots                  EQU $d85d
-DEF wBugPhase                  EQU $d8dd ; Move, catch, hit reaction, empty phase, or result.
+DEF wBugPhase                  EQU $d8dd ; $00 move, $01 catch, $02 hit, $04 result. $03 only returns.
 DEF wBugCatchType              EQU $d8de ; $ff until a bug is caught in the current swing.
 DEF wBugLastCaughtType          EQU $d8df ; Popup and score type for the most recent catch.
 DEF wBugPopupX                  EQU $d8e0
