@@ -38,6 +38,8 @@ bank 檔保留 ROM 配置順序，已確認的系統透過 INCLUDE 拆出：
 
 ## 圖片
 
+角色、動作、原版 metasprite 與匯出 PNG 的對照見 [姿勢索引](gfx/README.md)。
+
 `gfx/raw/` 的 33 張 PNG 是原本未壓縮的 tile。`gfx/compressed/` 的 22 張 PNG
 是解開 previous-byte RLE 後的 tile。編譯會使用 PNG 的索引色順序還原 tile 位元組，
 再視需要壓縮；PNG 是實際輸入，不只是預覽。

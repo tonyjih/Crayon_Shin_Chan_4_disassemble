@@ -1,0 +1,143 @@
+groups,action,rom_symbol,rom_address,kind,frames,end
+05-scenes/title|05-scenes/password,標題與密碼畫面主要角色,SceneAnim_TitleIntro,02:78a1,scene_script,0x01@12 0x00@12,loop:02:78a1
+05-scenes/title|05-scenes/password,標題選單角色待機,SceneAnim_TitleIdle,02:78a8,scene_script,0x02@12 0x03@12 0x04@12 0x02@12 0x03@12 0x04@12 0x02@12F 0x03@12F 0x04@12F 0x02@12F 0x03@12F 0x04@12F 0x05@9 0x06@12 0x07@12 0x06@12 0x07@12 0x08@9 0x09@12 0x0a@12 0x09@12 0x0a@12 0x0b@9,loop:02:78a8
+05-scenes/title|05-scenes/password,標題與密碼畫面次要角色,SceneAnim_TitleSecondary,02:78d9,scene_script,0x0c@12 0x0d@12,loop:02:78d9
+05-scenes/bonus,BONUS 向右走,SceneAnim_Scene3Mode0Primary,02:78e0,scene_script,0x0e@8 0x0f@8 0x0e@8 0x10@8,loop:02:78e0
+05-scenes/bonus,BONUS 向左走,SceneAnim_Scene3Mode0Variant,02:78eb,scene_script,0x0e@8F 0x0f@8F 0x0e@8F 0x10@8F,loop:02:78eb
+05-scenes/bonus,BONUS 進入小遊戲,SceneAnim_Scene3Mode0Secondary,02:78f6,scene_script,0x11@24 0x12@24 0x13@24 0x14@48,hold
+05-scenes/bonus|05-scenes/ending_hint,小遊戲說明角色,SceneAnim_Scene3Mode0State1,02:7901,scene_script,0x16@24 0x15@24,loop:02:7901
+05-scenes/bonus,BONUS 無印章時行走,SceneAnim_Scene3Mode0State2,02:7908,scene_script,0x17@8 0x18@8 0x17@8 0x19@8,loop:02:7908
+06-minigames/bug-hunt,抓蟲朝下待機,SceneAnim_7913,02:7913,scene_script,0x1a@12 0x1b@12,loop:02:7913
+06-minigames/bug-hunt,抓蟲朝下揮網,SceneAnim_791a,02:791a,scene_script,0x1a@6 0x1c@6 0x1d@127,hold
+06-minigames/bug-hunt,抓蟲朝右待機,SceneAnim_7921,02:7921,scene_script,0x1e@12 0x1f@12,loop:02:7921
+06-minigames/bug-hunt,抓蟲朝右揮網,SceneAnim_7928,02:7928,scene_script,0x1e@6 0x20@6 0x21@127,hold
+06-minigames/bug-hunt,抓蟲朝左待機,SceneAnim_792f,02:792f,scene_script,0x1e@12F 0x1f@12F,loop:02:792f
+06-minigames/bug-hunt,抓蟲朝左揮網,SceneAnim_7936,02:7936,scene_script,0x1e@6F 0x20@6F 0x21@112F,hold
+06-minigames/bug-hunt,抓蟲朝上待機,SceneAnim_793d,02:793d,scene_script,0x22@12 0x23@12,loop:02:793d
+06-minigames/bug-hunt,抓蟲朝上揮網,SceneAnim_7944,02:7944,scene_script,0x22@6 0x24@6 0x25@127,hold
+06-minigames/bug-hunt,抓蟲過關,SceneAnim_794b,02:794b,scene_script,0x26@4 0x27@4 0x28@4 0x29@4 0x26@4 0x27@4 0x28@4 0x29@4 0x39@4,hold
+06-minigames/bug-hunt,抓蟲失敗,SceneAnim_7960,02:7960,scene_script,0x2a@15 0x2b@15,loop:02:7960
+06-minigames/bug-hunt,抓蟲受擊,SceneAnim_7967,02:7967,scene_script,0x44@15 0x45@15,loop:02:7967
+06-minigames/bug-hunt,抓蟲第十輪過關,SceneAnim_796e,02:796e,scene_script,0x26@4 0x27@4 0x28@4 0x29@4 0x26@4 0x27@4 0x28@4 0x29@4 0x52@64 0x53@16 0x52@16 0x53@16,loop:02:7982
+06-minigames/bug-hunt,用途待確認,SceneAnim_7982,02:7982,scene_script,0x52@16 0x53@16,loop:02:7982
+05-scenes/continue,接關待機,SceneAnim_ContinueIdle,02:7989,scene_script,0x56@24 0x55@14 0x54@14 0x56@24F 0x55@14F 0x54@14F,loop:02:7989
+05-scenes/continue,接受接關,SceneAnim_ContinueAccepted,02:7998,scene_script,0x57@6 0x58@6 0x57@6 0x59@6,loop:02:7998
+05-scenes/continue,接關離開反應,SceneAnim_ContinueExitReaction,02:79a3,scene_script,0x5a@8 0x5b@8 0x5a@8 0x5c@8,loop:02:79a3
+05-scenes/continue,接關離開,SceneAnim_ContinueExit,02:79ae,scene_script,0x5d@8 0x5e@8 0x5f@8,loop:02:79ae
+06-minigames/mekemeke,射擊開火,SceneAnim_79b7,02:79b7,scene_script,0x60@8 0x61@13 0x60@8,hold
+06-minigames/mekemeke,射擊待機,SceneAnim_79bb,02:79bb,scene_script,0x60@8,hold
+06-minigames/mekemeke,射擊過關,SceneAnim_79be,02:79be,scene_script,0x60@64 0x63@8 0x64@32 0x65@8 0x66@8 0x65@8 0x64@2,hold
+06-minigames/mekemeke,射擊失敗,SceneAnim_79cd,02:79cd,scene_script,0x67@15 0x68@15,loop:02:79cd
+06-minigames/mekemeke,射擊第十輪過關,SceneAnim_79d4,02:79d4,scene_script,0x60@64 0x63@8 0x77@15 0x78@8 0x79@8 0x7a@8 0x79@8 0x78@8,hold
+05-scenes/dialogue-1|05-scenes/dialogue-2|05-scenes/dialogue-3|05-scenes/dialogue-4,關卡劇情選擇器 0x00,SceneAnim_79e5,02:79e5,scene_script,0x7d@16 0x7c@16,loop:02:79e5
+05-scenes/dialogue-1|05-scenes/dialogue-2|05-scenes/dialogue-3|05-scenes/dialogue-4,關卡劇情選擇器 0x01,SceneAnim_79ec,02:79ec,scene_script,0x7e@16 0x7f@16,loop:02:79ec
+05-scenes/dialogue-1|05-scenes/dialogue-2|05-scenes/dialogue-3|05-scenes/dialogue-4,關卡劇情選擇器 0x02,SceneAnim_79f3,02:79f3,scene_script,0x81@16 0x82@16,loop:02:79f3
+05-scenes/dialogue-1|05-scenes/dialogue-2|05-scenes/dialogue-3|05-scenes/dialogue-4,關卡劇情選擇器 0x03,SceneAnim_79fa,02:79fa,scene_script,0x83@16 0x84@16,loop:02:79fa
+05-scenes/dialogue-1|05-scenes/dialogue-2|05-scenes/dialogue-3|05-scenes/dialogue-4,關卡劇情選擇器 0x04,SceneAnim_7a01,02:7a01,scene_script,0x85@16 0x86@16,loop:02:7a01
+05-scenes/dialogue-1|05-scenes/dialogue-2|05-scenes/dialogue-3|05-scenes/dialogue-4,關卡劇情選擇器 0x05,SceneAnim_7a08,02:7a08,scene_script,0x87@16 0x88@16,loop:02:7a08
+05-scenes/dialogue-1|05-scenes/dialogue-2|05-scenes/dialogue-3|05-scenes/dialogue-4,關卡劇情選擇器 0x06,SceneAnim_7a0f,02:7a0f,scene_script,0x89@8 0x8a@8,loop:02:7a0f
+05-scenes/dialogue-1|05-scenes/dialogue-2|05-scenes/dialogue-3|05-scenes/dialogue-4,關卡劇情選擇器 0x07,SceneAnim_7a16,02:7a16,scene_script,0x8b@16 0x8c@16 0x8d@16,loop:02:7a16
+05-scenes/dialogue-1|05-scenes/dialogue-2|05-scenes/dialogue-3|05-scenes/dialogue-4,關卡劇情選擇器 0x08,SceneAnim_7a1f,02:7a1f,scene_script,0x8f@8 0x90@8 0x8f@8 0x8e@127,hold
+05-scenes/dialogue-1|05-scenes/dialogue-2|05-scenes/dialogue-3|05-scenes/dialogue-4,關卡劇情選擇器 0x09,SceneAnim_7a28,02:7a28,scene_script,0x94@16 0x95@16,loop:02:7a28
+05-scenes/dialogue-1|05-scenes/dialogue-2|05-scenes/dialogue-3|05-scenes/dialogue-4,關卡劇情選擇器 0x0a,SceneAnim_7a2f,02:7a2f,scene_script,0x97@8 0x98@8,loop:02:7a2f
+06-minigames/slide-jump,滑水過關,SceneAnim_7a36,02:7a36,scene_script,0xa2@63 0xa3@15 0xa4@8 0xa5@8 0xa4@8,loop:02:7a3c
+06-minigames/slide-jump,用途待確認,SceneAnim_7a3c,02:7a3c,scene_script,0xa5@8 0xa4@8,loop:02:7a3c
+06-minigames/slide-jump,滑水示範結果,SceneAnim_7a43,02:7a43,scene_script,0xa8@8 0xa9@8 0xa8@8 0xaa@8,loop:02:7a43
+06-minigames/slide-jump,滑水反彈效果,SceneAnim_7a4e,02:7a4e,scene_script,0xae@8 0xaf@8,hold
+06-minigames/slide-jump,滑水示範跳台,SceneAnim_7a53,02:7a53,scene_script,0xae@31 0xaf@31,hold
+06-minigames/slide-jump,滑水跳台,SceneAnim_7a58,02:7a58,scene_script,0xae@15 0xaf@15 0xae@15 0xaf@15,hold
+06-minigames/slide-jump,滑水第十輪過關,SceneAnim_7a61,02:7a61,scene_script,0xa2@63 0xa3@15 0xa4@8 0xa5@8 0xa4@8 0xa5@8 0xa4@8 0xa5@8 0xa4@8 0xa5@8 0xa4@8 0xa5@8 0xb0@8,hold
+07-ending/cast,一般片尾起始角色 0x01|一般片尾演出選擇器 0x0f,SceneAnim_7a7c,02:7a7c,scene_script,0xc4@63,hold
+07-ending/cast,一般片尾演出選擇器 0x10,SceneAnim_7a7f,02:7a7f,scene_script,0xc4@15F,hold
+07-ending/cast,一般片尾演出選擇器 0x11,SceneAnim_7a82,02:7a82,scene_script,0xc9@63,hold
+07-ending/cast,一般片尾演出選擇器 0x12,SceneAnim_7a85,02:7a85,scene_script,0xcc@63,hold
+07-ending/cast,一般片尾起始角色 0x02,SceneAnim_7a88,02:7a88,scene_script,0xcf@63,hold
+07-ending/cast,一般片尾演出選擇器 0x13,SceneAnim_7a8b,02:7a8b,scene_script,0xd6@63,hold
+07-ending/cast,一般片尾演出選擇器 0x14,SceneAnim_7a8e,02:7a8e,scene_script,0xd9@63,hold
+07-ending/cast,一般片尾起始角色 0x03,SceneAnim_7a91,02:7a91,scene_script,0xdc@63,hold
+07-ending/cast,一般片尾演出選擇器 0x15,SceneAnim_7a94,02:7a94,scene_script,0xe3@63,hold
+07-ending/cast,一般片尾起始角色 0x00|一般片尾演出選擇器 0x00,SceneAnim_7a97,02:7a97,scene_script,0xb3@12 0xb4@12 0xb3@12 0xb5@12,loop:02:7a97
+07-ending/cast,一般片尾演出選擇器 0x01,SceneAnim_7aa2,02:7aa2,scene_script,0xb3@32 0xb6@15 0xb7@15 0xb6@15 0xb7@15 0xb6@15 0xb7@15 0xb9@15 0xb8@15 0xb9@15 0xb8@15 0xba@19 0xbb@19 0xbc@19 0xbd@19 0xbe@19 0xbd@19 0xbe@19 0xbd@19 0xbe@19,hold
+07-ending/cast,一般片尾演出選擇器 0x02,SceneAnim_7acb,02:7acb,scene_script,0xbf@12 0xc0@12 0xbf@12 0xc1@12,loop:02:7acb
+07-ending/cast,一般片尾演出選擇器 0x03,SceneAnim_7ad6,02:7ad6,scene_script,0xbf@32 0xc2@15 0xc3@15 0xc2@15 0xc3@15 0xc2@15 0xc3@15,hold
+07-ending/cast,一般片尾演出選擇器 0x04,SceneAnim_7ae5,02:7ae5,scene_script,0xc4@19 0xc5@19 0xc4@19 0xc5@19,hold
+07-ending/cast,一般片尾演出選擇器 0x05,SceneAnim_7aee,02:7aee,scene_script,0xc6@12 0xc7@12 0xc6@12 0xc8@12,loop:02:7aee
+07-ending/cast,一般片尾演出選擇器 0x06,SceneAnim_7af9,02:7af9,scene_script,0xc9@12 0xca@12 0xc9@12 0xcb@12,loop:02:7af9
+07-ending/cast,一般片尾演出選擇器 0x07,SceneAnim_7b04,02:7b04,scene_script,0xcc@12 0xcd@12 0xcc@12 0xce@12,loop:02:7b04
+07-ending/cast,一般片尾演出選擇器 0x08,SceneAnim_7b0f,02:7b0f,scene_script,0xd0@12 0xd1@12 0xd0@12 0xd1@12 0xd0@12 0xd1@12,hold
+07-ending/cast,一般片尾演出選擇器 0x09,SceneAnim_7b1c,02:7b1c,scene_script,0xd3@12 0xd4@12 0xd3@12 0xd5@12,loop:02:7b1c
+07-ending/cast,一般片尾演出選擇器 0x0a,SceneAnim_7b27,02:7b27,scene_script,0xd6@12 0xd7@12 0xd6@12 0xd8@12,loop:02:7b27
+07-ending/cast,一般片尾演出選擇器 0x0b,SceneAnim_7b32,02:7b32,scene_script,0xd9@12 0xda@12 0xd9@12 0xdb@12,loop:02:7b32
+07-ending/cast,一般片尾演出選擇器 0x0c,SceneAnim_7b3d,02:7b3d,scene_script,0xdd@28 0xde@15 0xdf@15,hold
+07-ending/cast,一般片尾演出選擇器 0x0d,SceneAnim_7b44,02:7b44,scene_script,0xe0@12 0xe1@12 0xe0@12 0xe2@12,loop:02:7b44
+07-ending/cast,一般片尾演出選擇器 0x0e,SceneAnim_7b4f,02:7b4f,scene_script,0xe3@12 0xe4@12 0xe3@12 0xe5@12,loop:02:7b4f
+07-ending/scrolling,捲動片尾行走,SceneAnim_7b5a,02:7b5a,scene_script,0xe6@10 0xe7@10 0xe6@10 0xe8@10,loop:02:7b5a
+07-ending/scrolling,捲動片尾轉身,SceneAnim_7b65,02:7b65,scene_script,0xe6@15 0xe7@15 0xe6@15 0xe8@15,loop:02:7b65
+07-ending/scrolling,捲動片尾跳舞,SceneAnim_7b70,02:7b70,scene_script,0xe9@10 0xea@8 0xeb@8 0xea@8 0xeb@8 0xea@8 0xeb@8 0xea@8 0xeb@8,loop:02:7b70
+07-ending/scrolling,一般片尾追加角色,SceneAnim_7b85,02:7b85,scene_script,0xec@10 0xed@10 0xee@10,loop:02:7b85
+01-player/normal|01-player/squirrel|01-player/cockroach|01-player/chicken|01-player/kamen,玩家步行,CockroachAnimIdsA,01:5b7b,id_table,0x04 0x05 0x04 0x06,
+01-player/normal|01-player/squirrel|01-player/cockroach|01-player/chicken|01-player/kamen,玩家久站動作,CockroachAnimIdsB,01:5bbb,id_table,0x04 0x07 0x04 0x07 0x04,
+01-player/normal|01-player/squirrel|01-player/cockroach|01-player/chicken|01-player/kamen,玩家攀爬,PlayerClimbAnimIds,01:586d,id_table,0x08 0x09 0x0a 0x0b 0x08 0x09 0x0a 0x0b 0x08,
+01-player/normal|01-player/squirrel|01-player/cockroach|01-player/chicken|01-player/kamen,玩家蹲下,PlayerDuckAnimIds,01:5933,id_table,0x10 0x11,
+01-player/normal|01-player/squirrel|01-player/cockroach|01-player/chicken|01-player/kamen,玩家站姿動作檢查,PlayerGroundedActionAnimIds,01:580e,id_table,0x12 0x13 0x12 0x14,
+01-player/normal|01-player/squirrel|01-player/cockroach|01-player/chicken|01-player/kamen,玩家受傷恢復,PlayerRecoveryAnimIdsA,01:5ef1,id_table,0x02 0x03 0x03,
+01-player/normal|01-player/squirrel|01-player/cockroach|01-player/chicken|01-player/kamen,玩家變身解除恢復,PlayerRecoveryAnimIdsB,01:5f3e,id_table,0x00 0x01,
+01-player/normal|01-player/squirrel|01-player/cockroach|01-player/chicken|01-player/kamen,玩家站姿,GroundedPlayer_IdlePose,01:5b63,selector,0x04,
+01-player/normal|01-player/kamen,跳躍上升與下降,AirborneAnim_Normal,01:5c85,selector,0x0e 0x0f,
+01-player/squirrel,飛鼠上升與下降／滑翔,AirborneAnim_FlyingSquirrel,01:5c92,selector,0x0e 0x0f,
+01-player/cockroach|01-player/chicken,空中交替畫格,AirborneAlternatingAnimIds,01:5cc3,id_table,0x0e 0x0f,
+01-player/cockroach,蟑螂裝站立攻擊,CockroachGroundIdleActionFrames,01:5b4b,id_table,0x15 0x16 0x16 0x16 0x15 0x15,
+01-player/cockroach,蟑螂裝移動攻擊,CockroachGroundMovingActionFrames,01:5b5d,id_table,0x15 0x16 0x16 0x17 0x15 0x1b,
+01-player/cockroach,蟑螂裝空中攻擊,CockroachAirActionFrames,01:5d71,id_table,0x18 0x19 0x19 0x1a 0x18 0x1c,
+01-player/squirrel,飛鼠裝攻擊,UpdateFlyingSquirrelActionAnim,01:59fc,selector,0x15 0x16 0x17,
+01-player/chicken,小雞裝下蛋,PlayerState_UpdateChickenAction,01:59aa,selector,0x15 0x16 0x17,
+01-player/kamen,動感超人攻擊準備／發射／收招,UpdateActionKamenActionAnim,01:5a92,selector,0x15 0x16 0x17,
+02-actors/picnic,步行敵人巡邏,ObjectPatrolAnimIds,01:62e2,id_table,0x00 0x01 0x00 0x02,
+02-actors/picnic,步行敵人受擊,WalkingKid_UpdateHitDelay,01:62e6,selector,0x03,
+02-actors/picnic|02-actors/school|02-actors/guam,派對吹笛敵人巡邏,EnemyWalkerAnimIdsA,01:6416,id_table,0x06 0x07 0x06 0x08,
+02-actors/picnic|02-actors/school|02-actors/guam,派對吹笛敵人攻擊,PartyHornKid_UpdateHornAttack,01:642a,selector,0x09 0x0a,
+02-actors/picnic|02-actors/school|02-actors/guam,派對吹笛敵人受擊,PartyHornKid_UpdateHitDelay,01:641a,selector,0x0b,
+02-actors/picnic|02-actors/school|02-actors/mall,雨傘敵人巡邏,EnemyWalkerAnimIdsB,01:64fb,id_table,0x0c 0x0d 0x0c 0x0e,
+02-actors/picnic|02-actors/school|02-actors/mall,雨傘敵人受擊,UmbrellaKid_UpdateHitDelay,01:64ff,selector,0x0f,
+02-actors/school|02-actors/mall|02-actors/guam,紙飛機敵人巡邏,EnemySpawnerAnimIds,01:6553,id_table,0x00 0x01 0x00 0x02,
+02-actors/mall|02-actors/guam,壯孩子巡邏,EnemyToughKidAnimIdsA,01:66ec,id_table,0x10 0x11 0x10 0x12,
+02-actors/mall|02-actors/guam,壯孩子受擊,EnemyToughKidAnimIdsB,01:66f0,id_table,0x13 0x14 0x13 0x14,
+03-bosses/picnic,頭目巡邏,Stage0BossAnimIdsB,01:680c,id_table,0x17 0x18 0x17 0x19,
+03-bosses/picnic,頭目受擊與落下,Stage0BossAnimIdsA,01:67fc,id_table,0x15 0x16 0x15 0x16,
+03-bosses/picnic,頭目帽子旋轉,Stage0BossProjectileAnimIds,01:6690,id_table,0x12 0x13 0x14,
+03-bosses/school,頭目走路,Stage1BossAnimIdsB,01:68f0,id_table,0x14 0x15 0x14 0x16,
+03-bosses/school,頭目受擊與落下,Stage1BossAnimIdsA,01:6893,id_table,0x17 0x18 0x17 0x18,
+03-bosses/mall,頭目受擊與落下,Stage2BossAnimIds,01:69bf,id_table,0x19 0x1a 0x19 0x1a,
+03-bosses/guam,頭目移動,Stage3BossAnimIdsB,01:6c4b,id_table,0x15 0x16 0x15 0x17,
+03-bosses/guam,頭目爬樹,Stage3BossAnimIdsC,01:6c61,id_table,0x1d 0x1e 0x1d 0x1e,
+03-bosses/guam,頭目受擊與落下,Stage3BossAnimIdsA,01:6bf1,id_table,0x18 0x19 0x18 0x19,
+03-bosses/picnic,頭目投帽,Stage0Boss_UpdateThrowSequence,01:6760,selector,0x10 0x11,
+03-bosses/school,頭目起跳準備,Stage1Boss_WindUpJump,01:68f4,selector,0x19,
+03-bosses/school,頭目跳躍上升與下降,Stage1Boss_MoveThroughJump,01:692b,selector,0x1a 0x1b,
+03-bosses/mall,頭目彈跳,SelectStage2BossAnimByYVelocity,01:6a09,selector,0x15 0x16,
+03-bosses/mall,頭目投球,Stage2Boss_HoldThrowPose,01:6a59,selector,0x17,
+03-bosses/mall,頭目小球,DispatchStage2BossProjectileState,01:6b07,selector,0x1b,
+03-bosses/guam,頭目投椰子,Stage3Boss_UpdateCoconutThrow,01:6c92,selector,0x1b 0x1c,
+04-props/picnic-pickups|04-props/school-pickups|04-props/mall-pickups|04-props/guam-pickups,巧克比,DrawChocobiPickup,01:5f7f,direct,0x00,
+04-props/picnic-pickups|04-props/school-pickups|04-props/mall-pickups|04-props/guam-pickups,補血,DrawHealthPickup,01:60ab,direct,0x01,
+04-props/picnic-pickups|04-props/school-pickups|04-props/mall-pickups|04-props/guam-pickups,加命,DrawExtraLifePickup,01:604f,direct,0x02,
+04-props/picnic-pickups|04-props/school-pickups|04-props/mall-pickups|04-props/guam-pickups,飛鼠裝道具,UpdateObjFormFlyingSquirrel,01:6103,direct,0x03,
+04-props/picnic-pickups|04-props/school-pickups|04-props/mall-pickups|04-props/guam-pickups,蟑螂裝道具,UpdateObjFormCockroach,01:613a,direct,0x04,
+04-props/picnic-pickups|04-props/school-pickups|04-props/mall-pickups|04-props/guam-pickups,小雞裝道具,UpdateObjFormChicken,01:616e,direct,0x05,
+04-props/picnic-pickups|04-props/school-pickups|04-props/mall-pickups|04-props/guam-pickups,動感超人道具,UpdateObjFormActionKamen,01:61a3,direct,0x06,
+04-props/picnic-platforms,垂直移動平台,MovingPlatformVerticalSprite,01:70de,direct,0x00,
+04-props/picnic-platforms,掉落平台,DropPlatformSpriteA,01:70bb,direct,0x01,
+04-props/picnic-platforms,彈簧未按下,BouncePadSpriteIdle,01:70c4,direct,0x02,
+04-props/picnic-platforms,彈簧按下,BouncePadSpritePressed,01:70d5,direct,0x03,
+04-props/mall-carts,購物車輪子,ShoppingCart_DrawWheelFrame,01:7145,direct,0x00 0x01,
+04-props/mall-upper-props,貨架商品掉落,FallingProductFramePointers,01:7253,direct,0x02 0x02 0x02 0x03 0x04 0x05,
+04-props/mall-upper-props,足球滾動,SoccerBall_CheckCollisionAndAnimate,01:72b0,direct,0x06 0x07 0x08,
+04-props/mall-upper-props,吊掛動感超人玩偶,SpriteFrameData_2277,00:2277,direct,0x09,
+04-props/guam-projectiles,場景掉落椰子,DrawFallingCoconut,01:7483,direct,0x00,
+04-props/guam-projectiles,水上浮球,DrawFloatingBeachBall,01:73f9,direct,0x01,
+04-props/squirrel-shots,飛鼠裝投射物,SpriteFrameData_2e96,00:2e96,direct,0x00 0x01,
+04-props/chicken-shots,小雞裝蛋,SpriteFrameData_30e2,00:30e2,direct,0x02,
+04-props/kamen-shots,動感超人投射物,ActionKamenProjectile_DrawSelectedFrame,01:47f0,direct,0x03 0x04,
+05-scenes/password-cursors,密碼選字游標,PasswordGridCursorMetasprite,02:46b3,direct,0x00,
+05-scenes/password-cursors,密碼輸入列游標,PasswordInputCursorMetasprite,02:46b8,direct,0x01,
+05-scenes/bonus-border,BONUS 邊框閃爍星星,BonusVerticalBorderMetasprite,02:5013,border_part,0x00,

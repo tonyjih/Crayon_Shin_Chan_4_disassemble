@@ -1,0 +1,650 @@
+group,subject,frame,export_table,record_kind,rom_pointer_table,metasprite,rom_address,pose_png,reference_sheets,original_tile_sources
+01-player/normal,小新,0x00,normal_frames,metasprite,SpriteAnimPointerTable_1a23,SpriteFrameData_2a2b,00:2a2b,editable/01-player/normal/000.png,sprite_pixels,gfx/raw/b05_4001_common_sprites.png
+01-player/normal,小新,0x01,normal_frames,metasprite,SpriteAnimPointerTable_1a23,SpriteFrameData_2a44,00:2a44,editable/01-player/normal/001.png,sprite_pixels,gfx/raw/b05_4001_common_sprites.png
+01-player/normal,小新,0x02,normal_frames,metasprite,SpriteAnimPointerTable_1a23,SpriteFrameData_2a5d,00:2a5d,editable/01-player/normal/002.png,sprite_pixels,gfx/raw/b05_4001_common_sprites.png
+01-player/normal,小新,0x03,normal_frames,metasprite,SpriteAnimPointerTable_1a23,SpriteFrameData_2a72,00:2a72,editable/01-player/normal/003.png,sprite_pixels,gfx/raw/b05_4001_common_sprites.png
+01-player/normal,小新,0x04,normal_frames,metasprite,SpriteAnimPointerTable_1a23,SpriteFrameData_2a7f,00:2a7f,editable/01-player/normal/004.png,sprite_pixels,gfx/raw/b05_4131_player_normal.png
+01-player/normal,小新,0x05,normal_frames,metasprite,SpriteAnimPointerTable_1a23,SpriteFrameData_2a98,00:2a98,editable/01-player/normal/005.png,sprite_pixels,gfx/raw/b05_4131_player_normal.png
+01-player/normal,小新,0x06,normal_frames,metasprite,SpriteAnimPointerTable_1a23,SpriteFrameData_2ab1,00:2ab1,editable/01-player/normal/006.png,sprite_pixels,gfx/raw/b05_4131_player_normal.png
+01-player/normal,小新,0x07,normal_frames,metasprite,SpriteAnimPointerTable_1a23,SpriteFrameData_2aca,00:2aca,editable/01-player/normal/007.png,sprite_pixels,gfx/raw/b05_4131_player_normal.png
+01-player/normal,小新,0x08,normal_frames,metasprite,SpriteAnimPointerTable_1a23,SpriteFrameData_2ae3,00:2ae3,editable/01-player/normal/008.png,sprite_pixels,gfx/raw/b05_4131_player_normal.png
+01-player/normal,小新,0x09,normal_frames,metasprite,SpriteAnimPointerTable_1a23,SpriteFrameData_2afc,00:2afc,editable/01-player/normal/009.png,sprite_pixels,gfx/raw/b05_4131_player_normal.png
+01-player/normal,小新,0x0a,normal_frames,metasprite,SpriteAnimPointerTable_1a23,SpriteFrameData_2b1d,00:2b1d,editable/01-player/normal/010.png,sprite_pixels,gfx/raw/b05_4131_player_normal.png
+01-player/normal,小新,0x0b,normal_frames,metasprite,SpriteAnimPointerTable_1a23,SpriteFrameData_2b3e,00:2b3e,editable/01-player/normal/011.png,sprite_pixels,gfx/raw/b05_4131_player_normal.png
+01-player/normal,小新,0x0c,normal_frames,metasprite,SpriteAnimPointerTable_1a23,SpriteFrameData_2b5b,00:2b5b,editable/01-player/normal/012.png,sprite_pixels,gfx/raw/b05_4131_player_normal.png
+01-player/normal,小新,0x0d,normal_frames,metasprite,SpriteAnimPointerTable_1a23,SpriteFrameData_2b6c,00:2b6c,editable/01-player/normal/013.png,sprite_pixels,gfx/raw/b05_4131_player_normal.png
+01-player/normal,小新,0x0e,normal_frames,metasprite,SpriteAnimPointerTable_1a23,SpriteFrameData_2b7d,00:2b7d,editable/01-player/normal/014.png,sprite_pixels,gfx/raw/b05_4131_player_normal.png
+01-player/normal,小新,0x0f,normal_frames,metasprite,SpriteAnimPointerTable_1a23,SpriteFrameData_2b92,00:2b92,editable/01-player/normal/015.png,sprite_pixels,gfx/raw/b05_4131_player_normal.png
+01-player/normal,小新,0x10,normal_frames,metasprite,SpriteAnimPointerTable_1a23,SpriteFrameData_2baf,00:2baf,editable/01-player/normal/016.png,sprite_pixels,gfx/raw/b05_4131_player_normal.png
+01-player/normal,小新,0x11,normal_frames,metasprite,SpriteAnimPointerTable_1a23,SpriteFrameData_2bc8,00:2bc8,editable/01-player/normal/017.png,sprite_pixels,gfx/raw/b05_4131_player_normal.png
+01-player/normal,小新,0x12,normal_frames,metasprite,SpriteAnimPointerTable_1a23,SpriteFrameData_2be1,00:2be1,editable/01-player/normal/018.png,sprite_pixels,gfx/raw/b05_4131_player_normal.png
+01-player/normal,小新,0x13,normal_frames,metasprite,SpriteAnimPointerTable_1a23,SpriteFrameData_2bf6,00:2bf6,editable/01-player/normal/019.png,sprite_pixels,gfx/raw/b05_4131_player_normal.png
+01-player/normal,小新,0x14,normal_frames,metasprite,SpriteAnimPointerTable_1a23,SpriteFrameData_2c0f,00:2c0f,editable/01-player/normal/020.png,sprite_pixels,gfx/raw/b05_4131_player_normal.png
+01-player/normal,小新,0x15,normal_frames,metasprite,SpriteAnimPointerTable_1a23,SpriteFrameData_2c28,00:2c28,editable/01-player/normal/021.png,sprite_pixels,gfx/raw/b05_5701_shared_hud_objects.png|gfx/raw/b05_58e1_tiles_58e1.png
+01-player/squirrel,松鼠裝,0x00,squirrel_frames,metasprite,SpriteAnimPointerTable_1a4f,SpriteFrameData_2a2b,00:2a2b,editable/01-player/squirrel/000.png,sprite_pixels,gfx/raw/b05_4001_common_sprites.png
+01-player/squirrel,松鼠裝,0x01,squirrel_frames,metasprite,SpriteAnimPointerTable_1a4f,SpriteFrameData_2a44,00:2a44,editable/01-player/squirrel/001.png,sprite_pixels,gfx/raw/b05_4001_common_sprites.png
+01-player/squirrel,松鼠裝,0x02,squirrel_frames,metasprite,SpriteAnimPointerTable_1a4f,SpriteFrameData_2a5d,00:2a5d,editable/01-player/squirrel/002.png,sprite_pixels,gfx/raw/b05_4001_common_sprites.png
+01-player/squirrel,松鼠裝,0x03,squirrel_frames,metasprite,SpriteAnimPointerTable_1a4f,SpriteFrameData_2a72,00:2a72,editable/01-player/squirrel/003.png,sprite_pixels,gfx/raw/b05_4001_common_sprites.png
+01-player/squirrel,松鼠裝,0x04,squirrel_frames,metasprite,SpriteAnimPointerTable_1a4f,SpriteFrameData_2cb9,00:2cb9,editable/01-player/squirrel/004.png,squirrel_pixels,gfx/raw/b05_45a1_player_flying_squirrel.png
+01-player/squirrel,松鼠裝,0x05,squirrel_frames,metasprite,SpriteAnimPointerTable_1a4f,SpriteFrameData_2cd6,00:2cd6,editable/01-player/squirrel/005.png,squirrel_pixels,gfx/raw/b05_45a1_player_flying_squirrel.png
+01-player/squirrel,松鼠裝,0x06,squirrel_frames,metasprite,SpriteAnimPointerTable_1a4f,SpriteFrameData_2cf3,00:2cf3,editable/01-player/squirrel/006.png,squirrel_pixels,gfx/raw/b05_45a1_player_flying_squirrel.png
+01-player/squirrel,松鼠裝,0x07,squirrel_frames,metasprite,SpriteAnimPointerTable_1a4f,SpriteFrameData_2d10,00:2d10,editable/01-player/squirrel/007.png,squirrel_pixels,gfx/raw/b05_45a1_player_flying_squirrel.png
+01-player/squirrel,松鼠裝,0x08,squirrel_frames,metasprite,SpriteAnimPointerTable_1a4f,SpriteFrameData_2d10,00:2d10,editable/01-player/squirrel/008.png,squirrel_pixels,gfx/raw/b05_45a1_player_flying_squirrel.png
+01-player/squirrel,松鼠裝,0x09,squirrel_frames,metasprite,SpriteAnimPointerTable_1a4f,SpriteFrameData_2d2d,00:2d2d,editable/01-player/squirrel/009.png,squirrel_pixels,gfx/raw/b05_45a1_player_flying_squirrel.png
+01-player/squirrel,松鼠裝,0x0a,squirrel_frames,metasprite,SpriteAnimPointerTable_1a4f,SpriteFrameData_2d52,00:2d52,editable/01-player/squirrel/010.png,squirrel_pixels,gfx/raw/b05_45a1_player_flying_squirrel.png
+01-player/squirrel,松鼠裝,0x0b,squirrel_frames,metasprite,SpriteAnimPointerTable_1a4f,SpriteFrameData_2d77,00:2d77,editable/01-player/squirrel/011.png,squirrel_pixels,gfx/raw/b05_45a1_player_flying_squirrel.png
+01-player/squirrel,松鼠裝,0x0c,squirrel_frames,metasprite,SpriteAnimPointerTable_1a4f,SpriteFrameData_2d98,00:2d98,editable/01-player/squirrel/012.png,squirrel_pixels,gfx/raw/b05_45a1_player_flying_squirrel.png
+01-player/squirrel,松鼠裝,0x0d,squirrel_frames,metasprite,SpriteAnimPointerTable_1a4f,SpriteFrameData_2d98,00:2d98,editable/01-player/squirrel/013.png,squirrel_pixels,gfx/raw/b05_45a1_player_flying_squirrel.png
+01-player/squirrel,松鼠裝,0x0e,squirrel_frames,metasprite,SpriteAnimPointerTable_1a4f,SpriteFrameData_2da9,00:2da9,editable/01-player/squirrel/014.png,squirrel_pixels,gfx/raw/b05_45a1_player_flying_squirrel.png
+01-player/squirrel,松鼠裝,0x0f,squirrel_frames,metasprite,SpriteAnimPointerTable_1a4f,SpriteFrameData_2dc6,00:2dc6,editable/01-player/squirrel/015.png,squirrel_pixels,gfx/raw/b05_45a1_player_flying_squirrel.png
+01-player/squirrel,松鼠裝,0x10,squirrel_frames,metasprite,SpriteAnimPointerTable_1a4f,SpriteFrameData_2de3,00:2de3,editable/01-player/squirrel/016.png,squirrel_pixels,gfx/raw/b05_45a1_player_flying_squirrel.png
+01-player/squirrel,松鼠裝,0x11,squirrel_frames,metasprite,SpriteAnimPointerTable_1a4f,SpriteFrameData_2dfc,00:2dfc,editable/01-player/squirrel/017.png,squirrel_pixels,gfx/raw/b05_45a1_player_flying_squirrel.png
+01-player/squirrel,松鼠裝,0x12,squirrel_frames,metasprite,SpriteAnimPointerTable_1a4f,SpriteFrameData_2e15,00:2e15,editable/01-player/squirrel/018.png,squirrel_pixels,gfx/raw/b05_45a1_player_flying_squirrel.png
+01-player/squirrel,松鼠裝,0x13,squirrel_frames,metasprite,SpriteAnimPointerTable_1a4f,SpriteFrameData_2e2e,00:2e2e,editable/01-player/squirrel/019.png,squirrel_pixels,gfx/raw/b05_45a1_player_flying_squirrel.png
+01-player/squirrel,松鼠裝,0x14,squirrel_frames,metasprite,SpriteAnimPointerTable_1a4f,SpriteFrameData_2e47,00:2e47,editable/01-player/squirrel/020.png,squirrel_pixels,gfx/raw/b05_45a1_player_flying_squirrel.png
+01-player/squirrel,松鼠裝,0x15,squirrel_frames,metasprite,SpriteAnimPointerTable_1a4f,SpriteFrameData_2e60,00:2e60,editable/01-player/squirrel/021.png,squirrel_pixels,gfx/raw/b05_45a1_player_flying_squirrel.png
+01-player/squirrel,松鼠裝,0x16,squirrel_frames,metasprite,SpriteAnimPointerTable_1a4f,SpriteFrameData_2e79,00:2e79,editable/01-player/squirrel/022.png,squirrel_pixels,gfx/raw/b05_45a1_player_flying_squirrel.png
+01-player/squirrel,松鼠裝,0x17,squirrel_frames,metasprite,SpriteAnimPointerTable_1a4f,SpriteFrameData_2ea0,00:2ea0,editable/01-player/squirrel/023.png,squirrel_pixels,gfx/raw/b05_45a1_player_flying_squirrel.png
+01-player/squirrel,松鼠裝,0x18,squirrel_frames,metasprite,SpriteAnimPointerTable_1a4f,SpriteFrameData_2ebd,00:2ebd,editable/01-player/squirrel/024.png,squirrel_pixels,gfx/raw/b05_45a1_player_flying_squirrel.png
+01-player/squirrel,松鼠裝,0x19,squirrel_frames,metasprite,SpriteAnimPointerTable_1a4f,SpriteFrameData_2c28,00:2c28,editable/01-player/squirrel/025.png,sprite_pixels,gfx/raw/b05_5701_shared_hud_objects.png|gfx/raw/b05_58e1_tiles_58e1.png
+01-player/cockroach,蟑螂裝,0x00,cockroach_frames,metasprite,SpriteAnimPointerTable_1a83,SpriteFrameData_2a2b,00:2a2b,editable/01-player/cockroach/000.png,sprite_pixels,gfx/raw/b05_4001_common_sprites.png
+01-player/cockroach,蟑螂裝,0x01,cockroach_frames,metasprite,SpriteAnimPointerTable_1a83,SpriteFrameData_2a44,00:2a44,editable/01-player/cockroach/001.png,sprite_pixels,gfx/raw/b05_4001_common_sprites.png
+01-player/cockroach,蟑螂裝,0x02,cockroach_frames,metasprite,SpriteAnimPointerTable_1a83,SpriteFrameData_2a5d,00:2a5d,editable/01-player/cockroach/002.png,sprite_pixels,gfx/raw/b05_4001_common_sprites.png
+01-player/cockroach,蟑螂裝,0x03,cockroach_frames,metasprite,SpriteAnimPointerTable_1a83,SpriteFrameData_2a72,00:2a72,editable/01-player/cockroach/003.png,sprite_pixels,gfx/raw/b05_4001_common_sprites.png
+01-player/cockroach,蟑螂裝,0x04,cockroach_frames,metasprite,SpriteAnimPointerTable_1a83,SpriteFrameData_3321,00:3321,editable/01-player/cockroach/004.png,cockroach_pixels,gfx/raw/b05_53a1_player_cockroach_part.png
+01-player/cockroach,蟑螂裝,0x05,cockroach_frames,metasprite,SpriteAnimPointerTable_1a83,SpriteFrameData_333a,00:333a,editable/01-player/cockroach/005.png,cockroach_pixels,gfx/raw/b05_53a1_player_cockroach_part.png
+01-player/cockroach,蟑螂裝,0x06,cockroach_frames,metasprite,SpriteAnimPointerTable_1a83,SpriteFrameData_333a,00:333a,editable/01-player/cockroach/006.png,cockroach_pixels,gfx/raw/b05_53a1_player_cockroach_part.png
+01-player/cockroach,蟑螂裝,0x07,cockroach_frames,metasprite,SpriteAnimPointerTable_1a83,SpriteFrameData_333a,00:333a,editable/01-player/cockroach/007.png,cockroach_pixels,gfx/raw/b05_53a1_player_cockroach_part.png
+01-player/cockroach,蟑螂裝,0x08,cockroach_frames,metasprite,SpriteAnimPointerTable_1a83,SpriteFrameData_3353,00:3353,editable/01-player/cockroach/008.png,cockroach_pixels,gfx/raw/b05_53a1_player_cockroach_part.png
+01-player/cockroach,蟑螂裝,0x09,cockroach_frames,metasprite,SpriteAnimPointerTable_1a83,SpriteFrameData_3364,00:3364,editable/01-player/cockroach/009.png,cockroach_pixels,gfx/raw/b05_53a1_player_cockroach_part.png
+01-player/cockroach,蟑螂裝,0x0a,cockroach_frames,metasprite,SpriteAnimPointerTable_1a83,SpriteFrameData_337d,00:337d,editable/01-player/cockroach/010.png,cockroach_pixels,gfx/raw/b05_53a1_player_cockroach_part.png
+01-player/cockroach,蟑螂裝,0x0b,cockroach_frames,metasprite,SpriteAnimPointerTable_1a83,SpriteFrameData_3396,00:3396,editable/01-player/cockroach/011.png,cockroach_pixels,gfx/raw/b05_53a1_player_cockroach_part.png
+01-player/cockroach,蟑螂裝,0x0c,cockroach_frames,metasprite,SpriteAnimPointerTable_1a83,SpriteFrameData_33ab,00:33ab,editable/01-player/cockroach/012.png,cockroach_pixels,gfx/raw/b05_53a1_player_cockroach_part.png
+01-player/cockroach,蟑螂裝,0x0d,cockroach_frames,metasprite,SpriteAnimPointerTable_1a83,SpriteFrameData_33ab,00:33ab,editable/01-player/cockroach/013.png,cockroach_pixels,gfx/raw/b05_53a1_player_cockroach_part.png
+01-player/cockroach,蟑螂裝,0x0e,cockroach_frames,metasprite,SpriteAnimPointerTable_1a83,SpriteFrameData_33ab,00:33ab,editable/01-player/cockroach/014.png,cockroach_pixels,gfx/raw/b05_53a1_player_cockroach_part.png
+01-player/cockroach,蟑螂裝,0x0f,cockroach_frames,metasprite,SpriteAnimPointerTable_1a83,SpriteFrameData_33c4,00:33c4,editable/01-player/cockroach/015.png,cockroach_pixels,gfx/raw/b05_53a1_player_cockroach_part.png
+01-player/cockroach,蟑螂裝,0x10,cockroach_frames,metasprite,SpriteAnimPointerTable_1a83,SpriteFrameData_33dd,00:33dd,editable/01-player/cockroach/016.png,cockroach_pixels,gfx/raw/b05_53a1_player_cockroach_part.png
+01-player/cockroach,蟑螂裝,0x11,cockroach_frames,metasprite,SpriteAnimPointerTable_1a83,SpriteFrameData_33f6,00:33f6,editable/01-player/cockroach/017.png,cockroach_pixels,gfx/raw/b05_53a1_player_cockroach_part.png
+01-player/cockroach,蟑螂裝,0x12,cockroach_frames,metasprite,SpriteAnimPointerTable_1a83,SpriteFrameData_340f,00:340f,editable/01-player/cockroach/018.png,cockroach_pixels,gfx/raw/b05_53a1_player_cockroach_part.png
+01-player/cockroach,蟑螂裝,0x13,cockroach_frames,metasprite,SpriteAnimPointerTable_1a83,SpriteFrameData_3428,00:3428,editable/01-player/cockroach/019.png,cockroach_pixels,gfx/raw/b05_53a1_player_cockroach_part.png
+01-player/cockroach,蟑螂裝,0x14,cockroach_frames,metasprite,SpriteAnimPointerTable_1a83,SpriteFrameData_3441,00:3441,editable/01-player/cockroach/020.png,cockroach_pixels,gfx/raw/b05_53a1_player_cockroach_part.png
+01-player/cockroach,蟑螂裝,0x15,cockroach_frames,metasprite,SpriteAnimPointerTable_1a83,SpriteFrameData_345a,00:345a,editable/01-player/cockroach/021.png,cockroach_pixels,gfx/raw/b05_53a1_player_cockroach_part.png
+01-player/cockroach,蟑螂裝,0x16,cockroach_frames,metasprite,SpriteAnimPointerTable_1a83,SpriteFrameData_347b,00:347b,editable/01-player/cockroach/022.png,cockroach_pixels,gfx/raw/b05_53a1_player_cockroach_part.png
+01-player/cockroach,蟑螂裝,0x17,cockroach_frames,metasprite,SpriteAnimPointerTable_1a83,SpriteFrameData_34a0,00:34a0,editable/01-player/cockroach/023.png,cockroach_pixels,gfx/raw/b05_53a1_player_cockroach_part.png
+01-player/cockroach,蟑螂裝,0x18,cockroach_frames,metasprite,SpriteAnimPointerTable_1a83,SpriteFrameData_34c5,00:34c5,editable/01-player/cockroach/024.png,cockroach_pixels,gfx/raw/b05_53a1_player_cockroach_part.png
+01-player/cockroach,蟑螂裝,0x19,cockroach_frames,metasprite,SpriteAnimPointerTable_1a83,SpriteFrameData_34e6,00:34e6,editable/01-player/cockroach/025.png,cockroach_pixels,gfx/raw/b05_53a1_player_cockroach_part.png
+01-player/cockroach,蟑螂裝,0x1a,cockroach_frames,metasprite,SpriteAnimPointerTable_1a83,SpriteFrameData_350b,00:350b,editable/01-player/cockroach/026.png,cockroach_pixels,gfx/raw/b05_53a1_player_cockroach_part.png
+01-player/cockroach,蟑螂裝,0x1b,cockroach_frames,metasprite,SpriteAnimPointerTable_1a83,SpriteFrameData_3530,00:3530,editable/01-player/cockroach/027.png,cockroach_pixels,gfx/raw/b05_53a1_player_cockroach_part.png
+01-player/cockroach,蟑螂裝,0x1c,cockroach_frames,metasprite,SpriteAnimPointerTable_1a83,SpriteFrameData_3551,00:3551,editable/01-player/cockroach/028.png,cockroach_pixels,gfx/raw/b05_53a1_player_cockroach_part.png
+01-player/cockroach,蟑螂裝,0x1d,cockroach_frames,metasprite,SpriteAnimPointerTable_1a83,SpriteFrameData_2c28,00:2c28,editable/01-player/cockroach/029.png,sprite_pixels,gfx/raw/b05_5701_shared_hud_objects.png|gfx/raw/b05_58e1_tiles_58e1.png
+01-player/chicken,小雞裝,0x00,chicken_frames,metasprite,SpriteAnimPointerTable_1abf,SpriteFrameData_2a2b,00:2a2b,editable/01-player/chicken/000.png,sprite_pixels,gfx/raw/b05_4001_common_sprites.png
+01-player/chicken,小雞裝,0x01,chicken_frames,metasprite,SpriteAnimPointerTable_1abf,SpriteFrameData_2a44,00:2a44,editable/01-player/chicken/001.png,sprite_pixels,gfx/raw/b05_4001_common_sprites.png
+01-player/chicken,小雞裝,0x02,chicken_frames,metasprite,SpriteAnimPointerTable_1abf,SpriteFrameData_2a5d,00:2a5d,editable/01-player/chicken/002.png,sprite_pixels,gfx/raw/b05_4001_common_sprites.png
+01-player/chicken,小雞裝,0x03,chicken_frames,metasprite,SpriteAnimPointerTable_1abf,SpriteFrameData_2a72,00:2a72,editable/01-player/chicken/003.png,sprite_pixels,gfx/raw/b05_4001_common_sprites.png
+01-player/chicken,小雞裝,0x04,chicken_frames,metasprite,SpriteAnimPointerTable_1abf,SpriteFrameData_2f2e,00:2f2e,editable/01-player/chicken/004.png,chicken_pixels,gfx/raw/b05_4f41_player_chicken_part.png
+01-player/chicken,小雞裝,0x05,chicken_frames,metasprite,SpriteAnimPointerTable_1abf,SpriteFrameData_2f4b,00:2f4b,editable/01-player/chicken/005.png,chicken_pixels,gfx/raw/b05_4f41_player_chicken_part.png
+01-player/chicken,小雞裝,0x06,chicken_frames,metasprite,SpriteAnimPointerTable_1abf,SpriteFrameData_2f4b,00:2f4b,editable/01-player/chicken/006.png,chicken_pixels,gfx/raw/b05_4f41_player_chicken_part.png
+01-player/chicken,小雞裝,0x07,chicken_frames,metasprite,SpriteAnimPointerTable_1abf,SpriteFrameData_2f4b,00:2f4b,editable/01-player/chicken/007.png,chicken_pixels,gfx/raw/b05_4f41_player_chicken_part.png
+01-player/chicken,小雞裝,0x08,chicken_frames,metasprite,SpriteAnimPointerTable_1abf,SpriteFrameData_2f68,00:2f68,editable/01-player/chicken/008.png,chicken_pixels,gfx/raw/b05_4f41_player_chicken_part.png
+01-player/chicken,小雞裝,0x09,chicken_frames,metasprite,SpriteAnimPointerTable_1abf,SpriteFrameData_2f85,00:2f85,editable/01-player/chicken/009.png,chicken_pixels,gfx/raw/b05_4f41_player_chicken_part.png
+01-player/chicken,小雞裝,0x0a,chicken_frames,metasprite,SpriteAnimPointerTable_1abf,SpriteFrameData_2fa6,00:2fa6,editable/01-player/chicken/010.png,chicken_pixels,gfx/raw/b05_4f41_player_chicken_part.png
+01-player/chicken,小雞裝,0x0b,chicken_frames,metasprite,SpriteAnimPointerTable_1abf,SpriteFrameData_2fc7,00:2fc7,editable/01-player/chicken/011.png,chicken_pixels,gfx/raw/b05_4f41_player_chicken_part.png
+01-player/chicken,小雞裝,0x0c,chicken_frames,metasprite,SpriteAnimPointerTable_1abf,SpriteFrameData_2fe4,00:2fe4,editable/01-player/chicken/012.png,chicken_pixels,gfx/raw/b05_4f41_player_chicken_part.png
+01-player/chicken,小雞裝,0x0d,chicken_frames,metasprite,SpriteAnimPointerTable_1abf,SpriteFrameData_2fe4,00:2fe4,editable/01-player/chicken/013.png,chicken_pixels,gfx/raw/b05_4f41_player_chicken_part.png
+01-player/chicken,小雞裝,0x0e,chicken_frames,metasprite,SpriteAnimPointerTable_1abf,SpriteFrameData_3012,00:3012,editable/01-player/chicken/014.png,chicken_pixels,gfx/raw/b05_4f41_player_chicken_part.png
+01-player/chicken,小雞裝,0x0f,chicken_frames,metasprite,SpriteAnimPointerTable_1abf,SpriteFrameData_2ff5,00:2ff5,editable/01-player/chicken/015.png,chicken_pixels,gfx/raw/b05_4f41_player_chicken_part.png
+01-player/chicken,小雞裝,0x10,chicken_frames,metasprite,SpriteAnimPointerTable_1abf,SpriteFrameData_302f,00:302f,editable/01-player/chicken/016.png,chicken_pixels,gfx/raw/b05_4f41_player_chicken_part.png
+01-player/chicken,小雞裝,0x11,chicken_frames,metasprite,SpriteAnimPointerTable_1abf,SpriteFrameData_3048,00:3048,editable/01-player/chicken/017.png,chicken_pixels,gfx/raw/b05_4f41_player_chicken_part.png
+01-player/chicken,小雞裝,0x12,chicken_frames,metasprite,SpriteAnimPointerTable_1abf,SpriteFrameData_3061,00:3061,editable/01-player/chicken/018.png,chicken_pixels,gfx/raw/b05_4f41_player_chicken_part.png
+01-player/chicken,小雞裝,0x13,chicken_frames,metasprite,SpriteAnimPointerTable_1abf,SpriteFrameData_3076,00:3076,editable/01-player/chicken/019.png,chicken_pixels,gfx/raw/b05_4f41_player_chicken_part.png
+01-player/chicken,小雞裝,0x14,chicken_frames,metasprite,SpriteAnimPointerTable_1abf,SpriteFrameData_308f,00:308f,editable/01-player/chicken/020.png,chicken_pixels,gfx/raw/b05_4f41_player_chicken_part.png
+01-player/chicken,小雞裝,0x15,chicken_frames,metasprite,SpriteAnimPointerTable_1abf,SpriteFrameData_30e7,00:30e7,editable/01-player/chicken/021.png,chicken_pixels,gfx/raw/b05_4f41_player_chicken_part.png
+01-player/chicken,小雞裝,0x16,chicken_frames,metasprite,SpriteAnimPointerTable_1abf,SpriteFrameData_3104,00:3104,editable/01-player/chicken/022.png,chicken_pixels,gfx/raw/b05_4f41_player_chicken_part.png
+01-player/chicken,小雞裝,0x17,chicken_frames,metasprite,SpriteAnimPointerTable_1abf,SpriteFrameData_30a8,00:30a8,editable/01-player/chicken/023.png,chicken_pixels,gfx/raw/b05_4f41_player_chicken_part.png
+01-player/chicken,小雞裝,0x18,chicken_frames,metasprite,SpriteAnimPointerTable_1abf,SpriteFrameData_30c5,00:30c5,editable/01-player/chicken/024.png,chicken_pixels,gfx/raw/b05_4f41_player_chicken_part.png
+01-player/chicken,小雞裝,0x19,chicken_frames,metasprite,SpriteAnimPointerTable_1abf,SpriteFrameData_2c28,00:2c28,editable/01-player/chicken/025.png,sprite_pixels,gfx/raw/b05_5701_shared_hud_objects.png|gfx/raw/b05_58e1_tiles_58e1.png
+01-player/kamen,動感超人,0x00,kamen_frames,metasprite,SpriteAnimPointerTable_1af3,SpriteFrameData_2a2b,00:2a2b,editable/01-player/kamen/000.png,sprite_pixels,gfx/raw/b05_4001_common_sprites.png
+01-player/kamen,動感超人,0x01,kamen_frames,metasprite,SpriteAnimPointerTable_1af3,SpriteFrameData_2a44,00:2a44,editable/01-player/kamen/001.png,sprite_pixels,gfx/raw/b05_4001_common_sprites.png
+01-player/kamen,動感超人,0x02,kamen_frames,metasprite,SpriteAnimPointerTable_1af3,SpriteFrameData_2a5d,00:2a5d,editable/01-player/kamen/002.png,sprite_pixels,gfx/raw/b05_4001_common_sprites.png
+01-player/kamen,動感超人,0x03,kamen_frames,metasprite,SpriteAnimPointerTable_1af3,SpriteFrameData_2a72,00:2a72,editable/01-player/kamen/003.png,sprite_pixels,gfx/raw/b05_4001_common_sprites.png
+01-player/kamen,動感超人,0x04,kamen_frames,metasprite,SpriteAnimPointerTable_1af3,SpriteFrameData_3121,00:3121,editable/01-player/kamen/004.png,kamen_pixels,gfx/raw/b05_4ad1_player_action_kamen_part.png
+01-player/kamen,動感超人,0x05,kamen_frames,metasprite,SpriteAnimPointerTable_1af3,SpriteFrameData_313a,00:313a,editable/01-player/kamen/005.png,kamen_pixels,gfx/raw/b05_4ad1_player_action_kamen_part.png
+01-player/kamen,動感超人,0x06,kamen_frames,metasprite,SpriteAnimPointerTable_1af3,SpriteFrameData_3153,00:3153,editable/01-player/kamen/006.png,kamen_pixels,gfx/raw/b05_4ad1_player_action_kamen_part.png
+01-player/kamen,動感超人,0x07,kamen_frames,metasprite,SpriteAnimPointerTable_1af3,SpriteFrameData_316c,00:316c,editable/01-player/kamen/007.png,kamen_pixels,gfx/raw/b05_4ad1_player_action_kamen_part.png
+01-player/kamen,動感超人,0x08,kamen_frames,metasprite,SpriteAnimPointerTable_1af3,SpriteFrameData_316c,00:316c,editable/01-player/kamen/008.png,kamen_pixels,gfx/raw/b05_4ad1_player_action_kamen_part.png
+01-player/kamen,動感超人,0x09,kamen_frames,metasprite,SpriteAnimPointerTable_1af3,SpriteFrameData_3185,00:3185,editable/01-player/kamen/009.png,kamen_pixels,gfx/raw/b05_4ad1_player_action_kamen_part.png
+01-player/kamen,動感超人,0x0a,kamen_frames,metasprite,SpriteAnimPointerTable_1af3,SpriteFrameData_31a6,00:31a6,editable/01-player/kamen/010.png,kamen_pixels,gfx/raw/b05_4ad1_player_action_kamen_part.png
+01-player/kamen,動感超人,0x0b,kamen_frames,metasprite,SpriteAnimPointerTable_1af3,SpriteFrameData_31c7,00:31c7,editable/01-player/kamen/011.png,kamen_pixels,gfx/raw/b05_4ad1_player_action_kamen_part.png
+01-player/kamen,動感超人,0x0c,kamen_frames,metasprite,SpriteAnimPointerTable_1af3,SpriteFrameData_31e4,00:31e4,editable/01-player/kamen/012.png,kamen_pixels,gfx/raw/b05_4ad1_player_action_kamen_part.png
+01-player/kamen,動感超人,0x0d,kamen_frames,metasprite,SpriteAnimPointerTable_1af3,SpriteFrameData_31e4,00:31e4,editable/01-player/kamen/013.png,kamen_pixels,gfx/raw/b05_4ad1_player_action_kamen_part.png
+01-player/kamen,動感超人,0x0e,kamen_frames,metasprite,SpriteAnimPointerTable_1af3,SpriteFrameData_31f5,00:31f5,editable/01-player/kamen/014.png,kamen_pixels,gfx/raw/b05_4ad1_player_action_kamen_part.png
+01-player/kamen,動感超人,0x0f,kamen_frames,metasprite,SpriteAnimPointerTable_1af3,SpriteFrameData_320a,00:320a,editable/01-player/kamen/015.png,kamen_pixels,gfx/raw/b05_4ad1_player_action_kamen_part.png
+01-player/kamen,動感超人,0x10,kamen_frames,metasprite,SpriteAnimPointerTable_1af3,SpriteFrameData_3227,00:3227,editable/01-player/kamen/016.png,kamen_pixels,gfx/raw/b05_4ad1_player_action_kamen_part.png
+01-player/kamen,動感超人,0x11,kamen_frames,metasprite,SpriteAnimPointerTable_1af3,SpriteFrameData_3240,00:3240,editable/01-player/kamen/017.png,kamen_pixels,gfx/raw/b05_4ad1_player_action_kamen_part.png
+01-player/kamen,動感超人,0x12,kamen_frames,metasprite,SpriteAnimPointerTable_1af3,SpriteFrameData_3259,00:3259,editable/01-player/kamen/018.png,kamen_pixels,gfx/raw/b05_4ad1_player_action_kamen_part.png
+01-player/kamen,動感超人,0x13,kamen_frames,metasprite,SpriteAnimPointerTable_1af3,SpriteFrameData_326e,00:326e,editable/01-player/kamen/019.png,kamen_pixels,gfx/raw/b05_4ad1_player_action_kamen_part.png
+01-player/kamen,動感超人,0x14,kamen_frames,metasprite,SpriteAnimPointerTable_1af3,SpriteFrameData_3287,00:3287,editable/01-player/kamen/020.png,kamen_pixels,gfx/raw/b05_4ad1_player_action_kamen_part.png
+01-player/kamen,動感超人,0x15,kamen_frames,metasprite,SpriteAnimPointerTable_1af3,SpriteFrameData_32a0,00:32a0,editable/01-player/kamen/021.png,kamen_pixels,gfx/raw/b05_4ad1_player_action_kamen_part.png
+01-player/kamen,動感超人,0x16,kamen_frames,metasprite,SpriteAnimPointerTable_1af3,SpriteFrameData_32fc,00:32fc,editable/01-player/kamen/022.png,kamen_pixels,gfx/raw/b05_4ad1_player_action_kamen_part.png
+01-player/kamen,動感超人,0x17,kamen_frames,metasprite,SpriteAnimPointerTable_1af3,SpriteFrameData_32b9,00:32b9,editable/01-player/kamen/023.png,kamen_pixels,gfx/raw/b05_4ad1_player_action_kamen_part.png
+01-player/kamen,動感超人,0x18,kamen_frames,metasprite,SpriteAnimPointerTable_1af3,SpriteFrameData_2c28,00:2c28,editable/01-player/kamen/024.png,sprite_pixels,gfx/raw/b05_5701_shared_hud_objects.png|gfx/raw/b05_58e1_tiles_58e1.png
+02-actors/picnic,野餐敵人與物件,0x00,actor_frames,metasprite,SpriteAnimPointerTable_1b2d,SpriteFrameData_1c11,00:1c11,editable/02-actors/picnic/000.png,sprite_pixels,gfx/raw/b05_5ad1_stage0_objects.png|gfx/raw/b05_5bc1_stage1_objects.png
+02-actors/picnic,野餐敵人與物件,0x01,actor_frames,metasprite,SpriteAnimPointerTable_1b2d,SpriteFrameData_1c2a,00:1c2a,editable/02-actors/picnic/001.png,sprite_pixels,gfx/raw/b05_5ad1_stage0_objects.png|gfx/raw/b05_5bc1_stage1_objects.png
+02-actors/picnic,野餐敵人與物件,0x02,actor_frames,metasprite,SpriteAnimPointerTable_1b2d,SpriteFrameData_1c43,00:1c43,editable/02-actors/picnic/002.png,sprite_pixels,gfx/raw/b05_5ad1_stage0_objects.png|gfx/raw/b05_5bc1_stage1_objects.png
+02-actors/picnic,野餐敵人與物件,0x03,actor_frames,metasprite,SpriteAnimPointerTable_1b2d,SpriteFrameData_1c5c,00:1c5c,editable/02-actors/picnic/003.png,sprite_pixels,gfx/raw/b05_5ad1_stage0_objects.png
+02-actors/picnic,野餐敵人與物件,0x04,actor_frames,metasprite,SpriteAnimPointerTable_1b2d,SpriteFrameData_1c11,00:1c11,editable/02-actors/picnic/004.png,sprite_pixels,gfx/raw/b05_5ad1_stage0_objects.png|gfx/raw/b05_5bc1_stage1_objects.png
+02-actors/picnic,野餐敵人與物件,0x05,actor_frames,metasprite,SpriteAnimPointerTable_1b2d,SpriteFrameData_1c11,00:1c11,editable/02-actors/picnic/005.png,sprite_pixels,gfx/raw/b05_5ad1_stage0_objects.png|gfx/raw/b05_5bc1_stage1_objects.png
+02-actors/picnic,野餐敵人與物件,0x06,actor_frames,metasprite,SpriteAnimPointerTable_1b2d,SpriteFrameData_1c75,00:1c75,editable/02-actors/picnic/006.png,sprite_pixels,gfx/raw/b05_5bc1_stage1_objects.png
+02-actors/picnic,野餐敵人與物件,0x07,actor_frames,metasprite,SpriteAnimPointerTable_1b2d,SpriteFrameData_1c92,00:1c92,editable/02-actors/picnic/007.png,sprite_pixels,gfx/raw/b05_5bc1_stage1_objects.png
+02-actors/picnic,野餐敵人與物件,0x08,actor_frames,metasprite,SpriteAnimPointerTable_1b2d,SpriteFrameData_1caf,00:1caf,editable/02-actors/picnic/008.png,sprite_pixels,gfx/raw/b05_5bc1_stage1_objects.png
+02-actors/picnic,野餐敵人與物件,0x09,actor_frames,metasprite,SpriteAnimPointerTable_1b2d,SpriteFrameData_1ccc,00:1ccc,editable/02-actors/picnic/009.png,sprite_pixels,gfx/raw/b05_5bc1_stage1_objects.png
+02-actors/picnic,野餐敵人與物件,0x0a,actor_frames,metasprite,SpriteAnimPointerTable_1b2d,SpriteFrameData_1ce9,00:1ce9,editable/02-actors/picnic/010.png,sprite_pixels,gfx/raw/b05_5bc1_stage1_objects.png
+02-actors/picnic,野餐敵人與物件,0x0b,actor_frames,metasprite,SpriteAnimPointerTable_1b2d,SpriteFrameData_1d0a,00:1d0a,editable/02-actors/picnic/011.png,sprite_pixels,gfx/raw/b05_5bc1_stage1_objects.png
+02-actors/picnic,野餐敵人與物件,0x0c,actor_frames,metasprite,SpriteAnimPointerTable_1b2d,SpriteFrameData_1d23,00:1d23,editable/02-actors/picnic/012.png,sprite_pixels,gfx/raw/b05_5d61_stage2_objects.png|gfx/raw/b05_5de1_tiles_5de1.png
+02-actors/picnic,野餐敵人與物件,0x0d,actor_frames,metasprite,SpriteAnimPointerTable_1b2d,SpriteFrameData_1d50,00:1d50,editable/02-actors/picnic/013.png,sprite_pixels,gfx/raw/b05_5d61_stage2_objects.png|gfx/raw/b05_5de1_tiles_5de1.png
+02-actors/picnic,野餐敵人與物件,0x0e,actor_frames,metasprite,SpriteAnimPointerTable_1b2d,SpriteFrameData_1d7d,00:1d7d,editable/02-actors/picnic/014.png,sprite_pixels,gfx/raw/b05_5d61_stage2_objects.png|gfx/raw/b05_5de1_tiles_5de1.png
+02-actors/picnic,野餐敵人與物件,0x0f,actor_frames,metasprite,SpriteAnimPointerTable_1b2d,SpriteFrameData_1daa,00:1daa,editable/02-actors/picnic/015.png,sprite_pixels,gfx/raw/b05_5de1_tiles_5de1.png
+03-bosses/picnic,野餐頭目,0x10,actor_frames,metasprite,SpriteAnimPointerTable_1b2d,SpriteFrameData_2497,00:2497,editable/03-bosses/picnic/016.png,boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+03-bosses/picnic,野餐頭目,0x11,actor_frames,metasprite,SpriteAnimPointerTable_1b2d,SpriteFrameData_24bc,00:24bc,editable/03-bosses/picnic/017.png,boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+03-bosses/picnic,野餐頭目,0x12,actor_frames,metasprite,SpriteAnimPointerTable_1b2d,SpriteFrameData_24e1,00:24e1,editable/03-bosses/picnic/018.png,boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+03-bosses/picnic,野餐頭目,0x13,actor_frames,metasprite,SpriteAnimPointerTable_1b2d,SpriteFrameData_24ea,00:24ea,editable/03-bosses/picnic/019.png,boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+03-bosses/picnic,野餐頭目,0x14,actor_frames,metasprite,SpriteAnimPointerTable_1b2d,SpriteFrameData_24f3,00:24f3,editable/03-bosses/picnic/020.png,boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+03-bosses/picnic,野餐頭目,0x15,actor_frames,metasprite,SpriteAnimPointerTable_1b2d,SpriteFrameData_24fc,00:24fc,editable/03-bosses/picnic/021.png,boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+03-bosses/picnic,野餐頭目,0x16,actor_frames,metasprite,SpriteAnimPointerTable_1b2d,SpriteFrameData_251d,00:251d,editable/03-bosses/picnic/022.png,boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+03-bosses/picnic,野餐頭目,0x17,actor_frames,metasprite,SpriteAnimPointerTable_1b2d,SpriteFrameData_253a,00:253a,editable/03-bosses/picnic/023.png,boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+03-bosses/picnic,野餐頭目,0x18,actor_frames,metasprite,SpriteAnimPointerTable_1b2d,SpriteFrameData_255b,00:255b,editable/03-bosses/picnic/024.png,boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+03-bosses/picnic,野餐頭目,0x19,actor_frames,metasprite,SpriteAnimPointerTable_1b2d,SpriteFrameData_257c,00:257c,editable/03-bosses/picnic/025.png,boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+04-props/picnic-pickups,野餐道具,0x00,pickup_frames,metasprite,,SpriteFrameData_2c85,00:2c85,editable/04-props/picnic-pickups/000.png,sprite_pixels,gfx/raw/b05_5701_shared_hud_objects.png
+04-props/picnic-pickups,野餐道具,0x01,pickup_frames,metasprite,,SpriteFrameData_2c8e,00:2c8e,editable/04-props/picnic-pickups/001.png,sprite_pixels,gfx/raw/b05_5701_shared_hud_objects.png
+04-props/picnic-pickups,野餐道具,0x02,pickup_frames,metasprite,,SpriteFrameData_2c9f,00:2c9f,editable/04-props/picnic-pickups/002.png,sprite_pixels,gfx/raw/b05_5701_shared_hud_objects.png
+04-props/picnic-pickups,野餐道具,0x03,pickup_frames,metasprite,,SpriteFrameData_2c41,00:2c41,editable/04-props/picnic-pickups/003.png,sprite_pixels,gfx/raw/b05_5701_shared_hud_objects.png
+04-props/picnic-pickups,野餐道具,0x04,pickup_frames,metasprite,,SpriteFrameData_2c74,00:2c74,editable/04-props/picnic-pickups/004.png,sprite_pixels,gfx/raw/b05_5701_shared_hud_objects.png
+04-props/picnic-pickups,野餐道具,0x05,pickup_frames,metasprite,,SpriteFrameData_2c63,00:2c63,editable/04-props/picnic-pickups/005.png,sprite_pixels,gfx/raw/b05_5701_shared_hud_objects.png
+04-props/picnic-pickups,野餐道具,0x06,pickup_frames,metasprite,,SpriteFrameData_2c52,00:2c52,editable/04-props/picnic-pickups/006.png,sprite_pixels,gfx/raw/b05_5701_shared_hud_objects.png
+04-props/picnic-platforms,野餐平台,0x00,platform_frames,metasprite,,MovingPlatformVerticalSprite,01:70de,editable/04-props/picnic-platforms/000.png,sprite_pixels,gfx/raw/b05_5a01_stage_tiles_5a01.png
+04-props/picnic-platforms,野餐平台,0x01,platform_frames,metasprite,,DropPlatformSpriteA,01:70bb,editable/04-props/picnic-platforms/001.png,sprite_pixels,gfx/raw/b05_5a01_stage_tiles_5a01.png
+04-props/picnic-platforms,野餐平台,0x02,platform_frames,metasprite,,BouncePadSpriteIdle,01:70c4,editable/04-props/picnic-platforms/002.png,sprite_pixels,gfx/raw/b05_5a01_stage_tiles_5a01.png
+04-props/picnic-platforms,野餐平台,0x03,platform_frames,metasprite,,BouncePadSpritePressed,01:70d5,editable/04-props/picnic-platforms/003.png,sprite_pixels,gfx/raw/b05_5a01_stage_tiles_5a01.png
+02-actors/school,學校敵人與物件,0x00,school_frames,metasprite,SpriteAnimPointerTable_1b61,SpriteFrameData_1f19,00:1f19,editable/02-actors/school/000.png,school_objects,gfx/raw/b05_5ed1_stage_shared_objects.png
+02-actors/school,學校敵人與物件,0x01,school_frames,metasprite,SpriteAnimPointerTable_1b61,SpriteFrameData_1f3a,00:1f3a,editable/02-actors/school/001.png,school_objects,gfx/raw/b05_5ed1_stage_shared_objects.png
+02-actors/school,學校敵人與物件,0x02,school_frames,metasprite,SpriteAnimPointerTable_1b61,SpriteFrameData_1f5b,00:1f5b,editable/02-actors/school/002.png,school_objects,gfx/raw/b05_5ed1_stage_shared_objects.png
+02-actors/school,學校敵人與物件,0x03,school_frames,metasprite,SpriteAnimPointerTable_1b61,SpriteFrameData_1f7c,00:1f7c,editable/02-actors/school/003.png,school_objects,gfx/raw/b05_5ed1_stage_shared_objects.png
+02-actors/school,學校敵人與物件,0x04,school_frames,metasprite,SpriteAnimPointerTable_1b61,SpriteFrameData_1f99,00:1f99,editable/02-actors/school/004.png,school_objects,gfx/raw/b05_5ed1_stage_shared_objects.png
+02-actors/school,學校敵人與物件,0x05,school_frames,metasprite,SpriteAnimPointerTable_1b61,SpriteFrameData_1fa2,00:1fa2,editable/02-actors/school/005.png,school_objects,gfx/raw/b05_5ed1_stage_shared_objects.png
+02-actors/school,學校敵人與物件,0x06,school_frames,metasprite,SpriteAnimPointerTable_1b61,SpriteFrameData_1dc7,00:1dc7,editable/02-actors/school/006.png,school_objects,gfx/raw/b05_5bc1_stage1_objects.png
+02-actors/school,學校敵人與物件,0x07,school_frames,metasprite,SpriteAnimPointerTable_1b61,SpriteFrameData_1de4,00:1de4,editable/02-actors/school/007.png,school_objects,gfx/raw/b05_5bc1_stage1_objects.png
+02-actors/school,學校敵人與物件,0x08,school_frames,metasprite,SpriteAnimPointerTable_1b61,SpriteFrameData_1e01,00:1e01,editable/02-actors/school/008.png,school_objects,gfx/raw/b05_5bc1_stage1_objects.png
+02-actors/school,學校敵人與物件,0x09,school_frames,metasprite,SpriteAnimPointerTable_1b61,SpriteFrameData_1e1e,00:1e1e,editable/02-actors/school/009.png,school_objects,gfx/raw/b05_5bc1_stage1_objects.png
+02-actors/school,學校敵人與物件,0x0a,school_frames,metasprite,SpriteAnimPointerTable_1b61,SpriteFrameData_1e3b,00:1e3b,editable/02-actors/school/010.png,school_objects,gfx/raw/b05_5bc1_stage1_objects.png
+02-actors/school,學校敵人與物件,0x0b,school_frames,metasprite,SpriteAnimPointerTable_1b61,SpriteFrameData_1e5c,00:1e5c,editable/02-actors/school/011.png,school_objects,gfx/raw/b05_5bc1_stage1_objects.png
+02-actors/school,學校敵人與物件,0x0c,school_frames,metasprite,SpriteAnimPointerTable_1b61,SpriteFrameData_1e75,00:1e75,editable/02-actors/school/012.png,school_objects,gfx/raw/b05_5d61_stage2_objects.png|gfx/raw/b05_5de1_tiles_5de1.png
+02-actors/school,學校敵人與物件,0x0d,school_frames,metasprite,SpriteAnimPointerTable_1b61,SpriteFrameData_1ea2,00:1ea2,editable/02-actors/school/013.png,school_objects,gfx/raw/b05_5d61_stage2_objects.png|gfx/raw/b05_5de1_tiles_5de1.png
+02-actors/school,學校敵人與物件,0x0e,school_frames,metasprite,SpriteAnimPointerTable_1b61,SpriteFrameData_1ecf,00:1ecf,editable/02-actors/school/014.png,school_objects,gfx/raw/b05_5d61_stage2_objects.png|gfx/raw/b05_5de1_tiles_5de1.png
+02-actors/school,學校敵人與物件,0x0f,school_frames,metasprite,SpriteAnimPointerTable_1b61,SpriteFrameData_1efc,00:1efc,editable/02-actors/school/015.png,school_objects,gfx/raw/b05_5de1_tiles_5de1.png
+02-actors/school,學校敵人與物件,0x10,school_frames,metasprite,SpriteAnimPointerTable_1b61,SpriteFrameData_1fbf,00:1fbf,editable/02-actors/school/016.png,school_objects,gfx/raw/b05_5ed1_stage_shared_objects.png
+02-actors/school,學校敵人與物件,0x11,school_frames,metasprite,SpriteAnimPointerTable_1b61,SpriteFrameData_1fd0,00:1fd0,editable/02-actors/school/017.png,school_objects,gfx/raw/b05_5ed1_stage_shared_objects.png
+02-actors/school,學校敵人與物件,0x12,school_frames,metasprite,SpriteAnimPointerTable_1b61,SpriteFrameData_1fe1,00:1fe1,editable/02-actors/school/018.png,school_objects,gfx/raw/b05_5ed1_stage_shared_objects.png
+02-actors/school,學校敵人與物件,0x13,school_frames,metasprite,SpriteAnimPointerTable_1b61,SpriteFrameData_1ff2,00:1ff2,editable/02-actors/school/019.png,school_objects,gfx/raw/b05_5ed1_stage_shared_objects.png
+03-bosses/school,學校頭目,0x14,school_frames,metasprite,SpriteAnimPointerTable_1b61,SpriteFrameData_259d,00:259d,editable/03-bosses/school/020.png,school_boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+03-bosses/school,學校頭目,0x15,school_frames,metasprite,SpriteAnimPointerTable_1b61,SpriteFrameData_25be,00:25be,editable/03-bosses/school/021.png,school_boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+03-bosses/school,學校頭目,0x16,school_frames,metasprite,SpriteAnimPointerTable_1b61,SpriteFrameData_25df,00:25df,editable/03-bosses/school/022.png,school_boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+03-bosses/school,學校頭目,0x17,school_frames,metasprite,SpriteAnimPointerTable_1b61,SpriteFrameData_2600,00:2600,editable/03-bosses/school/023.png,school_boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+03-bosses/school,學校頭目,0x18,school_frames,metasprite,SpriteAnimPointerTable_1b61,SpriteFrameData_2625,00:2625,editable/03-bosses/school/024.png,school_boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+03-bosses/school,學校頭目,0x19,school_frames,metasprite,SpriteAnimPointerTable_1b61,SpriteFrameData_2646,00:2646,editable/03-bosses/school/025.png,school_boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+03-bosses/school,學校頭目,0x1a,school_frames,metasprite,SpriteAnimPointerTable_1b61,SpriteFrameData_2663,00:2663,editable/03-bosses/school/026.png,school_boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+03-bosses/school,學校頭目,0x1b,school_frames,metasprite,SpriteAnimPointerTable_1b61,SpriteFrameData_2684,00:2684,editable/03-bosses/school/027.png,school_boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+04-props/school-pickups,學校道具,0x00,pickup_frames,metasprite,,SpriteFrameData_2c85,00:2c85,editable/04-props/school-pickups/000.png,school_objects,gfx/raw/b05_5701_shared_hud_objects.png
+04-props/school-pickups,學校道具,0x01,pickup_frames,metasprite,,SpriteFrameData_2c8e,00:2c8e,editable/04-props/school-pickups/001.png,school_objects,gfx/raw/b05_5701_shared_hud_objects.png
+04-props/school-pickups,學校道具,0x02,pickup_frames,metasprite,,SpriteFrameData_2c9f,00:2c9f,editable/04-props/school-pickups/002.png,school_objects,gfx/raw/b05_5701_shared_hud_objects.png
+04-props/school-pickups,學校道具,0x03,pickup_frames,metasprite,,SpriteFrameData_2c41,00:2c41,editable/04-props/school-pickups/003.png,school_objects,gfx/raw/b05_5701_shared_hud_objects.png
+04-props/school-pickups,學校道具,0x04,pickup_frames,metasprite,,SpriteFrameData_2c74,00:2c74,editable/04-props/school-pickups/004.png,school_objects,gfx/raw/b05_5701_shared_hud_objects.png
+04-props/school-pickups,學校道具,0x05,pickup_frames,metasprite,,SpriteFrameData_2c63,00:2c63,editable/04-props/school-pickups/005.png,school_objects,gfx/raw/b05_5701_shared_hud_objects.png
+04-props/school-pickups,學校道具,0x06,pickup_frames,metasprite,,SpriteFrameData_2c52,00:2c52,editable/04-props/school-pickups/006.png,school_objects,gfx/raw/b05_5701_shared_hud_objects.png
+02-actors/mall,百貨敵人與物件,0x00,mall_frames,metasprite,SpriteAnimPointerTable_1b99,SpriteFrameData_209f,00:209f,editable/02-actors/mall/000.png,mall_objects,gfx/raw/b05_5ed1_stage_shared_objects.png
+02-actors/mall,百貨敵人與物件,0x01,mall_frames,metasprite,SpriteAnimPointerTable_1b99,SpriteFrameData_20c0,00:20c0,editable/02-actors/mall/001.png,mall_objects,gfx/raw/b05_5ed1_stage_shared_objects.png
+02-actors/mall,百貨敵人與物件,0x02,mall_frames,metasprite,SpriteAnimPointerTable_1b99,SpriteFrameData_20e1,00:20e1,editable/02-actors/mall/002.png,mall_objects,gfx/raw/b05_5ed1_stage_shared_objects.png
+02-actors/mall,百貨敵人與物件,0x03,mall_frames,metasprite,SpriteAnimPointerTable_1b99,SpriteFrameData_2102,00:2102,editable/02-actors/mall/003.png,mall_objects,gfx/raw/b05_5ed1_stage_shared_objects.png
+02-actors/mall,百貨敵人與物件,0x04,mall_frames,metasprite,SpriteAnimPointerTable_1b99,SpriteFrameData_211f,00:211f,editable/02-actors/mall/004.png,mall_objects,gfx/raw/b05_5ed1_stage_shared_objects.png
+02-actors/mall,百貨敵人與物件,0x05,mall_frames,metasprite,SpriteAnimPointerTable_1b99,SpriteFrameData_2128,00:2128,editable/02-actors/mall/005.png,mall_objects,gfx/raw/b05_5ed1_stage_shared_objects.png
+02-actors/mall,百貨敵人與物件,0x06,mall_frames,metasprite,SpriteAnimPointerTable_1b99,SpriteFrameData_1ffb,00:1ffb,editable/02-actors/mall/006.png,mall_objects,gfx/raw/b05_5d61_stage2_objects.png|gfx/raw/b05_5de1_tiles_5de1.png
+02-actors/mall,百貨敵人與物件,0x07,mall_frames,metasprite,SpriteAnimPointerTable_1b99,SpriteFrameData_1ffb,00:1ffb,editable/02-actors/mall/007.png,mall_objects,gfx/raw/b05_5d61_stage2_objects.png|gfx/raw/b05_5de1_tiles_5de1.png
+02-actors/mall,百貨敵人與物件,0x08,mall_frames,metasprite,SpriteAnimPointerTable_1b99,SpriteFrameData_1ffb,00:1ffb,editable/02-actors/mall/008.png,mall_objects,gfx/raw/b05_5d61_stage2_objects.png|gfx/raw/b05_5de1_tiles_5de1.png
+02-actors/mall,百貨敵人與物件,0x09,mall_frames,metasprite,SpriteAnimPointerTable_1b99,SpriteFrameData_1ffb,00:1ffb,editable/02-actors/mall/009.png,mall_objects,gfx/raw/b05_5d61_stage2_objects.png|gfx/raw/b05_5de1_tiles_5de1.png
+02-actors/mall,百貨敵人與物件,0x0a,mall_frames,metasprite,SpriteAnimPointerTable_1b99,SpriteFrameData_1ffb,00:1ffb,editable/02-actors/mall/010.png,mall_objects,gfx/raw/b05_5d61_stage2_objects.png|gfx/raw/b05_5de1_tiles_5de1.png
+02-actors/mall,百貨敵人與物件,0x0b,mall_frames,metasprite,SpriteAnimPointerTable_1b99,SpriteFrameData_1ffb,00:1ffb,editable/02-actors/mall/011.png,mall_objects,gfx/raw/b05_5d61_stage2_objects.png|gfx/raw/b05_5de1_tiles_5de1.png
+02-actors/mall,百貨敵人與物件,0x0c,mall_frames,metasprite,SpriteAnimPointerTable_1b99,SpriteFrameData_1ffb,00:1ffb,editable/02-actors/mall/012.png,mall_objects,gfx/raw/b05_5d61_stage2_objects.png|gfx/raw/b05_5de1_tiles_5de1.png
+02-actors/mall,百貨敵人與物件,0x0d,mall_frames,metasprite,SpriteAnimPointerTable_1b99,SpriteFrameData_2028,00:2028,editable/02-actors/mall/013.png,mall_objects,gfx/raw/b05_5d61_stage2_objects.png|gfx/raw/b05_5de1_tiles_5de1.png
+02-actors/mall,百貨敵人與物件,0x0e,mall_frames,metasprite,SpriteAnimPointerTable_1b99,SpriteFrameData_2055,00:2055,editable/02-actors/mall/014.png,mall_objects,gfx/raw/b05_5d61_stage2_objects.png|gfx/raw/b05_5de1_tiles_5de1.png
+02-actors/mall,百貨敵人與物件,0x0f,mall_frames,metasprite,SpriteAnimPointerTable_1b99,SpriteFrameData_2082,00:2082,editable/02-actors/mall/015.png,mall_objects,gfx/raw/b05_5de1_tiles_5de1.png
+02-actors/mall,百貨敵人與物件,0x10,mall_frames,metasprite,SpriteAnimPointerTable_1b99,SpriteFrameData_2145,00:2145,editable/02-actors/mall/016.png,mall_objects,gfx/raw/b05_6171_stage_shared_objects_6171.png
+02-actors/mall,百貨敵人與物件,0x11,mall_frames,metasprite,SpriteAnimPointerTable_1b99,SpriteFrameData_215e,00:215e,editable/02-actors/mall/017.png,mall_objects,gfx/raw/b05_6171_stage_shared_objects_6171.png
+02-actors/mall,百貨敵人與物件,0x12,mall_frames,metasprite,SpriteAnimPointerTable_1b99,SpriteFrameData_2177,00:2177,editable/02-actors/mall/018.png,mall_objects,gfx/raw/b05_6171_stage_shared_objects_6171.png
+02-actors/mall,百貨敵人與物件,0x13,mall_frames,metasprite,SpriteAnimPointerTable_1b99,SpriteFrameData_2190,00:2190,editable/02-actors/mall/019.png,mall_objects,gfx/raw/b05_6171_stage_shared_objects_6171.png
+02-actors/mall,百貨敵人與物件,0x14,mall_frames,metasprite,SpriteAnimPointerTable_1b99,SpriteFrameData_21ad,00:21ad,editable/02-actors/mall/020.png,mall_objects,gfx/raw/b05_6171_stage_shared_objects_6171.png
+03-bosses/mall,百貨頭目,0x15,mall_frames,metasprite,SpriteAnimPointerTable_1b99,SpriteFrameData_26a5,00:26a5,editable/03-bosses/mall/021.png,mall_boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+03-bosses/mall,百貨頭目,0x16,mall_frames,metasprite,SpriteAnimPointerTable_1b99,SpriteFrameData_26da,00:26da,editable/03-bosses/mall/022.png,mall_boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+03-bosses/mall,百貨頭目,0x17,mall_frames,metasprite,SpriteAnimPointerTable_1b99,SpriteFrameData_270f,00:270f,editable/03-bosses/mall/023.png,mall_boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+03-bosses/mall,百貨頭目,0x18,mall_frames,metasprite,SpriteAnimPointerTable_1b99,SpriteFrameData_2740,00:2740,editable/03-bosses/mall/024.png,mall_boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+03-bosses/mall,百貨頭目,0x19,mall_frames,metasprite,SpriteAnimPointerTable_1b99,SpriteFrameData_2771,00:2771,editable/03-bosses/mall/025.png,mall_boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+03-bosses/mall,百貨頭目,0x1a,mall_frames,metasprite,SpriteAnimPointerTable_1b99,SpriteFrameData_27aa,00:27aa,editable/03-bosses/mall/026.png,mall_boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+03-bosses/mall,百貨頭目,0x1b,mall_frames,metasprite,SpriteAnimPointerTable_1b99,SpriteFrameData_27df,00:27df,editable/03-bosses/mall/027.png,mall_boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+04-props/mall-pickups,百貨道具,0x00,pickup_frames,metasprite,,SpriteFrameData_2c85,00:2c85,editable/04-props/mall-pickups/000.png,mall_objects,gfx/raw/b05_5701_shared_hud_objects.png
+04-props/mall-pickups,百貨道具,0x01,pickup_frames,metasprite,,SpriteFrameData_2c8e,00:2c8e,editable/04-props/mall-pickups/001.png,mall_objects,gfx/raw/b05_5701_shared_hud_objects.png
+04-props/mall-pickups,百貨道具,0x02,pickup_frames,metasprite,,SpriteFrameData_2c9f,00:2c9f,editable/04-props/mall-pickups/002.png,mall_objects,gfx/raw/b05_5701_shared_hud_objects.png
+04-props/mall-pickups,百貨道具,0x03,pickup_frames,metasprite,,SpriteFrameData_2c41,00:2c41,editable/04-props/mall-pickups/003.png,mall_objects,gfx/raw/b05_5701_shared_hud_objects.png
+04-props/mall-pickups,百貨道具,0x04,pickup_frames,metasprite,,SpriteFrameData_2c74,00:2c74,editable/04-props/mall-pickups/004.png,mall_objects,gfx/raw/b05_5701_shared_hud_objects.png
+04-props/mall-pickups,百貨道具,0x05,pickup_frames,metasprite,,SpriteFrameData_2c63,00:2c63,editable/04-props/mall-pickups/005.png,mall_objects,gfx/raw/b05_5701_shared_hud_objects.png
+04-props/mall-pickups,百貨道具,0x06,pickup_frames,metasprite,,SpriteFrameData_2c52,00:2c52,editable/04-props/mall-pickups/006.png,mall_objects,gfx/raw/b05_5701_shared_hud_objects.png
+02-actors/guam,關島敵人與物件,0x00,guam_frames,metasprite,SpriteAnimPointerTable_1bd1,SpriteFrameData_2346,00:2346,editable/02-actors/guam/000.png,guam_objects,gfx/raw/b05_5ed1_stage_shared_objects.png
+02-actors/guam,關島敵人與物件,0x01,guam_frames,metasprite,SpriteAnimPointerTable_1bd1,SpriteFrameData_2367,00:2367,editable/02-actors/guam/001.png,guam_objects,gfx/raw/b05_5ed1_stage_shared_objects.png
+02-actors/guam,關島敵人與物件,0x02,guam_frames,metasprite,SpriteAnimPointerTable_1bd1,SpriteFrameData_2388,00:2388,editable/02-actors/guam/002.png,guam_objects,gfx/raw/b05_5ed1_stage_shared_objects.png
+02-actors/guam,關島敵人與物件,0x03,guam_frames,metasprite,SpriteAnimPointerTable_1bd1,SpriteFrameData_23a9,00:23a9,editable/02-actors/guam/003.png,guam_objects,gfx/raw/b05_5ed1_stage_shared_objects.png
+02-actors/guam,關島敵人與物件,0x04,guam_frames,metasprite,SpriteAnimPointerTable_1bd1,SpriteFrameData_23c6,00:23c6,editable/02-actors/guam/004.png,guam_objects,gfx/raw/b05_5ed1_stage_shared_objects.png
+02-actors/guam,關島敵人與物件,0x05,guam_frames,metasprite,SpriteAnimPointerTable_1bd1,SpriteFrameData_23cf,00:23cf,editable/02-actors/guam/005.png,guam_objects,gfx/raw/b05_5ed1_stage_shared_objects.png
+02-actors/guam,關島敵人與物件,0x06,guam_frames,metasprite,SpriteAnimPointerTable_1bd1,SpriteFrameData_2298,00:2298,editable/02-actors/guam/006.png,guam_objects,gfx/raw/b05_5bc1_stage1_objects.png
+02-actors/guam,關島敵人與物件,0x07,guam_frames,metasprite,SpriteAnimPointerTable_1bd1,SpriteFrameData_22b5,00:22b5,editable/02-actors/guam/007.png,guam_objects,gfx/raw/b05_5bc1_stage1_objects.png
+02-actors/guam,關島敵人與物件,0x08,guam_frames,metasprite,SpriteAnimPointerTable_1bd1,SpriteFrameData_22d2,00:22d2,editable/02-actors/guam/008.png,guam_objects,gfx/raw/b05_5bc1_stage1_objects.png
+02-actors/guam,關島敵人與物件,0x09,guam_frames,metasprite,SpriteAnimPointerTable_1bd1,SpriteFrameData_22ef,00:22ef,editable/02-actors/guam/009.png,guam_objects,gfx/raw/b05_5bc1_stage1_objects.png
+02-actors/guam,關島敵人與物件,0x0a,guam_frames,metasprite,SpriteAnimPointerTable_1bd1,SpriteFrameData_230c,00:230c,editable/02-actors/guam/010.png,guam_objects,gfx/raw/b05_5bc1_stage1_objects.png
+02-actors/guam,關島敵人與物件,0x0b,guam_frames,metasprite,SpriteAnimPointerTable_1bd1,SpriteFrameData_232d,00:232d,editable/02-actors/guam/011.png,guam_objects,gfx/raw/b05_5bc1_stage1_objects.png
+02-actors/guam,關島敵人與物件,0x0c,guam_frames,metasprite,SpriteAnimPointerTable_1bd1,SpriteFrameData_2298,00:2298,editable/02-actors/guam/012.png,guam_objects,gfx/raw/b05_5bc1_stage1_objects.png
+02-actors/guam,關島敵人與物件,0x0d,guam_frames,metasprite,SpriteAnimPointerTable_1bd1,SpriteFrameData_2298,00:2298,editable/02-actors/guam/013.png,guam_objects,gfx/raw/b05_5bc1_stage1_objects.png
+02-actors/guam,關島敵人與物件,0x0e,guam_frames,metasprite,SpriteAnimPointerTable_1bd1,SpriteFrameData_2298,00:2298,editable/02-actors/guam/014.png,guam_objects,gfx/raw/b05_5bc1_stage1_objects.png
+02-actors/guam,關島敵人與物件,0x0f,guam_frames,metasprite,SpriteAnimPointerTable_1bd1,SpriteFrameData_2298,00:2298,editable/02-actors/guam/015.png,guam_objects,gfx/raw/b05_5bc1_stage1_objects.png
+02-actors/guam,關島敵人與物件,0x10,guam_frames,metasprite,SpriteAnimPointerTable_1bd1,SpriteFrameData_23ec,00:23ec,editable/02-actors/guam/016.png,guam_objects,gfx/raw/b05_6171_stage_shared_objects_6171.png
+02-actors/guam,關島敵人與物件,0x11,guam_frames,metasprite,SpriteAnimPointerTable_1bd1,SpriteFrameData_2405,00:2405,editable/02-actors/guam/017.png,guam_objects,gfx/raw/b05_6171_stage_shared_objects_6171.png
+02-actors/guam,關島敵人與物件,0x12,guam_frames,metasprite,SpriteAnimPointerTable_1bd1,SpriteFrameData_241e,00:241e,editable/02-actors/guam/018.png,guam_objects,gfx/raw/b05_6171_stage_shared_objects_6171.png
+02-actors/guam,關島敵人與物件,0x13,guam_frames,metasprite,SpriteAnimPointerTable_1bd1,SpriteFrameData_2437,00:2437,editable/02-actors/guam/019.png,guam_objects,gfx/raw/b05_6171_stage_shared_objects_6171.png
+02-actors/guam,關島敵人與物件,0x14,guam_frames,metasprite,SpriteAnimPointerTable_1bd1,SpriteFrameData_2454,00:2454,editable/02-actors/guam/020.png,guam_objects,gfx/raw/b05_6171_stage_shared_objects_6171.png
+03-bosses/guam,關島頭目,0x15,guam_frames,metasprite,SpriteAnimPointerTable_1bd1,SpriteFrameData_27e4,00:27e4,editable/03-bosses/guam/021.png,guam_boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+03-bosses/guam,關島頭目,0x16,guam_frames,metasprite,SpriteAnimPointerTable_1bd1,SpriteFrameData_2821,00:2821,editable/03-bosses/guam/022.png,guam_boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+03-bosses/guam,關島頭目,0x17,guam_frames,metasprite,SpriteAnimPointerTable_1bd1,SpriteFrameData_285e,00:285e,editable/03-bosses/guam/023.png,guam_boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+03-bosses/guam,關島頭目,0x18,guam_frames,metasprite,SpriteAnimPointerTable_1bd1,SpriteFrameData_2893,00:2893,editable/03-bosses/guam/024.png,guam_boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+03-bosses/guam,關島頭目,0x19,guam_frames,metasprite,SpriteAnimPointerTable_1bd1,SpriteFrameData_28cc,00:28cc,editable/03-bosses/guam/025.png,guam_boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+03-bosses/guam,關島頭目,0x1a,guam_frames,metasprite,SpriteAnimPointerTable_1bd1,SpriteFrameData_2909,00:2909,editable/03-bosses/guam/026.png,guam_boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+03-bosses/guam,關島頭目,0x1b,guam_frames,metasprite,SpriteAnimPointerTable_1bd1,SpriteFrameData_293e,00:293e,editable/03-bosses/guam/027.png,guam_boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+03-bosses/guam,關島頭目,0x1c,guam_frames,metasprite,SpriteAnimPointerTable_1bd1,SpriteFrameData_2973,00:2973,editable/03-bosses/guam/028.png,guam_boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+03-bosses/guam,關島頭目,0x1d,guam_frames,metasprite,SpriteAnimPointerTable_1bd1,SpriteFrameData_29ac,00:29ac,editable/03-bosses/guam/029.png,guam_boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+03-bosses/guam,關島頭目,0x1e,guam_frames,metasprite,SpriteAnimPointerTable_1bd1,SpriteFrameData_29e9,00:29e9,editable/03-bosses/guam/030.png,guam_boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+03-bosses/guam,關島頭目,0x1f,guam_frames,metasprite,SpriteAnimPointerTable_1bd1,SpriteFrameData_2a26,00:2a26,editable/03-bosses/guam/031.png,guam_boss_pixels,gfx/raw/b05_64e1_stage3_objects.png
+04-props/guam-pickups,關島道具,0x00,pickup_frames,metasprite,,SpriteFrameData_2c85,00:2c85,editable/04-props/guam-pickups/000.png,guam_objects,gfx/raw/b05_5701_shared_hud_objects.png
+04-props/guam-pickups,關島道具,0x01,pickup_frames,metasprite,,SpriteFrameData_2c8e,00:2c8e,editable/04-props/guam-pickups/001.png,guam_objects,gfx/raw/b05_5701_shared_hud_objects.png
+04-props/guam-pickups,關島道具,0x02,pickup_frames,metasprite,,SpriteFrameData_2c9f,00:2c9f,editable/04-props/guam-pickups/002.png,guam_objects,gfx/raw/b05_5701_shared_hud_objects.png
+04-props/guam-pickups,關島道具,0x03,pickup_frames,metasprite,,SpriteFrameData_2c41,00:2c41,editable/04-props/guam-pickups/003.png,guam_objects,gfx/raw/b05_5701_shared_hud_objects.png
+04-props/guam-pickups,關島道具,0x04,pickup_frames,metasprite,,SpriteFrameData_2c74,00:2c74,editable/04-props/guam-pickups/004.png,guam_objects,gfx/raw/b05_5701_shared_hud_objects.png
+04-props/guam-pickups,關島道具,0x05,pickup_frames,metasprite,,SpriteFrameData_2c63,00:2c63,editable/04-props/guam-pickups/005.png,guam_objects,gfx/raw/b05_5701_shared_hud_objects.png
+04-props/guam-pickups,關島道具,0x06,pickup_frames,metasprite,,SpriteFrameData_2c52,00:2c52,editable/04-props/guam-pickups/006.png,guam_objects,gfx/raw/b05_5701_shared_hud_objects.png
+04-props/squirrel-shots,squirrel投射物,0x00,shot_frames,metasprite,,SpriteFrameData_2e96,00:2e96,editable/04-props/squirrel-shots/000.png,squirrel_pixels,gfx/raw/b05_45a1_player_flying_squirrel.png
+04-props/squirrel-shots,squirrel投射物,0x01,shot_frames,metasprite,,SpriteFrameData_2e9b,00:2e9b,editable/04-props/squirrel-shots/001.png,squirrel_pixels,gfx/raw/b05_45a1_player_flying_squirrel.png
+04-props/chicken-shots,chicken投射物,0x02,shot_frames,metasprite,,SpriteFrameData_30e2,00:30e2,editable/04-props/chicken-shots/002.png,chicken_pixels,gfx/raw/b05_4f41_player_chicken_part.png
+04-props/kamen-shots,kamen投射物,0x03,shot_frames,metasprite,,SpriteFrameData_32e7,00:32e7,editable/04-props/kamen-shots/003.png,kamen_pixels,gfx/raw/b05_4ad1_player_action_kamen_part.png
+04-props/kamen-shots,kamen投射物,0x04,shot_frames,metasprite,,SpriteFrameData_32d2,00:32d2,editable/04-props/kamen-shots/004.png,kamen_pixels,gfx/raw/b05_4ad1_player_action_kamen_part.png
+04-props/mall-carts,百貨下層購物車,0x00,mall_prop_frames,metasprite,,SpriteFrameData_21ce,00:21ce,editable/04-props/mall-carts/000.png,mall_objects,gfx/raw/b05_6171_stage_shared_objects_6171.png|gfx/raw/b05_63d1_tiles_63d1.png
+04-props/mall-carts,百貨下層購物車,0x01,mall_prop_frames,metasprite,,SpriteFrameData_21ff,00:21ff,editable/04-props/mall-carts/001.png,mall_objects,gfx/raw/b05_6171_stage_shared_objects_6171.png|gfx/raw/b05_63d1_tiles_63d1.png
+04-props/mall-upper-props,百貨上層商品與吊飾,0x02,mall_prop_frames,metasprite,,SpriteFrameData_2230,00:2230,editable/04-props/mall-upper-props/002.png,mall_overlay_objects,gfx/raw/b05_6411_stage2_overlay.png
+04-props/mall-upper-props,百貨上層商品與吊飾,0x03,mall_prop_frames,metasprite,,SpriteFrameData_223f,00:223f,editable/04-props/mall-upper-props/003.png,mall_overlay_objects,gfx/raw/b05_6411_stage2_overlay.png
+04-props/mall-upper-props,百貨上層商品與吊飾,0x04,mall_prop_frames,metasprite,,SpriteFrameData_2235,00:2235,editable/04-props/mall-upper-props/004.png,mall_overlay_objects,gfx/raw/b05_6411_stage2_overlay.png
+04-props/mall-upper-props,百貨上層商品與吊飾,0x05,mall_prop_frames,metasprite,,SpriteFrameData_223a,00:223a,editable/04-props/mall-upper-props/005.png,mall_overlay_objects,gfx/raw/b05_6411_stage2_overlay.png
+04-props/mall-upper-props,百貨上層商品與吊飾,0x06,mall_prop_frames,metasprite,,SpriteFrameData_2244,00:2244,editable/04-props/mall-upper-props/006.png,mall_overlay_objects,gfx/raw/b05_6411_stage2_overlay.png
+04-props/mall-upper-props,百貨上層商品與吊飾,0x07,mall_prop_frames,metasprite,,SpriteFrameData_2255,00:2255,editable/04-props/mall-upper-props/007.png,mall_overlay_objects,gfx/raw/b05_6411_stage2_overlay.png
+04-props/mall-upper-props,百貨上層商品與吊飾,0x08,mall_prop_frames,metasprite,,SpriteFrameData_2266,00:2266,editable/04-props/mall-upper-props/008.png,mall_overlay_objects,gfx/raw/b05_6411_stage2_overlay.png
+04-props/mall-upper-props,百貨上層商品與吊飾,0x09,mall_prop_frames,metasprite,,SpriteFrameData_2277,00:2277,editable/04-props/mall-upper-props/009.png,mall_overlay_objects,gfx/raw/b05_6411_stage2_overlay.png
+04-props/guam-projectiles,關島椰子與球,0x00,guam_prop_frames,metasprite,,SpriteFrameData_2475,00:2475,editable/04-props/guam-projectiles/000.png,guam_objects,gfx/raw/b05_64e1_stage3_objects.png
+04-props/guam-projectiles,關島椰子與球,0x01,guam_prop_frames,metasprite,,SpriteFrameData_2486,00:2486,editable/04-props/guam-projectiles/001.png,guam_objects,gfx/raw/b05_64e1_stage3_objects.png
+05-scenes/bonus-border,BONUS 閃爍星星,0x00,bonus_border_frames,border_part,,BonusHorizontalBorderMetasprite|BonusVerticalBorderMetasprite,02:4ff2|02:5013,editable/05-scenes/bonus-border/000.png,bonus_objects,gfx/compressed/b06_5556.png
+05-scenes/password-cursors,密碼輸入游標,0x00,password_cursor_frames,metasprite,,PasswordGridCursorMetasprite,02:46b3,editable/05-scenes/password-cursors/000.png,password_objects,gfx/raw/b06_50c4_font_and_symbols.png
+05-scenes/password-cursors,密碼輸入游標,0x01,password_cursor_frames,metasprite,,PasswordInputCursorMetasprite,02:46b8,editable/05-scenes/password-cursors/001.png,password_objects,gfx/raw/b06_50c4_font_and_symbols.png
+05-scenes/title,標題小新與小白,0x00,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_00,03:709f,editable/05-scenes/title/000.png,title_objects,gfx/compressed/b06_4001.png
+05-scenes/title,標題小新與小白,0x01,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_01,03:70d4,editable/05-scenes/title/001.png,title_objects,gfx/compressed/b06_4001.png
+05-scenes/title,標題小新與小白,0x02,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_02,03:7109,editable/05-scenes/title/002.png,title_objects,gfx/compressed/b06_4001.png
+05-scenes/title,標題小新與小白,0x03,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_03,03:713e,editable/05-scenes/title/003.png,title_objects,gfx/compressed/b06_4001.png
+05-scenes/title,標題小新與小白,0x04,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_04,03:7177,editable/05-scenes/title/004.png,title_objects,gfx/compressed/b06_4001.png
+05-scenes/title,標題小新與小白,0x05,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_05,03:71b4,editable/05-scenes/title/005.png,title_objects,gfx/compressed/b06_4001.png
+05-scenes/title,標題小新與小白,0x06,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_06,03:71e1,editable/05-scenes/title/006.png,title_objects,gfx/compressed/b06_4001.png
+05-scenes/title,標題小新與小白,0x07,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_07,03:721e,editable/05-scenes/title/007.png,title_objects,gfx/compressed/b06_4001.png
+05-scenes/title,標題小新與小白,0x08,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_08,03:725b,editable/05-scenes/title/008.png,title_objects,gfx/compressed/b06_4001.png
+05-scenes/title,標題小新與小白,0x09,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_09,03:728c,editable/05-scenes/title/009.png,title_objects,gfx/compressed/b06_4001.png
+05-scenes/title,標題小新與小白,0x0a,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_0a,03:72c1,editable/05-scenes/title/010.png,title_objects,gfx/compressed/b06_4001.png
+05-scenes/title,標題小新與小白,0x0b,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_0b,03:72f6,editable/05-scenes/title/011.png,title_objects,gfx/compressed/b06_4001.png
+05-scenes/title,標題小新與小白,0x0c,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_0c,03:7327,editable/05-scenes/title/012.png,title_objects,gfx/compressed/b06_4001.png
+05-scenes/title,標題小新與小白,0x0d,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_0d,03:7348,editable/05-scenes/title/013.png,title_objects,gfx/compressed/b06_4001.png
+05-scenes/password,密碼畫面角色,0x00,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_00,03:709f,editable/05-scenes/password/000.png,password_objects,gfx/compressed/b06_4001.png
+05-scenes/password,密碼畫面角色,0x01,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_01,03:70d4,editable/05-scenes/password/001.png,password_objects,gfx/compressed/b06_4001.png
+05-scenes/password,密碼畫面角色,0x02,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_02,03:7109,editable/05-scenes/password/002.png,password_objects,gfx/compressed/b06_4001.png
+05-scenes/password,密碼畫面角色,0x03,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_03,03:713e,editable/05-scenes/password/003.png,password_objects,gfx/compressed/b06_4001.png
+05-scenes/password,密碼畫面角色,0x04,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_04,03:7177,editable/05-scenes/password/004.png,password_objects,gfx/compressed/b06_4001.png
+05-scenes/password,密碼畫面角色,0x05,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_05,03:71b4,editable/05-scenes/password/005.png,password_objects,gfx/compressed/b06_4001.png
+05-scenes/password,密碼畫面角色,0x06,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_06,03:71e1,editable/05-scenes/password/006.png,password_objects,gfx/compressed/b06_4001.png
+05-scenes/password,密碼畫面角色,0x07,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_07,03:721e,editable/05-scenes/password/007.png,password_objects,gfx/compressed/b06_4001.png
+05-scenes/password,密碼畫面角色,0x08,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_08,03:725b,editable/05-scenes/password/008.png,password_objects,gfx/compressed/b06_4001.png
+05-scenes/password,密碼畫面角色,0x09,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_09,03:728c,editable/05-scenes/password/009.png,password_objects,gfx/compressed/b06_4001.png
+05-scenes/password,密碼畫面角色,0x0a,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_0a,03:72c1,editable/05-scenes/password/010.png,password_objects,gfx/compressed/b06_4001.png
+05-scenes/password,密碼畫面角色,0x0b,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_0b,03:72f6,editable/05-scenes/password/011.png,password_objects,gfx/compressed/b06_4001.png
+05-scenes/password,密碼畫面角色,0x0c,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_0c,03:7327,editable/05-scenes/password/012.png,password_objects,gfx/compressed/b06_4001.png
+05-scenes/password,密碼畫面角色,0x0d,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_0d,03:7348,editable/05-scenes/password/013.png,password_objects,gfx/compressed/b06_4001.png
+05-scenes/bonus,BONUS 與說明角色,0x0e,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_0e,03:6f53,editable/05-scenes/bonus/014.png,bonus_objects,gfx/compressed/b06_5334.png|gfx/compressed/b06_53ec.png
+05-scenes/bonus,BONUS 與說明角色,0x0f,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_0f,03:6f74,editable/05-scenes/bonus/015.png,bonus_objects,gfx/compressed/b06_5334.png|gfx/compressed/b06_53ec.png
+05-scenes/bonus,BONUS 與說明角色,0x10,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_10,03:6f95,editable/05-scenes/bonus/016.png,bonus_objects,gfx/compressed/b06_5334.png|gfx/compressed/b06_53ec.png
+05-scenes/bonus,BONUS 與說明角色,0x11,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_11,03:6fb6,editable/05-scenes/bonus/017.png,bonus_objects,gfx/compressed/b06_5334.png|gfx/compressed/b06_53ec.png
+05-scenes/bonus,BONUS 與說明角色,0x12,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_12,03:6fd3,editable/05-scenes/bonus/018.png,bonus_objects,gfx/compressed/b06_5334.png|gfx/compressed/b06_53ec.png
+05-scenes/bonus,BONUS 與說明角色,0x13,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_13,03:6ff0,editable/05-scenes/bonus/019.png,bonus_objects,gfx/compressed/b06_5334.png|gfx/compressed/b06_53ec.png
+05-scenes/bonus,BONUS 與說明角色,0x14,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_14,03:7009,editable/05-scenes/bonus/020.png,bonus_objects,gfx/compressed/b06_53ec.png
+05-scenes/bonus,BONUS 與說明角色,0x15,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_15,03:7022,editable/05-scenes/bonus/021.png,bonus_objects,gfx/compressed/b06_5334.png|gfx/compressed/b06_53ec.png
+05-scenes/bonus,BONUS 與說明角色,0x16,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_16,03:703b,editable/05-scenes/bonus/022.png,bonus_objects,gfx/compressed/b06_53ec.png
+05-scenes/bonus,BONUS 與說明角色,0x17,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_17,03:7054,editable/05-scenes/bonus/023.png,bonus_objects,gfx/compressed/b06_5334.png
+05-scenes/bonus,BONUS 與說明角色,0x18,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_18,03:706d,editable/05-scenes/bonus/024.png,bonus_objects,gfx/compressed/b06_5334.png
+05-scenes/bonus,BONUS 與說明角色,0x19,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_19,03:7086,editable/05-scenes/bonus/025.png,bonus_objects,gfx/compressed/b06_5334.png
+05-scenes/continue,接關角色,0x54,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_54,03:6e47,editable/05-scenes/continue/084.png,continue_objects,gfx/compressed/b06_641e.png
+05-scenes/continue,接關角色,0x55,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_55,03:6e60,editable/05-scenes/continue/085.png,continue_objects,gfx/compressed/b06_641e.png
+05-scenes/continue,接關角色,0x56,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_56,03:6e75,editable/05-scenes/continue/086.png,continue_objects,gfx/compressed/b06_641e.png
+05-scenes/continue,接關角色,0x57,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_57,03:6e8a,editable/05-scenes/continue/087.png,continue_objects,gfx/compressed/b06_641e.png
+05-scenes/continue,接關角色,0x58,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_58,03:6ea3,editable/05-scenes/continue/088.png,continue_objects,gfx/compressed/b06_641e.png
+05-scenes/continue,接關角色,0x59,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_59,03:6ebc,editable/05-scenes/continue/089.png,continue_objects,gfx/compressed/b06_641e.png
+05-scenes/continue,接關角色,0x5a,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_5a,03:6ed5,editable/05-scenes/continue/090.png,continue_objects,gfx/compressed/b06_641e.png
+05-scenes/continue,接關角色,0x5b,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_5b,03:6eee,editable/05-scenes/continue/091.png,continue_objects,gfx/compressed/b06_641e.png
+05-scenes/continue,接關角色,0x5c,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_5c,03:6f07,editable/05-scenes/continue/092.png,continue_objects,gfx/compressed/b06_641e.png
+05-scenes/continue,接關角色,0x5d,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_5d,03:6f20,editable/05-scenes/continue/093.png,continue_objects,gfx/compressed/b06_641e.png
+05-scenes/continue,接關角色,0x5e,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_5e,03:6f31,editable/05-scenes/continue/094.png,continue_objects,gfx/compressed/b06_641e.png
+05-scenes/continue,接關角色,0x5f,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_5f,03:6f42,editable/05-scenes/continue/095.png,continue_objects,gfx/compressed/b06_641e.png
+05-scenes/intro,開場與關卡卡片,0xb1,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_b1,03:770e,editable/05-scenes/intro/177.png,intro_objects,gfx/compressed/b06_6156.png
+05-scenes/intro,開場與關卡卡片,0xb2,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_b2,03:7737,editable/05-scenes/intro/178.png,intro_objects,gfx/compressed/b06_6156.png
+05-scenes/ending_hint,片尾提示角色,0x15,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_15,03:7022,editable/05-scenes/ending_hint/021.png,ending_hint_objects,gfx/compressed/b06_5334.png|gfx/compressed/b06_53ec.png
+05-scenes/ending_hint,片尾提示角色,0x16,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_16,03:703b,editable/05-scenes/ending_hint/022.png,ending_hint_objects,gfx/compressed/b06_53ec.png
+05-scenes/dialogue-1,第 1 關劇情角色,0x7c,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_7c,03:6114,editable/05-scenes/dialogue-1/124.png,dialogue_0_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-1,第 1 關劇情角色,0x7d,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_7d,03:612d,editable/05-scenes/dialogue-1/125.png,dialogue_0_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-1,第 1 關劇情角色,0x7e,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_7e,03:6146,editable/05-scenes/dialogue-1/126.png,dialogue_0_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-1,第 1 關劇情角色,0x7f,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_7f,03:615f,editable/05-scenes/dialogue-1/127.png,dialogue_0_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-1,第 1 關劇情角色,0x80,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_80,03:6178,editable/05-scenes/dialogue-1/128.png,dialogue_0_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-1,第 1 關劇情角色,0x81,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_81,03:6195,editable/05-scenes/dialogue-1/129.png,dialogue_0_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-1,第 1 關劇情角色,0x82,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_82,03:61b2,editable/05-scenes/dialogue-1/130.png,dialogue_0_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-1,第 1 關劇情角色,0x83,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_83,03:61cf,editable/05-scenes/dialogue-1/131.png,dialogue_0_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-1,第 1 關劇情角色,0x84,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_84,03:61f0,editable/05-scenes/dialogue-1/132.png,dialogue_0_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-1,第 1 關劇情角色,0x85,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_85,03:6211,editable/05-scenes/dialogue-1/133.png,dialogue_0_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-1,第 1 關劇情角色,0x86,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_86,03:622a,editable/05-scenes/dialogue-1/134.png,dialogue_0_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-1,第 1 關劇情角色,0x87,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_87,03:6243,editable/05-scenes/dialogue-1/135.png,dialogue_0_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-1,第 1 關劇情角色,0x88,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_88,03:6260,editable/05-scenes/dialogue-1/136.png,dialogue_0_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-1,第 1 關劇情角色,0x89,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_89,03:6279,editable/05-scenes/dialogue-1/137.png,dialogue_0_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-1,第 1 關劇情角色,0x8a,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_8a,03:6292,editable/05-scenes/dialogue-1/138.png,dialogue_0_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-1,第 1 關劇情角色,0x8b,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_8b,03:62ab,editable/05-scenes/dialogue-1/139.png,dialogue_0_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-1,第 1 關劇情角色,0x8c,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_8c,03:62c8,editable/05-scenes/dialogue-1/140.png,dialogue_0_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-1,第 1 關劇情角色,0x8d,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_8d,03:62e1,editable/05-scenes/dialogue-1/141.png,dialogue_0_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-1,第 1 關劇情角色,0x8e,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_8e,03:62fa,editable/05-scenes/dialogue-1/142.png,dialogue_0_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-1,第 1 關劇情角色,0x8f,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_8f,03:6313,editable/05-scenes/dialogue-1/143.png,dialogue_0_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-1,第 1 關劇情角色,0x90,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_90,03:6330,editable/05-scenes/dialogue-1/144.png,dialogue_0_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-1,第 1 關劇情角色,0x91,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_91,03:6355,editable/05-scenes/dialogue-1/145.png,dialogue_0_objects,gfx/compressed/b06_7700.png|gfx/compressed/b06_7a71.png
+05-scenes/dialogue-1,第 1 關劇情角色,0x92,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_92,03:6382,editable/05-scenes/dialogue-1/146.png,dialogue_0_objects,gfx/compressed/b06_7a71.png
+05-scenes/dialogue-1,第 1 關劇情角色,0x93,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_93,03:63a3,editable/05-scenes/dialogue-1/147.png,dialogue_0_objects,gfx/compressed/b06_7a71.png
+05-scenes/dialogue-1,第 1 關劇情角色,0x94,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_94,03:63c4,editable/05-scenes/dialogue-1/148.png,dialogue_0_objects,gfx/compressed/b06_7a71.png|zero
+05-scenes/dialogue-1,第 1 關劇情角色,0x95,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_95,03:63e5,editable/05-scenes/dialogue-1/149.png,dialogue_0_objects,gfx/compressed/b06_7a71.png|zero
+05-scenes/dialogue-1,第 1 關劇情角色,0x96,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_96,03:6406,editable/05-scenes/dialogue-1/150.png,dialogue_0_objects,gfx/compressed/b06_7a71.png|zero
+05-scenes/dialogue-1,第 1 關劇情角色,0x97,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_97,03:643b,editable/05-scenes/dialogue-1/151.png,dialogue_0_objects,zero
+05-scenes/dialogue-1,第 1 關劇情角色,0x98,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_98,03:6480,editable/05-scenes/dialogue-1/152.png,dialogue_0_objects,zero
+05-scenes/dialogue-1,第 1 關劇情角色,0x99,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_99,03:64c5,editable/05-scenes/dialogue-1/153.png,dialogue_0_objects,zero
+05-scenes/dialogue-1,第 1 關劇情角色,0x9a,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_9a,03:6506,editable/05-scenes/dialogue-1/154.png,dialogue_0_objects,gfx/compressed/b06_7a71.png|zero
+05-scenes/dialogue-1,第 1 關劇情角色,0x9b,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_9b,03:653b,editable/05-scenes/dialogue-1/155.png,dialogue_0_objects,zero
+05-scenes/dialogue-2,第 2 關劇情角色,0x7c,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_7c,03:6114,editable/05-scenes/dialogue-2/124.png,dialogue_1_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-2,第 2 關劇情角色,0x7d,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_7d,03:612d,editable/05-scenes/dialogue-2/125.png,dialogue_1_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-2,第 2 關劇情角色,0x7e,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_7e,03:6146,editable/05-scenes/dialogue-2/126.png,dialogue_1_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-2,第 2 關劇情角色,0x7f,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_7f,03:615f,editable/05-scenes/dialogue-2/127.png,dialogue_1_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-2,第 2 關劇情角色,0x80,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_80,03:6178,editable/05-scenes/dialogue-2/128.png,dialogue_1_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-2,第 2 關劇情角色,0x81,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_81,03:6195,editable/05-scenes/dialogue-2/129.png,dialogue_1_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-2,第 2 關劇情角色,0x82,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_82,03:61b2,editable/05-scenes/dialogue-2/130.png,dialogue_1_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-2,第 2 關劇情角色,0x83,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_83,03:61cf,editable/05-scenes/dialogue-2/131.png,dialogue_1_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-2,第 2 關劇情角色,0x84,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_84,03:61f0,editable/05-scenes/dialogue-2/132.png,dialogue_1_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-2,第 2 關劇情角色,0x85,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_85,03:6211,editable/05-scenes/dialogue-2/133.png,dialogue_1_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-2,第 2 關劇情角色,0x86,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_86,03:622a,editable/05-scenes/dialogue-2/134.png,dialogue_1_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-2,第 2 關劇情角色,0x87,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_87,03:6243,editable/05-scenes/dialogue-2/135.png,dialogue_1_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-2,第 2 關劇情角色,0x88,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_88,03:6260,editable/05-scenes/dialogue-2/136.png,dialogue_1_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-2,第 2 關劇情角色,0x89,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_89,03:6279,editable/05-scenes/dialogue-2/137.png,dialogue_1_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-2,第 2 關劇情角色,0x8a,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_8a,03:6292,editable/05-scenes/dialogue-2/138.png,dialogue_1_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-2,第 2 關劇情角色,0x8b,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_8b,03:62ab,editable/05-scenes/dialogue-2/139.png,dialogue_1_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-2,第 2 關劇情角色,0x8c,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_8c,03:62c8,editable/05-scenes/dialogue-2/140.png,dialogue_1_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-2,第 2 關劇情角色,0x8d,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_8d,03:62e1,editable/05-scenes/dialogue-2/141.png,dialogue_1_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-2,第 2 關劇情角色,0x8e,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_8e,03:62fa,editable/05-scenes/dialogue-2/142.png,dialogue_1_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-2,第 2 關劇情角色,0x8f,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_8f,03:6313,editable/05-scenes/dialogue-2/143.png,dialogue_1_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-2,第 2 關劇情角色,0x90,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_90,03:6330,editable/05-scenes/dialogue-2/144.png,dialogue_1_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-2,第 2 關劇情角色,0x91,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_91,03:6355,editable/05-scenes/dialogue-2/145.png,dialogue_1_objects,gfx/compressed/b06_7700.png|gfx/compressed/b06_7b22.png
+05-scenes/dialogue-2,第 2 關劇情角色,0x92,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_92,03:6382,editable/05-scenes/dialogue-2/146.png,dialogue_1_objects,gfx/compressed/b06_7b22.png
+05-scenes/dialogue-2,第 2 關劇情角色,0x93,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_93,03:63a3,editable/05-scenes/dialogue-2/147.png,dialogue_1_objects,gfx/compressed/b06_7b22.png
+05-scenes/dialogue-2,第 2 關劇情角色,0x94,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_94,03:63c4,editable/05-scenes/dialogue-2/148.png,dialogue_1_objects,gfx/compressed/b06_7b22.png
+05-scenes/dialogue-2,第 2 關劇情角色,0x95,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_95,03:63e5,editable/05-scenes/dialogue-2/149.png,dialogue_1_objects,gfx/compressed/b06_7b22.png
+05-scenes/dialogue-2,第 2 關劇情角色,0x96,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_96,03:6406,editable/05-scenes/dialogue-2/150.png,dialogue_1_objects,gfx/compressed/b06_7b22.png
+05-scenes/dialogue-2,第 2 關劇情角色,0x97,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_97,03:643b,editable/05-scenes/dialogue-2/151.png,dialogue_1_objects,gfx/compressed/b06_7b22.png|zero
+05-scenes/dialogue-2,第 2 關劇情角色,0x98,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_98,03:6480,editable/05-scenes/dialogue-2/152.png,dialogue_1_objects,gfx/compressed/b06_7b22.png|zero
+05-scenes/dialogue-2,第 2 關劇情角色,0x99,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_99,03:64c5,editable/05-scenes/dialogue-2/153.png,dialogue_1_objects,gfx/compressed/b06_7b22.png|zero
+05-scenes/dialogue-2,第 2 關劇情角色,0x9a,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_9a,03:6506,editable/05-scenes/dialogue-2/154.png,dialogue_1_objects,gfx/compressed/b06_7b22.png
+05-scenes/dialogue-2,第 2 關劇情角色,0x9b,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_9b,03:653b,editable/05-scenes/dialogue-2/155.png,dialogue_1_objects,gfx/compressed/b06_7b22.png|zero
+05-scenes/dialogue-3,第 3 關劇情角色,0x7c,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_7c,03:6114,editable/05-scenes/dialogue-3/124.png,dialogue_2_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-3,第 3 關劇情角色,0x7d,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_7d,03:612d,editable/05-scenes/dialogue-3/125.png,dialogue_2_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-3,第 3 關劇情角色,0x7e,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_7e,03:6146,editable/05-scenes/dialogue-3/126.png,dialogue_2_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-3,第 3 關劇情角色,0x7f,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_7f,03:615f,editable/05-scenes/dialogue-3/127.png,dialogue_2_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-3,第 3 關劇情角色,0x80,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_80,03:6178,editable/05-scenes/dialogue-3/128.png,dialogue_2_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-3,第 3 關劇情角色,0x81,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_81,03:6195,editable/05-scenes/dialogue-3/129.png,dialogue_2_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-3,第 3 關劇情角色,0x82,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_82,03:61b2,editable/05-scenes/dialogue-3/130.png,dialogue_2_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-3,第 3 關劇情角色,0x83,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_83,03:61cf,editable/05-scenes/dialogue-3/131.png,dialogue_2_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-3,第 3 關劇情角色,0x84,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_84,03:61f0,editable/05-scenes/dialogue-3/132.png,dialogue_2_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-3,第 3 關劇情角色,0x85,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_85,03:6211,editable/05-scenes/dialogue-3/133.png,dialogue_2_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-3,第 3 關劇情角色,0x86,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_86,03:622a,editable/05-scenes/dialogue-3/134.png,dialogue_2_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-3,第 3 關劇情角色,0x87,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_87,03:6243,editable/05-scenes/dialogue-3/135.png,dialogue_2_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-3,第 3 關劇情角色,0x88,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_88,03:6260,editable/05-scenes/dialogue-3/136.png,dialogue_2_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-3,第 3 關劇情角色,0x89,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_89,03:6279,editable/05-scenes/dialogue-3/137.png,dialogue_2_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-3,第 3 關劇情角色,0x8a,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_8a,03:6292,editable/05-scenes/dialogue-3/138.png,dialogue_2_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-3,第 3 關劇情角色,0x8b,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_8b,03:62ab,editable/05-scenes/dialogue-3/139.png,dialogue_2_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-3,第 3 關劇情角色,0x8c,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_8c,03:62c8,editable/05-scenes/dialogue-3/140.png,dialogue_2_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-3,第 3 關劇情角色,0x8d,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_8d,03:62e1,editable/05-scenes/dialogue-3/141.png,dialogue_2_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-3,第 3 關劇情角色,0x8e,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_8e,03:62fa,editable/05-scenes/dialogue-3/142.png,dialogue_2_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-3,第 3 關劇情角色,0x8f,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_8f,03:6313,editable/05-scenes/dialogue-3/143.png,dialogue_2_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-3,第 3 關劇情角色,0x90,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_90,03:6330,editable/05-scenes/dialogue-3/144.png,dialogue_2_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-3,第 3 關劇情角色,0x91,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_91,03:6355,editable/05-scenes/dialogue-3/145.png,dialogue_2_objects,gfx/compressed/b06_7700.png|gfx/compressed/b06_7c0e.png
+05-scenes/dialogue-3,第 3 關劇情角色,0x92,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_92,03:6382,editable/05-scenes/dialogue-3/146.png,dialogue_2_objects,gfx/compressed/b06_7c0e.png
+05-scenes/dialogue-3,第 3 關劇情角色,0x93,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_93,03:63a3,editable/05-scenes/dialogue-3/147.png,dialogue_2_objects,gfx/compressed/b06_7c0e.png
+05-scenes/dialogue-3,第 3 關劇情角色,0x94,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_94,03:63c4,editable/05-scenes/dialogue-3/148.png,dialogue_2_objects,gfx/compressed/b06_7c0e.png
+05-scenes/dialogue-3,第 3 關劇情角色,0x95,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_95,03:63e5,editable/05-scenes/dialogue-3/149.png,dialogue_2_objects,gfx/compressed/b06_7c0e.png
+05-scenes/dialogue-3,第 3 關劇情角色,0x96,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_96,03:6406,editable/05-scenes/dialogue-3/150.png,dialogue_2_objects,gfx/compressed/b06_7c0e.png
+05-scenes/dialogue-3,第 3 關劇情角色,0x97,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_97,03:643b,editable/05-scenes/dialogue-3/151.png,dialogue_2_objects,gfx/compressed/b06_7c0e.png
+05-scenes/dialogue-3,第 3 關劇情角色,0x98,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_98,03:6480,editable/05-scenes/dialogue-3/152.png,dialogue_2_objects,gfx/compressed/b06_7c0e.png
+05-scenes/dialogue-3,第 3 關劇情角色,0x99,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_99,03:64c5,editable/05-scenes/dialogue-3/153.png,dialogue_2_objects,gfx/compressed/b06_7c0e.png
+05-scenes/dialogue-3,第 3 關劇情角色,0x9a,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_9a,03:6506,editable/05-scenes/dialogue-3/154.png,dialogue_2_objects,gfx/compressed/b06_7c0e.png
+05-scenes/dialogue-3,第 3 關劇情角色,0x9b,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_9b,03:653b,editable/05-scenes/dialogue-3/155.png,dialogue_2_objects,gfx/compressed/b06_7c0e.png
+05-scenes/dialogue-4,第 4 關劇情角色,0x7c,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_7c,03:6114,editable/05-scenes/dialogue-4/124.png,dialogue_3_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-4,第 4 關劇情角色,0x7d,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_7d,03:612d,editable/05-scenes/dialogue-4/125.png,dialogue_3_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-4,第 4 關劇情角色,0x7e,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_7e,03:6146,editable/05-scenes/dialogue-4/126.png,dialogue_3_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-4,第 4 關劇情角色,0x7f,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_7f,03:615f,editable/05-scenes/dialogue-4/127.png,dialogue_3_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-4,第 4 關劇情角色,0x80,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_80,03:6178,editable/05-scenes/dialogue-4/128.png,dialogue_3_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-4,第 4 關劇情角色,0x81,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_81,03:6195,editable/05-scenes/dialogue-4/129.png,dialogue_3_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-4,第 4 關劇情角色,0x82,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_82,03:61b2,editable/05-scenes/dialogue-4/130.png,dialogue_3_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-4,第 4 關劇情角色,0x83,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_83,03:61cf,editable/05-scenes/dialogue-4/131.png,dialogue_3_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-4,第 4 關劇情角色,0x84,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_84,03:61f0,editable/05-scenes/dialogue-4/132.png,dialogue_3_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-4,第 4 關劇情角色,0x85,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_85,03:6211,editable/05-scenes/dialogue-4/133.png,dialogue_3_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-4,第 4 關劇情角色,0x86,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_86,03:622a,editable/05-scenes/dialogue-4/134.png,dialogue_3_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-4,第 4 關劇情角色,0x87,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_87,03:6243,editable/05-scenes/dialogue-4/135.png,dialogue_3_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-4,第 4 關劇情角色,0x88,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_88,03:6260,editable/05-scenes/dialogue-4/136.png,dialogue_3_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-4,第 4 關劇情角色,0x89,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_89,03:6279,editable/05-scenes/dialogue-4/137.png,dialogue_3_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-4,第 4 關劇情角色,0x8a,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_8a,03:6292,editable/05-scenes/dialogue-4/138.png,dialogue_3_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-4,第 4 關劇情角色,0x8b,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_8b,03:62ab,editable/05-scenes/dialogue-4/139.png,dialogue_3_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-4,第 4 關劇情角色,0x8c,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_8c,03:62c8,editable/05-scenes/dialogue-4/140.png,dialogue_3_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-4,第 4 關劇情角色,0x8d,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_8d,03:62e1,editable/05-scenes/dialogue-4/141.png,dialogue_3_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-4,第 4 關劇情角色,0x8e,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_8e,03:62fa,editable/05-scenes/dialogue-4/142.png,dialogue_3_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-4,第 4 關劇情角色,0x8f,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_8f,03:6313,editable/05-scenes/dialogue-4/143.png,dialogue_3_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-4,第 4 關劇情角色,0x90,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_90,03:6330,editable/05-scenes/dialogue-4/144.png,dialogue_3_objects,gfx/compressed/b06_7700.png
+05-scenes/dialogue-4,第 4 關劇情角色,0x91,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_91,03:6355,editable/05-scenes/dialogue-4/145.png,dialogue_3_objects,gfx/compressed/b06_7700.png|gfx/compressed/b06_7e13.png
+05-scenes/dialogue-4,第 4 關劇情角色,0x92,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_92,03:6382,editable/05-scenes/dialogue-4/146.png,dialogue_3_objects,gfx/compressed/b06_7e13.png
+05-scenes/dialogue-4,第 4 關劇情角色,0x93,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_93,03:63a3,editable/05-scenes/dialogue-4/147.png,dialogue_3_objects,gfx/compressed/b06_7e13.png
+05-scenes/dialogue-4,第 4 關劇情角色,0x94,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_94,03:63c4,editable/05-scenes/dialogue-4/148.png,dialogue_3_objects,gfx/compressed/b06_7e13.png
+05-scenes/dialogue-4,第 4 關劇情角色,0x95,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_95,03:63e5,editable/05-scenes/dialogue-4/149.png,dialogue_3_objects,gfx/compressed/b06_7e13.png
+05-scenes/dialogue-4,第 4 關劇情角色,0x96,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_96,03:6406,editable/05-scenes/dialogue-4/150.png,dialogue_3_objects,gfx/compressed/b06_7e13.png
+05-scenes/dialogue-4,第 4 關劇情角色,0x97,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_97,03:643b,editable/05-scenes/dialogue-4/151.png,dialogue_3_objects,gfx/compressed/b06_7e13.png
+05-scenes/dialogue-4,第 4 關劇情角色,0x98,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_98,03:6480,editable/05-scenes/dialogue-4/152.png,dialogue_3_objects,gfx/compressed/b06_7e13.png
+05-scenes/dialogue-4,第 4 關劇情角色,0x99,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_99,03:64c5,editable/05-scenes/dialogue-4/153.png,dialogue_3_objects,gfx/compressed/b06_7e13.png|zero
+05-scenes/dialogue-4,第 4 關劇情角色,0x9a,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_9a,03:6506,editable/05-scenes/dialogue-4/154.png,dialogue_3_objects,gfx/compressed/b06_7e13.png
+05-scenes/dialogue-4,第 4 關劇情角色,0x9b,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_9b,03:653b,editable/05-scenes/dialogue-4/155.png,dialogue_3_objects,gfx/compressed/b06_7e13.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x1a,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_1a,03:6905,editable/06-minigames/bug-hunt/026.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x1b,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_1b,03:6932,editable/06-minigames/bug-hunt/027.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x1c,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_1c,03:695f,editable/06-minigames/bug-hunt/028.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x1d,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_1d,03:6978,editable/06-minigames/bug-hunt/029.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x1e,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_1e,03:69a1,editable/06-minigames/bug-hunt/030.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x1f,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_1f,03:69ce,editable/06-minigames/bug-hunt/031.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x20,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_20,03:69f7,editable/06-minigames/bug-hunt/032.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x21,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_21,03:6a24,editable/06-minigames/bug-hunt/033.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x22,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_22,03:6a45,editable/06-minigames/bug-hunt/034.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x23,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_23,03:6a72,editable/06-minigames/bug-hunt/035.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x24,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_24,03:6a9f,editable/06-minigames/bug-hunt/036.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x25,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_25,03:6ab8,editable/06-minigames/bug-hunt/037.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x26,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_26,03:6ae5,editable/06-minigames/bug-hunt/038.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x27,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_27,03:6afe,editable/06-minigames/bug-hunt/039.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x28,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_28,03:6b17,editable/06-minigames/bug-hunt/040.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x29,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_29,03:6b30,editable/06-minigames/bug-hunt/041.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x2a,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_2a,03:6b49,editable/06-minigames/bug-hunt/042.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x2b,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_2b,03:6b62,editable/06-minigames/bug-hunt/043.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x2c,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_2c,03:6b7b,editable/06-minigames/bug-hunt/044.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x2d,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_2d,03:6b8c,editable/06-minigames/bug-hunt/045.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x2e,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_2e,03:6b95,editable/06-minigames/bug-hunt/046.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x2f,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_2f,03:6b9e,editable/06-minigames/bug-hunt/047.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x30,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_30,03:6ba7,editable/06-minigames/bug-hunt/048.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x31,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_31,03:6bb0,editable/06-minigames/bug-hunt/049.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x32,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_32,03:6bb9,editable/06-minigames/bug-hunt/050.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x33,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_33,03:6bc6,editable/06-minigames/bug-hunt/051.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x34,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_34,03:6bd7,editable/06-minigames/bug-hunt/052.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x35,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_35,03:6be0,editable/06-minigames/bug-hunt/053.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x36,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_36,03:6bf1,editable/06-minigames/bug-hunt/054.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x37,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_37,03:6c02,editable/06-minigames/bug-hunt/055.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x38,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_38,03:6c0f,editable/06-minigames/bug-hunt/056.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x39,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_39,03:6c1c,editable/06-minigames/bug-hunt/057.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x3a,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_3a,03:6c35,editable/06-minigames/bug-hunt/058.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x3b,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_3b,03:6c46,editable/06-minigames/bug-hunt/059.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x3c,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_3c,03:6c57,editable/06-minigames/bug-hunt/060.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x3d,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_3d,03:6c68,editable/06-minigames/bug-hunt/061.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x3e,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_3e,03:6c79,editable/06-minigames/bug-hunt/062.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x3f,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_3f,03:6c92,editable/06-minigames/bug-hunt/063.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x40,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_40,03:6cab,editable/06-minigames/bug-hunt/064.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x41,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_41,03:6cc4,editable/06-minigames/bug-hunt/065.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x42,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_42,03:6cd9,editable/06-minigames/bug-hunt/066.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x43,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_43,03:6cf2,editable/06-minigames/bug-hunt/067.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x44,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_44,03:6d0b,editable/06-minigames/bug-hunt/068.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x45,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_45,03:6d1c,editable/06-minigames/bug-hunt/069.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x46,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_46,03:6d2d,editable/06-minigames/bug-hunt/070.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x47,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_47,03:6d46,editable/06-minigames/bug-hunt/071.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x48,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_48,03:6d5f,editable/06-minigames/bug-hunt/072.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x49,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_49,03:6d78,editable/06-minigames/bug-hunt/073.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x4a,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_4a,03:6d8d,editable/06-minigames/bug-hunt/074.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x4b,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_4b,03:6da6,editable/06-minigames/bug-hunt/075.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x4c,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_4c,03:6dbf,editable/06-minigames/bug-hunt/076.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x4d,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_4d,03:6dd0,editable/06-minigames/bug-hunt/077.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x4e,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_4e,03:6dd9,editable/06-minigames/bug-hunt/078.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x4f,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_4f,03:6de2,editable/06-minigames/bug-hunt/079.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x50,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_50,03:6df3,editable/06-minigames/bug-hunt/080.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x51,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_51,03:6e04,editable/06-minigames/bug-hunt/081.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x52,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_52,03:6e15,editable/06-minigames/bug-hunt/082.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/bug-hunt,捕蟲角色與昆蟲,0x53,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_53,03:6e2e,editable/06-minigames/bug-hunt/083.png,bug_hunt_objects,gfx/compressed/b06_5851.png
+06-minigames/mekemeke,メケメケ角色與敵人,0x60,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_60,03:6606,editable/06-minigames/mekemeke/096.png,mekemeke_objects,gfx/compressed/b06_6839.png
+06-minigames/mekemeke,メケメケ角色與敵人,0x61,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_61,03:662b,editable/06-minigames/mekemeke/097.png,mekemeke_objects,gfx/compressed/b06_6839.png
+06-minigames/mekemeke,メケメケ角色與敵人,0x62,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_62,03:6650,editable/06-minigames/mekemeke/098.png,mekemeke_objects,gfx/compressed/b06_6839.png
+06-minigames/mekemeke,メケメケ角色與敵人,0x63,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_63,03:6655,editable/06-minigames/mekemeke/099.png,mekemeke_objects,gfx/compressed/b06_6839.png
+06-minigames/mekemeke,メケメケ角色與敵人,0x64,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_64,03:6676,editable/06-minigames/mekemeke/100.png,mekemeke_objects,gfx/compressed/b06_6839.png
+06-minigames/mekemeke,メケメケ角色與敵人,0x65,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_65,03:6697,editable/06-minigames/mekemeke/101.png,mekemeke_objects,gfx/compressed/b06_6839.png
+06-minigames/mekemeke,メケメケ角色與敵人,0x66,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_66,03:66bc,editable/06-minigames/mekemeke/102.png,mekemeke_objects,gfx/compressed/b06_6839.png
+06-minigames/mekemeke,メケメケ角色與敵人,0x67,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_67,03:66e9,editable/06-minigames/mekemeke/103.png,mekemeke_objects,gfx/compressed/b06_6839.png
+06-minigames/mekemeke,メケメケ角色與敵人,0x68,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_68,03:670e,editable/06-minigames/mekemeke/104.png,mekemeke_objects,gfx/compressed/b06_6839.png
+06-minigames/mekemeke,メケメケ角色與敵人,0x69,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_69,03:672f,editable/06-minigames/mekemeke/105.png,mekemeke_objects,gfx/compressed/b06_6839.png
+06-minigames/mekemeke,メケメケ角色與敵人,0x6a,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_6a,03:6748,editable/06-minigames/mekemeke/106.png,mekemeke_objects,gfx/compressed/b06_6839.png
+06-minigames/mekemeke,メケメケ角色與敵人,0x6b,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_6b,03:6761,editable/06-minigames/mekemeke/107.png,mekemeke_objects,gfx/compressed/b06_6839.png
+06-minigames/mekemeke,メケメケ角色與敵人,0x6c,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_6c,03:677a,editable/06-minigames/mekemeke/108.png,mekemeke_objects,gfx/compressed/b06_6839.png
+06-minigames/mekemeke,メケメケ角色與敵人,0x6d,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_6d,03:6793,editable/06-minigames/mekemeke/109.png,mekemeke_objects,gfx/compressed/b06_6839.png
+06-minigames/mekemeke,メケメケ角色與敵人,0x6e,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_6e,03:67ac,editable/06-minigames/mekemeke/110.png,mekemeke_objects,gfx/compressed/b06_6839.png
+06-minigames/mekemeke,メケメケ角色與敵人,0x6f,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_6f,03:67c5,editable/06-minigames/mekemeke/111.png,mekemeke_objects,gfx/compressed/b06_6839.png
+06-minigames/mekemeke,メケメケ角色與敵人,0x70,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_70,03:67de,editable/06-minigames/mekemeke/112.png,mekemeke_objects,gfx/compressed/b06_6839.png
+06-minigames/mekemeke,メケメケ角色與敵人,0x71,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_71,03:67f7,editable/06-minigames/mekemeke/113.png,mekemeke_objects,gfx/compressed/b06_6839.png
+06-minigames/mekemeke,メケメケ角色與敵人,0x72,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_72,03:6810,editable/06-minigames/mekemeke/114.png,mekemeke_objects,gfx/compressed/b06_6839.png
+06-minigames/mekemeke,メケメケ角色與敵人,0x73,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_73,03:6815,editable/06-minigames/mekemeke/115.png,mekemeke_objects,gfx/compressed/b06_6839.png
+06-minigames/mekemeke,メケメケ角色與敵人,0x74,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_74,03:682e,editable/06-minigames/mekemeke/116.png,mekemeke_objects,gfx/compressed/b06_6839.png
+06-minigames/mekemeke,メケメケ角色與敵人,0x75,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_75,03:6847,editable/06-minigames/mekemeke/117.png,mekemeke_objects,gfx/compressed/b06_6839.png
+06-minigames/mekemeke,メケメケ角色與敵人,0x76,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_76,03:6860,editable/06-minigames/mekemeke/118.png,mekemeke_objects,gfx/compressed/b06_6839.png
+06-minigames/mekemeke,メケメケ角色與敵人,0x77,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_77,03:6871,editable/06-minigames/mekemeke/119.png,mekemeke_objects,gfx/compressed/b06_6839.png
+06-minigames/mekemeke,メケメケ角色與敵人,0x78,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_78,03:6892,editable/06-minigames/mekemeke/120.png,mekemeke_objects,gfx/compressed/b06_6839.png
+06-minigames/mekemeke,メケメケ角色與敵人,0x79,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_79,03:68b3,editable/06-minigames/mekemeke/121.png,mekemeke_objects,gfx/compressed/b06_6839.png
+06-minigames/mekemeke,メケメケ角色與敵人,0x7a,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_7a,03:68d8,editable/06-minigames/mekemeke/122.png,mekemeke_objects,gfx/compressed/b06_6839.png
+06-minigames/mekemeke,メケメケ角色與敵人,0x7b,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_7b,03:60fb,editable/06-minigames/mekemeke/123.png,mekemeke_objects,gfx/compressed/b06_6839.png
+06-minigames/slide-jump,滑水角色與效果,0x9c,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_9c,03:736d,editable/06-minigames/slide-jump/156.png,slide_jump_objects,gfx/compressed/b05_7481.png
+06-minigames/slide-jump,滑水角色與效果,0x9d,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_9d,03:73a6,editable/06-minigames/slide-jump/157.png,slide_jump_objects,gfx/compressed/b05_7481.png
+06-minigames/slide-jump,滑水角色與效果,0x9e,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_9e,03:73df,editable/06-minigames/slide-jump/158.png,slide_jump_objects,gfx/compressed/b05_7481.png
+06-minigames/slide-jump,滑水角色與效果,0x9f,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_9f,03:741c,editable/06-minigames/slide-jump/159.png,slide_jump_objects,gfx/compressed/b05_7481.png
+06-minigames/slide-jump,滑水角色與效果,0xa0,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_a0,03:744d,editable/06-minigames/slide-jump/160.png,slide_jump_objects,gfx/compressed/b05_7481.png
+06-minigames/slide-jump,滑水角色與效果,0xa1,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_a1,03:747e,editable/06-minigames/slide-jump/161.png,slide_jump_objects,gfx/compressed/b05_7481.png
+06-minigames/slide-jump,滑水角色與效果,0xa2,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_a2,03:74af,editable/06-minigames/slide-jump/162.png,slide_jump_objects,gfx/compressed/b05_7481.png
+06-minigames/slide-jump,滑水角色與效果,0xa3,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_a3,03:74f0,editable/06-minigames/slide-jump/163.png,slide_jump_objects,gfx/compressed/b05_7481.png
+06-minigames/slide-jump,滑水角色與效果,0xa4,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_a4,03:7531,editable/06-minigames/slide-jump/164.png,slide_jump_objects,gfx/compressed/b05_7481.png
+06-minigames/slide-jump,滑水角色與效果,0xa5,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_a5,03:7572,editable/06-minigames/slide-jump/165.png,slide_jump_objects,gfx/compressed/b05_7481.png
+06-minigames/slide-jump,滑水角色與效果,0xa6,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_a6,03:75b3,editable/06-minigames/slide-jump/166.png,slide_jump_objects,gfx/compressed/b05_7481.png
+06-minigames/slide-jump,滑水角色與效果,0xa7,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_a7,03:75d4,editable/06-minigames/slide-jump/167.png,slide_jump_objects,gfx/compressed/b05_7481.png
+06-minigames/slide-jump,滑水角色與效果,0xa8,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_a8,03:75f9,editable/06-minigames/slide-jump/168.png,slide_jump_objects,gfx/compressed/b05_7481.png
+06-minigames/slide-jump,滑水角色與效果,0xa9,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_a9,03:761a,editable/06-minigames/slide-jump/169.png,slide_jump_objects,gfx/compressed/b05_7481.png
+06-minigames/slide-jump,滑水角色與效果,0xaa,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_aa,03:763b,editable/06-minigames/slide-jump/170.png,slide_jump_objects,gfx/compressed/b05_7481.png
+06-minigames/slide-jump,滑水角色與效果,0xab,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_ab,03:765c,editable/06-minigames/slide-jump/171.png,slide_jump_objects,gfx/compressed/b05_7481.png
+06-minigames/slide-jump,滑水角色與效果,0xac,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_ac,03:7679,editable/06-minigames/slide-jump/172.png,slide_jump_objects,gfx/compressed/b05_7481.png
+06-minigames/slide-jump,滑水角色與效果,0xad,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_ad,03:7692,editable/06-minigames/slide-jump/173.png,slide_jump_objects,gfx/compressed/b05_7481.png
+06-minigames/slide-jump,滑水角色與效果,0xae,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_ae,03:76a3,editable/06-minigames/slide-jump/174.png,slide_jump_objects,gfx/compressed/b05_7481.png
+06-minigames/slide-jump,滑水角色與效果,0xaf,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_af,03:76bc,editable/06-minigames/slide-jump/175.png,slide_jump_objects,gfx/compressed/b05_7481.png
+06-minigames/slide-jump,滑水角色與效果,0xb0,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_b0,03:76cd,editable/06-minigames/slide-jump/176.png,slide_jump_objects,gfx/compressed/b05_7481.png
+07-ending/cast,一般片尾全體角色,0xb3,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_b3,03:77d4,editable/07-ending/cast/179.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xb4,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_b4,03:77e9,editable/07-ending/cast/180.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xb5,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_b5,03:7802,editable/07-ending/cast/181.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xb6,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_b6,03:781b,editable/07-ending/cast/182.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xb7,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_b7,03:7834,editable/07-ending/cast/183.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xb8,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_b8,03:784d,editable/07-ending/cast/184.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xb9,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_b9,03:7866,editable/07-ending/cast/185.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xba,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_ba,03:787f,editable/07-ending/cast/186.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xbb,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_bb,03:7898,editable/07-ending/cast/187.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xbc,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_bc,03:78b5,editable/07-ending/cast/188.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xbd,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_bd,03:78d6,editable/07-ending/cast/189.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xbe,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_be,03:78f7,editable/07-ending/cast/190.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xbf,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_bf,03:7918,editable/07-ending/cast/191.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xc0,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_c0,03:7931,editable/07-ending/cast/192.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xc1,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_c1,03:794a,editable/07-ending/cast/193.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xc2,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_c2,03:7963,editable/07-ending/cast/194.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xc3,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_c3,03:797c,editable/07-ending/cast/195.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xc4,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_c4,03:7995,editable/07-ending/cast/196.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xc5,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_c5,03:79ae,editable/07-ending/cast/197.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xc6,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_c6,03:79c7,editable/07-ending/cast/198.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xc7,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_c7,03:79dc,editable/07-ending/cast/199.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xc8,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_c8,03:79f5,editable/07-ending/cast/200.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xc9,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_c9,03:7a0e,editable/07-ending/cast/201.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xca,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_ca,03:7a2b,editable/07-ending/cast/202.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xcb,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_cb,03:7a48,editable/07-ending/cast/203.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xcc,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_cc,03:7a65,editable/07-ending/cast/204.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xcd,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_cd,03:7a82,editable/07-ending/cast/205.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xce,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_ce,03:7a9f,editable/07-ending/cast/206.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xcf,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_cf,03:7abc,editable/07-ending/cast/207.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xd0,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_d0,03:7add,editable/07-ending/cast/208.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xd1,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_d1,03:7afe,editable/07-ending/cast/209.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xd2,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_d1,03:7afe,editable/07-ending/cast/210.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xd3,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_d3,03:7b1f,editable/07-ending/cast/211.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xd4,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_d4,03:7b3c,editable/07-ending/cast/212.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xd5,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_d5,03:7b5d,editable/07-ending/cast/213.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xd6,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_d6,03:7b7e,editable/07-ending/cast/214.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xd7,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_d7,03:7ba7,editable/07-ending/cast/215.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xd8,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_d8,03:7bd0,editable/07-ending/cast/216.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xd9,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_d9,03:7bf9,editable/07-ending/cast/217.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xda,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_da,03:7c22,editable/07-ending/cast/218.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xdb,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_db,03:7c4b,editable/07-ending/cast/219.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xdc,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_dc,03:7c74,editable/07-ending/cast/220.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xdd,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_dd,03:7c91,editable/07-ending/cast/221.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xde,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_de,03:7cae,editable/07-ending/cast/222.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xdf,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_df,03:7ccf,editable/07-ending/cast/223.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xe0,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_e0,03:7cf0,editable/07-ending/cast/224.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xe1,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_e1,03:7d09,editable/07-ending/cast/225.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xe2,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_e2,03:7d26,editable/07-ending/cast/226.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xe3,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_e3,03:7d43,editable/07-ending/cast/227.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xe4,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_e4,03:7d64,editable/07-ending/cast/228.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/cast,一般片尾全體角色,0xe5,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_e5,03:7d85,editable/07-ending/cast/229.png,ending_objects,gfx/compressed/b06_7099.png
+07-ending/scrolling,捲動片尾與粒子,0xe6,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_e6,03:7da6,editable/07-ending/scrolling/230.png,scrolling_ending_objects,gfx/compressed/b02_7b8e.png
+07-ending/scrolling,捲動片尾與粒子,0xe7,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_e7,03:7ddb,editable/07-ending/scrolling/231.png,scrolling_ending_objects,gfx/compressed/b02_7b8e.png
+07-ending/scrolling,捲動片尾與粒子,0xe8,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_e8,03:7e14,editable/07-ending/scrolling/232.png,scrolling_ending_objects,gfx/compressed/b02_7b8e.png
+07-ending/scrolling,捲動片尾與粒子,0xe9,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_e9,03:7e49,editable/07-ending/scrolling/233.png,scrolling_ending_objects,gfx/compressed/b02_7b8e.png
+07-ending/scrolling,捲動片尾與粒子,0xea,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_ea,03:7e92,editable/07-ending/scrolling/234.png,scrolling_ending_objects,gfx/compressed/b02_7b8e.png
+07-ending/scrolling,捲動片尾與粒子,0xeb,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_eb,03:7edb,editable/07-ending/scrolling/235.png,scrolling_ending_objects,gfx/compressed/b02_7b8e.png
+07-ending/scrolling,捲動片尾與粒子,0xec,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_ec,03:7f24,editable/07-ending/scrolling/236.png,scrolling_ending_objects,gfx/compressed/b02_7b8e.png
+07-ending/scrolling,捲動片尾與粒子,0xed,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_ed,03:7f41,editable/07-ending/scrolling/237.png,scrolling_ending_objects,gfx/compressed/b02_7b8e.png
+07-ending/scrolling,捲動片尾與粒子,0xee,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_ee,03:7f62,editable/07-ending/scrolling/238.png,scrolling_ending_objects,gfx/compressed/b02_7b8e.png
+07-ending/scrolling,捲動片尾與粒子,0xef,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_ef,03:7f87,editable/07-ending/scrolling/239.png,scrolling_ending_objects,gfx/compressed/b02_7b8e.png
+07-ending/scrolling,捲動片尾與粒子,0xf0,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_f0,03:7f8c,editable/07-ending/scrolling/240.png,scrolling_ending_objects,gfx/compressed/b02_7b8e.png
+07-ending/scrolling,捲動片尾與粒子,0xf1,scene_frames,metasprite,Bank3MetaspritePtrTable,UiMetasprite_f1,03:7f95,editable/07-ending/scrolling/241.png,scrolling_ending_objects,gfx/compressed/b02_7b8e.png
