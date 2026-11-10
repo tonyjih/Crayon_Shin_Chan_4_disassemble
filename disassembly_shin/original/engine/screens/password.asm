@@ -1,5 +1,9 @@
 DEF PASSWORD_INDEX_TURBO_FIRST EQU $07
 DEF PASSWORD_INDEX_SCENE_TEST  EQU $0b
+; Password-screen tiles loaded at VRAM $8900. The header uses a separate accent row.
+DEF PASSWORD_ACCENT_BLANK      EQU $92
+DEF PASSWORD_ACCENT_DAKUTEN    EQU $9a
+DEF PASSWORD_ACCENT_HANDAKUTEN EQU $9b
 
 InitPasswordScreen::
 ; Initialize the kana grid and the two ten-byte password input rows.
@@ -406,7 +410,7 @@ PasswordSelect_ReadKanaAndDiacritic::
     ld e, $00
 
 PasswordSelect_CheckEmptyDiacriticTile::
-    cp $92
+    cp PASSWORD_ACCENT_BLANK
     jr nz, PasswordSelect_StoreKanaPair
 
     ld e, $00
@@ -502,33 +506,49 @@ PasswordInput_DismissErrorMessage:: ; Clear the password error message when A is
     ret
 
 
-    db $43, $65, $57, $7a, $7e, $45, $5f, $45, $15, $32, $13, $7e, $7e, $42, $ff
+UnusedPasswordScreenMessage::
+; Native text stream retained at 02:46a4. No normal reader has been found.
+    text "パスワードがめえーーん"
+    done
 
 PasswordGridCursorMetasprite::
-; Indexed screen data; scene-specific interpretation is documented at its consumer.
+; Single OBJ for the grid cursor: Y, X, tile, flags, terminator.
     db $41, $07, $b2, $10, $80
 
 PasswordInputCursorMetasprite::
-; Indexed screen data; scene-specific interpretation is documented at its consumer.
+; Single OBJ for the input-slot cursor.
     db $20, $20, $b1, $10, $80
 
 PasswordPromptTiles::
-; Indexed screen data; scene-specific interpretation is documented at its consumer.
-    db $9b, $92, $92, $92, $9a, $92, $92, $92, $9a, $92, $65, $57, $7a, $7e, $5f, $11
-    db $37, $37, $2a, $7f
+; パスワードいれれば？. Each header is 10 accent tiles followed by 10 base glyph tiles.
+    db PASSWORD_ACCENT_HANDAKUTEN
+    ds 3, PASSWORD_ACCENT_BLANK
+    db PASSWORD_ACCENT_DAKUTEN
+    ds 3, PASSWORD_ACCENT_BLANK
+    db PASSWORD_ACCENT_DAKUTEN, PASSWORD_ACCENT_BLANK
+    text "ハスワートいれれは？"
+    ASSERT @ - PasswordPromptTiles == PASSWORD_CODE_SIZE
 
 PasswordAcceptedTiles::
-; Indexed screen data; scene-specific interpretation is documented at its consumer.
-    db $92, $92, $9a, $92, $92, $92, $92, $92, $92, $92, $11, $17, $59, $7d, $00, $56
-    db $79, $7d, $00, $00
+; いくゾ！ シロ！
+    ds 2, PASSWORD_ACCENT_BLANK
+    db PASSWORD_ACCENT_DAKUTEN
+    ds 7, PASSWORD_ACCENT_BLANK
+    text "いくソ！ シロ！  "
+    ASSERT @ - PasswordAcceptedTiles == PASSWORD_CODE_SIZE
 
 PasswordErrorTiles::
-; Indexed screen data; scene-specific interpretation is documented at its consumer.
-    db $92, $92, $9a, $92, $92, $92, $9a, $92, $92, $92, $20, $44
+; ち・が・う・ゾー
+    ds 2, PASSWORD_ACCENT_BLANK
+    db PASSWORD_ACCENT_DAKUTEN
+    ds 3, PASSWORD_ACCENT_BLANK
+    db PASSWORD_ACCENT_DAKUTEN
+    ds 3, PASSWORD_ACCENT_BLANK
+    text "ち．か．う．ソー  "
+    ASSERT @ - PasswordErrorTiles == PASSWORD_CODE_SIZE
 
-PasswordErrorTilesTail::
-; Part of the error text row. The dialogue lookup starts one password record before PasswordCodeTable.
-    db $15, $44, $12, $44, $59, $7e, $00, $00
+; After the first two base glyphs. The stage-dialogue lookup advances before reading.
+DEF PasswordErrorTilesTail EQU PasswordErrorTiles + PASSWORD_CODE_WIDTH + 2
 
 ; Preserve the original spellings and match order. Both tables use this list.
 MACRO password_codes
@@ -555,6 +575,7 @@ PasswordCodeLengths::
     ASSERT @ - PasswordCodeLengths == PASSWORD_CODE_COUNT
 
 PasswordCodeTable::
+    ASSERT PasswordErrorTilesTail == PasswordCodeTable - PASSWORD_CODE_SIZE
     password_codes password_code
     ASSERT @ - PasswordCodeTable == PASSWORD_CODE_COUNT * PASSWORD_CODE_SIZE
     ASSERT PasswordCode_ShinchanTurbo - PasswordCodeTable == PASSWORD_INDEX_TURBO_FIRST * PASSWORD_CODE_SIZE

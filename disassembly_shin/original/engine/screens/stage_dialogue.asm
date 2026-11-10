@@ -385,7 +385,7 @@ StartNextStageDialogueMessage::
 StageDialogue_PreparePasswordLine::
     ld a, $e0
     ld [wMessageFlags], a
-    ld hl, PasswordCodeTable - PASSWORD_CODE_SIZE
+    ld hl, PasswordErrorTilesTail
     ld a, [wStageSceneIndex]
     srl a
     inc a

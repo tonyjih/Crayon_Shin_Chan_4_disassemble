@@ -65,6 +65,20 @@ DE 保存請求 `$08` 和兩倍關卡編號供開場對話使用。Turbo 同時�
 兩種機型都操作了四列的預設值。畫面上的「かいわ」開關卡對話、「デモ」開關卡標題卡、「エンディング」開片尾，
 「セレクトデモ」帶指定體力進 BONUS。
 
+### 密碼畫面文字
+
+`02:46a4` 的 `UnusedPasswordScreenMessage` 是一般訊息格式的「パスワードがめえーーん」。
+`$43`、`$45` 在假名前加半濁音、濁音，`$ff` 結束訊息。沒找到 bank 2 的引用，
+SameBoy DMG、SGB 在密碼輸入、錯誤提示、清除提示和接受密碼時也沒有讀取這段。
+
+密碼畫面上方的三段提示由 `QueueTilemapRect` 上傳。每段有 10 個上排標記和 10 個下排字形，
+上排用 `$92` 表示無標記、`$9a` 表示濁音、`$9b` 表示半濁音。
+`PasswordErrorTiles` 顯示「ち・が・う・ゾー」，清除錯誤後 `PasswordPromptTiles` 顯示「パスワードいれれば？」，
+`PasswordAcceptedTiles` 顯示「いくゾ！ シロ！」。初次開啟密碼畫面時，提示來自 `maps/password.bin`，
+原版此時用平假名「ぱすわーど」。相鄰的兩筆 cursor 資料各是一個 OAM 部件。
+
+`PasswordErrorTilesTail` 是 `02:46f1` 的位址別名。過關對話從這裡起算，先往後移一筆再讀密碼。
+
 ### 接關請求 07
 
 正常耗盡殘機時，DMG 在 `01:57be` 執行 `PlayerDeath_EnterGameOver`，再進 `02:6ac5` 更新接關畫面。
