@@ -19,7 +19,7 @@ GfxRle_b06_4bc0::
 
 
 LayoutRle_b06_501e::
-; Source: maps/title.bin (rleff, 360 decoded bytes).
+; Source: maps/title.asm (assembled to 360 bytes, then compressed with RLEFF).
     INCBIN "assets/b06_501e.bin"
 
 

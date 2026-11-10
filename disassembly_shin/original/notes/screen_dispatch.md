@@ -36,6 +36,17 @@ DMG、SGB 從標題打贏第 1～3 輪。第 4 輪等障礙命中、恢復並超
 | `RequestStateChange_Menu` | 請求 0～6、8、9 能追到直接呼叫或保存後重播的請求碼。請求 7 的表項 `RequestState_EnterContinueScreen` 未找到正常傳入的 B，也未找到會被重播成 7 的保存請求。 |
 | `InitCurrentGameState`、`UpdateCurrentGameState` | 原版 release 保留狀態 1 的 `EnterDebugMenu`，但未找到呼叫端。DEBUG 測試版在遊玩中用 SELECT + START 開啟選單。狀態 7 有正常寫入，學校關換區的 `01:514b` 會設定它，`00:097d` 接手淡出及重載。DMG 從學校關入口快照回放換區按鍵，觀察到 2 → 7 → 2。 |
 
+### 標題 tilemap
+
+[maps/title.asm](../maps/title.asm) 產生標題的 20×18 tilemap。副標題「ーオラのいたずらだいへんしんー」
+以完整假名存放，組譯時拆成上排濁音和下排字形。「１９９４」也使用共用字型。
+主標誌、右側的數字 4 和底部版權字樣由 `b06_4001.png` 的圖塊組成，依顯示內容分段。
+中央空白區上方另由 OAM 繪製角色。主選單和小遊戲選單開啟時才分別繪製 `Message_0D_MainMenu`、
+`Message_0E_MinigameMenu`，覆蓋底部版權列。
+
+建置產生 `build/original/assets/b06_501e.tilemap`，逐 byte 核對 SDL3 匯出使用的 `maps/title.bin`
+相容副本，再用原版 RLEFF 壓回 ROM。
+
 ### 密碼目的地
 
 SameBoy 1.0.5 的 DMG、SGB 都從標題以方向鍵和 A 輸入 12 組原版密碼，再按 START 送出。

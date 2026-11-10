@@ -554,7 +554,8 @@
       "stored_size": 166,
       "decoded_size": 360,
       "codec": "rleff",
-      "source": "maps/title.bin"
+      "source": "maps/title.bin",
+      "assembly_source": "maps/title.asm"
     },
     {
       "id": "b06_50c4",
