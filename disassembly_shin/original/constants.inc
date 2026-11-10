@@ -1,5 +1,6 @@
 ; Shared original hardware, gameplay and screen constants.
 ; Aliases at the same address are intentional when work RAM has multiple owners.
+; See ram/shared_memory.md for the state dispatch and alias lifetimes.
 
 DEF wScreenPaletteId EQU $d933
 DEF wFadeTransitionTimer EQU $d95c
@@ -118,8 +119,8 @@ DEF wCameraScrollYMaxHi          EQU $c41b
 ; Scroll-streaming scratch in HRAM. These remember the last streamed tile row/column.
 DEF hStreamedColumnX             EQU $ff97
 DEF hStreamedRowY                EQU $ff98
-DEF hTileStreamWritePos          EQU $ffc9
-DEF hTileStreamCount             EQU $ffcb
+DEF hTileStreamWritePos          EQU $ffc9 ; Shared scratch, including tile streaming and RLEFF.
+DEF hTileStreamCount             EQU $ffcb ; Tile streaming count or stage-dialogue advance scratch.
 
 ; Stage layout/map runtime buffers.
 DEF wStageTileAttrTable       EQU $c700 ; 256-byte tile/metatile collision/attribute lookup.
@@ -262,6 +263,7 @@ DEF PlayerState_StageInteraction0D    EQU $0d; special/stage interaction state
 ; Bank 2 password/menu work variables identified during password cleanup.
 ; Keep these guarded so the names can later move to the global WRAM alias block.
 IF !DEF(wPasswordInputTopRow)
+; State 0, substate 1. The scene test reuses $d940-$d943 in substate 4.
 DEF wPasswordInputTopRow    EQU $d940 ; 10 bytes: modifiers/diacritics for password entry.
 DEF wPasswordInputBottomRow EQU $d94a ; 10 bytes: base kana tile IDs for password entry.
 DEF wPasswordCursorCol      EQU $d93a
@@ -291,6 +293,7 @@ DEF wDebugSoundIndex                 EQU $c0da ; Index into DebugMenuSoundDispat
 DEF wScreenSubstate                  EQU $d93d ; Shared per-screen dispatch selector; meaning depends on hGameState.
 DEF wScreenFrameCounter              EQU $d954 ; Shared primary frame counter; reset when screen phases change.
 DEF wScreenPhaseCounter              EQU $d955 ; Shared secondary animation/delay counter.
+; Shared scene animation slots at $d800. Dialogue uses three, main ending uses four.
 DEF wSceneAnim0PtrLo                 EQU $d800 ; First scene animation state: script pointer low.
 DEF wSceneAnim0PtrHi                 EQU $d801 ; First scene animation script pointer high.
 DEF wSceneAnim0Timer                 EQU $d802 ; First animation duration; bit 7 selects facing.
@@ -425,12 +428,12 @@ DEF wStage1ClearedMetatileTiles        EQU $da00 ; Four tile IDs used after clea
 DEF wSequentialTilemapBuffer           EQU $da80 ; 16-byte scratch for the unused sequential 4x4 tilemap helper.
 DEF wMessageLineBuffer         EQU $c820 ; Temporary base-glyph line inside the shared map buffer.
 
-; State-4 stage dialogue overlay; minigame states give the same bytes other meanings.
+; State 4, substate 3: stage dialogue script and actor selectors.
 DEF wStageDialogueScriptPtrLo EQU $d80c
 DEF wStageDialogueScriptPtrHi EQU $d80d
 DEF wStageDialogueAnimSelectors EQU $d80e ; Three animation selectors, one per dialogue actor slot.
 
-; State-4 continue and dialogue overlays. Other screens reuse these addresses.
+; State 4, substate 1: continue overlay. $d93b changes role when the actor starts moving.
 DEF wContinueActorX                   EQU $d93a
 DEF wContinueFacingCache              EQU $d93b ; Idle phase compares bit 7 with the current animation facing.
 DEF wContinueActorXSubpixel           EQU $d93b ; Once moving, the same byte is the fractional X accumulator.
@@ -443,6 +446,7 @@ DEF wContinueExitActorX               EQU $d97b
 DEF wContinueExitActorXSubpixel       EQU $d97c
 DEF wContinueMotionPtrLo              EQU $d97d ; Pointer to the active velocity delta byte.
 DEF wContinueMotionPtrHi              EQU $d97e
+; State 4, substate 3: dialogue overlay.
 DEF wStageDialogueAdvanceStep         EQU $d93c ; Nonzero while erasing text rows before the next message.
 DEF wStageDialogueHighlightApplied    EQU $d956 ; SGB scene patch has been applied once.
 DEF hStageDialogueSpeakerMask         EQU $ffca ; Speaker marker bits also index the SGB attribute data.
@@ -458,7 +462,7 @@ DEF wSceneTestLastEditedValue EQU $d93a ; Copy of the displayed value. No scene-
 DEF wBonusActorX             EQU $d93a
 DEF wBonusDestination        EQU $d93b ; Station selector, also passed to the instruction/hint screen.
 DEF wBonusBlinkCounter       EQU $d93c ; Border sprite offsets or instruction advance marker.
-DEF wBonusRewardChoiceDelay  EQU $d956
+DEF wBonusRewardChoiceDelay  EQU $d956 ; State 3, mode 0, substate 6.
 DEF wBonusReturnRequest      EQU $d960 ; Saved request type, compared with the scene-test return selector.
 DEF wBonusMinigameRounds     EQU $d961 ; Three per-station round numbers for bonus play.
 DEF wBonusInstructionPending EQU $d964 ; Three flags cleared the first time each instruction is shown.
@@ -487,7 +491,7 @@ DEF wSlideEffectActive      EQU $d824 ; Animation slot 1 is active at the ramp o
 DEF wSlideEffectXLo         EQU $d825
 DEF wSlideEffectXHi         EQU $d826
 DEF wSlideEffectY           EQU $d827
-DEF wSlideLandingFrame      EQU $d956 ; Selects the alternating ground arrival metasprite.
+DEF wSlideLandingFrame      EQU $d956 ; State 3, mode 3: alternating ground arrival metasprite.
 DEF wSlideActorScreenX      EQU $d97b ; Saved projected X for the result animation.
 DEF hSlidePlatformDrawPtrLo EQU $ffca ; Backtracked record used to highlight a platform during bounce.
 DEF hSlidePlatformDrawPtrHi EQU $ffcb

@@ -1219,14 +1219,7 @@ DEF FARCALL_BANK3_INIT_BORDER                    EQU $030a
 DEF FARCALL_BANK3_UPDATE_BORDER_COLOR                    EQU $030c
 
 UpdateCurrentGameState:: ; Per-frame state dispatcher, called from VBlank after input/sound.
-; hGameState update map, current understanding:
-;   0 -> bank 2 title/menu update
-;   1 -> debug menu update
-;   2 -> bank 1 gameplay update
-;   3 -> bank 2 screen/update path
-;   4 -> bank 2 screen/update path
-;   5 -> bank 2 screen/update path
-;   6 -> pause-ish handler: wait for START, then return to gameplay
+; See ram/shared_memory.md for the substate dispatch and shared RAM overlays.
     ldh a, [hGameState]
     rst $00
 
@@ -1234,11 +1227,11 @@ UpdateCurrentGameState:: ; Per-frame state dispatcher, called from VBlank after 
     dw UpdateGameState_TitleMenu ; 00: bank 2 title/menu update
     dw UpdateGameState_DebugMenu ; 01: debug menu update
     dw UpdateGameState_Gameplay ; 02: bank 1 gameplay update
-    dw UpdateGameState_Bank2Screen0 ; 03: bank 2 screen/update path
-    dw UpdateGameState_Bank2Screen1 ; 04: bank 2 screen/update path
-    dw UpdateGameState_Bank2Screen2 ; 05: bank 2 screen/update path
-    dw UpdateGameState_Pause ; 06: pause-ish handler
-    dw UpdateGameState_FadeReturn ; 07: unused/variant update path
+    dw UpdateGameState_Bank2Screen0 ; 03: bonus stage and minigames
+    dw UpdateGameState_Bank2Screen1 ; 04: stage transition, continue, story and dialogue
+    dw UpdateGameState_Bank2Screen2 ; 05: ending
+    dw UpdateGameState_Pause ; 06: wait for START to resume gameplay
+    dw UpdateGameState_FadeReturn ; 07: fade back to gameplay
     dw UpdateGameState_Tutorial ; 08: tutorial demo
 
 UpdateGameState_TitleMenu::
@@ -1286,7 +1279,7 @@ UpdateGameState_Pause::
     bit 3, a
     ret z
 
-	; hGameState == 07
+    ; Resume state 2 after START.
     ld a, $e4
     ld [wPaletteBGP], a
     ld a, $02

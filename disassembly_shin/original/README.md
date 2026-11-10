@@ -10,7 +10,8 @@ MD5  = BCB3D47C291FD0A26B2C7B1082C3AD88
 在專案根目錄執行 `make check-original` 或 `python -B tools/build_original.py`。
 `original/` 是來源；`build/original/` 全部都是可刪除、可重新產生的輸出。
 
-程式用途、共用記憶體與尚未確認的 label，見 [symbol 整理紀錄](notes/symbol_cleanup.md)。
+共用 WRAM／HRAM 欄位的生效狀態見 [共用 RAM 對照](ram/shared_memory.md)。
+程式用途與尚未確認的 label 見 [symbol 整理紀錄](notes/symbol_cleanup.md)。
 硬體、WRAM／HRAM、畫面及音效引擎的共用常數在 `constants.inc`；
 stage object 的儲存區與欄位定義在 `ram/objects.asm`。
 
