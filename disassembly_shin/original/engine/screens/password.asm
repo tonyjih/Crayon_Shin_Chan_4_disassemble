@@ -1,3 +1,6 @@
+DEF PASSWORD_INDEX_TURBO_FIRST EQU $07
+DEF PASSWORD_INDEX_SCENE_TEST  EQU $0b
+
 InitPasswordScreen::
 ; Initialize the kana grid and the two ten-byte password input rows.
     ld a, BANK(Gfx_b06_50c4)
@@ -95,47 +98,51 @@ PasswordAccepted_DrawCharactersAndFade::
 
 PasswordAccepted_DispatchMatchedCode::
     ld a, [wPasswordMatchIndex]
-    cp $0b
-    jr nz, PasswordAccepted_CheckSpecialCodes
+    cp PASSWORD_INDEX_SCENE_TEST
+    jr nz, PasswordAccepted_CheckTurboCode
 
-    ld bc, $0400
+    ; かみしばい goes straight to the scene-test menu without writing either mode flag.
+    ld bc, MENU_REQUEST_SCENE_TEST << 8
     ld de, $0000
     jp RequestStateChange_Menu
 
 
-PasswordAccepted_CheckSpecialCodes::
-    cp $07
-    jr c, PasswordAccepted_SetAlternateStageFlags
+PasswordAccepted_CheckTurboCode::
+    cp PASSWORD_INDEX_TURBO_FIRST
+    jr c, PasswordAccepted_SelectRoundStage
 
-    sub $07
+    sub PASSWORD_INDEX_TURBO_FIRST ; Four Turbo entries in stage order, from picnic to Guam.
     ld b, a
-    ld a, $04
+    ASSERT SECOND_ROUND_MODE_FLAG == TURBO_MODE_FLAG
+    ld a, TURBO_MODE_FLAG ; Both fields receive the same $04.
     ld [wAlternateModeFlags], a
     ld [wSpecialModeFlags], a
     ld a, b
-    jr PasswordAccepted_RequestStageStart
+    jr PasswordAccepted_RequestStageIntro
 
-PasswordAccepted_SetAlternateStageFlags::
+PasswordAccepted_SelectRoundStage::
+    ; Index + 1 packs the stage in bits 0-1 and the second-round flag in bit 2.
     xor a
     ld [wSpecialModeFlags], a
     ld a, [wPasswordMatchIndex]
     inc a
-    bit 2, a
-    ld a, $04
-    jr nz, PasswordAccepted_StoreAlternateFlags
+    bit SECOND_ROUND_MODE_BIT, a
+    ld a, SECOND_ROUND_MODE_FLAG
+    jr nz, PasswordAccepted_StoreRoundFlag
 
     xor a
 
-PasswordAccepted_StoreAlternateFlags::
+PasswordAccepted_StoreRoundFlag::
     ld [wAlternateModeFlags], a
     ld a, [wPasswordMatchIndex]
     inc a
     and $03
 
-PasswordAccepted_RequestStageStart::
-    ld b, $06
+PasswordAccepted_RequestStageIntro::
+    ; C selects the title card. DE saves the opening dialogue request for after the story.
+    ld b, MENU_REQUEST_STAGE_INTRO
     ld c, a
-    ld d, $08
+    ld d, MENU_REQUEST_STAGE_DIALOGUE
     ld a, c
     sla a
     ld e, a
@@ -525,17 +532,21 @@ PasswordErrorTilesTail::
 
 ; Preserve the original spellings and match order. Both tables use this list.
 MACRO password_codes
+    ; First round starts with the school code. Start from the main menu for first-round picnic.
     \1 PasswordCode_WagamamaDanaa,   "わがままだなあ"
     \1 PasswordCode_TamanegiTabereru, "たまねぎたべれる"
     \1 PasswordCode_Wahahahaha,      "わははははわはははは"
+    ; Second round, ordered from picnic to Guam.
     \1 PasswordCode_Obenkidene,      "おべんきでね"
     \1 PasswordCode_KetsudakeSeijin, "けつだけせいじん"
     \1 PasswordCode_ActionBeam,     "あくしょんびいむ"
     \1 PasswordCode_ZousanZousan,    "ぞおさんぞおさん"
+    ; Turbo uses the second-round stages plus the Turbo movement flag.
     \1 PasswordCode_ShinchanTurbo,  "しんちゃんたあぼ"
     \1 PasswordCode_BuriburiZaemon,  "ぶりぶりざえもん"
     \1 PasswordCode_NasuNoOshinko,   "なすのおしんこ"
     \1 PasswordCode_ArigatoGozamasu, "ありがとござますう"
+    ; Scene-test menu.
     \1 PasswordCode_Kamishibai,     "かみしばい"
 ENDM
 
@@ -546,4 +557,6 @@ PasswordCodeLengths::
 PasswordCodeTable::
     password_codes password_code
     ASSERT @ - PasswordCodeTable == PASSWORD_CODE_COUNT * PASSWORD_CODE_SIZE
+    ASSERT PasswordCode_ShinchanTurbo - PasswordCodeTable == PASSWORD_INDEX_TURBO_FIRST * PASSWORD_CODE_SIZE
+    ASSERT PasswordCode_Kamishibai - PasswordCodeTable == PASSWORD_INDEX_SCENE_TEST * PASSWORD_CODE_SIZE
 PURGE password_codes

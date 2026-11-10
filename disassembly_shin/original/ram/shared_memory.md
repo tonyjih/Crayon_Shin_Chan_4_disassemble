@@ -67,7 +67,7 @@ BONUS 的入口與結算寫入見 [子狀態追蹤](../notes/symbol_cleanup.md#b
 | `$d93a` | **0／子狀態 1** `wPasswordCursorCol`。**0／4** `wSceneTestLastEditedValue` 保存當次改動值，目前只找到寫入。**4／1** `wContinueActorX`。**3／模式 0** `wBonusActorX`。 |
 | `$d93b` | **0／1** `wPasswordInputIndex`。**4／1** 選擇階段用 `wContinueFacingCache` 比對角色朝向，接受接關或離場時移動的主角改用同一 byte 作 `wContinueActorXSubpixel`。**3／模式 0** `wBonusDestination` 選目的地站點，也傳給說明畫面。 |
 | `$d93c` | **0／1** `wPasswordCursorRow`。**0／0、4** `wMenuCursorRow`。**4／1** `wContinueChoice` 的 bit 0 選接關或離開。**4／3** `wStageDialogueAdvanceStep` 逐列清除舊文字。**3／模式 0** `wBonusBlinkCounter` 用於邊框 sprite 與說明畫面進度。 |
-| `$d940–$d953` | **0／1** `wPasswordInputTopRow`、`wPasswordInputBottomRow` 各 10 bytes，前列是濁音等修飾，後列是基本假名 tile。**0／4** `wSceneTestValues` 重用起頭四個 bytes（`$d940–$d943`），依序選關卡對話、密碼結果、片尾、BONUS 生命值。 |
+| `$d940–$d953` | **0／1** `wPasswordInputTopRow`、`wPasswordInputBottomRow` 各 10 bytes，前列是濁音等修飾，後列是基本假名 tile。**0／4** `wSceneTestValues` 重用起頭四個 bytes（`$d940–$d943`），依序選關卡對話、關卡標題卡、片尾、BONUS 生命值。 |
 | `$d956` | **4／1** `wContinueGameOverDelay` 在接關選擇階段且接關數歸零時計時。**4／3** `wStageDialogueHighlightApplied` 記錄 SGB 場景 patch 已套用。 |
 | `$d956` | **3／模式 0、子狀態 6** `wBonusRewardChoiceDelay` 控制變身獎勵選擇。**3／模式 2、子狀態 2** `wBugPlayerBlinkTimer` 控制受擊閃爍和無敵時間。**3／模式 3** `wSlideLandingFrame` 選落地圖格。 |
 | `$d956` | **5／主片尾、子狀態 6** `wEndingSceneDelay` 等待下一個 cue。**5／捲動畫面** `wEndingSecondaryOffset` 是第二角色的位移。**8** `wTutorialMessageIndex` 選下一段教學訊息。 |

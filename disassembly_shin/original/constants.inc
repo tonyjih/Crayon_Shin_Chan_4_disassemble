@@ -294,6 +294,13 @@ DEF wDebugCursorRow                  EQU $c0d8 ; DEBUG menu row 0-6.
 DEF wDebugMusicIndex                 EQU $c0d9 ; Index into DebugMenuMusicIdTable, not a raw sound ID.
 DEF wDebugSoundIndex                 EQU $c0da ; Index into DebugMenuSoundDispatchTable.
 DEF wScreenSubstate                  EQU $d93d ; Shared per-screen dispatch selector; meaning depends on hGameState.
+DEF TITLE_SUBSTATE_SCENE_TEST        EQU $04
+
+; RequestStateChange_Menu selectors used by the password and scene-test routes.
+DEF MENU_REQUEST_SCENE_TEST          EQU $04
+DEF MENU_REQUEST_STAGE_INTRO         EQU $06
+DEF MENU_REQUEST_STAGE_DIALOGUE      EQU $08
+
 DEF wScreenFrameCounter              EQU $d954 ; Shared primary frame counter; reset when screen phases change.
 DEF wScreenPhaseCounter              EQU $d955 ; Shared secondary animation/delay counter.
 ; Shared scene animation slots at $d800. Dialogue uses three, main ending uses four.
@@ -321,9 +328,12 @@ DEF wMessageCharDelay                EQU $d982 ; Current typewriter delay countd
 DEF wTitleSavedMainCursor            EQU $d983 ; Last selection in the title main menu.
 DEF wTitleSavedMinigameCursor        EQU $d984 ; Last selection in the title minigame menu.
 DEF wSgbPalSetPacket                 EQU $d985 ; 16-byte PAL_SET command assembled from the screen profile.
-DEF wSgbBorderColorMode              EQU $dffc ; 0=default, 1=alternate flag, 2=special flag; selects SGB border color tables.
-DEF wSpecialModeFlags                EQU $dffd ; Persistent special-mode flag; takes precedence in the border palette selector.
-DEF wAlternateModeFlags              EQU $dffe ; Persistent alternate-stage/mode flags; DEBUG uses bit 2.
+DEF wSgbBorderColorMode              EQU $dffc ; SGB border color table: 0=first round, 1=second round, 2=Turbo.
+DEF wSpecialModeFlags                EQU $dffd ; Turbo flag; also selects the SGB Turbo border and ending hint.
+DEF wAlternateModeFlags              EQU $dffe ; Second-round flag, also used as a stage-table offset.
+DEF SECOND_ROUND_MODE_BIT            EQU 2
+DEF SECOND_ROUND_MODE_FLAG           EQU 1 << SECOND_ROUND_MODE_BIT
+DEF TURBO_MODE_FLAG                  EQU $04
 DEF hObjectScreenX                   EQU $ffd3 ; Current object screen X, produced from its world X.
 DEF hObjectScreenY                   EQU $ffd4 ; Current object screen Y, produced from its world Y.
 DEF hObjectOffscreen                 EQU $ffd5 ; Nonzero when the current object fails the viewport checks.
@@ -460,7 +470,7 @@ DEF hMenuCursorDestLo        EQU $ffca
 DEF hMenuCursorDestHi        EQU $ffcb
 DEF hBonusRoundTierScratch   EQU $ffca ; Bonus substate 7 tier byte, overwritten before any read in traced paths.
 DEF hMinigameTimerTiles      EQU $ffc9 ; Three digit tiles assembled for the countdown HUD.
-DEF wSceneTestValues         EQU $d940 ; Stage dialogue, password result, ending, and bonus health test values.
+DEF wSceneTestValues         EQU $d940 ; Stage dialogue, stage intro, ending, and bonus health test values.
 DEF wSceneTestLastEditedValue EQU $d93a ; Copy of the displayed value. No scene-test reader confirmed.
 DEF wBonusActorX             EQU $d93a
 DEF wBonusDestination        EQU $d93b ; Station selector, also passed to the instruction/hint screen.

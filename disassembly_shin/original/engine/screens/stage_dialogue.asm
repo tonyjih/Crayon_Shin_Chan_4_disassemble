@@ -584,7 +584,7 @@ StageScene_AdvanceOrResumeGameplay::
     ld [wMessageState], a
     ld [wVramQueue], a
     ld a, [wStateChangeParamHi]
-    cp $04
+    cp MENU_REQUEST_SCENE_TEST
     jp z, RequestSavedMenuDestination
 
     ld a, [wStageSceneIndex]

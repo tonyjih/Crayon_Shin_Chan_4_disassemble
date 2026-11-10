@@ -16,7 +16,7 @@ InitTitleOrPasswordScreen::
     xor a
     ldh [hNeedsReset], a
     ld a, [wScreenSubstate]
-    cp $04
+    cp TITLE_SUBSTATE_SCENE_TEST
     jp z, InitSceneTestMenu
 
     or a
@@ -211,12 +211,12 @@ TitleMenu_HandleMainSelection::
     or a
     jr z, TitleMenu_StartNewGame
 
-    ld a, $04
+    ld a, SECOND_ROUND_MODE_FLAG
     ld [wAlternateModeFlags], a
 
 TitleMenu_StartNewGame::
-    ld bc, $0600 ; constant, not a ROM0 CopyTilemapRowToVram_Loop pointer
-    ld de, $0800
+    ld bc, MENU_REQUEST_STAGE_INTRO << 8
+    ld de, MENU_REQUEST_STAGE_DIALOGUE << 8
     jp RequestStateChange_Menu
 
 

@@ -113,28 +113,25 @@ SceneTest_DispatchConfirmedRow::
     ld a, [wMenuCursorRow]
     rst $00
 SceneTestConfirmHandlers::
-    dw SceneTest_OpenStageScene ; $00
-    dw SceneTest_OpenPasswordResult ; $01
-    dw SceneTest_OpenEnding ; $02
-    dw SceneTest_StartBonusWithHealth ; $03
+    dw SceneTest_OpenStageDialogue ; $00, かいわ
+    dw SceneTest_OpenStageIntro ; $01, デモ
+    dw SceneTest_OpenEnding ; $02, エンディング
+    dw SceneTest_StartBonusWithHealth ; $03, セレクトデモ
 
-SceneTest_OpenPasswordResult::
-; Request selector 6: password/result menu with row 1 argument.
-    ld b, $06
+SceneTest_OpenStageIntro::
+    ld b, MENU_REQUEST_STAGE_INTRO
     ld a, [wSceneTestValues + 1]
 
-
     ld c, a
-    ld de, $0400
+    ld de, MENU_REQUEST_SCENE_TEST << 8
     jp RequestStateChange_Menu
 
 
-SceneTest_OpenStageScene::
-; Request selector 8: state 4 submode from row 0.
+SceneTest_OpenStageDialogue::
     ld a, [wSceneTestValues]
     ld c, a
-    ld b, $08
-    ld de, $0400
+    ld b, MENU_REQUEST_STAGE_DIALOGUE
+    ld de, MENU_REQUEST_SCENE_TEST << 8
     jp RequestStateChange_Menu
 
 
@@ -143,7 +140,7 @@ SceneTest_OpenEnding::
     ld b, $09
     ld a, [wSceneTestValues + 2]
     ld c, a
-    ld de, $0400
+    ld de, MENU_REQUEST_SCENE_TEST << 8
     jp RequestStateChange_Menu
 
 
@@ -153,7 +150,7 @@ SceneTest_StartBonusWithHealth::
     inc a
     ldh [hPlayerHealth], a
     ld bc, $0100
-    ld de, $0400
+    ld de, MENU_REQUEST_SCENE_TEST << 8
     jp RequestStateChange_Menu
 
 

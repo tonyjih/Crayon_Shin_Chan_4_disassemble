@@ -17,11 +17,11 @@ RequestStateChange_Menu:: ; Menu/screen transition helper. Sets hNeedsReset and 
     dw RequestState_EnterBonusSubstate      ; 01
     dw RequestState_OpenMinigameInstructions ; 02
     dw RequestState_StartSelectedMinigame ; 03
-    dw RequestState_TitleSubstate4           ; 04
+    dw RequestState_OpenSceneTest           ; 04
     dw RequestState_TitleSubstate1           ; 05
-    dw RequestState_PasswordResultMenu       ; 06: password-derived destination.
+    dw RequestState_OpenStageIntro          ; 06
     dw RequestState_EnterContinueScreen      ; 07, no request from the normal paths
-    dw RequestState_GotoGameState4Submode    ; 08
+    dw RequestState_OpenStageDialogue       ; 08
     dw RequestState_GotoGameState5           ; 09
 
 RequestSavedMenuDestination::
@@ -78,10 +78,10 @@ RequestState_StartSelectedMinigame::
     ret
 
 
-RequestState_TitleSubstate4::
+RequestState_OpenSceneTest:: ; Title state, scene-test substate.
     ld a, $00
     ldh [hGameState], a
-    ld a, $04
+    ld a, TITLE_SUBSTATE_SCENE_TEST
     ld [wScreenSubstate], a
     ret
 
@@ -92,7 +92,7 @@ RequestState_TitleSubstate1::
     ret
 
 
-RequestState_PasswordResultMenu::
+RequestState_OpenStageIntro:: ; C = stage index for the title card.
     ld a, $04
     ldh [hGameState], a
     ld a, c
@@ -111,7 +111,7 @@ RequestState_EnterContinueScreen::
     ret
 
 
-RequestState_GotoGameState4Submode::
+RequestState_OpenStageDialogue:: ; C = opening or clear dialogue index.
     ld a, $04
     ldh [hGameState], a
     ld a, c
