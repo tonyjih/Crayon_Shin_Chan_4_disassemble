@@ -139,7 +139,8 @@
       "stored_size": 208,
       "decoded_size": 360,
       "codec": "rleff",
-      "source": "maps/password.bin"
+      "source": "maps/password.bin",
+      "assembly_source": "maps/password.asm"
     },
     {
       "id": "b02_7b8e",

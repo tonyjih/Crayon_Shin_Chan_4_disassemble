@@ -1,9 +1,5 @@
 DEF PASSWORD_INDEX_TURBO_FIRST EQU $07
 DEF PASSWORD_INDEX_SCENE_TEST  EQU $0b
-; Password-screen tiles loaded at VRAM $8900. The header uses a separate accent row.
-DEF PASSWORD_ACCENT_BLANK      EQU $92
-DEF PASSWORD_ACCENT_DAKUTEN    EQU $9a
-DEF PASSWORD_ACCENT_HANDAKUTEN EQU $9b
 
 InitPasswordScreen::
 ; Initialize the kana grid and the two ten-byte password input rows.

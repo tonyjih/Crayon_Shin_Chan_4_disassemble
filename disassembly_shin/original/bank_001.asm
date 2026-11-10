@@ -49,7 +49,7 @@ INCLUDE "data/tutorial_demo.asm"
 
 PasswordScreenLayoutRle_Bank1::
 LayoutRle_b01_7e7c::
-; Source: maps/password.bin (rleff, 360 decoded bytes).
+; Source: maps/password.asm (assembled to 360 bytes, then compressed with RLEFF).
     INCBIN "assets/b01_7e7c.bin"
 
 

@@ -108,10 +108,19 @@ def assemble(assets: list[dict], output: Path, *, test_rom: bool, debug: bool = 
     rgbgfx = rgbds["rgbgfx"]
     asm_flags = ["-D", "DEBUG=1"] if debug else []
     for asset in assets:
-        path = SOURCE / asset["source"]
+        path = SOURCE / asset.get("assembly_source", asset["source"])
         target = output / "assets" / (asset["id"] + ".bin")
         target.parent.mkdir(parents=True, exist_ok=True)
-        if path.suffix == ".png":
+        if "assembly_source" in asset:
+            source_obj = output / (asset["id"] + ".o")
+            raw_path = target.with_suffix(".tilemap")
+            run([rgbds["rgbasm"], "-o", str(source_obj), str(path)])
+            run([rgbds["rgblink"], "-x", "-o", str(raw_path), str(source_obj)])
+            raw = raw_path.read_bytes()
+            reference = SOURCE / asset["source"]
+            if not test_rom and raw != reference.read_bytes():
+                raise ValueError(f"{path}: assembled tilemap differs from {reference}")
+        elif path.suffix == ".png":
             raw_path = target.with_suffix(".2bpp" if asset["bpp"] == 2 else ".1bpp")
             run([rgbgfx, "--colors", "embedded", "-d", str(asset["bpp"]),
                  "-o", str(raw_path), str(path)])

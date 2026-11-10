@@ -74,8 +74,10 @@ SameBoy DMG、SGB 在密碼輸入、錯誤提示、清除提示和接受密碼�
 密碼畫面上方的三段提示由 `QueueTilemapRect` 上傳。每段有 10 個上排標記和 10 個下排字形，
 上排用 `$92` 表示無標記、`$9a` 表示濁音、`$9b` 表示半濁音。
 `PasswordErrorTiles` 顯示「ち・が・う・ゾー」，清除錯誤後 `PasswordPromptTiles` 顯示「パスワードいれれば？」，
-`PasswordAcceptedTiles` 顯示「いくゾ！ シロ！」。初次開啟密碼畫面時，提示來自 `maps/password.bin`，
-原版此時用平假名「ぱすわーど」。相鄰的兩筆 cursor 資料各是一個 OAM 部件。
+`PasswordAcceptedTiles` 顯示「いくゾ！ シロ！」。初始畫面的平假名提示「ぱすわーどいれれば？」和選字格
+位於 [maps/password.asm](../maps/password.asm)。每列可見假名會組譯成上排標記和下排字形。
+建置先產生 360 bytes 的 `build/original/assets/b01_7e7c.tilemap`，核對 SDL3 匯出器使用的
+`maps/password.bin` 相容副本後，再用原版 RLEFF 壓回 ROM。相鄰的兩筆 cursor 資料各是一個 OAM 部件。
 
 `PasswordErrorTilesTail` 是 `02:46f1` 的位址別名。過關對話從這裡起算，先往後移一筆再讀密碼。
 
