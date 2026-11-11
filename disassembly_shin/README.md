@@ -26,6 +26,14 @@ python -B tools/build_original.py
 並檢查 ROM 大小、資產尺寸和壓縮往返。BONUS 角色圖 `b06_5334.png` 的壓縮長度變動時可自動搬移。
 各 bank 空間和搬移範圍見 [測試 ROM 配置](original/notes/test_rom_layout.md)。
 
+## SGB 配色 GBC 版
+
+執行 `make gbc-rom` 或 `python -B tools/build_original.py --gbc-rom`。
+輸出為 `build/gbc-rom/game.gbc`（256 KiB），並附 `game.sym` 和 `game.map`。
+同一份 ROM 在 GB 使用原版灰階，在 SGB 使用原版配色和邊框，在 GBC 使用原生色盤。
+GBC 沿用原版 SGB 的色值、畫面分區、淡入淡出與閃色。跨越分區的 sprite 依中心點選色。
+GBC 的對話、關卡標題、小遊戲說明和片尾提示畫面保留角色周圍的花紋背景，背景與角色分別選色。
+
 需要 Python 3.10+ 和 RGBDS **1.0.1**；版本記在 `.rgbds-version`。
 工具會先在專案上一層找 RGBDS，再找 PATH。Windows 會優先找 `.exe`，Linux／macOS 會找無副檔名的程式。
 建置前會核對四個工具的版本；版本不符、混用版本或工具無法執行時會停止，尚未開始產生資產。
@@ -67,6 +75,6 @@ Windows 基準使用 Pillow 的 zlib-ng 1.3.1，WSL 基準使用 zlib 1.2.11。
 
 ## 分支與來源
 
-`master` 保存原版 matching disassembly；彩色化工作位於 `DX` 分支。
+`master` 保存原版 matching disassembly 與 SGB 配色 GBC 建置。自訂彩色化工作位於 `DX` 分支。
 此分支的 release 建置只讀取 `original/`，根目錄早期 bank、Tiled 與工具資料保留供歷史工作流程參考。
 本次 symbol 整理與仍待確認的用途見 [整理紀錄](original/notes/symbol_cleanup.md)。

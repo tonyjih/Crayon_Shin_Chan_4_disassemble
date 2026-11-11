@@ -24,8 +24,13 @@ InitStageIntroScreen::
     ld a, $14
     call PlaySound_Queue3
     ld a, [wSgbEnabled]
+IF DEF(SGB_GBC)
+    rlca
+    jr nc, StageIntro_LoadScreenGraphics
+ELSE
     or a
     jr z, StageIntro_LoadScreenGraphics
+ENDC
 
     call DelayFramesOrCycles
     ld hl, SgbPacket_StageIntroSetAttributeFile
@@ -89,8 +94,13 @@ StageIntro_LoadScreenGraphics::
     ld a, $05
     ld [wScreenPaletteId], a
     ld a, [wSgbEnabled]
+IF DEF(SGB_GBC)
+    rlca
+    ret nc
+ELSE
     or a
     ret z
+ENDC
 
     call ApplyLCDC
     call DelayFramesOrCycles

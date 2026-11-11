@@ -206,8 +206,13 @@ MinigameRound_StartNext::
 ClearSgbTilemapStencil16x7::
 ; SGB only: seven little-endian 16-bit masks; clear tiles selected by each mask, row stride 32.
     ld a, [wSgbEnabled]
+IF DEF(SGB_GBC)
+    rlca
+    ret nc
+ELSE
     or a
     ret z
+ENDC
 
     ld b, $07
 

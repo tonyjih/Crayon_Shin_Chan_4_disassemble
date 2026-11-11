@@ -267,6 +267,71 @@ StageDialogue_QueueTextEraseRow::
 
 
 UpdateStageDialogueHighlights::
+IF DEF(SGB_GBC)
+    ld a, [wSgbEnabled]
+    or a
+    ret z
+    ld a, [wStageDialogueHighlightApplied]
+    or a
+    ret nz
+    ld a, [wStageSceneIndex]
+    cp $07
+    jr nz, .hiddenActor
+    ld a, [wStageDialogueAnimSelectors]
+    cp $7f
+    jr z, .hiddenActor
+    ld hl, SgbPacket_DialogueFinalSceneHighlight
+    call SendSgbPacket
+    ld hl, StageDialogueFinalSceneVramQueue
+    ld b, SgbPacket_DialogueHighlight_00 - StageDialogueFinalSceneVramQueue - 1
+    jr .background
+.hiddenActor
+    ld hl, StageDialogueHiddenActorSlots
+    ld a, [wStageSceneIndex]
+    rst $38
+    ld a, [hl]
+    bit 7, a
+    ret nz
+    ld b, a
+    ld hl, wStageDialogueAnimSelectors
+    rst $38
+    ld a, [hl]
+    cp $7f
+    ret nz
+    ld a, b
+    push af
+    ld hl, StageDialogueSgbPacketPointers
+    rst $20
+    call SendSgbPacket
+    pop af
+    ld hl, StageDialogueVramQueuePointers
+    push af
+    rst $20
+    pop af
+    ld b, StageDialogueVramQueue_01 - StageDialogueVramQueue_00 - 1
+    or a
+    jr z, .background
+    ld b, StageDialogueFinalSceneVramQueue - StageDialogueVramQueue_01 - 1
+.background
+    ; Physical SGB also changes backdrop tiles when an actor appears or leaves.
+    call IsCgbColorMode
+    jr z, .applied
+    ld a, b
+    push af
+    call GetVramQueueTailDE
+    call CopyBytesWithBCount
+    xor a
+    ld [de], a
+    pop af
+    ld hl, hVramQueuePos
+    add [hl]
+    ld [hl], a
+.applied
+    ld a, $01
+    ld [wStageDialogueHighlightApplied], a
+    ret
+    ds $6f1e - @, $ff
+ELSE
     ld a, [wSgbEnabled]
     or a
     ret z
@@ -347,6 +412,7 @@ StageDialogue_CopyActorHighlightQueue::
     ret
 
 
+ENDC
 StartNextStageDialogueMessage::
 ; Consume one five-byte dialogue record and optional FE control-write descriptor.
     xor a

@@ -78,8 +78,13 @@ Bonus_InitInstructionBackground::
     ld bc, $0c0d
     call DrawTilemapBox
     ld a, [wSgbEnabled]
+IF DEF(SGB_GBC)
+    rlca
+    jr nc, Bonus_SetInstructionPalette
+ELSE
     or a
     jr z, Bonus_SetInstructionPalette
+ENDC
 
     ld hl, wStageLayoutMap
     ld bc, $0010

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the original ROM, a test ROM, or a DEBUG ROM from original/."""
+"""Build the original, test, DEBUG, or SGB-colored GBC ROM from original/."""
 from __future__ import annotations
 
 import argparse
@@ -24,6 +24,7 @@ SOURCE = ROOT / "original"
 OUTPUT = ROOT / "build" / "original"
 TEST_OUTPUT = ROOT / "build" / "test-rom"
 DEBUG_OUTPUT = ROOT / "build" / "debug-rom"
+GBC_OUTPUT = ROOT / "build" / "gbc-rom"
 
 
 def tool(name: str) -> str:
@@ -106,10 +107,13 @@ def pack_spawns(path: Path) -> bytes:
                     for kind, x, y, param in read_spawns(path)) + b"\xff"
 
 
-def assemble(assets: list[dict], output: Path, *, test_rom: bool, debug: bool = False) -> None:
+def assemble(assets: list[dict], output: Path, *, test_rom: bool, debug: bool = False,
+             gbc: bool = False) -> None:
     rgbds = rgbds_tools()
     rgbgfx = rgbds["rgbgfx"]
     asm_flags = ["-D", "DEBUG=1"] if debug else []
+    if gbc:
+        asm_flags.extend(["-D", "SGB_GBC=1"])
     for asset in assets:
         path = SOURCE / asset.get("assembly_source", asset["source"])
         target = output / "assets" / (asset["id"] + ".bin")
@@ -161,34 +165,38 @@ def assemble(assets: list[dict], output: Path, *, test_rom: bool, debug: bool = 
             else:
                 raise ValueError(f"{path}: compressed size changed; fixed ROM layout needs updating")
         target.write_bytes(packed)
-    obj, rom = output / "game.o", output / "game.gb"
+    obj, rom = output / "game.o", output / ("game.gbc" if gbc else "game.gb")
     run([rgbds["rgbasm"], *asm_flags, "-I", str(output), "-o", str(obj), "game.asm"])
     run([rgbds["rgblink"], "-n", str(output / "game.sym"), "-m", str(output / "game.map"),
          "-o", str(rom), str(obj)])
     run([rgbds["rgbfix"], "-v", "-p", "255", str(rom)])
 
 
-def build(output: Path = OUTPUT, *, verify_original: bool = True, debug: bool = False) -> str:
+def build(output: Path = OUTPUT, *, verify_original: bool = True, debug: bool = False,
+          gbc: bool = False) -> str:
     manifest = json.loads((SOURCE / "assets.json").read_text(encoding="utf-8"))
     output.mkdir(parents=True, exist_ok=True)
     with TemporaryDirectory(dir=output) as directory:
         work = Path(directory)
-        assemble(manifest["assets"], work, test_rom=not verify_original, debug=debug)
-        data = (work / "game.gb").read_bytes()
+        assemble(manifest["assets"], work, test_rom=not verify_original, debug=debug, gbc=gbc)
+        rom_name = "game.gbc" if gbc else "game.gb"
+        data = (work / rom_name).read_bytes()
         digest = hashlib.md5(data).hexdigest().upper()
-        if len(data) != 131072 or (verify_original and digest != manifest["rom_md5"]):
+        if len(data) != (262144 if gbc else 131072) or (verify_original and digest != manifest["rom_md5"]):
             raise ValueError(f"ROM verification failed: size={len(data)}, MD5={digest}")
+        if gbc and (data[0x143], data[0x146], data[0x148], data[0x14b]) != (0x80, 3, 3, 0x33):
+            raise ValueError("GBC ROM verification failed: unexpected cartridge header")
 
         # Publish the ROM after verification, leaving the previous result usable on build failure.
         (output / "assets").mkdir(exist_ok=True)
         for path in (work / "assets").iterdir():
             path.replace(output / "assets" / path.name)
-        for name in ("game.o", "game.sym", "game.map", "game.gb"):
+        for name in ("game.o", "game.sym", "game.map", rom_name):
             (work / name).replace(output / name)
 
     print(f"Built {len(manifest['assets'])} assets and the native audio sources.")
-    kind = "ROM" if verify_original else "Test ROM"
-    print(f"{kind}: {output / 'game.gb'}")
+    kind = "GBC ROM" if gbc else "ROM" if verify_original else "Test ROM"
+    print(f"{kind}: {output / rom_name}")
     print(f"MD5 = {digest}")
     return digest
 
@@ -200,9 +208,13 @@ def main() -> int:
                       help="build in build/test-rom/ without requiring the original MD5")
     mode.add_argument("--debug-rom", action="store_true",
                       help="build in build/debug-rom/ with the in-game DEBUG shortcut")
+    mode.add_argument("--gbc-rom", action="store_true",
+                      help="build in build/gbc-rom/ with the original SGB colors on GBC")
     parser.add_argument("--clean", action="store_true", help="remove the selected build directory")
     args = parser.parse_args()
-    if args.debug_rom:
+    if args.gbc_rom:
+        output = GBC_OUTPUT
+    elif args.debug_rom:
         output = DEBUG_OUTPUT
     else:
         output = TEST_OUTPUT if args.test_rom else OUTPUT
@@ -216,7 +228,8 @@ def main() -> int:
                 shutil.rmtree(output)
             print(f"Removed generated build/{output.name}/ files.")
         else:
-            build(output, verify_original=not (args.test_rom or args.debug_rom), debug=args.debug_rom)
+            build(output, verify_original=not (args.test_rom or args.debug_rom or args.gbc_rom),
+                  debug=args.debug_rom, gbc=args.gbc_rom)
     except (OSError, ValueError, RuntimeError) as error:
         parser.exit(1, f"{error}\n")
     return 0

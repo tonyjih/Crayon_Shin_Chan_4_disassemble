@@ -19,3 +19,6 @@ INCLUDE "bank_004.asm"
 INCLUDE "bank_005.asm"
 INCLUDE "bank_006.asm"
 INCLUDE "bank_007.asm"
+IF DEF(SGB_GBC)
+    INCLUDE "engine/video/sgb_gbc.asm"
+ENDC

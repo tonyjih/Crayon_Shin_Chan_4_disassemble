@@ -7,7 +7,9 @@ DEF wFadeTransitionTimer EQU $d95c
 DEF wMsgSubstitutionId     EQU $d971
 
 DEF wCgbEnabled EQU $dff7
+; Nonzero enables SGB screen effects. Bit 7 identifies physical SGB hardware.
 DEF wSgbEnabled EQU $dff8
+DEF SGB_EFFECTS_ON_CGB EQU $01
 ; Hardware / memory aliases identified during cleanup pass 1.
 ; Keep these conservative: names below are based on direct register usage in bank 0.
 DEF hJoyHeld       EQU $ff8a

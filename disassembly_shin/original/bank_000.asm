@@ -299,7 +299,12 @@ HeaderLogo::
     db $00, $08, $11, $1f, $88, $89, $00, $0e, $dc, $cc, $6e, $e6, $dd, $dd, $d9, $99
     db $bb, $bb, $67, $63, $6e, $0e, $ec, $cc, $dd, $dc, $99, $9f, $bb, $b9, $33, $3e
 
-IF DEF(DX)
+IF DEF(SGB_GBC)
+HeaderTitle::
+    db "GB KUREYON SHIN"
+HeaderCGBFlag::
+    db CART_COMPATIBLE_DMG_GBC
+ELIF DEF(DX)
 HeaderTitle::
     db "KUREYON SHIN4DX"
 HeaderCGBFlag::
@@ -319,7 +324,11 @@ HeaderCartridgeType::
     db $01
 
 HeaderROMSize::
+IF DEF(SGB_GBC)
+    db $03
+ELSE
     db $02
+ENDC
 
 HeaderRAMSize::
     db $00
@@ -341,6 +350,9 @@ HeaderGlobalChecksum::
 
 StartGame::
     ld sp, wStackTop
+IF DEF(SGB_GBC)
+    ld b, a ; Keep the boot ROM's hardware ID through the initial writes.
+ENDC
     ld a, $01
     ld [wMinigameUnlockedRounds], a
     ld [wMinigameUnlockedRounds + 1], a
@@ -349,9 +361,16 @@ StartGame::
     ld [wAlternateModeFlags], a
     ld [wSpecialModeFlags], a
     ld [wSgbBorderColorMode], a
+IF DEF(SGB_GBC)
+    ld a, b
+    call InitSgbOrCgb
+    nop
+    nop
+ELSE
     xor a
     ld [wSgbEnabled], a
     call DetectSgbOrInitSgb
+ENDC
     jr nc, ResetHardwareAndRuntime
 
     ld a, $ff
@@ -371,7 +390,11 @@ ResetHardwareAndRuntime::
     ld hl, _VRAM
     ld bc, $5f80
     call bzero
+IF DEF(SGB_GBC)
+    call CgbResetVideo
+ELSE
     call CopyDmaStubToHram
+ENDC
     call ReadJoypad
     call InitSound
 
@@ -390,14 +413,25 @@ ReinitCurrentState:: ; Rebuild current state with LCD off. Repeats if init sets 
     call InitCurrentGameState
     xor a
     ldh [hPrevOamPos], a
+IF DEF(SGB_GBC)
+    call ApplyLcdcOnGb
+ELSE
     call ApplyLCDC
+ENDC
     ldh a, [hNeedsReset]
     or a
     jr nz, ReinitCurrentState
 
     call ApplyScrollRegs
+IF DEF(SGB_GBC)
+    call FinishColorScreenInit
+    nop
+    nop
+    nop
+ELSE
     call SgbDelayIfEnabled
     call ApplySgbScreenPaletteFar
+ENDC
     ei
 
 MainWaitForStateReset:: ; Main thread idles here; VBlank update sets hNeedsReset to request a state rebuild.
@@ -643,7 +677,11 @@ BankedMemcpy:: ; Copy BC bytes from A:HL to DE, preserving the current ROM bank.
 
 INCLUDE "engine/compression/rleff.asm"
 
+IF DEF(SGB_GBC)
+SendSgbPacketToSgb::
+ELSE
 SendSgbPacket::
+ENDC
     ld a, [hl]
     and $07
     ret z
@@ -698,7 +736,11 @@ SgbDelayIfEnabled::
     or a
     ret z
 
+IF DEF(SGB_GBC)
+DelayFramesOrCyclesOnGb::
+ELSE
 DelayFramesOrCycles::
+ENDC
     ld de, $1b58
 
 DelayFramesOrCycles_Loop::
@@ -3445,5 +3487,8 @@ Bank0TrailingGraphicsData_3f00::
 
 INCLUDE "engine/debug/background.asm"
 INCLUDE "engine/debug/shortcut.asm"
+IF DEF(SGB_GBC)
+    INCLUDE "engine/video/sgb_gbc_rom0.asm"
+ENDC
 
     ds $4000 - @, $FF

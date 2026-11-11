@@ -9,7 +9,11 @@ VBlankHandler:: ; Main VBlank handler: DMA/OAM, VRAM queue, palettes, joypad, so
 
     inc a
     ldh [hVBlankBusy], a
+IF DEF(SGB_GBC)
+    call CgbDmaAndUpload
+ELSE
     call _HRAM
+ENDC
     ld de, wVramQueue
     call ProcessVramQueue_CheckNextCommand
     call ApplyScrollRegs
@@ -32,6 +36,8 @@ VBlank_RunGameUpdate::
     call ReadJoypad
 IF DEF(DEBUG)
     call UpdateGameStateWithDebugShortcut
+ELIF DEF(SGB_GBC)
+    call CgbUpdateGameState
 ELSE
     call UpdateCurrentGameState
 ENDC
