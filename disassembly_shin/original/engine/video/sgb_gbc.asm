@@ -270,6 +270,18 @@ CgbPrepareFrame:
     ENDR
     or l
     ld l, a
+    ; The password cheek tile is opaque only in the next SGB column.
+    ld a, l
+    cp LOW(wCgbAttrs + 2 * 32 + 15)
+    jr nz, .spritePalette
+    ld a, h
+    cp HIGH(wCgbAttrs + 2 * 32 + 15)
+    jr nz, .spritePalette
+    ld a, [wScreenPaletteId]
+    cp $02
+    jr nz, .spritePalette
+    inc hl
+.spritePalette
     inc e
     inc e
     ld a, [de]
@@ -287,7 +299,7 @@ CgbPrepareFrame:
     jr .sprite
 
 CgbPrepareBgAttrs:
-    ; OBJ colors retain the SGB regions while the lower patterned backdrop uses palette 0.
+    ; Keep the SGB regions for OBJ colors and adjust the BG separately.
     ld hl, wCgbAttrs
     ld de, wCgbBgAttrs
     ld bc, 32 * 18
@@ -299,14 +311,29 @@ CgbPrepareBgAttrs:
     cp $04
     ret nz
     ld a, [wScreenSubstate]
-    or a
-    jr z, .pattern
+    and a
+    jr z, .stageIntro
     cp $03
     ret nz
-.pattern
     ld hl, wCgbBgAttrs + 32 * 11
     ld bc, 32 * 7
     jp bzero
+.stageIntro
+    ; The pattern repeats every six columns. Extend it across the SGB actor region.
+    ld hl, wCgbBgAttrs + 32 * 11
+.stageIntroRow
+    ld d, h
+    ld a, l
+    add 12
+    ld e, a
+    ld b, 8
+    call CopyBytesWithBCount
+    ld bc, 32 - 8
+    add hl, bc
+    ld a, h
+    cp HIGH(wCgbBgAttrs + 32 * 18)
+    jr nz, .stageIntroRow
+    ret
 .instructions
     ; Instructions and ending hints share the actor at the lower left of the box.
     ld hl, wCgbBgAttrs + 32 * 13
