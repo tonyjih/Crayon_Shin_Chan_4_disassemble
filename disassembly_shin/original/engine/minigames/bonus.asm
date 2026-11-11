@@ -50,6 +50,11 @@ Bonus_InitPaletteAndTiles::
 
     ld a, $e3
     ld [wLCDCShadow], a
+IF DEF(ZH_TW)
+    ld hl, FARCALL_ZH_BONUS
+    call FarCallFromBankTable
+    ds 20, $00
+ELSE
     ld hl, LayoutRle_b06_5787
     ld de, wStageLayoutMap
     ld bc, $0168
@@ -59,6 +64,7 @@ Bonus_InitPaletteAndTiles::
     ld bc, $1412
     ld de, wStageLayoutMap
     call CopyTilemapRectToVram
+ENDC
     ld a, $03
     ld [wScreenPaletteId], a
     call InitSound

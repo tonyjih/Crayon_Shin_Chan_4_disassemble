@@ -25,6 +25,7 @@ OUTPUT = ROOT / "build" / "original"
 TEST_OUTPUT = ROOT / "build" / "test-rom"
 DEBUG_OUTPUT = ROOT / "build" / "debug-rom"
 GBC_OUTPUT = ROOT / "build" / "gbc-rom"
+ZH_TW_OUTPUT = ROOT / "build" / "zh-tw-rom"
 
 
 def tool(name: str) -> str:
@@ -108,12 +109,14 @@ def pack_spawns(path: Path) -> bytes:
 
 
 def assemble(assets: list[dict], output: Path, *, test_rom: bool, debug: bool = False,
-             gbc: bool = False) -> None:
+             gbc: bool = False, zh_tw: bool = False) -> None:
     rgbds = rgbds_tools()
     rgbgfx = rgbds["rgbgfx"]
     asm_flags = ["-D", "DEBUG=1"] if debug else []
     if gbc:
         asm_flags.extend(["-D", "SGB_GBC=1"])
+    if zh_tw:
+        asm_flags.extend(["-D", "ZH_TW=1"])
     for asset in assets:
         path = SOURCE / asset.get("assembly_source", asset["source"])
         target = output / "assets" / (asset["id"] + ".bin")
@@ -165,6 +168,10 @@ def assemble(assets: list[dict], output: Path, *, test_rom: bool, debug: bool = 
             else:
                 raise ValueError(f"{path}: compressed size changed; fixed ROM layout needs updating")
         target.write_bytes(packed)
+    if zh_tw:
+        from build_zh_tw_text import compile_text
+
+        compile_text(output)
     obj, rom = output / "game.o", output / ("game.gbc" if gbc else "game.gb")
     run([rgbds["rgbasm"], *asm_flags, "-I", str(output), "-o", str(obj), "game.asm"])
     run([rgbds["rgblink"], "-n", str(output / "game.sym"), "-m", str(output / "game.map"),
@@ -173,12 +180,12 @@ def assemble(assets: list[dict], output: Path, *, test_rom: bool, debug: bool = 
 
 
 def build(output: Path = OUTPUT, *, verify_original: bool = True, debug: bool = False,
-          gbc: bool = False) -> str:
+          gbc: bool = False, zh_tw: bool = False) -> str:
     manifest = json.loads((SOURCE / "assets.json").read_text(encoding="utf-8"))
     output.mkdir(parents=True, exist_ok=True)
     with TemporaryDirectory(dir=output) as directory:
         work = Path(directory)
-        assemble(manifest["assets"], work, test_rom=not verify_original, debug=debug, gbc=gbc)
+        assemble(manifest["assets"], work, test_rom=not verify_original, debug=debug, gbc=gbc, zh_tw=zh_tw)
         rom_name = "game.gbc" if gbc else "game.gb"
         data = (work / rom_name).read_bytes()
         digest = hashlib.md5(data).hexdigest().upper()
@@ -210,9 +217,17 @@ def main() -> int:
                       help="build in build/debug-rom/ with the in-game DEBUG shortcut")
     mode.add_argument("--gbc-rom", action="store_true",
                       help="build in build/gbc-rom/ with the original SGB colors on GBC")
+    mode.add_argument("--zh-tw-rom", action="store_true",
+                      help="build the Traditional Chinese ROM in build/zh-tw-rom/")
+    parser.add_argument("--font-archive", type=Path,
+                        help="rebuild the Traditional Chinese glyph subset from the pinned BDF ZIP before building")
     parser.add_argument("--clean", action="store_true", help="remove the selected build directory")
     args = parser.parse_args()
-    if args.gbc_rom:
+    if args.font_archive and (not args.zh_tw_rom or args.clean):
+        parser.error("--font-archive requires a --zh-tw-rom build")
+    if args.zh_tw_rom:
+        output = ZH_TW_OUTPUT
+    elif args.gbc_rom:
         output = GBC_OUTPUT
     elif args.debug_rom:
         output = DEBUG_OUTPUT
@@ -228,8 +243,13 @@ def main() -> int:
                 shutil.rmtree(output)
             print(f"Removed generated build/{output.name}/ files.")
         else:
-            build(output, verify_original=not (args.test_rom or args.debug_rom or args.gbc_rom),
-                  debug=args.debug_rom, gbc=args.gbc_rom)
+            if args.font_archive:
+                from build_zh_tw_text import rebuild_glyphs
+
+                rebuild_glyphs(args.font_archive)
+                print("Rebuilt the Traditional Chinese glyph subset.", flush=True)
+            build(output, verify_original=not (args.test_rom or args.debug_rom or args.gbc_rom or args.zh_tw_rom),
+                  debug=args.debug_rom, gbc=args.gbc_rom or args.zh_tw_rom, zh_tw=args.zh_tw_rom)
     except (OSError, ValueError, RuntimeError) as error:
         parser.exit(1, f"{error}\n")
     return 0

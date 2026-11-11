@@ -25,6 +25,9 @@ InitMinigame2::
     ld hl, _SCRN0
     ld bc, $1412
     call CopyTilemapRectToVram
+IF DEF(ZH_TW)
+    call Minigame_DrawStartPromptZh
+ENDC
     call InitSound
     ld a, $18
     call PlaySound_Queue3
@@ -101,9 +104,15 @@ BugHunt_TickStartCountdown::
     ld bc, _SCRN0 + $148
     ld de, $0004
     call QueueVramFill
+IF DEF(ZH_TW)
+    ld bc, _SCRN0 + $128
+    ld de, $0004
+    call QueueVramFill
+ELSE
     ld hl, _SCRN0 + $129
     xor a
     call QueueTilemapByte
+ENDC
     ld a, [wMinigameRound]
     ld b, a
     sla a
@@ -194,12 +203,14 @@ BugHunt_ShowCountdownDigit::
     ld [wMinigamePhaseCounter], a
     add $10
     call StartMessageFar
+IF !DEF(ZH_TW)
     ld bc, _SCRN0 + $226
     ld de, $0008
     call QueueVramFill
     ld hl, _SCRN0 + $20c
     ld a, $91
     call QueueTilemapByte
+ENDC
     ld a, $32
     ld [wScreenFrameCounter], a
     ld a, [wMinigamePhaseCounter]

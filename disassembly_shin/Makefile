@@ -1,6 +1,6 @@
 PYTHON ?= python
 
-.PHONY: all original check-original check-sdl-export test-rom debug-rom gbc-rom clean clean-original clean-test-rom
+.PHONY: all original check-original check-sdl-export test-rom debug-rom gbc-rom zh-tw-rom clean clean-original clean-test-rom
 
 all: original
 
@@ -15,6 +15,9 @@ debug-rom:
 
 gbc-rom:
 	$(PYTHON) -B tools/build_original.py --gbc-rom
+
+zh-tw-rom:
+	$(PYTHON) -B tools/build_original.py --zh-tw-rom
 
 check-original: original
 	$(PYTHON) -B tools/test_original_assets.py

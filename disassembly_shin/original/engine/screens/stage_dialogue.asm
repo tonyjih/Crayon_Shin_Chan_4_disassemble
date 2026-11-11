@@ -42,8 +42,13 @@ StageDialogue_LoadSceneGraphics::
     call BuildMenuPatternBackground
     ld a, $ef
     ldh [hTileStreamWritePos], a
+IF DEF(ZH_TW)
+    ld hl, _SCRN0 + $001
+    ld bc, $1008
+ELSE
     ld hl, _SCRN0 + $021
     ld bc, $1007
+ENDC
     call DrawTilemapBox
     ld a, [wStageSceneIndex]
     ld c, $0e
@@ -239,7 +244,11 @@ StageDialogue_PrepareTextEraseRows::
 
 StageDialogue_EraseNextTextRow::
     ld bc, _SCRN0 + $022
+IF DEF(ZH_TW)
+    ld de, $0010
+ELSE
     ld de, $e210
+ENDC
     ld a, h
     or a
     jr z, StageDialogue_QueueTextEraseRow

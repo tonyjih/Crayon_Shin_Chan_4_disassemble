@@ -995,13 +995,21 @@ UpdateSgbBorderColorModeFar::
 
 StartMessageFar::
     ldh [hTileStreamWritePos], a
+IF DEF(ZH_TW)
+    ld hl, FARCALL_ZH_INIT
+ELSE
     ld hl, FARCALL_BANK3_INIT_MESSAGE_STREAM
+ENDC
     call FarCallFromBankTable
     ret
 
 
 UpdateMessageFar::
+IF DEF(ZH_TW)
+    ld hl, FARCALL_ZH_UPDATE
+ELSE
     ld hl, FARCALL_BANK3_UPDATE_MESSAGE_STREAM
+ENDC
     call FarCallFromBankTable
     ret
 

@@ -3,20 +3,32 @@ DEF PASSWORD_INDEX_SCENE_TEST  EQU $0b
 
 InitPasswordScreen::
 ; Initialize the kana grid and the two ten-byte password input rows.
+IF DEF(ZH_TW)
+    ld hl, FARCALL_ZH_PASSWORD
+    call FarCallFromBankTable
+    ds 8, $00
+ELSE
     ld a, BANK(Gfx_b06_50c4)
     ld hl, Gfx_b06_50c4
     ld de, _VRAM + $900
     ld bc, $0260
     call BankedMemcpy
+ENDC
     ld a, BANK(LayoutRle_b01_7e7c)
     ld hl, LayoutRle_b01_7e7c
     ld de, wStageLayoutMap
     ld bc, $0168
     call BankedMemcpy_RLEFF
+IF DEF(ZH_TW)
+    ld hl, FARCALL_ZH_PASSWORD_MAP
+    call FarCallFromBankTable
+    ds 6, $00
+ELSE
     ld de, wStageLayoutMap
     ld hl, _SCRN0
     ld bc, $1412
     call CopyTilemapRectToVram
+ENDC
     call InitSound
     ld a, $1c
     call PlaySound_Queue3
@@ -517,30 +529,42 @@ PasswordInputCursorMetasprite::
 
 PasswordPromptTiles::
 ; パスワードいれれば？. Each header is 10 accent tiles followed by 10 base glyph tiles.
+IF DEF(ZH_TW)
+    INCBIN "zh_password.tilemap", 0, PASSWORD_CODE_SIZE
+ELSE
     db PASSWORD_ACCENT_HANDAKUTEN
     ds 3, PASSWORD_ACCENT_BLANK
     db PASSWORD_ACCENT_DAKUTEN
     ds 3, PASSWORD_ACCENT_BLANK
     db PASSWORD_ACCENT_DAKUTEN, PASSWORD_ACCENT_BLANK
     text "ハスワートいれれは？"
+ENDC
     ASSERT @ - PasswordPromptTiles == PASSWORD_CODE_SIZE
 
 PasswordAcceptedTiles::
 ; いくゾ！ シロ！
+IF DEF(ZH_TW)
+    INCBIN "zh_password.tilemap", 2 * PASSWORD_CODE_SIZE, PASSWORD_CODE_SIZE
+ELSE
     ds 2, PASSWORD_ACCENT_BLANK
     db PASSWORD_ACCENT_DAKUTEN
     ds 7, PASSWORD_ACCENT_BLANK
     text "いくソ！ シロ！  "
+ENDC
     ASSERT @ - PasswordAcceptedTiles == PASSWORD_CODE_SIZE
 
 PasswordErrorTiles::
 ; ち・が・う・ゾー
+IF DEF(ZH_TW)
+    INCBIN "zh_password.tilemap", PASSWORD_CODE_SIZE, PASSWORD_CODE_SIZE
+ELSE
     ds 2, PASSWORD_ACCENT_BLANK
     db PASSWORD_ACCENT_DAKUTEN
     ds 3, PASSWORD_ACCENT_BLANK
     db PASSWORD_ACCENT_DAKUTEN
     ds 3, PASSWORD_ACCENT_BLANK
     text "ち．か．う．ソー  "
+ENDC
     ASSERT @ - PasswordErrorTiles == PASSWORD_CODE_SIZE
 
 ; After the first two base glyphs. The stage-dialogue lookup advances before reading.

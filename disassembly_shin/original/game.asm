@@ -22,3 +22,6 @@ INCLUDE "bank_007.asm"
 IF DEF(SGB_GBC)
     INCLUDE "engine/video/sgb_gbc.asm"
 ENDC
+IF DEF(ZH_TW)
+    INCLUDE "engine/zh_tw_messages.asm"
+ENDC

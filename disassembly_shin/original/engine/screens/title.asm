@@ -32,6 +32,11 @@ InitTitleOrPasswordScreen::
     ld hl, GfxRle_b06_4bc0
     ld de, _VRAM + $1000
     call LoadMaskedGfx
+IF DEF(ZH_TW)
+    ld hl, FARCALL_ZH_TITLE
+    call FarCallFromBankTable
+    ds 20, $00
+ELSE
     ld a, BANK(LayoutRle_b06_501e)
     ld hl, LayoutRle_b06_501e
     ld de, wStageLayoutMap
@@ -41,6 +46,7 @@ InitTitleOrPasswordScreen::
     ld hl, _SCRN0
     ld bc, $1412
     call CopyTilemapRectToVram
+ENDC
     call InitSound
 
 InitTitleMenuPresentation::
@@ -140,6 +146,10 @@ TitleMenu_UpdateIntro::
     ld b, $60
     ld de, wSceneAnim0PtrLo
     call AnimateSceneMetasprite
+IF DEF(ZH_TW)
+    ld hl, FARCALL_ZH_TITLE_LOGO
+    call FarCallFromBankTable
+ENDC
     ld a, [wScreenPhaseCounter]
     inc a
     ld [wScreenPhaseCounter], a

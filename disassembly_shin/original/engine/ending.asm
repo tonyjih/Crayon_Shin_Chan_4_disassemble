@@ -658,7 +658,11 @@ EndingScroll_ClearTrailingTextRow::
     add hl, bc
     ld c, l
     ld b, h
+IF DEF(ZH_TW)
+    ld de, $010b
+ELSE
     ld de, $010a
+ENDC
     call QueueVramFill
     ret
 

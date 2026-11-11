@@ -33,6 +33,9 @@ InitMinigame1::
     ld hl, _SCRN0
     ld bc, $1412
     call CopyTilemapRectToVram
+IF DEF(ZH_TW)
+    call Minigame_DrawStartPromptZh
+ENDC
     call InitSound
     ld a, $18
     call PlaySound_Queue3
@@ -231,12 +234,14 @@ Mekemeke_ShowCountdownDigit::
     ld [wMinigamePhaseCounter], a
     add $10
     call StartMessageFar
+IF !DEF(ZH_TW)
     ld bc, _SCRN0 + $226
     ld de, $0008
     call QueueVramFill
     ld hl, _SCRN0 + $20c
     ld a, $ac
     call QueueTilemapByte
+ENDC
     ld a, $32
     ld [wScreenFrameCounter], a
     ld a, [wMinigamePhaseCounter]

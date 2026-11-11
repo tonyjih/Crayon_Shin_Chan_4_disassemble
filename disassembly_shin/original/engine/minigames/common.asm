@@ -82,6 +82,14 @@ Minigame_StartRound::
     ld [wScreenFrameCounter], a
     ret
 
+IF DEF(ZH_TW)
+Minigame_DrawStartPromptZh::
+    ld a, $02
+    ld [wMessageFlags], a
+    ld a, $4b
+    jp StartMessageFar
+ENDC
+
 
 AdvanceScreenRandomByte::
 ; Rotate the previous byte right and add DIV; return and save the result.

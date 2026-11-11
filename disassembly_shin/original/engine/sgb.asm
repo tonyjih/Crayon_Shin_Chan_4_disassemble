@@ -334,8 +334,13 @@ InitSgbBorder_ClearUpperPlanes::
     ld hl, wStageLayoutMap
     ld bc, $1000
     call TransferSgbDataFromBuffer
+IF DEF(ZH_TW)
+    ld a, BANK(ZhSgbAttributeFilesRle)
+    ld hl, ZhSgbAttributeFilesRle
+ELSE
     ld a, BANK(SgbBorderTilemapRle)
     ld hl, SgbBorderTilemapRle
+ENDC
     ld de, wStageLayoutMap
     call LoadMaskedGfx
     ld de, SgbPacket_AttrTrn

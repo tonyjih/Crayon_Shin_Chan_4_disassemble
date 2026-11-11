@@ -489,4 +489,11 @@ CgbUploadPalettes:
 
 CgbAttributeFiles:
     ; First 17 ATTR_TRN files, each with 20x18 packed two-bit palette indices.
+IF DEF(ZH_TW)
+    INCBIN "zh_sgb_attrs.bin", 0, 17 * 90
+
+ZhSgbAttributeFilesRle::
+    INCBIN "zh_sgb_attrs.rle"
+ELSE
     INCBIN "sgb/border_tilemap.bin", 0, 17 * 90
+ENDC
