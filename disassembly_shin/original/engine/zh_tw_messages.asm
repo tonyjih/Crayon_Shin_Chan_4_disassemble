@@ -15,12 +15,10 @@ DEF FARCALL_ZH_PASSWORD EQU $0904
 DEF FARCALL_ZH_PASSWORD_MAP EQU $0906
 DEF FARCALL_ZH_TITLE EQU $0908
 DEF FARCALL_ZH_BONUS EQU $090a
-DEF FARCALL_ZH_TITLE_LOGO EQU $090c
 
 SECTION "Traditional Chinese text engine", ROMX[ROM_BANK_ID_ADDR], BANK[9]
     db BANK(@)
     dw ZhStartMessage, ZhUpdateMessage, ZhInitPassword, ZhInitPasswordMap, ZhInitTitle, ZhInitBonus
-    dw ZhDrawTitleLogo
 
 ZhStartMessage:
     ldh a, [hTileStreamWritePos]
@@ -240,19 +238,40 @@ ZhInitTitle:
     ld de, _VRAM + $1500
     ld bc, ZhTitleTilesEnd - ZhTitleTiles
     call memcpy
-    ld hl, ZhTitleNameTiles
-    ld de, _VRAM + $ec0
-    ld bc, ZhTitleNameTilesEnd - ZhTitleNameTiles
-    call memcpy
     ld de, ZhTitleMap
     ld hl, _SCRN0
     ld bc, $1412
+    call CopyTilemapRectToVram
+    call IsCgbColorMode
+    jr z, .cgb
+    ; These signed BG slots are free on the title screen, including while menus are open.
+    ld hl, ZhTitleGbLogoTiles
+    ld de, _VRAM + $0900
+    ld bc, $30 * 16
+    call memcpy
+    ld de, _VRAM + $0ec0
+    ld bc, $14 * 16
+    call memcpy
+    ld de, _VRAM + $1670
+    ld bc, $19 * 16
+    jp memcpy
+.cgb
+    ld a, 1
+    ldh [rVBK], a
+    ld hl, ZhTitleCgbLogoTiles
+    ld de, _VRAM + $1000
+    ld bc, 20 * 5 * 16
+    call memcpy
+    ld hl, ZhTitleCgbObjTiles
+    ld de, _VRAM
+    ld bc, ZhTitleCgbObjTilesEnd - ZhTitleCgbObjTiles
+    call memcpy
+    xor a
+    ldh [rVBK], a
+    ld de, ZhTitleCgbMap
+    ld hl, _SCRN0
+    ld bc, $1405
     jp CopyTilemapRectToVram
-
-ZhDrawTitleLogo:
-    ld bc, 0
-    ld hl, ZhTitleLogoParts
-    jp DrawMetaspriteNormal
 
 ZhInitBonus:
     ld hl, ZhBonusTiles
@@ -272,11 +291,17 @@ ZhPasswordTilesEnd:
 ZhTitleTiles:
     INCBIN "zh_title.2bpp"
 ZhTitleTilesEnd:
-ZhTitleNameTiles:
-    INCBIN "zh_title_name.2bpp"
-ZhTitleNameTilesEnd:
-ZhTitleLogoParts:
-    INCBIN "zh_title_logo.oam"
+ZhTitleGbLogoTiles:
+    INCBIN "zh_title_logo_gb.2bpp"
+ZhTitleCgbLogoTiles:
+    INCBIN "zh_title_logo_cgb.2bpp"
+ZhTitleCgbObjTiles:
+    INCBIN "zh_title_logo_obj.2bpp"
+ZhTitleCgbObjTilesEnd:
+ZhTitleCgbMap:
+    FOR Tile, 20 * 5
+        db Tile
+    ENDR
 ZhTitleMap:
     INCBIN "zh_title.tilemap"
 ZhBonusTiles:

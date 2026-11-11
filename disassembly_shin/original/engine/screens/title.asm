@@ -146,10 +146,6 @@ TitleMenu_UpdateIntro::
     ld b, $60
     ld de, wSceneAnim0PtrLo
     call AnimateSceneMetasprite
-IF DEF(ZH_TW)
-    ld hl, FARCALL_ZH_TITLE_LOGO
-    call FarCallFromBankTable
-ENDC
     ld a, [wScreenPhaseCounter]
     inc a
     ld [wScreenPhaseCounter], a
@@ -348,7 +344,33 @@ MenuCursor_DrawSelection::
     ret
 
 
-UpdateMenuMessageVramClear:: ; Clear/update queued title/menu message rows when $d96d is active.
+UpdateMenuMessageVramClear::
+IF DEF(ZH_TW)
+    ld a, [wMessageState]
+    cp $02
+    jp nz, UpdateMessageFar
+    ; Finish clearing the menu across two VBlanks so the fill fits on GB.
+    ld a, $01
+    ld [wMessageState], a
+    ld bc, _SCRN0 + $201
+    ld a, 2
+
+QueueTitleMenuClearRows:
+    ld de, $0012
+.row
+    push af
+    call QueueVramFill
+    ld a, c
+    add $20
+    ld c, a
+    jr nc, .next
+    inc b
+.next
+    pop af
+    dec a
+    jr nz, .row
+    ret
+ELSE
     ld a, [wMessageState]
     or a
     ret z
@@ -375,6 +397,7 @@ UpdateMenuMessageVramClear:: ; Clear/update queued title/menu message rows when 
     call QueueVramFill
     call UpdateMessageFar
     ret
+ENDC
 
 
 StartMenuMessage:: ; Start a bank3 text/message sequence for the selected title-menu item.
@@ -385,4 +408,13 @@ StartMenuMessage:: ; Start a bank3 text/message sequence for the selected title-
     call StartMessageFar
     xor a
     ld [wMenuCursorRow], a
+IF DEF(ZH_TW)
+    ; Remove the old tilemap entries before the next menu reloads their tile graphics.
+    ld a, $02
+    ld [wMessageState], a
+    ld bc, _SCRN0 + $181
+    ld a, 4
+    jp QueueTitleMenuClearRows
+ELSE
     ret
+ENDC

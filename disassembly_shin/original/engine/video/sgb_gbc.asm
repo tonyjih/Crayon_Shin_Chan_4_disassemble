@@ -241,7 +241,11 @@ CgbPrepareFrame:
 .sprite
     ldh a, [hOamWritePos]
     cp e
+IF DEF(ZH_TW)
+    jp z, CgbDrawZhTitleLogo
+ELSE
     ret z
+ENDC
     ld a, [de]
     sub 12 ; Center of an 8x8 OBJ in screen coordinates.
     jr nc, .checkY
@@ -298,12 +302,42 @@ CgbPrepareFrame:
     inc e
     jr .sprite
 
+IF DEF(ZH_TW)
+CgbIsZhTitle:
+    ldh a, [hGameState]
+    and a
+    ret nz
+    ld a, [wScreenSubstate]
+    and a
+    ret nz
+    ld a, [wScreenPaletteId]
+    cp $01
+    ret
+
+CgbDrawZhTitleLogo:
+    ; Append the overlays after assigning the original palettes to the title actors.
+    call CgbIsZhTitle
+    ret nz
+    ld bc, 0
+    ld hl, CgbTitleLogoParts
+    jp DrawMetaspriteNormal
+ENDC
+
 CgbPrepareBgAttrs:
     ; Keep the SGB regions for OBJ colors and adjust the BG separately.
     ld hl, wCgbAttrs
     ld de, wCgbBgAttrs
     ld bc, 32 * 18
     call memcpy
+IF DEF(ZH_TW)
+    call CgbIsZhTitle
+    jr nz, .otherScreen
+    ld hl, CgbTitleLogoAttrs
+    ld de, wCgbBgAttrs
+    ld bc, 32 * 5
+    jp memcpy
+.otherScreen
+ENDC
     ld a, [wScreenPaletteId]
     cp $14
     jr z, .instructions
@@ -485,7 +519,49 @@ CgbUploadPalettes:
         ld a, [hl+]
         ldh [c], a
     ENDR
+IF DEF(ZH_TW)
+    call CgbIsZhTitle
+    ret nz
+    ; The top two BGP bits are the title fade level. Each color block is 128 bytes.
+    ld a, [wPaletteBGP]
+    and $c0
+    add a
+    ld l, a
+    ld h, 0
+    rl h
+    ld bc, CgbTitleLogoPalettes
+    add hl, bc
+    ld a, $80
+    ldh [rBCPS], a
+    ld c, LOW(rBCPD)
+    REPT 16
+        ld a, [hl+]
+        ldh [c], a
+    ENDR
+    ld a, $98 ; Skip BG palette 2, used by the subtitle and credits.
+    ldh [rBCPS], a
+    REPT 40
+        ld a, [hl+]
+        ldh [c], a
+    ENDR
+    ld a, $b0 ; OBJ palettes 6 and 7.
+    ldh [rOCPS], a
+    ld c, LOW(rOCPD)
+    REPT 16
+        ld a, [hl+]
+        ldh [c], a
+    ENDR
+ENDC
     ret
+
+IF DEF(ZH_TW)
+CgbTitleLogoParts:
+    INCBIN "zh_title_logo.oam"
+CgbTitleLogoAttrs:
+    INCBIN "zh_title_logo.attrs"
+CgbTitleLogoPalettes:
+    INCBIN "zh_title_logo.palettes"
+ENDC
 
 CgbAttributeFiles:
     ; First 17 ATTR_TRN files, each with 20x18 packed two-bit palette indices.

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import re
 from io import BytesIO
 from pathlib import Path
@@ -367,38 +368,105 @@ def encode_message(message, lines, width, pool, center, glyphs):
     return bytes(result) + b"\xff"
 
 
-def compile_title_logo(output, glyphs):
-    tiles = bytearray()
+def title_tile(pixels):
+    return bytes(sum((row[x] >> plane & 1) << (7 - x) for x in range(8))
+                 for row in pixels for plane in (0, 1))
+
+
+def title_sgb_shade(color, x, y):
+    if color == "_":
+        return 0
+    if x >= 136:
+        return 3 if color == "B" else 1
+    if color == "O":
+        return 1 + ((x + y) & 1)
+    if color == "G":
+        return 2 + ((x + y) & 1)
+    return {"D": 3, "K": 3, "P": 1, "Y": 2}[color]
+
+
+def compile_title_logo(output, titlemap):
+    logo = json.loads((TEXT / "title-logo.json").read_text(encoding="utf-8"))
+    pixels = logo["pixels"]
+    palettes = logo["bg_palettes"]
+    obj_palettes = logo["obj_palettes"]
+    # Palette 2 stays with the original subtitle and copyright. Actors use OBJ 1 and 2.
+    bg_slots = (0, 1, 3, 4, 5, 6, 7)
+    assert len(palettes) == len(bg_slots) and len(obj_palettes) == 2
+    assert palettes[0][0] == palettes[1][0] == "_"
+    assert len(pixels) == 40 and all(len(row) == 160 for row in pixels)
+    assert len(logo["bg_map"]) == 5 and all(len(row) == 20 for row in logo["bg_map"])
+    chunks = (range(0x90, 0xC0), range(0xEC, 0x100), range(0x67, 0x80))
+    slots = [i for chunk in chunks for i in chunk]
+    assert not set(slots).intersection(titlemap[100:])
+    fallback = {bytes(16): 0}
+    missing = {}
+    bg_tiles = bytearray()
+    bg_attrs = bytearray()
+    for row in range(5):
+        for col, palette_id in enumerate(logo["bg_map"][row]):
+            top, left = 8 * row, 8 * col
+            palette = palettes[palette_id]
+            bg_pixels = []
+            for y in range(top, top + 8):
+                bg_row = []
+                for x in range(left, left + 8):
+                    color = pixels[y][x]
+                    if color in palette:
+                        bg_row.append(palette.index(color))
+                    else:
+                        missing[x, y] = color
+                        bg_row.append(0)
+                bg_pixels.append(bg_row)
+            bg_tiles.extend(title_tile(bg_pixels))
+            bg_attrs.append(8 | bg_slots[palette_id])
+            tile = title_tile([[title_sgb_shade(pixels[y][x], x, y) for x in range(left, left + 8)]
+                               for y in range(top, top + 8)])
+            if tile not in fallback:
+                assert len(fallback) <= len(slots), "Title logo exceeds the free GB background tiles"
+                fallback[tile] = slots[len(fallback) - 1]
+            titlemap[row * 20 + col] = fallback[tile]
+        bg_attrs.extend(bytes(12))
+
+    obj_tiles = bytearray()
     parts = bytearray()
-    # Four 16px cells fit alongside both original character animations.
-    positions = ((9, 8), (41, 11), (73, 8), (105, 11))
-    for i, (char, (left, top)) in enumerate(zip(TITLE_NAME, positions, strict=True)):
-        _, rows = glyphs[char]
-        ink = {(x + 1, y + 1) for y in range(14) for x in range(14)
-               if rows[y * FONT_SIZE // 14] & (1 << (FONT_SIZE - 1 - x * FONT_SIZE // 14))}
-        pixels = [[0] * 16 for _ in range(16)]
-        for x, y in ink:
-            for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1), (1, 1)):
-                pixels[y + dy][x + dx] = 3
-        for x, y in ink:
-            pixels[y][x] = 1 + (i & 1)
-        for y in (0, 8):
-            for x in (0, 8):
-                tile = bytearray()
-                for row in pixels[y:y + 8]:
-                    for plane in (0, 1):
-                        tile.append(sum((row[x + bit] >> plane & 1) << (7 - bit) for bit in range(8)))
-                if any(tile):
-                    parts.extend((top + y, left + x, 0xEC + len(tiles) // 16, 0x10))
-                    tiles.extend(tile)
-    assert 0 < len(parts) // 4 <= 16
-    (output / "zh_title_name.2bpp").write_bytes(tiles)
+    assert len(logo["sprites"]) <= 16
+    assert all(sum(y <= line < y + 8 for _, y, _ in logo["sprites"]) <= 10 for line in range(40))
+    for index, (left, top, palette_id) in enumerate(logo["sprites"]):
+        palette = obj_palettes[palette_id]
+        part = []
+        for y in range(top, top + 8):
+            row = []
+            for x in range(left, left + 8):
+                color = missing.get((x, y))
+                row.append(1 + palette.index(missing.pop((x, y))) if color is not None and color in palette else 0)
+            part.append(row)
+        obj_tiles.extend(title_tile(part))
+        parts.extend((top, left, index, 8 | (6 + palette_id)))
+    assert not missing
+
+    colors = {symbol: tuple(v >> 3 for v in bytes.fromhex(rgb)) for symbol, rgb in logo["colors"].items()}
+    palette_bytes = bytearray()
+    for level in range(4):
+        block = bytearray()
+        for symbol in "".join(palettes) + "".join("_" + p for p in obj_palettes):
+            channels = ((base * (3 - level) + color * level + 1) // 3
+                        for base, color in zip(colors["_"], colors[symbol], strict=True))
+            block.extend(pack("<H", sum(v << (5 * i) for i, v in enumerate(channels))))
+        palette_bytes.extend(block.ljust(128, b"\x00"))
+
+    fallback_tiles = {i: tile for tile, i in fallback.items()}
+    (output / "zh_title_logo_gb.2bpp").write_bytes(b"".join(fallback_tiles.get(i, bytes(16)) for i in slots))
+    (output / "zh_title_logo_cgb.2bpp").write_bytes(bg_tiles)
+    (output / "zh_title_logo_obj.2bpp").write_bytes(obj_tiles)
     (output / "zh_title_logo.oam").write_bytes(parts + b"\x80")
+    (output / "zh_title_logo.attrs").write_bytes(bg_attrs)
+    (output / "zh_title_logo.palettes").write_bytes(palette_bytes)
 
 
 def compile_fixed_screens(output, glyphs):
-    def rows(text, width, tiles, first_id, upper=bytes(16)):
-        _, masks = draw_line(text, width, glyphs, center=True, top_offset=3)
+    def rows(text, width, tiles, first_id, upper=bytes(16), *, top_offset=3):
+        _, masks = draw_line(text, width, glyphs, center=True, top_offset=top_offset)
         indices = bytearray()
         for i, mask in enumerate(masks):
             edge = upper if i < width else bytes(16)
@@ -421,16 +489,14 @@ def compile_fixed_screens(output, glyphs):
 
     title = {}
     tilemap = bytearray((SOURCE / "maps/title.bin").read_bytes())
-    for y in range(4):
-        tilemap[y * 20:y * 20 + 17] = bytes(17)
-    header = rows(TITLE_SUBTITLE, 15, title, 0x50)
+    header = rows(TITLE_SUBTITLE, 15, title, 0x50, top_offset=0)
     for i in range(2):
-        start = (4 + i) * 20 + 2
+        start = (5 + i) * 20 + 2
         tilemap[start:start + 15] = header[i * 15:(i + 1) * 15]
-    assert max(title.values()) <= 0x7F
+    assert max(title.values()) < 0x67
+    compile_title_logo(output, tilemap)
     (output / "zh_title.2bpp").write_bytes(b"".join(title))
     (output / "zh_title.tilemap").write_bytes(tilemap)
-    compile_title_logo(output, glyphs)
 
     bonus = {}
     tilemap = bytearray((SOURCE / "maps/bonus.bin").read_bytes())
@@ -500,6 +566,9 @@ def compile_text(output: Path) -> None:
     output.mkdir(parents=True, exist_ok=True)
     compile_fixed_screens(output, glyphs)
     attrs = bytearray((SOURCE / "sgb/border_tilemap.bin").read_bytes())
+    # Extend the SGB title colors to row 4, then the subtitle colors to row 6.
+    attrs[90 + 4 * 5:90 + 5 * 5] = attrs[90:90 + 5]
+    attrs[90 + 6 * 5:90 + 7 * 5] = attrs[90 + 5 * 5:90 + 6 * 5]
     # Dialogue boxes start one tile higher in zh-TW. Extend the frame palette to that row.
     for file_index in range(0x07, 0x0E):
         top = file_index * 90
@@ -519,4 +588,3 @@ if __name__ == "__main__":
         rebuild_glyphs(args.font_archive)
     except (OSError, ValueError) as exc:
         parser.exit(1, f"{exc}\n")
-
